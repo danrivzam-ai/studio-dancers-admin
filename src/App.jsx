@@ -533,8 +533,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Separador */}
-          <div className="border-t border-gray-100 my-4"></div>
+          {/* Separador visible */}
+          <div className="border-t-2 border-purple-200 my-4"></div>
 
           {/* Fila 2: Botones de acciones */}
           <div className="flex flex-wrap items-center justify-between gap-3">
