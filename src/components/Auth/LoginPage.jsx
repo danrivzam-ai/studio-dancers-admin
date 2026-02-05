@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 export default function LoginPage({ onLogin }) {
@@ -120,7 +120,6 @@ export default function LoginPage({ onLogin }) {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <LogIn className="inline-block w-5 h-5 mr-2 -mt-0.5" />
               Iniciar Sesión
             </button>
             <button
@@ -131,7 +130,6 @@ export default function LoginPage({ onLogin }) {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <UserPlus className="inline-block w-5 h-5 mr-2 -mt-0.5" />
               Crear Cuenta
             </button>
           </div>
@@ -171,20 +169,15 @@ export default function LoginPage({ onLogin }) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Correo Electrónico
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="tu@email.com"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
-                  required
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="tu@email.com"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                required
+              />
             </div>
 
             <div>
@@ -192,16 +185,13 @@ export default function LoginPage({ onLogin }) {
                 Contraseña
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Lock className="w-5 h-5" />
-                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                   required
                 />
                 <button
@@ -219,20 +209,15 @@ export default function LoginPage({ onLogin }) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Confirmar Contraseña
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
-                    required={!isLogin}
-                  />
-                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                  required={!isLogin}
+                />
               </div>
             )}
 
