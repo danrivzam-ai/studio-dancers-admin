@@ -14,7 +14,10 @@
       "Bash(git init:*)",
       "Bash(git add:*)",
       "Bash(dir:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit - Studio Dancers Administration System\n\n- Student management with payment tracking\n- Course and product management\n- Cash register and sales\n- Payment history and receipts\n- Supabase integration\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit - Studio Dancers Administration System\n\n- Student management with payment tracking\n- Course and product management\n- Cash register and sales\n- Payment history and receipts\n- Supabase integration\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nUI Enhancement - Professional design system\n\n- Added CSS variables for consistent color palette\n- New gradient backgrounds and shadows\n- Improved card, button, and form styles\n- Added animations and transitions\n- Modern scrollbar styling\n- Better badge and alert components\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -10,6 +10,7 @@ import { usePayments } from './hooks/usePayments'
 import { useItems } from './hooks/useItems'
 import { useDailyIncome } from './hooks/useDailyIncome'
 import { useCashRegister } from './hooks/useCashRegister'
+import { useAuth } from './hooks/useAuth'
 import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, getSuggestedCourses } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo } from './lib/dateUtils'
 import PaymentModal from './components/PaymentModal'
@@ -24,9 +25,11 @@ import StudentDetail from './components/StudentDetail'
 import DeleteConfirmModal from './components/DeleteConfirmModal'
 import PinPromptModal from './components/PinPromptModal'
 import CashRegister from './components/CashRegister'
+import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
 export default function App() {
+  const { user, loading: authLoading, signOut, isAuthenticated } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, recalculatePaymentDates } = useStudents()
   const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
@@ -388,12 +391,33 @@ export default function App() {
 
   const loading = studentsLoading || salesLoading
 
+  // Mostrar loading mientras verifica autenticación
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+      }}>
+        <div className="text-center">
+          <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
+            <span className="text-3xl">💃</span>
+          </div>
+          <div className="text-white text-xl font-medium">Cargando...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no está autenticado, mostrar página de login
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={(user) => console.log('Logged in:', user.email)} />
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">🩰</div>
-          <div className="text-purple-600 text-xl">Cargando...</div>
+          <div className="text-purple-600 text-xl">Cargando datos...</div>
         </div>
       </div>
     )
@@ -463,6 +487,17 @@ export default function App() {
                 title="Exportar listado"
               >
                 <Download size={20} />
+              </button>
+              <button
+                onClick={async () => {
+                  if (confirm('¿Cerrar sesión?')) {
+                    await signOut()
+                  }
+                }}
+                className="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-3 rounded-xl font-medium transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut size={20} />
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
