@@ -398,20 +398,19 @@ export default function App() {
         background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
         <div className="text-center">
-          {/* Logo animado - Logo blanco para fondo oscuro */}
-          <div className="loading-logo w-28 h-28 bg-white/10 backdrop-blur-sm rounded-3xl shadow-2xl flex items-center justify-center mx-auto mb-6 border border-white/20">
+          {/* Logo animado - más pequeño */}
+          <div className="loading-logo mb-6">
             <img
               src="/logo-white.png"
               alt="Studio Dancers"
-              className="h-20 w-20 object-contain"
+              className="h-16 w-auto object-contain mx-auto"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
             />
-            <span className="text-5xl hidden">💃</span>
+            <span className="text-4xl hidden">💃</span>
           </div>
 
           {/* Texto */}
-          <h2 className="text-white text-2xl font-bold mb-2">Studio Dancers</h2>
-          <p className="text-white/70 text-sm mb-6">Preparando tu experiencia...</p>
+          <p className="text-white/80 text-sm mb-6">Cargando...</p>
 
           {/* Dots animados */}
           <div className="loading-dots mb-4">
@@ -546,25 +545,23 @@ export default function App() {
                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
               >
                 <Plus size={20} />
-                <span className="hidden sm:inline">Nuevo Alumno</span>
-                <span className="sm:hidden">Alumno</span>
+                Nuevo Alumno
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
               >
                 <ShoppingBag size={20} />
-                <span className="hidden sm:inline">Nueva Venta</span>
-                <span className="sm:hidden">Venta</span>
+                Nueva Venta
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm hover:opacity-90"
+                style={{ backgroundColor: '#551735', color: 'white' }}
                 title="Pago rápido (clase diaria)"
               >
                 <Zap size={20} />
-                <span className="hidden sm:inline">Pago Rápido</span>
-                <span className="sm:hidden">Pago</span>
+                Pago Rápido
               </button>
             </div>
 
