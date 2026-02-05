@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 export default function LoginPage({ onLogin }) {
@@ -92,11 +92,16 @@ export default function LoginPage({ onLogin }) {
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-2xl shadow-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">💃</span>
+          <div className="mx-auto mb-6">
+            <img
+              src="/logo.png"
+              alt="Studio Dancers"
+              className="h-28 mx-auto drop-shadow-2xl"
+              style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }}
+            />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Studio Dancers</h1>
-          <p className="text-purple-200">Sistema de Administración</p>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Studio Dancers</h1>
+          <p className="text-purple-200 text-lg">Sistema de Administración</p>
         </div>
 
         {/* Card de login/registro */}
@@ -105,90 +110,100 @@ export default function LoginPage({ onLogin }) {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => { setIsLogin(true); setError(''); setSuccess(''); }}
-              className={`flex-1 py-4 text-center font-semibold transition-colors ${
+              className={`flex-1 py-4 text-center font-semibold transition-all duration-200 ${
                 isLogin
                   ? 'text-purple-700 border-b-2 border-purple-600 bg-purple-50'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <LogIn className="inline-block w-5 h-5 mr-2" />
+              <LogIn className="inline-block w-5 h-5 mr-2 -mt-0.5" />
               Iniciar Sesión
             </button>
             <button
               onClick={() => { setIsLogin(false); setError(''); setSuccess(''); }}
-              className={`flex-1 py-4 text-center font-semibold transition-colors ${
+              className={`flex-1 py-4 text-center font-semibold transition-all duration-200 ${
                 !isLogin
                   ? 'text-purple-700 border-b-2 border-purple-600 bg-purple-50'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <UserPlus className="inline-block w-5 h-5 mr-2" />
+              <UserPlus className="inline-block w-5 h-5 mr-2 -mt-0.5" />
               Crear Cuenta
             </button>
           </div>
 
           {/* Formulario */}
-          <form onSubmit={isLogin ? handleLogin : handleSignUp} className="p-6">
+          <form onSubmit={isLogin ? handleLogin : handleSignUp} className="p-6 space-y-5">
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
                 {success}
               </div>
             )}
 
             {!isLogin && (
-              <div className="mb-4">
-                <label className="form-label">Nombre del Estudio</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre del Estudio
+                </label>
                 <input
                   type="text"
                   name="studioName"
                   value={formData.studioName}
                   onChange={handleChange}
                   placeholder="Mi Estudio de Danza"
-                  className="form-input"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                   required={!isLogin}
                 />
               </div>
             )}
 
-            <div className="mb-4">
-              <label className="form-label">Correo Electrónico</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Correo Electrónico
+              </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <Mail className="w-5 h-5" />
+                </div>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="tu@email.com"
-                  className="form-input pl-10"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                   required
                 />
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="form-label">Contraseña</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contraseña
+              </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <Lock className="w-5 h-5" />
+                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="form-input pl-10 pr-10"
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -196,17 +211,21 @@ export default function LoginPage({ onLogin }) {
             </div>
 
             {!isLogin && (
-              <div className="mb-4">
-                <label className="form-label">Confirmar Contraseña</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirmar Contraseña
+                </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <Lock className="w-5 h-5" />
+                  </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="form-input pl-10"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                     required={!isLogin}
                   />
                 </div>
@@ -216,11 +235,18 @@ export default function LoginPage({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary-gradient py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
+                boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'
+              }}
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="spinner-sm border-white border-t-transparent"></div>
+                <span className="flex items-center justify-center gap-3">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   {isLogin ? 'Ingresando...' : 'Creando cuenta...'}
                 </span>
               ) : (
@@ -231,7 +257,7 @@ export default function LoginPage({ onLogin }) {
             {isLogin && (
               <button
                 type="button"
-                className="w-full mt-3 text-sm text-purple-600 hover:text-purple-700"
+                className="w-full text-sm text-purple-600 hover:text-purple-700 font-medium py-2"
                 onClick={() => {/* TODO: Reset password */}}
               >
                 ¿Olvidaste tu contraseña?
@@ -241,8 +267,8 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-purple-200 text-sm mt-6">
-          © 2024 Studio Dancers Admin
+        <p className="text-center text-purple-200 text-sm mt-8">
+          © {new Date().getFullYear()} Studio Dancers Admin
         </p>
       </div>
     </div>

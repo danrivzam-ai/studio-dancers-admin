@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, Shield
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -26,10 +26,11 @@ import DeleteConfirmModal from './components/DeleteConfirmModal'
 import PinPromptModal from './components/PinPromptModal'
 import CashRegister from './components/CashRegister'
 import LoginPage from './components/Auth/LoginPage'
+import UserManagement from './components/UserManagement'
 import './App.css'
 
 export default function App() {
-  const { user, loading: authLoading, signOut, isAuthenticated } = useAuth()
+  const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, recalculatePaymentDates } = useStudents()
   const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
@@ -61,6 +62,7 @@ export default function App() {
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
+  const [showUserManagement, setShowUserManagement] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -460,34 +462,58 @@ export default function App() {
               </div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => {
-                  if (settings.security_pin) {
-                    setPendingSettingsAccess(true)
-                    setShowPinPrompt(true)
-                  } else {
-                    setShowSettings(true)
-                  }
-                }}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                title="Configuración"
-              >
-                <Settings size={20} />
-              </button>
-              <button
-                onClick={handleRecalculateDates}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                title="Recalcular fechas de pago"
-              >
-                <RefreshCw size={20} />
-              </button>
-              <button
-                onClick={() => setShowExport(true)}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                title="Exportar listado"
-              >
-                <Download size={20} />
-              </button>
+              {/* Botón Configuración - Solo Admin */}
+              {can('canEditSettings') && (
+                <button
+                  onClick={() => {
+                    if (settings.security_pin) {
+                      setPendingSettingsAccess(true)
+                      setShowPinPrompt(true)
+                    } else {
+                      setShowSettings(true)
+                    }
+                  }}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
+                  title="Configuración"
+                >
+                  <Settings size={20} />
+                </button>
+              )}
+
+              {/* Botón Gestión de Usuarios - Solo Admin */}
+              {can('canManageUsers') && (
+                <button
+                  onClick={() => setShowUserManagement(true)}
+                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-3 rounded-xl font-medium transition-colors"
+                  title="Gestión de usuarios"
+                >
+                  <Shield size={20} />
+                </button>
+              )}
+
+              {/* Botón Recalcular - Solo Admin */}
+              {can('canEditSettings') && (
+                <button
+                  onClick={handleRecalculateDates}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
+                  title="Recalcular fechas de pago"
+                >
+                  <RefreshCw size={20} />
+                </button>
+              )}
+
+              {/* Botón Exportar - Admin y Recepcionista */}
+              {can('canExport') && (
+                <button
+                  onClick={() => setShowExport(true)}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
+                  title="Exportar listado"
+                >
+                  <Download size={20} />
+                </button>
+              )}
+
+              {/* Botón Cerrar Sesión - Todos */}
               <button
                 onClick={async () => {
                   if (confirm('¿Cerrar sesión?')) {
@@ -495,7 +521,7 @@ export default function App() {
                   }
                 }}
                 className="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                title="Cerrar sesión"
+                title={`Cerrar sesión (${userRole?.display_name || user?.email})`}
               >
                 <LogOut size={20} />
               </button>
