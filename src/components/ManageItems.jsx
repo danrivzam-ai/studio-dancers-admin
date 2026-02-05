@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag } from 'lucide-react'
 
 // Tipos de items
@@ -34,6 +34,21 @@ export default function ManageItems({
   const [activeTab, setActiveTab] = useState('courses')
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const formRef = useRef(null)
+  const contentRef = useRef(null)
+
+  // Scroll al formulario cuando se abre
+  useEffect(() => {
+    if (showForm && formRef.current && contentRef.current) {
+      // Pequeño delay para asegurar que el formulario esté renderizado
+      setTimeout(() => {
+        contentRef.current.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        })
+      }, 100)
+    }
+  }, [showForm])
 
   const [formData, setFormData] = useState({
     type: 'course',
@@ -217,7 +232,7 @@ export default function ManageItems({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-4">
           {/* Add Button */}
           {!showForm && (
             <button
@@ -237,7 +252,7 @@ export default function ManageItems({
 
           {/* Form */}
           {showForm && (
-            <form onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 mb-4 space-y-4">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 mb-4 space-y-4 border-2 border-purple-200">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-800">
                   {editingItem ? 'Editar' : 'Nuevo'} {formData.type === 'product' ? 'Producto' : formData.type === 'program' ? 'Programa' : 'Curso'}

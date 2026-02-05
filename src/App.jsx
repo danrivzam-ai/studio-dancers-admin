@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, Shield
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -26,7 +26,6 @@ import DeleteConfirmModal from './components/DeleteConfirmModal'
 import PinPromptModal from './components/PinPromptModal'
 import CashRegister from './components/CashRegister'
 import LoginPage from './components/Auth/LoginPage'
-import UserManagement from './components/UserManagement'
 import './App.css'
 
 export default function App() {
@@ -62,7 +61,6 @@ export default function App() {
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
-  const [showUserManagement, setShowUserManagement] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -400,10 +398,33 @@ export default function App() {
         background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
         <div className="text-center">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center mx-auto mb-4 animate-bounce-gentle">
-            <span className="text-3xl">💃</span>
+          {/* Logo animado */}
+          <div className="loading-logo w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center mx-auto mb-6">
+            <img
+              src="/logo-white.png"
+              alt="Studio Dancers"
+              className="h-16 w-16 object-contain"
+              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+            />
+            <span className="text-5xl hidden">💃</span>
           </div>
-          <div className="text-white text-xl font-medium">Cargando...</div>
+
+          {/* Texto */}
+          <h2 className="text-white text-2xl font-bold mb-2">Studio Dancers</h2>
+          <p className="text-white/70 text-sm mb-6">Preparando tu experiencia...</p>
+
+          {/* Dots animados */}
+          <div className="loading-dots mb-4">
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+          </div>
+
+          {/* Barra de carga */}
+          <div className="loading-bar-container">
+            <div className="loading-bar"></div>
+          </div>
         </div>
       </div>
     )
@@ -416,10 +437,27 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fff7ed 100%)'
+      }}>
         <div className="text-center">
-          <div className="text-4xl mb-4">🩰</div>
-          <div className="text-purple-600 text-xl">Cargando datos...</div>
+          {/* Logo */}
+          <div className="loading-logo w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-5">
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt="Logo" className="h-12 w-12 object-contain" />
+            ) : (
+              <span className="text-4xl">🩰</span>
+            )}
+          </div>
+
+          {/* Texto */}
+          <h2 className="text-purple-800 text-xl font-semibold mb-1">Cargando datos</h2>
+          <p className="text-purple-500 text-sm mb-5">Un momento por favor...</p>
+
+          {/* Spinner elegante */}
+          <div className="flex justify-center">
+            <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          </div>
         </div>
       </div>
     )
@@ -428,132 +466,138 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {settings.logo_url ? (
-                <img src={settings.logo_url} alt="Logo" className="h-12 max-w-[120px] object-contain" />
-              ) : (
-                <span className="text-4xl">🩰</span>
-              )}
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl md:text-3xl font-bold text-purple-800">{settings.name}</h1>
-                  {/* Indicador de estado de caja */}
-                  <button
-                    onClick={() => setShowCashRegister(true)}
-                    className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-colors ${
-                      isCashOpen
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : isCashNotOpened
-                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 animate-pulse'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${
-                      isCashOpen ? 'bg-green-500' : isCashNotOpened ? 'bg-yellow-500' : 'bg-gray-400'
-                    }`} />
-                    {isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}
-                  </button>
+        {/* Header Principal */}
+        <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
+          {/* Barra superior con logo centrado */}
+          <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 p-4">
+            <div className="flex items-center justify-between">
+              {/* Izquierda: Estado de caja */}
+              <button
+                onClick={() => setShowCashRegister(true)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all ${
+                  isCashOpen
+                    ? 'bg-green-400/20 text-green-100 hover:bg-green-400/30'
+                    : isCashNotOpened
+                      ? 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 animate-pulse'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20'
+                }`}
+                title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
+              >
+                <Wallet size={14} />
+                <span className={`w-2 h-2 rounded-full ${
+                  isCashOpen ? 'bg-green-400' : isCashNotOpened ? 'bg-yellow-400' : 'bg-gray-400'
+                }`} />
+                {isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}
+              </button>
+
+              {/* Centro: Logo y nombre */}
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-xl p-2 shadow-lg">
+                  {settings.logo_url ? (
+                    <img src={settings.logo_url} alt="Logo" className="h-10 w-10 object-contain" />
+                  ) : (
+                    <span className="text-2xl block">🩰</span>
+                  )}
                 </div>
-                <p className="text-gray-500">{settings.address}</p>
+                <div className="text-center">
+                  <h1 className="text-xl md:text-2xl font-bold text-white">{settings.name}</h1>
+                  <p className="text-white/60 text-xs hidden md:block">{settings.address}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {/* Botón Configuración - Solo Admin */}
-              {can('canEditSettings') && (
+
+              {/* Derecha: Botones de herramientas */}
+              <div className="flex items-center gap-1">
+                {can('canEditSettings') && (
+                  <button
+                    onClick={() => {
+                      if (settings.security_pin) {
+                        setPendingSettingsAccess(true)
+                        setShowPinPrompt(true)
+                      } else {
+                        setShowSettings(true)
+                      }
+                    }}
+                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                    title="Configuración"
+                  >
+                    <Settings size={18} />
+                  </button>
+                )}
                 <button
-                  onClick={() => {
-                    if (settings.security_pin) {
-                      setPendingSettingsAccess(true)
-                      setShowPinPrompt(true)
-                    } else {
-                      setShowSettings(true)
+                  onClick={async () => {
+                    if (confirm('¿Cerrar sesión?')) {
+                      await signOut()
                     }
                   }}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                  title="Configuración"
+                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  title={`Cerrar sesión (${user?.email})`}
                 >
-                  <Settings size={20} />
+                  <LogOut size={18} />
                 </button>
-              )}
+              </div>
+            </div>
+          </div>
 
-              {/* Botón Gestión de Usuarios - Solo Admin */}
-              {can('canManageUsers') && (
+          {/* Barra de acciones */}
+          <div className="p-4 bg-gray-50 border-t border-gray-100">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Grupo izquierdo: Acciones principales */}
+              <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => setShowUserManagement(true)}
-                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                  title="Gestión de usuarios"
+                  onClick={() => setShowForm(true)}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
                 >
-                  <Shield size={20} />
+                  <Plus size={18} />
+                  <span className="hidden sm:inline">Nuevo Alumno</span>
+                  <span className="sm:hidden">Alumno</span>
                 </button>
-              )}
-
-              {/* Botón Recalcular - Solo Admin */}
-              {can('canEditSettings') && (
                 <button
-                  onClick={handleRecalculateDates}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                  title="Recalcular fechas de pago"
+                  onClick={() => setShowSaleForm(true)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
                 >
-                  <RefreshCw size={20} />
+                  <ShoppingBag size={18} />
+                  <span className="hidden sm:inline">Nueva Venta</span>
+                  <span className="sm:hidden">Venta</span>
                 </button>
-              )}
-
-              {/* Botón Exportar - Admin y Recepcionista */}
-              {can('canExport') && (
                 <button
-                  onClick={() => setShowExport(true)}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                  title="Exportar listado"
+                  onClick={() => setShowQuickPayment(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-sm"
+                  title="Pago rápido (clase diaria)"
                 >
-                  <Download size={20} />
+                  <Zap size={18} />
+                  <span className="hidden sm:inline">Pago Rápido</span>
+                  <span className="sm:hidden">Pago</span>
                 </button>
-              )}
+              </div>
 
-              {/* Botón Cerrar Sesión - Todos */}
-              <button
-                onClick={async () => {
-                  if (confirm('¿Cerrar sesión?')) {
-                    await signOut()
-                  }
-                }}
-                className="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-3 rounded-xl font-medium transition-colors"
-                title={`Cerrar sesión (${userRole?.display_name || user?.email})`}
-              >
-                <LogOut size={20} />
-              </button>
-              <button
-                onClick={() => setShowPaymentHistory(true)}
-                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-                title="Ver historial de pagos"
-              >
-                <History size={20} />
-              </button>
-              <button
-                onClick={() => setShowQuickPayment(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-300 to-yellow-400 hover:from-amber-400 hover:to-yellow-500 text-gray-800 px-4 py-3 rounded-xl font-bold transition-all shadow-lg border-2 border-amber-400"
-                title="Pago rápido (clase diaria)"
-              >
-                <Zap size={20} className="text-amber-700" />
-                Pago Rápido
-              </button>
-              <button
-                onClick={() => setShowSaleForm(true)}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-              >
-                <ShoppingBag size={20} />
-                Vender
-              </button>
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
-              >
-                <Plus size={20} />
-                Nuevo Alumno
-              </button>
+              {/* Grupo derecho: Herramientas */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setShowPaymentHistory(true)}
+                  className="flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 w-9 h-9 rounded-lg transition-colors"
+                  title="Historial de pagos"
+                >
+                  <History size={16} />
+                </button>
+                {can('canExport') && (
+                  <button
+                    onClick={() => setShowExport(true)}
+                    className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-9 h-9 rounded-lg transition-colors"
+                    title="Exportar listado"
+                  >
+                    <Download size={16} />
+                  </button>
+                )}
+                {can('canEditSettings') && (
+                  <button
+                    onClick={handleRecalculateDates}
+                    className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-9 h-9 rounded-lg transition-colors"
+                    title="Recalcular fechas"
+                  >
+                    <RefreshCw size={16} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
