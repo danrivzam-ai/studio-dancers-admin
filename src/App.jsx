@@ -1349,7 +1349,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos guardados en Supabase (persistente en la nube)
+          💾 Datos en la nube • v2.1
         </div>
       </div>
     </div>
