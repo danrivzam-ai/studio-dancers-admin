@@ -18,7 +18,8 @@
       "Bash(git commit -m \"$\\(cat <<''EOF''\nUI Enhancement - Professional design system\n\n- Added CSS variables for consistent color palette\n- New gradient backgrounds and shadows\n- Improved card, button, and form styles\n- Added animations and transitions\n- Modern scrollbar styling\n- Better badge and alert components\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git push:*)",
       "Bash(git commit:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

@@ -398,12 +398,12 @@ export default function App() {
         background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
         <div className="text-center">
-          {/* Logo animado */}
-          <div className="loading-logo w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center mx-auto mb-6">
+          {/* Logo animado - Logo blanco para fondo oscuro */}
+          <div className="loading-logo w-28 h-28 bg-white/10 backdrop-blur-sm rounded-3xl shadow-2xl flex items-center justify-center mx-auto mb-6 border border-white/20">
             <img
               src="/logo-white.png"
               alt="Studio Dancers"
-              className="h-16 w-16 object-contain"
+              className="h-20 w-20 object-contain"
               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
             />
             <span className="text-5xl hidden">💃</span>
@@ -466,138 +466,135 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header Principal */}
-        <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
-          {/* Barra superior con logo centrado */}
-          <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 p-4">
-            <div className="flex items-center justify-between">
-              {/* Izquierda: Estado de caja */}
-              <button
-                onClick={() => setShowCashRegister(true)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 transition-all ${
-                  isCashOpen
-                    ? 'bg-green-400/20 text-green-100 hover:bg-green-400/30'
-                    : isCashNotOpened
-                      ? 'bg-yellow-400/20 text-yellow-100 hover:bg-yellow-400/30 animate-pulse'
-                      : 'bg-white/10 text-white/70 hover:bg-white/20'
-                }`}
-                title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
-              >
-                <Wallet size={14} />
-                <span className={`w-2 h-2 rounded-full ${
-                  isCashOpen ? 'bg-green-400' : isCashNotOpened ? 'bg-yellow-400' : 'bg-gray-400'
-                }`} />
-                {isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}
-              </button>
+        {/* Header Principal - Blanco */}
+        <div className="bg-white rounded-2xl shadow-lg mb-6 p-5">
+          {/* Fila 1: Logo centrado con herramientas a los lados */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Izquierda: Estado de caja */}
+            <button
+              onClick={() => setShowCashRegister(true)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${
+                isCashOpen
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : isCashNotOpened
+                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 animate-pulse'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
+            >
+              <Wallet size={20} />
+              <span className={`w-2.5 h-2.5 rounded-full ${
+                isCashOpen ? 'bg-green-500' : isCashNotOpened ? 'bg-yellow-500' : 'bg-gray-400'
+              }`} />
+              <span className="hidden sm:inline">{isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}</span>
+            </button>
 
-              {/* Centro: Logo y nombre */}
-              <div className="flex items-center gap-3">
-                <div className="bg-white rounded-xl p-2 shadow-lg">
-                  {settings.logo_url ? (
-                    <img src={settings.logo_url} alt="Logo" className="h-10 w-10 object-contain" />
-                  ) : (
-                    <span className="text-2xl block">🩰</span>
-                  )}
-                </div>
-                <div className="text-center">
-                  <h1 className="text-xl md:text-2xl font-bold text-white">{settings.name}</h1>
-                  <p className="text-white/60 text-xs hidden md:block">{settings.address}</p>
-                </div>
+            {/* Centro: Logo y nombre */}
+            <div className="flex items-center gap-4">
+              {settings.logo_url ? (
+                <img src={settings.logo_url} alt="Logo" className="h-16 w-auto object-contain" />
+              ) : (
+                <span className="text-5xl">🩰</span>
+              )}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-purple-800">{settings.name}</h1>
+                <p className="text-gray-500 text-sm hidden md:block">{settings.address}</p>
               </div>
+            </div>
 
-              {/* Derecha: Botones de herramientas */}
-              <div className="flex items-center gap-1">
-                {can('canEditSettings') && (
-                  <button
-                    onClick={() => {
-                      if (settings.security_pin) {
-                        setPendingSettingsAccess(true)
-                        setShowPinPrompt(true)
-                      } else {
-                        setShowSettings(true)
-                      }
-                    }}
-                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                    title="Configuración"
-                  >
-                    <Settings size={18} />
-                  </button>
-                )}
+            {/* Derecha: Configuración y Logout */}
+            <div className="flex items-center gap-2">
+              {can('canEditSettings') && (
                 <button
-                  onClick={async () => {
-                    if (confirm('¿Cerrar sesión?')) {
-                      await signOut()
+                  onClick={() => {
+                    if (settings.security_pin) {
+                      setPendingSettingsAccess(true)
+                      setShowPinPrompt(true)
+                    } else {
+                      setShowSettings(true)
                     }
                   }}
-                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  title={`Cerrar sesión (${user?.email})`}
+                  className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-colors"
+                  title="Configuración"
                 >
-                  <LogOut size={18} />
+                  <Settings size={22} />
                 </button>
-              </div>
+              )}
+              <button
+                onClick={async () => {
+                  if (confirm('¿Cerrar sesión?')) {
+                    await signOut()
+                  }
+                }}
+                className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                title={`Cerrar sesión (${user?.email})`}
+              >
+                <LogOut size={22} />
+              </button>
             </div>
           </div>
 
-          {/* Barra de acciones */}
-          <div className="p-4 bg-gray-50 border-t border-gray-100">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              {/* Grupo izquierdo: Acciones principales */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                >
-                  <Plus size={18} />
-                  <span className="hidden sm:inline">Nuevo Alumno</span>
-                  <span className="sm:hidden">Alumno</span>
-                </button>
-                <button
-                  onClick={() => setShowSaleForm(true)}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                >
-                  <ShoppingBag size={18} />
-                  <span className="hidden sm:inline">Nueva Venta</span>
-                  <span className="sm:hidden">Venta</span>
-                </button>
-                <button
-                  onClick={() => setShowQuickPayment(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-sm"
-                  title="Pago rápido (clase diaria)"
-                >
-                  <Zap size={18} />
-                  <span className="hidden sm:inline">Pago Rápido</span>
-                  <span className="sm:hidden">Pago</span>
-                </button>
-              </div>
+          {/* Separador */}
+          <div className="border-t border-gray-100 my-4"></div>
 
-              {/* Grupo derecho: Herramientas */}
-              <div className="flex items-center gap-1.5">
+          {/* Fila 2: Botones de acciones */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Grupo izquierdo: Acciones principales */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+              >
+                <Plus size={20} />
+                <span className="hidden sm:inline">Nuevo Alumno</span>
+                <span className="sm:hidden">Alumno</span>
+              </button>
+              <button
+                onClick={() => setShowSaleForm(true)}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm"
+              >
+                <ShoppingBag size={20} />
+                <span className="hidden sm:inline">Nueva Venta</span>
+                <span className="sm:hidden">Venta</span>
+              </button>
+              <button
+                onClick={() => setShowQuickPayment(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-sm"
+                title="Pago rápido (clase diaria)"
+              >
+                <Zap size={20} />
+                <span className="hidden sm:inline">Pago Rápido</span>
+                <span className="sm:hidden">Pago</span>
+              </button>
+            </div>
+
+            {/* Grupo derecho: Herramientas */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPaymentHistory(true)}
+                className="flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 w-11 h-11 rounded-xl transition-colors"
+                title="Historial de pagos"
+              >
+                <History size={20} />
+              </button>
+              {can('canExport') && (
                 <button
-                  onClick={() => setShowPaymentHistory(true)}
-                  className="flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 w-9 h-9 rounded-lg transition-colors"
-                  title="Historial de pagos"
+                  onClick={() => setShowExport(true)}
+                  className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-11 h-11 rounded-xl transition-colors"
+                  title="Exportar listado"
                 >
-                  <History size={16} />
+                  <Download size={20} />
                 </button>
-                {can('canExport') && (
-                  <button
-                    onClick={() => setShowExport(true)}
-                    className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-9 h-9 rounded-lg transition-colors"
-                    title="Exportar listado"
-                  >
-                    <Download size={16} />
-                  </button>
-                )}
-                {can('canEditSettings') && (
-                  <button
-                    onClick={handleRecalculateDates}
-                    className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-9 h-9 rounded-lg transition-colors"
-                    title="Recalcular fechas"
-                  >
-                    <RefreshCw size={16} />
-                  </button>
-                )}
-              </div>
+              )}
+              {can('canEditSettings') && (
+                <button
+                  onClick={handleRecalculateDates}
+                  className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-11 h-11 rounded-xl transition-colors"
+                  title="Recalcular fechas"
+                >
+                  <RefreshCw size={20} />
+                </button>
+              )}
             </div>
           </div>
         </div>
