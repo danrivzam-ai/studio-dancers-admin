@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(copy \"D:\\\\Studio Dancers Adm\\\\logo-dancers.png\" \"D:\\\\Studio Dancers Adm\\\\public\\\\logo.png\")",
+      "Bash(npm run build:*)",
+      "Bash(node -e:*)",
+      "Bash(npx vite build)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(cmd /c \"tasklist /FI \"\"IMAGENAME eq node.exe\"\"\")",
+      "Bash(cmd.exe //c \"tasklist\")",
+      "Bash(npx vite --host)",
+      "Bash(timeout:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(dir:*)"
+    ]
+  }
+}
