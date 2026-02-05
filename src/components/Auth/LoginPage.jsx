@@ -91,17 +91,21 @@ export default function LoginPage({ onLogin }) {
     }}>
       <div className="w-full max-w-md">
         {/* Logo y título */}
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-6">
+        <div className="text-center mb-6">
+          <div className="mx-auto mb-4">
             <img
-              src="/logo.png"
+              src="/logo-white.png"
               alt="Studio Dancers"
-              className="h-28 mx-auto drop-shadow-2xl"
-              style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }}
+              className="h-16 mx-auto"
+              style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
+              onError={(e) => {
+                // Fallback al logo normal si no existe logo-white
+                e.target.src = '/logo.png'
+              }}
             />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Studio Dancers</h1>
-          <p className="text-purple-200 text-lg">Sistema de Administración</p>
+          <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Studio Dancers</h1>
+          <p className="text-purple-200">Sistema de Administración</p>
         </div>
 
         {/* Card de login/registro */}
