@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users } from 'lucide-react'
 
 // Tipos de items
 const ITEM_TYPES = [
@@ -29,18 +29,20 @@ export default function ManageItems({
   onDeleteCourse,
   onSaveProduct,
   onDeleteProduct,
-  onClose
+  onClose,
+  onRequestPin
 }) {
   const [activeTab, setActiveTab] = useState('courses')
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
   const formRef = useRef(null)
   const contentRef = useRef(null)
 
   // Scroll al formulario cuando se abre
   useEffect(() => {
     if (showForm && formRef.current && contentRef.current) {
-      // Pequeño delay para asegurar que el formulario esté renderizado
       setTimeout(() => {
         contentRef.current.scrollTo({
           top: 0,
@@ -49,6 +51,14 @@ export default function ManageItems({
       }, 100)
     }
   }, [showForm])
+
+  // Limpiar mensaje de error después de 5 segundos
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [errorMessage])
 
   const [formData, setFormData] = useState({
     type: 'course',
@@ -151,7 +161,7 @@ export default function ManageItems({
       }
       const result = await onSaveProduct(productData, !!editingItem)
       if (!result.success) {
-        alert('Error al guardar: ' + (result.error || 'Error desconocido'))
+        setErrorMessage(result.error || 'Error al guardar')
         return
       }
     } else {
@@ -170,7 +180,7 @@ export default function ManageItems({
       }
       const result = await onSaveCourse(courseData, !!editingItem)
       if (!result.success) {
-        alert('Error al guardar: ' + (result.error || 'Error desconocido'))
+        setErrorMessage(result.error || 'Error al guardar')
         return
       }
     }
@@ -178,56 +188,125 @@ export default function ManageItems({
     resetForm()
   }
 
-  const handleDelete = async (item, isProduct = false) => {
-    if (confirm(`¿Eliminar "${item.name}"?`)) {
-      if (isProduct) {
-        await onDeleteProduct(item.id)
-      } else {
-        await onDeleteCourse(item.id)
+  const handleDeleteRequest = (item, isProduct = false) => {
+    // Verificar si es predeterminado
+    if (item.is_default) {
+      setErrorMessage('No se pueden eliminar items predeterminados del sistema')
+      return
+    }
+    setDeleteConfirm({ item, isProduct })
+  }
+
+  const handleDeleteConfirm = async (pin) => {
+    if (!deleteConfirm) return
+
+    // Solicitar PIN primero
+    if (onRequestPin) {
+      const pinValid = await onRequestPin(pin)
+      if (!pinValid) {
+        setErrorMessage('PIN incorrecto')
+        return
       }
     }
+
+    const { item, isProduct } = deleteConfirm
+
+    let result
+    if (isProduct) {
+      result = await onDeleteProduct(item.id || item.code)
+    } else {
+      result = await onDeleteCourse(item.id || item.code)
+    }
+
+    if (result && !result.success) {
+      setErrorMessage(result.error || 'Error al eliminar')
+    }
+
+    setDeleteConfirm(null)
   }
+
+  // Separar cursos regulares de programas
+  const regularCourses = courses.filter(c => c.priceType !== 'programa')
+  const programs = courses.filter(c => c.priceType === 'programa')
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Package className="text-purple-600" size={24} />
-            <h2 className="text-xl font-semibold text-gray-800">Gestionar Cursos y Productos</h2>
+        <div className="p-4 md:p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Package className="text-white" size={24} />
+              </div>
+              <div>
+                <h2 className="text-lg md:text-xl font-semibold text-white">Gestión de Cursos y Productos</h2>
+                <p className="text-white/70 text-sm hidden md:block">Administra tus servicios y artículos</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <AlertTriangle size={18} />
+            <span className="text-sm">{errorMessage}</span>
+            <button onClick={() => setErrorMessage(null)} className="ml-auto">
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Tabs */}
-        <div className="flex border-b">
+        <div className="flex border-b bg-gray-50">
           <button
             onClick={() => setActiveTab('courses')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
               activeTab === 'courses'
-                ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
-            <BookOpen size={16} className="inline mr-2" />
-            Cursos y Programas ({courses.length})
+            <BookOpen size={18} />
+            <span>Cursos</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'courses' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200'}`}>
+              {regularCourses.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('programs')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+              activeTab === 'programs'
+                ? 'text-orange-600 border-b-2 border-orange-600 bg-white'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <Calendar size={18} />
+            <span>Programas</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'programs' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200'}`}>
+              {programs.length}
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('products')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
               activeTab === 'products'
-                ? 'text-green-600 border-b-2 border-green-600 bg-green-50'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-green-600 border-b-2 border-green-600 bg-white'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
           >
-            <ShoppingBag size={16} className="inline mr-2" />
-            Productos ({products.length})
+            <ShoppingBag size={18} />
+            <span>Productos</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs ${activeTab === 'products' ? 'bg-green-100 text-green-700' : 'bg-gray-200'}`}>
+              {products.length}
+            </span>
           </button>
         </div>
 
@@ -239,60 +318,75 @@ export default function ManageItems({
               onClick={() => {
                 setFormData(prev => ({
                   ...prev,
-                  type: activeTab === 'products' ? 'product' : 'course'
+                  type: activeTab === 'products' ? 'product' : activeTab === 'programs' ? 'program' : 'course'
                 }))
                 setShowForm(true)
               }}
-              className="w-full mb-4 p-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-purple-400 hover:text-purple-600 transition-colors flex items-center justify-center gap-2"
+              className={`w-full mb-4 p-4 border-2 border-dashed rounded-xl transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'products'
+                  ? 'border-green-300 text-green-600 hover:border-green-400 hover:bg-green-50'
+                  : activeTab === 'programs'
+                    ? 'border-orange-300 text-orange-600 hover:border-orange-400 hover:bg-orange-50'
+                    : 'border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50'
+              }`}
             >
               <Plus size={20} />
-              Agregar {activeTab === 'products' ? 'Producto' : 'Curso/Programa'}
+              <span className="font-medium">
+                Agregar {activeTab === 'products' ? 'Producto' : activeTab === 'programs' ? 'Programa' : 'Curso'}
+              </span>
             </button>
           )}
 
           {/* Form */}
           {showForm && (
-            <form ref={formRef} onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 mb-4 space-y-4 border-2 border-purple-200">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 space-y-4 border shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-gray-800">
+                <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                  {formData.type === 'product' ? (
+                    <ShoppingBag size={18} className="text-green-600" />
+                  ) : formData.type === 'program' ? (
+                    <Calendar size={18} className="text-orange-600" />
+                  ) : (
+                    <BookOpen size={18} className="text-purple-600" />
+                  )}
                   {editingItem ? 'Editar' : 'Nuevo'} {formData.type === 'product' ? 'Producto' : formData.type === 'program' ? 'Programa' : 'Curso'}
                 </h3>
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {/* Tipo (solo para cursos/programas) */}
-              {activeTab === 'courses' && (
+              {activeTab !== 'products' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => handleTypeChange('course')}
-                      className={`flex-1 p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.type === 'course'
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}
                     >
-                      <BookOpen size={16} className="inline mr-1" />
+                      <BookOpen size={18} />
                       Curso Regular
                     </button>
                     <button
                       type="button"
                       onClick={() => handleTypeChange('program')}
-                      className={`flex-1 p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.type === 'program'
                           ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
                       }`}
                     >
-                      <Calendar size={16} className="inline mr-1" />
+                      <Calendar size={18} />
                       Programa
                     </button>
                   </div>
@@ -307,7 +401,7 @@ export default function ManageItems({
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                   placeholder={formData.type === 'product' ? 'Ej: Zapatillas Ballet' : 'Ej: Ballet Kids'}
                 />
               </div>
@@ -317,11 +411,14 @@ export default function ManageItems({
                 <>
                   {/* Grupo de edad */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Grupo de edad</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Users size={14} className="inline mr-1" />
+                      Grupo de edad
+                    </label>
                     <select
                       value={formData.ageGroup}
                       onChange={(e) => handleAgeGroupChange(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                     >
                       {AGE_GROUPS.map(group => (
                         <option key={group.id} value={group.id}>{group.name}</option>
@@ -336,7 +433,7 @@ export default function ManageItems({
                       type="text"
                       value={formData.schedule}
                       onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                       placeholder="Ej: Lunes y Miércoles 17:00 - 18:00"
                     />
                   </div>
@@ -354,7 +451,7 @@ export default function ManageItems({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                   />
                 </div>
                 {formData.type !== 'product' && (
@@ -363,7 +460,7 @@ export default function ManageItems({
                     <select
                       value={formData.priceType}
                       onChange={(e) => setFormData({...formData, priceType: e.target.value})}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                     >
                       {PRICE_TYPES.map(pt => (
                         <option key={pt.id} value={pt.id}>{pt.name}</option>
@@ -379,7 +476,7 @@ export default function ManageItems({
                       min="0"
                       value={formData.stock}
                       onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
                       placeholder="Opcional"
                     />
                   </div>
@@ -388,28 +485,27 @@ export default function ManageItems({
 
               {/* Abonos (solo para programas) */}
               {formData.type === 'program' && (
-                <div className="flex items-center gap-4">
+                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={formData.allowsInstallments}
                       onChange={(e) => setFormData({...formData, allowsInstallments: e.target.checked})}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded"
+                      className="w-4 h-4 text-orange-600 border-gray-300 rounded"
                     />
-                    <span className="text-sm text-gray-700">Permite abonos</span>
+                    <span className="text-sm font-medium text-orange-800">Permite pago en cuotas</span>
                   </label>
                   {formData.allowsInstallments && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">en</span>
+                    <div className="flex items-center gap-2 mt-2 ml-6">
+                      <span className="text-sm text-orange-700">Número de cuotas:</span>
                       <input
                         type="number"
                         min="2"
                         max="12"
                         value={formData.installmentCount}
                         onChange={(e) => setFormData({...formData, installmentCount: parseInt(e.target.value)})}
-                        className="w-16 px-2 py-1 border rounded text-center"
+                        className="w-16 px-2 py-1 border border-orange-300 rounded text-center bg-white"
                       />
-                      <span className="text-sm text-gray-500">cuotas</span>
                     </div>
                   )}
                 </div>
@@ -420,13 +516,19 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
+                  className={`flex-1 px-4 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 font-medium ${
+                    formData.type === 'product'
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : formData.type === 'program'
+                        ? 'bg-orange-600 hover:bg-orange-700'
+                        : 'bg-purple-600 hover:bg-purple-700'
+                  }`}
                 >
                   <Save size={18} />
                   Guardar
@@ -435,60 +537,45 @@ export default function ManageItems({
             </form>
           )}
 
-          {/* Lista de Cursos */}
+          {/* Lista de Cursos Regulares */}
           {activeTab === 'courses' && (
-            <div className="space-y-2">
-              {courses.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No hay cursos registrados</p>
+            <div className="space-y-3">
+              {regularCourses.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <BookOpen size={48} className="mx-auto mb-3 opacity-30" />
+                  <p>No hay cursos regulares registrados</p>
+                </div>
               ) : (
-                courses.map(course => (
-                  <div
+                regularCourses.map(course => (
+                  <ItemCard
                     key={course.id}
-                    className={`p-4 rounded-lg border-2 ${
-                      course.priceType === 'programa'
-                        ? 'border-orange-200 bg-orange-50'
-                        : 'border-purple-200 bg-purple-50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          {course.priceType === 'programa' ? (
-                            <Calendar size={16} className="text-orange-600" />
-                          ) : (
-                            <BookOpen size={16} className="text-purple-600" />
-                          )}
-                          <h4 className="font-medium text-gray-800">{course.name}</h4>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Edades: {course.ageMin} - {course.ageMax} años
-                          {course.schedule && ` • ${course.schedule}`}
-                        </p>
-                        <p className="text-sm font-semibold text-green-600 mt-1">
-                          ${course.price}/{course.priceType}
-                          {course.allowsInstallments && (
-                            <span className="text-orange-600 ml-2">
-                              (permite {course.installmentCount} abonos)
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleEdit(course)}
-                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-100 rounded-lg"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(course)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    item={course}
+                    type="course"
+                    onEdit={() => handleEdit(course)}
+                    onDelete={() => handleDeleteRequest(course)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Lista de Programas */}
+          {activeTab === 'programs' && (
+            <div className="space-y-3">
+              {programs.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Calendar size={48} className="mx-auto mb-3 opacity-30" />
+                  <p>No hay programas registrados</p>
+                </div>
+              ) : (
+                programs.map(program => (
+                  <ItemCard
+                    key={program.id}
+                    item={program}
+                    type="program"
+                    onEdit={() => handleEdit(program)}
+                    onDelete={() => handleDeleteRequest(program)}
+                  />
                 ))
               )}
             </div>
@@ -496,46 +583,21 @@ export default function ManageItems({
 
           {/* Lista de Productos */}
           {activeTab === 'products' && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {products.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No hay productos registrados</p>
+                <div className="text-center py-12 text-gray-500">
+                  <ShoppingBag size={48} className="mx-auto mb-3 opacity-30" />
+                  <p>No hay productos registrados</p>
+                </div>
               ) : (
                 products.map(product => (
-                  <div
+                  <ItemCard
                     key={product.id}
-                    className="p-4 rounded-lg border-2 border-green-200 bg-green-50"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <ShoppingBag size={16} className="text-green-600" />
-                          <h4 className="font-medium text-gray-800">{product.name}</h4>
-                        </div>
-                        <p className="text-sm font-semibold text-green-600 mt-1">
-                          ${product.price}
-                          {product.stock !== null && product.stock !== undefined && (
-                            <span className="text-gray-500 ml-2">
-                              (Stock: {product.stock})
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleEdit(product, true)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-100 rounded-lg"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product, true)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    item={product}
+                    type="product"
+                    onEdit={() => handleEdit(product, true)}
+                    onDelete={() => handleDeleteRequest(product, true)}
+                  />
                 ))
               )}
             </div>
@@ -546,11 +608,183 @@ export default function ManageItems({
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            className="w-full px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
           >
             Cerrar
           </button>
         </div>
+
+        {/* Delete Confirmation Modal with PIN */}
+        {deleteConfirm && (
+          <DeleteConfirmModal
+            itemName={deleteConfirm.item.name}
+            itemType={deleteConfirm.isProduct ? 'producto' : 'curso/programa'}
+            onConfirm={handleDeleteConfirm}
+            onCancel={() => setDeleteConfirm(null)}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Componente de tarjeta de item
+function ItemCard({ item, type, onEdit, onDelete }) {
+  const isProduct = type === 'product'
+  const isProgram = type === 'program' || item.priceType === 'programa'
+
+  const colors = isProduct
+    ? { border: 'border-green-200', bg: 'bg-green-50', icon: 'text-green-600', badge: 'bg-green-100 text-green-700' }
+    : isProgram
+      ? { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' }
+      : { border: 'border-purple-200', bg: 'bg-purple-50', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700' }
+
+  const Icon = isProduct ? ShoppingBag : isProgram ? Calendar : BookOpen
+
+  return (
+    <div className={`p-4 rounded-xl border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-all`}>
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div className={`p-2 rounded-lg ${colors.badge}`}>
+          <Icon size={20} className={colors.icon} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="font-semibold text-gray-800 truncate">{item.name}</h4>
+            {item.is_default && (
+              <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">Sistema</span>
+            )}
+          </div>
+
+          {!isProduct && (
+            <p className="text-sm text-gray-500 mt-1">
+              <Users size={12} className="inline mr-1" />
+              {item.ageMin || item.age_min} - {item.ageMax || item.age_max} años
+              {item.schedule && <span className="ml-2">• {item.schedule}</span>}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3 mt-2">
+            <span className="text-lg font-bold text-green-600">
+              ${item.price}
+              {!isProduct && <span className="text-sm font-normal text-gray-500">/{item.priceType}</span>}
+            </span>
+
+            {item.allowsInstallments && (
+              <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-full">
+                {item.installmentCount} cuotas
+              </span>
+            )}
+
+            {isProduct && item.stock !== null && item.stock !== undefined && (
+              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                Stock: {item.stock}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-col gap-1">
+          <button
+            onClick={onEdit}
+            className={`p-2 rounded-lg transition-colors ${
+              isProduct
+                ? 'text-green-600 hover:bg-green-100'
+                : isProgram
+                  ? 'text-orange-600 hover:bg-orange-100'
+                  : 'text-purple-600 hover:bg-purple-100'
+            }`}
+            title="Editar"
+          >
+            <Edit2 size={18} />
+          </button>
+          {!item.is_default && (
+            <button
+              onClick={onDelete}
+              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+              title="Eliminar"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal de confirmación de eliminación con PIN
+function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState(false)
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (pin.length !== 4) {
+      setError(true)
+      return
+    }
+    onConfirm(pin)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="text-center mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trash2 size={32} className="text-red-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800">¿Eliminar {itemType}?</h3>
+          <p className="text-gray-500 mt-2">
+            Estás por eliminar: <strong>{itemName}</strong>
+          </p>
+          <p className="text-sm text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+              Ingresa tu PIN para confirmar
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={pin}
+              onChange={(e) => {
+                setPin(e.target.value.replace(/\D/g, ''))
+                setError(false)
+              }}
+              className={`w-full text-center text-2xl tracking-widest px-4 py-3 border-2 rounded-xl ${
+                error ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              } focus:ring-2 focus:ring-red-500 focus:border-red-500`}
+              placeholder="••••"
+              autoFocus
+            />
+            {error && (
+              <p className="text-red-500 text-sm mt-1 text-center">PIN inválido</p>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+            >
+              Eliminar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

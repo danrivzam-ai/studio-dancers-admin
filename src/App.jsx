@@ -467,7 +467,12 @@ export default function App() {
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-4">
-          <img src="/logo2.png" alt="Studio Dancers" className="w-auto object-contain mx-auto" style={{ height: '140px' }} />
+          {/* Móvil: 40px, Escritorio: 140px */}
+          <img
+            src="/logo2.png"
+            alt="Studio Dancers"
+            className="w-auto object-contain mx-auto h-10 md:h-[140px]"
+          />
         </div>
 
         {/* Header con controles - Blanco */}
@@ -1276,6 +1281,11 @@ export default function App() {
             onSaveProduct={saveProduct}
             onDeleteProduct={deleteProduct}
             onClose={() => setShowManageItems(false)}
+            onRequestPin={(pin) => {
+              // Verificar PIN
+              if (!settings.security_pin) return true // Si no hay PIN configurado, permitir
+              return pin === settings.security_pin
+            }}
           />
         )}
 
@@ -1344,7 +1354,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v3.2
+          💾 Datos en la nube • v3.3
         </div>
       </div>
     </div>
