@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -29,6 +29,7 @@ import CashRegister from './components/CashRegister'
 import ExpenseManager from './components/ExpenseManager'
 import CashMovements from './components/CashMovements'
 import ManageCategories from './components/ManageCategories'
+import DailyReport from './components/DailyReport'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -651,6 +652,13 @@ export default function App() {
             <TrendingDown size={18} className="inline mr-2" />
             Egresos
           </button>
+          <button
+            onClick={() => setActiveTab('report')}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'report' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            <BarChart3 size={18} className="inline mr-2" />
+            Reporte
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -1161,6 +1169,11 @@ export default function App() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Report Tab */}
+        {activeTab === 'report' && (
+          <DailyReport cashRegister={todayRegister} />
         )}
 
         {/* Modal Form - New/Edit Student */}
