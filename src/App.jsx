@@ -467,11 +467,12 @@ export default function App() {
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
-          {/* Móvil: 100px, Escritorio: 200px */}
+          {/* Móvil: 120px, Escritorio: 180px de ANCHO */}
           <img
             src="/logo2.png"
             alt="Studio Dancers"
-            className="object-contain mx-auto max-w-[100px] md:max-w-[200px] w-full"
+            className="object-contain mx-auto"
+            style={{ width: '180px', maxWidth: '50%' }}
           />
         </div>
 
@@ -1354,7 +1355,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v3.7
+          💾 Datos en la nube • v3.8
         </div>
       </div>
     </div>
