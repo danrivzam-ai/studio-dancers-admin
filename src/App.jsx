@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -10,6 +10,7 @@ import { usePayments } from './hooks/usePayments'
 import { useItems } from './hooks/useItems'
 import { useDailyIncome } from './hooks/useDailyIncome'
 import { useCashRegister } from './hooks/useCashRegister'
+import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, getSuggestedCourses } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo } from './lib/dateUtils'
@@ -25,6 +26,8 @@ import StudentDetail from './components/StudentDetail'
 import DeleteConfirmModal from './components/DeleteConfirmModal'
 import PinPromptModal from './components/PinPromptModal'
 import CashRegister from './components/CashRegister'
+import ExpenseManager from './components/ExpenseManager'
+import CashMovements from './components/CashMovements'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -36,7 +39,8 @@ export default function App() {
   const { generateReceiptNumber } = usePayments()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById } = useItems()
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
-  const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash } = useCashRegister()
+  const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
+  const { todayExpensesTotal, refreshExpenses } = useExpenses()
 
   const [activeTab, setActiveTab] = useState('students')
   const [showForm, setShowForm] = useState(false)
@@ -60,6 +64,8 @@ export default function App() {
   const [showPinPrompt, setShowPinPrompt] = useState(false)
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
+  const [showExpenses, setShowExpenses] = useState(false)
+  const [showCashMovements, setShowCashMovements] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
 
   const [formData, setFormData] = useState({
@@ -564,6 +570,22 @@ export default function App() {
                 <Zap size={18} />
                 Pago Rápido
               </button>
+              <button
+                onClick={() => setShowExpenses(true)}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                title="Registrar egreso"
+              >
+                <TrendingDown size={18} />
+                Egreso
+              </button>
+              <button
+                onClick={() => setShowCashMovements(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                title="Movimiento de caja"
+              >
+                <ArrowLeftRight size={18} />
+                Movimiento
+              </button>
             </div>
 
             {/* Grupo derecho: Herramientas */}
@@ -619,6 +641,13 @@ export default function App() {
           >
             <Calendar size={18} className="inline mr-2" />
             Cursos
+          </button>
+          <button
+            onClick={() => setActiveTab('expenses')}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'expenses' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+          >
+            <TrendingDown size={18} className="inline mr-2" />
+            Egresos
           </button>
         </div>
 
@@ -1096,6 +1125,33 @@ export default function App() {
           </div>
         )}
 
+        {/* Expenses Tab */}
+        {activeTab === 'expenses' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-800">Egresos del día</h2>
+              <button
+                onClick={() => setShowExpenses(true)}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                <TrendingDown size={18} />
+                Registrar Egreso
+              </button>
+            </div>
+            <div className="bg-white rounded-xl shadow p-6 text-center">
+              <TrendingDown className="mx-auto text-red-400 mb-3" size={48} />
+              <p className="text-3xl font-bold text-red-600 mb-1">-${todayExpensesTotal.toFixed(2)}</p>
+              <p className="text-gray-500">Total egresos de hoy</p>
+              <button
+                onClick={() => setShowExpenses(true)}
+                className="mt-4 text-red-600 hover:text-red-700 text-sm font-medium"
+              >
+                Ver detalle y registrar egresos
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Modal Form - New/Edit Student */}
         {showForm && (
           <StudentForm
@@ -1320,6 +1376,31 @@ export default function App() {
               refreshCash()
               refreshIncome()
             }}
+            settings={settings}
+          />
+        )}
+
+        {/* Expense Manager Modal */}
+        {showExpenses && (
+          <ExpenseManager
+            onClose={() => {
+              setShowExpenses(false)
+              refreshExpenses()
+              refreshIncome()
+            }}
+            cashRegisterId={todayRegister?.id}
+            settings={settings}
+          />
+        )}
+
+        {/* Cash Movements Modal */}
+        {showCashMovements && (
+          <CashMovements
+            onClose={() => {
+              setShowCashMovements(false)
+              refreshIncome()
+            }}
+            cashRegisterId={todayRegister?.id}
             settings={settings}
           />
         )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw } from 'lucide-react'
+import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, formatDateForInput } from '../lib/dateUtils'
 
@@ -11,7 +11,15 @@ export default function CashRegister({ onClose, settings }) {
     quickPayments: 0,
     sales: 0,
     totalIncome: 0,
-    paymentsCount: 0
+    paymentsCount: 0,
+    incomeCash: 0,
+    expensesTotal: 0,
+    expensesCash: 0,
+    expensesOther: 0,
+    expensesCount: 0,
+    depositsTotal: 0,
+    cashInTotal: 0,
+    cashOutTotal: 0,
   })
   const [openingAmount, setOpeningAmount] = useState('')
   const [closingAmount, setClosingAmount] = useState('')
@@ -28,12 +36,9 @@ export default function CashRegister({ onClose, settings }) {
         .from('cash_registers')
         .select('*')
         .eq('register_date', date)
-        .single()
+        .maybeSingle()
 
-      if (registerError && registerError.code !== 'PGRST116') {
-        // PGRST116 = no rows returned (es OK, no hay caja)
-        throw registerError
-      }
+      if (registerError) throw registerError
 
       setCashRegister(registerData || null)
 
@@ -52,22 +57,70 @@ export default function CashRegister({ onClose, settings }) {
       // Ventas
       const { data: salesData } = await supabase
         .from('sales')
-        .select('total')
+        .select('total, payment_method')
         .eq('sale_date', date)
 
+      // Egresos (solo si hay caja)
+      let expensesData = []
+      if (registerData?.id) {
+        const { data } = await supabase
+          .from('expenses')
+          .select('amount, payment_method')
+          .eq('cash_register_id', registerData.id)
+          .is('deleted_at', null)
+          .eq('voided', false)
+        expensesData = data || []
+      }
+
+      // Movimientos de caja (solo si hay caja)
+      let movementsData = []
+      if (registerData?.id) {
+        const { data } = await supabase
+          .from('cash_movements')
+          .select('amount, type')
+          .eq('cash_register_id', registerData.id)
+          .is('deleted_at', null)
+        movementsData = data || []
+      }
+
+      // Calcular totales de ingresos
       const studentTotal = studentPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const quickTotal = quickPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const salesTotal = salesData?.reduce((sum, s) => sum + parseFloat(s.total || 0), 0) || 0
+
+      // Ingresos en efectivo
+      const studentCash = studentPayments?.filter(p => p.payment_method === 'Efectivo').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
+      const quickCash = quickPayments?.filter(p => p.payment_method === 'Efectivo').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
+      const salesCash = salesData?.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + parseFloat(s.total || 0), 0) || 0
+      const incomeCash = studentCash + quickCash + salesCash
+
+      // Calcular egresos
+      const expensesTotal = expensesData.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
+      const expensesCash = expensesData.filter(e => e.payment_method === 'cash').reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
+      const expensesOther = expensesTotal - expensesCash
+
+      // Calcular movimientos
+      const depositsTotal = movementsData.filter(m => m.type === 'deposit').reduce((sum, m) => sum + parseFloat(m.amount || 0), 0)
+      const cashInTotal = movementsData.filter(m => m.type === 'withdrawal' || m.type === 'owner_loan').reduce((sum, m) => sum + parseFloat(m.amount || 0), 0)
+      const cashOutTotal = movementsData.filter(m => m.type === 'owner_reimbursement').reduce((sum, m) => sum + parseFloat(m.amount || 0), 0)
 
       setTodayData({
         studentPayments: studentTotal,
         quickPayments: quickTotal,
         sales: salesTotal,
         totalIncome: studentTotal + quickTotal + salesTotal,
-        paymentsCount: (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0)
+        paymentsCount: (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0),
+        incomeCash,
+        expensesTotal,
+        expensesCash,
+        expensesOther,
+        expensesCount: expensesData.length,
+        depositsTotal,
+        cashInTotal,
+        cashOutTotal,
       })
 
-      // Si hay caja abierta, cargar sus datos
+      // Si hay caja, cargar sus datos
       if (registerData) {
         setOpeningAmount(registerData.opening_amount?.toString() || '')
         setClosingAmount(registerData.closing_amount?.toString() || '')
@@ -112,7 +165,7 @@ export default function CashRegister({ onClose, settings }) {
       if (error) throw error
 
       setCashRegister(data)
-      alert('✅ Caja abierta correctamente')
+      alert('Caja abierta correctamente')
     } catch (err) {
       console.error('Error opening register:', err)
       alert('Error: ' + err.message)
@@ -126,18 +179,18 @@ export default function CashRegister({ onClose, settings }) {
       return
     }
 
-    const expectedAmount = parseFloat(cashRegister.opening_amount) + todayData.totalIncome
     const actualAmount = parseFloat(closingAmount)
-    const difference = actualAmount - expectedAmount
 
     try {
       const { data, error } = await supabase
         .from('cash_registers')
         .update({
           closing_amount: actualAmount,
-          expected_amount: expectedAmount,
-          difference: difference,
+          expected_amount: expectedClosing,
+          difference: actualAmount - expectedClosing,
           total_income: todayData.totalIncome,
+          total_expenses: todayData.expensesTotal,
+          total_movements: todayData.cashInTotal - todayData.depositsTotal - todayData.cashOutTotal,
           status: 'closed',
           closed_at: new Date().toISOString(),
           notes: notes || null
@@ -149,7 +202,7 @@ export default function CashRegister({ onClose, settings }) {
       if (error) throw error
 
       setCashRegister(data)
-      alert('✅ Caja cerrada correctamente')
+      alert('Caja cerrada correctamente')
     } catch (err) {
       console.error('Error closing register:', err)
       alert('Error: ' + err.message)
@@ -157,7 +210,23 @@ export default function CashRegister({ onClose, settings }) {
   }
 
   const isToday = selectedDate === formatDateForInput(new Date())
-  const expectedClosing = cashRegister ? parseFloat(cashRegister.opening_amount) + todayData.totalIncome : 0
+
+  // Fórmula de cuadre real:
+  // Esperado = Apertura + Ingresos(efectivo) - Egresos(efectivo) - Depósitos + Retiros/Préstamos - Reembolsos
+  const expectedClosing = cashRegister
+    ? parseFloat(cashRegister.opening_amount)
+      + todayData.incomeCash
+      - todayData.expensesCash
+      - todayData.depositsTotal
+      + todayData.cashInTotal
+      - todayData.cashOutTotal
+    : 0
+
+  const hasExpenses = todayData.expensesTotal > 0
+  const hasMovements = todayData.depositsTotal > 0 || todayData.cashInTotal > 0 || todayData.cashOutTotal > 0
+
+  // Balance neto del día
+  const netBalance = todayData.totalIncome - todayData.expensesTotal
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -209,7 +278,7 @@ export default function CashRegister({ onClose, settings }) {
             <p className="text-gray-500">Cargando...</p>
           </div>
         ) : (
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-4">
             {/* Estado de la caja */}
             <div className={`rounded-xl p-4 ${
               cashRegister?.status === 'closed'
@@ -270,13 +339,86 @@ export default function CashRegister({ onClose, settings }) {
                   <span className="text-gray-800">Total ingresos:</span>
                   <span className="text-green-600 text-lg">${todayData.totalIncome.toFixed(2)}</span>
                 </div>
-                <p className="text-xs text-gray-400">{todayData.paymentsCount} transacciones</p>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>{todayData.paymentsCount} transacciones</span>
+                  <span>En efectivo: ${todayData.incomeCash.toFixed(2)}</span>
+                </div>
               </div>
             </div>
 
-            {/* Formulario según estado */}
+            {/* Resumen de egresos del día */}
+            {hasExpenses && (
+              <div className="bg-white border rounded-xl p-4">
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <TrendingDown size={18} className="text-red-600" />
+                  Egresos del día
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Egresos en efectivo:</span>
+                    <span className="font-medium text-red-600">-${todayData.expensesCash.toFixed(2)}</span>
+                  </div>
+                  {todayData.expensesOther > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Egresos otros medios:</span>
+                      <span className="font-medium">-${todayData.expensesOther.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <hr className="my-2" />
+                  <div className="flex justify-between font-semibold">
+                    <span className="text-gray-800">Total egresos:</span>
+                    <span className="text-red-600 text-lg">-${todayData.expensesTotal.toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">{todayData.expensesCount} registros</p>
+                </div>
+              </div>
+            )}
+
+            {/* Movimientos de caja */}
+            {hasMovements && (
+              <div className="bg-white border rounded-xl p-4">
+                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <ArrowDownCircle size={18} className="text-blue-600" />
+                  Movimientos de caja
+                </h3>
+                <div className="space-y-2">
+                  {todayData.depositsTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Depósitos bancarios:</span>
+                      <span className="font-medium text-red-600">-${todayData.depositsTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {todayData.cashInTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Retiros / Préstamos:</span>
+                      <span className="font-medium text-green-600">+${todayData.cashInTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {todayData.cashOutTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Reembolsos al dueño:</span>
+                      <span className="font-medium text-red-600">-${todayData.cashOutTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Balance neto */}
+            {hasExpenses && (
+              <div className={`rounded-xl p-4 border ${netBalance >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-gray-700">Balance neto del día</span>
+                  <span className={`text-xl font-bold ${netBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    ${netBalance.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Ingresos - Egresos (todos los medios de pago)</p>
+              </div>
+            )}
+
+            {/* Formulario: Abrir caja */}
             {!cashRegister && isToday && (
-              /* Abrir caja */
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                 <h3 className="font-semibold text-yellow-800 mb-3">Abrir Caja</h3>
                 <div className="space-y-3">
@@ -319,24 +461,49 @@ export default function CashRegister({ onClose, settings }) {
               </div>
             )}
 
+            {/* Formulario: Cerrar caja */}
             {cashRegister?.status === 'open' && isToday && (
-              /* Cerrar caja */
               <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                 <h3 className="font-semibold text-green-800 mb-3">Cerrar Caja</h3>
                 <div className="space-y-3">
-                  <div className="bg-white rounded-lg p-3">
-                    <div className="flex justify-between text-sm mb-1">
+                  {/* Desglose del cuadre */}
+                  <div className="bg-white rounded-lg p-3 space-y-1">
+                    <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Apertura:</span>
                       <span className="font-medium">${parseFloat(cashRegister.opening_amount).toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">+ Ingresos:</span>
-                      <span className="font-medium text-green-600">${todayData.totalIncome.toFixed(2)}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">+ Ingresos efectivo:</span>
+                      <span className="font-medium text-green-600">+${todayData.incomeCash.toFixed(2)}</span>
                     </div>
+                    {todayData.expensesCash > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">- Egresos efectivo:</span>
+                        <span className="font-medium text-red-600">-${todayData.expensesCash.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {todayData.depositsTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">- Depósitos bancarios:</span>
+                        <span className="font-medium text-red-600">-${todayData.depositsTotal.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {todayData.cashInTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">+ Retiros / Préstamos:</span>
+                        <span className="font-medium text-green-600">+${todayData.cashInTotal.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {todayData.cashOutTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">- Reembolsos dueño:</span>
+                        <span className="font-medium text-red-600">-${todayData.cashOutTotal.toFixed(2)}</span>
+                      </div>
+                    )}
                     <hr className="my-2" />
                     <div className="flex justify-between font-semibold">
                       <span className="text-gray-800">Esperado en caja:</span>
-                      <span className="text-blue-600">${expectedClosing.toFixed(2)}</span>
+                      <span className="text-blue-600 text-lg">${expectedClosing.toFixed(2)}</span>
                     </div>
                   </div>
 
@@ -409,8 +576,8 @@ export default function CashRegister({ onClose, settings }) {
               </div>
             )}
 
+            {/* Resumen de caja cerrada */}
             {cashRegister?.status === 'closed' && (
-              /* Resumen de caja cerrada */
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <h3 className="font-semibold text-gray-800 mb-3">Resumen del cierre</h3>
                 <div className="space-y-2 text-sm">
@@ -419,11 +586,25 @@ export default function CashRegister({ onClose, settings }) {
                     <span className="font-medium">${parseFloat(cashRegister.opening_amount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Ingresos:</span>
+                    <span className="text-gray-600">Ingresos totales:</span>
                     <span className="font-medium text-green-600">${parseFloat(cashRegister.total_income || 0).toFixed(2)}</span>
                   </div>
+                  {parseFloat(cashRegister.total_expenses || 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Egresos totales:</span>
+                      <span className="font-medium text-red-600">-${parseFloat(cashRegister.total_expenses || 0).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {cashRegister.total_movements != null && parseFloat(cashRegister.total_movements) !== 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Movimientos netos:</span>
+                      <span className={`font-medium ${parseFloat(cashRegister.total_movements) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {parseFloat(cashRegister.total_movements) >= 0 ? '+' : ''}{parseFloat(cashRegister.total_movements).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Esperado:</span>
+                    <span className="text-gray-600">Esperado en caja:</span>
                     <span className="font-medium">${parseFloat(cashRegister.expected_amount || 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
