@@ -150,29 +150,43 @@ export function useItems() {
         fetchProducts()
       ])
 
+      // Obtener lista de items predeterminados eliminados
+      const deletedCourses = JSON.parse(localStorage.getItem('deleted_default_courses') || '[]')
+      const deletedProducts = JSON.parse(localStorage.getItem('deleted_default_products') || '[]')
+
       // Si no se cargó desde Supabase, intentar localStorage como fallback
       if (!coursesLoaded) {
         try {
           const saved = localStorage.getItem('studio_dancers_courses')
-          if (saved) {
-            const customCourses = JSON.parse(saved)
-            setCourses([...DEFAULT_COURSES, ...customCourses])
-          }
+          const customCourses = saved ? JSON.parse(saved) : []
+          // Filtrar los predeterminados eliminados
+          const filteredDefaults = DEFAULT_COURSES.filter(c => !deletedCourses.includes(c.id) && !deletedCourses.includes(c.code))
+          setCourses([...filteredDefaults, ...customCourses])
         } catch (e) {
           console.log('No hay cursos en localStorage')
+          const filteredDefaults = DEFAULT_COURSES.filter(c => !deletedCourses.includes(c.id) && !deletedCourses.includes(c.code))
+          setCourses(filteredDefaults)
         }
+      } else {
+        // También filtrar si se cargó de Supabase
+        setCourses(prev => prev.filter(c => !deletedCourses.includes(c.id) && !deletedCourses.includes(c.code)))
       }
 
       if (!productsLoaded) {
         try {
           const saved = localStorage.getItem('studio_dancers_products')
-          if (saved) {
-            const customProducts = JSON.parse(saved)
-            setProducts([...DEFAULT_PRODUCTS, ...customProducts])
-          }
+          const customProducts = saved ? JSON.parse(saved) : []
+          // Filtrar los predeterminados eliminados
+          const filteredDefaults = DEFAULT_PRODUCTS.filter(p => !deletedProducts.includes(p.id) && !deletedProducts.includes(p.code))
+          setProducts([...filteredDefaults, ...customProducts])
         } catch (e) {
           console.log('No hay productos en localStorage')
+          const filteredDefaults = DEFAULT_PRODUCTS.filter(p => !deletedProducts.includes(p.id) && !deletedProducts.includes(p.code))
+          setProducts(filteredDefaults)
         }
+      } else {
+        // También filtrar si se cargó de Supabase
+        setProducts(prev => prev.filter(p => !deletedProducts.includes(p.id) && !deletedProducts.includes(p.code)))
       }
 
       setLoading(false)
@@ -264,28 +278,43 @@ export function useItems() {
     }
   }
 
-  // Eliminar curso
+  // Eliminar curso (incluyendo predeterminados)
   const deleteCourse = async (courseId) => {
     try {
       const course = courses.find(c => c.id === courseId || c.code === courseId)
 
-      if (course?.is_default) {
-        return { success: false, error: 'No se pueden eliminar cursos predeterminados del sistema' }
-      }
-
       if (usingSupabase) {
+        // Si existe en Supabase, marcarlo como inactivo
         const { error } = await supabase
           .from('courses')
           .update({ active: false })
           .eq('code', courseId)
 
-        if (error) throw error
-        await fetchCourses()
+        if (error && error.code !== 'PGRST116') throw error
+
+        // Si es predeterminado, guardarlo en lista de eliminados
+        if (course?.is_default) {
+          const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_courses') || '[]')
+          if (!deletedDefaults.includes(courseId)) {
+            deletedDefaults.push(courseId)
+            localStorage.setItem('deleted_default_courses', JSON.stringify(deletedDefaults))
+          }
+        }
+
+        // Actualizar lista local
+        setCourses(prev => prev.filter(c => c.id !== courseId && c.code !== courseId))
       } else {
-        // localStorage
+        // localStorage - guardar lista de eliminados
+        if (course?.is_default) {
+          const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_courses') || '[]')
+          if (!deletedDefaults.includes(courseId)) {
+            deletedDefaults.push(courseId)
+            localStorage.setItem('deleted_default_courses', JSON.stringify(deletedDefaults))
+          }
+        }
         const customCourses = courses.filter(c => !c.is_default && c.id !== courseId)
         localStorage.setItem('studio_dancers_courses', JSON.stringify(customCourses))
-        setCourses([...DEFAULT_COURSES, ...customCourses])
+        setCourses(prev => prev.filter(c => c.id !== courseId && c.code !== courseId))
       }
 
       return { success: true }
@@ -372,14 +401,10 @@ export function useItems() {
     }
   }
 
-  // Eliminar producto
+  // Eliminar producto (incluyendo predeterminados)
   const deleteProduct = async (productId) => {
     try {
       const product = products.find(p => p.id === productId || p.code === productId)
-
-      if (product?.is_default) {
-        return { success: false, error: 'No se pueden eliminar productos predeterminados del sistema' }
-      }
 
       if (usingSupabase) {
         const { error } = await supabase
@@ -387,12 +412,31 @@ export function useItems() {
           .update({ active: false })
           .eq('code', productId)
 
-        if (error) throw error
-        await fetchProducts()
+        if (error && error.code !== 'PGRST116') throw error
+
+        // Si es predeterminado, guardarlo en lista de eliminados
+        if (product?.is_default) {
+          const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_products') || '[]')
+          if (!deletedDefaults.includes(productId)) {
+            deletedDefaults.push(productId)
+            localStorage.setItem('deleted_default_products', JSON.stringify(deletedDefaults))
+          }
+        }
+
+        // Actualizar lista local
+        setProducts(prev => prev.filter(p => p.id !== productId && p.code !== productId))
       } else {
+        // localStorage - guardar lista de eliminados
+        if (product?.is_default) {
+          const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_products') || '[]')
+          if (!deletedDefaults.includes(productId)) {
+            deletedDefaults.push(productId)
+            localStorage.setItem('deleted_default_products', JSON.stringify(deletedDefaults))
+          }
+        }
         const customProducts = products.filter(p => !p.is_default && p.id !== productId)
         localStorage.setItem('studio_dancers_products', JSON.stringify(customProducts))
-        setProducts([...DEFAULT_PRODUCTS, ...customProducts])
+        setProducts(prev => prev.filter(p => p.id !== productId && p.code !== productId))
       }
 
       return { success: true }

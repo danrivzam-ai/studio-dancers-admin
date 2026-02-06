@@ -189,11 +189,7 @@ export default function ManageItems({
   }
 
   const handleDeleteRequest = (item, isProduct = false) => {
-    // Verificar si es predeterminado
-    if (item.is_default) {
-      setErrorMessage('No se pueden eliminar items predeterminados del sistema')
-      return
-    }
+    // Permitir eliminar cualquier item (incluso predeterminados)
     setDeleteConfirm({ item, isProduct })
   }
 
@@ -701,15 +697,13 @@ function ItemCard({ item, type, onEdit, onDelete }) {
           >
             <Edit2 size={18} />
           </button>
-          {!item.is_default && (
-            <button
-              onClick={onDelete}
-              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-              title="Eliminar"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
+          <button
+            onClick={onDelete}
+            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+            title="Eliminar"
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
     </div>
