@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 
 export function useSchoolSettings() {
   const [settings, setSettings] = useState({
@@ -46,6 +47,7 @@ export function useSchoolSettings() {
 
       if (error) throw error
       setSettings(data)
+      logAudit({ action: 'settings_updated', tableName: 'school_settings', recordId: '1', newData: data })
       return { success: true, data }
     } catch (err) {
       console.error('Error updating settings:', err)

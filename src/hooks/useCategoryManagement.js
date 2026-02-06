@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 
 export function useCategoryManagement() {
   const [categories, setCategories] = useState([])
@@ -56,6 +57,7 @@ export function useCategoryManagement() {
       if (result.error) throw result.error
 
       await fetchCategories()
+      logAudit({ action: isEdit ? 'category_updated' : 'category_created', tableName: 'expense_categories', recordId: result.data.id, newData: result.data })
       return { success: true, data: result.data }
     } catch (err) {
       console.error('Error saving category:', err)
@@ -73,6 +75,7 @@ export function useCategoryManagement() {
       if (error) throw error
 
       setCategories(prev => prev.map(c => c.id === id ? { ...c, active: false } : c))
+      logAudit({ action: 'category_deactivated', tableName: 'expense_categories', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deactivating category:', err)
@@ -90,6 +93,7 @@ export function useCategoryManagement() {
       if (error) throw error
 
       setCategories(prev => prev.map(c => c.id === id ? { ...c, active: true } : c))
+      logAudit({ action: 'category_reactivated', tableName: 'expense_categories', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error reactivating category:', err)
@@ -123,6 +127,7 @@ export function useCategoryManagement() {
       if (result.error) throw result.error
 
       await fetchCategories()
+      logAudit({ action: isEdit ? 'subcategory_updated' : 'subcategory_created', tableName: 'expense_subcategories', recordId: result.data.id, newData: result.data })
       return { success: true, data: result.data }
     } catch (err) {
       console.error('Error saving subcategory:', err)
@@ -140,6 +145,7 @@ export function useCategoryManagement() {
       if (error) throw error
 
       await fetchCategories()
+      logAudit({ action: 'subcategory_deactivated', tableName: 'expense_subcategories', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deactivating subcategory:', err)
@@ -157,6 +163,7 @@ export function useCategoryManagement() {
       if (error) throw error
 
       await fetchCategories()
+      logAudit({ action: 'subcategory_reactivated', tableName: 'expense_subcategories', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error reactivating subcategory:', err)

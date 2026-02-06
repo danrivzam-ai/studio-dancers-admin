@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatDateForInput } from '../lib/dateUtils'
+import { logAudit } from '../lib/auditLog'
 
 export function useExpenses() {
   const [expenses, setExpenses] = useState([])
@@ -74,6 +75,7 @@ export function useExpenses() {
       if (error) throw error
 
       setExpenses(prev => [data, ...prev])
+      logAudit({ action: 'expense_created', tableName: 'expenses', recordId: data.id, newData: data })
       return { success: true, data }
     } catch (err) {
       console.error('Error creating expense:', err)
@@ -92,6 +94,7 @@ export function useExpenses() {
       if (error) throw error
 
       setExpenses(prev => prev.filter(e => e.id !== id))
+      logAudit({ action: 'expense_deleted', tableName: 'expenses', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deleting expense:', err)

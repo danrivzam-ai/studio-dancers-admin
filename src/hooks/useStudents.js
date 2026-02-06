@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { addDays } from 'date-fns'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
@@ -99,6 +100,7 @@ export function useStudents() {
       if (error) throw error
 
       setStudents(prev => [data, ...prev])
+      logAudit({ action: 'student_created', tableName: 'students', recordId: data.id, newData: { name: data.name, course_id: data.course_id } })
       return { success: true, data }
     } catch (err) {
       console.error('Error creating student:', err)
@@ -152,6 +154,7 @@ export function useStudents() {
       if (error) throw error
 
       setStudents(prev => prev.map(s => s.id === id ? data : s))
+      logAudit({ action: 'student_updated', tableName: 'students', recordId: id, newData: { name: data.name } })
       return { success: true, data }
     } catch (err) {
       console.error('Error updating student:', err)
@@ -170,6 +173,7 @@ export function useStudents() {
       if (error) throw error
 
       setStudents(prev => prev.filter(s => s.id !== id))
+      logAudit({ action: 'student_deleted', tableName: 'students', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deleting student:', err)
@@ -343,6 +347,8 @@ export function useStudents() {
         }
         return s
       }))
+
+      logAudit({ action: 'payment_registered', tableName: 'payments', recordId: paymentRecord.id, newData: { amount: paymentData.amount, student_id: studentId, payment_method: paymentData.paymentMethod } })
 
       return {
         success: true,

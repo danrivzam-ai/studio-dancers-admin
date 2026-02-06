@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 
 export function useCashMovements(cashRegisterId) {
   const [movements, setMovements] = useState([])
@@ -52,6 +53,7 @@ export function useCashMovements(cashRegisterId) {
       if (error) throw error
 
       setMovements(prev => [data, ...prev])
+      logAudit({ action: 'cash_movement_created', tableName: 'cash_movements', recordId: data.id, newData: data })
       return { success: true, data }
     } catch (err) {
       console.error('Error creating cash movement:', err)
@@ -69,6 +71,7 @@ export function useCashMovements(cashRegisterId) {
       if (error) throw error
 
       setMovements(prev => prev.filter(m => m.id !== id))
+      logAudit({ action: 'cash_movement_deleted', tableName: 'cash_movements', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deleting cash movement:', err)

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatDateForInput } from '../lib/dateUtils'
+import { logAudit } from '../lib/auditLog'
 
 export function useSales() {
   const [sales, setSales] = useState([])
@@ -54,6 +55,7 @@ export function useSales() {
       if (error) throw error
 
       setSales(prev => [data, ...prev])
+      logAudit({ action: 'sale_created', tableName: 'sales', recordId: data.id, newData: data })
       return { success: true, data }
     } catch (err) {
       console.error('Error creating sale:', err)
@@ -72,6 +74,7 @@ export function useSales() {
       if (error) throw error
 
       setSales(prev => prev.filter(s => s.id !== id))
+      logAudit({ action: 'sale_deleted', tableName: 'sales', recordId: id })
       return { success: true }
     } catch (err) {
       console.error('Error deleting sale:', err)

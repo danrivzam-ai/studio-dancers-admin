@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -30,6 +30,7 @@ import ExpenseManager from './components/ExpenseManager'
 import CashMovements from './components/CashMovements'
 import ManageCategories from './components/ManageCategories'
 import DailyReport from './components/DailyReport'
+import AuditLog from './components/AuditLog'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -69,6 +70,7 @@ export default function App() {
   const [showExpenses, setShowExpenses] = useState(false)
   const [showCashMovements, setShowCashMovements] = useState(false)
   const [showManageCategories, setShowManageCategories] = useState(false)
+  const [showAuditLog, setShowAuditLog] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
 
   const [formData, setFormData] = useState({
@@ -616,6 +618,15 @@ export default function App() {
                   title="Recalcular fechas"
                 >
                   <RefreshCw size={18} />
+                </button>
+              )}
+              {isAdmin && (
+                <button
+                  onClick={() => setShowAuditLog(true)}
+                  className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl transition-colors"
+                  title="Log de auditoría"
+                >
+                  <ScrollText size={18} />
                 </button>
               )}
             </div>
@@ -1437,6 +1448,11 @@ export default function App() {
               refreshExpenses()
             }}
           />
+        )}
+
+        {/* Audit Log Modal */}
+        {showAuditLog && (
+          <AuditLog onClose={() => setShowAuditLog(false)} />
         )}
 
         {/* Delete Confirmation Modal */}

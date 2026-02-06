@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput } from '../lib/dateUtils'
 
 export default function CashRegister({ onClose, settings }) {
@@ -165,6 +166,7 @@ export default function CashRegister({ onClose, settings }) {
       if (error) throw error
 
       setCashRegister(data)
+      logAudit({ action: 'cash_register_opened', tableName: 'cash_registers', recordId: data.id, newData: { opening_amount: data.opening_amount, register_date: data.register_date } })
       alert('Caja abierta correctamente')
     } catch (err) {
       console.error('Error opening register:', err)
@@ -202,6 +204,7 @@ export default function CashRegister({ onClose, settings }) {
       if (error) throw error
 
       setCashRegister(data)
+      logAudit({ action: 'cash_register_closed', tableName: 'cash_registers', recordId: data.id, newData: { closing_amount: data.closing_amount, expected_amount: data.expected_amount, difference: data.difference } })
       alert('Caja cerrada correctamente')
     } catch (err) {
       console.error('Error closing register:', err)
