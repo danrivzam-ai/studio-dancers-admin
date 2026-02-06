@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -28,6 +28,7 @@ import PinPromptModal from './components/PinPromptModal'
 import CashRegister from './components/CashRegister'
 import ExpenseManager from './components/ExpenseManager'
 import CashMovements from './components/CashMovements'
+import ManageCategories from './components/ManageCategories'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -66,6 +67,7 @@ export default function App() {
   const [showCashRegister, setShowCashRegister] = useState(false)
   const [showExpenses, setShowExpenses] = useState(false)
   const [showCashMovements, setShowCashMovements] = useState(false)
+  const [showManageCategories, setShowManageCategories] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
 
   const [formData, setFormData] = useState({
@@ -1130,13 +1132,22 @@ export default function App() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-800">Egresos del día</h2>
-              <button
-                onClick={() => setShowExpenses(true)}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <TrendingDown size={18} />
-                Registrar Egreso
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowManageCategories(true)}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                >
+                  <Palette size={16} />
+                  Categorías
+                </button>
+                <button
+                  onClick={() => setShowExpenses(true)}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  <TrendingDown size={18} />
+                  Registrar Egreso
+                </button>
+              </div>
             </div>
             <div className="bg-white rounded-xl shadow p-6 text-center">
               <TrendingDown className="mx-auto text-red-400 mb-3" size={48} />
@@ -1402,6 +1413,16 @@ export default function App() {
             }}
             cashRegisterId={todayRegister?.id}
             settings={settings}
+          />
+        )}
+
+        {/* Manage Categories Modal */}
+        {showManageCategories && (
+          <ManageCategories
+            onClose={() => {
+              setShowManageCategories(false)
+              refreshExpenses()
+            }}
           />
         )}
 
