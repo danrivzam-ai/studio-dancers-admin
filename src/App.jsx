@@ -467,11 +467,7 @@ export default function App() {
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
-          {settings.logo_url ? (
-            <img src={settings.logo_url} alt="Logo" className="h-12 md:h-14 w-auto object-contain mx-auto" />
-          ) : (
-            <span className="text-4xl">🩰</span>
-          )}
+          <img src="/logo2.png" alt="Studio Dancers" className="h-12 md:h-14 w-auto object-contain mx-auto" />
         </div>
 
         {/* Header con controles - Blanco */}
@@ -1348,7 +1344,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v2.4
+          💾 Datos en la nube • v2.5
         </div>
       </div>
     </div>
