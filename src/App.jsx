@@ -465,12 +465,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Logo Grande Centrado - Arriba */}
-        <div className="text-center mb-4">
+        {/* Logo Centrado - Arriba */}
+        <div className="text-center mb-3">
           {settings.logo_url ? (
-            <img src={settings.logo_url} alt="Logo" className="h-20 md:h-24 w-auto object-contain mx-auto" />
+            <img src={settings.logo_url} alt="Logo" className="h-12 md:h-14 w-auto object-contain mx-auto" />
           ) : (
-            <span className="text-6xl">🩰</span>
+            <span className="text-4xl">🩰</span>
           )}
         </div>
 
@@ -1348,7 +1348,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v2.3
+          💾 Datos en la nube • v2.4
         </div>
       </div>
     </div>
