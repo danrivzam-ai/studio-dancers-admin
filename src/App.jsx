@@ -466,8 +466,8 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
-        <div className="text-center mb-3">
-          <img src="/logo2.png" alt="Studio Dancers" className="h-16 md:h-20 w-auto object-contain mx-auto" />
+        <div className="text-center mb-4">
+          <img src="/logo2.png" alt="Studio Dancers" className="h-32 md:h-40 w-auto object-contain mx-auto" />
         </div>
 
         {/* Header con controles - Blanco */}
@@ -1344,7 +1344,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v2.6
+          💾 Datos en la nube • v2.7
         </div>
       </div>
     </div>
