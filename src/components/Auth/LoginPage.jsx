@@ -105,7 +105,7 @@ export default function LoginPage({ onLogin }) {
             />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Studio Dancers</h1>
-          <p className="text-purple-200">Sistema de Administración</p>
+          <p className="text-white/70 text-sm">Sistema de Administracion</p>
         </div>
 
         {/* Card de login/registro */}

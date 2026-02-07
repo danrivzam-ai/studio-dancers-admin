@@ -409,27 +409,13 @@ export default function App() {
         background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
         <div className="text-center">
-          {/* Logo animado - más pequeño */}
-          <div className="loading-logo mb-6">
-            <img
-              src="/logo-white.png"
-              alt="Studio Dancers"
-              className="h-16 w-auto object-contain mx-auto"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-            />
-            <span className="text-4xl hidden">💃</span>
+          {/* Spinner animado */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
           </div>
 
           {/* Texto */}
           <p className="text-white/80 text-sm mb-6">Cargando...</p>
-
-          {/* Dots animados */}
-          <div className="loading-dots mb-4">
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-            <div className="loading-dot"></div>
-          </div>
 
           {/* Barra de carga */}
           <div className="loading-bar-container">
@@ -451,23 +437,14 @@ export default function App() {
         background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fff7ed 100%)'
       }}>
         <div className="text-center">
-          {/* Logo */}
-          <div className="loading-logo w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mx-auto mb-5">
-            {settings.logo_url ? (
-              <img src={settings.logo_url} alt="Logo" className="h-12 w-12 object-contain" />
-            ) : (
-              <span className="text-4xl">🩰</span>
-            )}
+          {/* Spinner animado */}
+          <div className="mb-5 flex justify-center">
+            <div className="w-14 h-14 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
           </div>
 
           {/* Texto */}
-          <h2 className="text-purple-800 text-xl font-semibold mb-1">Cargando datos</h2>
-          <p className="text-purple-500 text-sm mb-5">Un momento por favor...</p>
-
-          {/* Spinner elegante */}
-          <div className="flex justify-center">
-            <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-          </div>
+          <h2 className="text-purple-800 text-lg font-semibold mb-1">Cargando datos</h2>
+          <p className="text-purple-400 text-sm">Un momento por favor...</p>
         </div>
       </div>
     )
@@ -478,19 +455,17 @@ export default function App() {
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
-          {/* Móvil: 120px, Escritorio: 180px de ANCHO */}
           <img
             src="/logo2.png"
             alt="Studio Dancers"
-            className="object-contain mx-auto"
-            style={{ width: '180px', maxWidth: '50%' }}
+            className="object-contain mx-auto w-[120px] sm:w-[160px] md:w-[180px]"
           />
         </div>
 
         {/* Header con controles - Blanco */}
-        <div className="bg-white rounded-2xl shadow-lg mb-6 p-4">
+        <div className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-6 p-3 sm:p-4">
           {/* Fila 1: Caja, Nombre, Config */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             {/* Izquierda: Estado de caja */}
             <button
               onClick={() => setShowCashRegister(true)}
@@ -511,9 +486,9 @@ export default function App() {
             </button>
 
             {/* Centro: Nombre */}
-            <div className="text-center">
-              <h1 className="text-xl md:text-2xl font-bold text-purple-800">{settings.name}</h1>
-              <p className="text-gray-400 text-xs hidden md:block">{settings.address}</p>
+            <div className="text-center flex-1 min-w-0 px-2">
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-purple-800 truncate">{settings.name}</h1>
+              <p className="text-gray-400 text-xs hidden md:block truncate">{settings.address}</p>
             </div>
 
             {/* Derecha: Configuración y Logout */}
@@ -554,41 +529,41 @@ export default function App() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
               >
                 <Plus size={18} />
-                Nuevo Alumno
+                <span className="hidden sm:inline">Nuevo Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
               >
                 <ShoppingBag size={18} />
-                Nueva Venta
+                <span className="hidden sm:inline">Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
-                title="Pago rápido (clase diaria)"
+                className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                title="Pago rapido (clase diaria)"
               >
                 <Zap size={18} />
-                Pago Rápido
+                <span className="hidden sm:inline">Pago Rapido</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
                 title="Registrar egreso"
               >
                 <TrendingDown size={18} />
-                Egreso
+                <span className="hidden sm:inline">Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
                 title="Movimiento de caja"
               >
                 <ArrowLeftRight size={18} />
-                Movimiento
+                <span className="hidden sm:inline">Movimiento</span>
               </button>
             </div>
 
@@ -596,7 +571,7 @@ export default function App() {
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 w-10 h-10 rounded-xl transition-colors"
+                className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
                 title="Historial de pagos"
               >
                 <History size={18} />
@@ -633,106 +608,102 @@ export default function App() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setActiveTab('students')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'students' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
+            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'students' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
-            <Users size={18} className="inline mr-2" />
-            Alumnos ({students.length})
+            <Users size={16} className="inline mr-1.5" />
+            <span className="hidden sm:inline">Alumnos</span> ({students.length})
           </button>
           <button
             onClick={() => setActiveTab('sales')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'sales' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
+            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'sales' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
-            <ShoppingBag size={18} className="inline mr-2" />
-            Ventas ({sales.length})
+            <ShoppingBag size={16} className="inline mr-1.5" />
+            <span className="hidden sm:inline">Ventas</span> ({sales.length})
           </button>
           <button
             onClick={() => setActiveTab('courses')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'courses' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
+            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'courses' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
-            <Calendar size={18} className="inline mr-2" />
+            <Calendar size={16} className="inline mr-1.5" />
             Cursos
           </button>
           <button
             onClick={() => setActiveTab('expenses')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'expenses' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
+            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'expenses' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
-            <TrendingDown size={18} className="inline mr-2" />
+            <TrendingDown size={16} className="inline mr-1.5" />
             Egresos
           </button>
           <button
             onClick={() => setActiveTab('report')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'report' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
+            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'report' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
-            <BarChart3 size={18} className="inline mr-2" />
+            <BarChart3 size={16} className="inline mr-1.5" />
             Reporte
           </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Users className="text-purple-600" size={24} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-white rounded-xl shadow p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-purple-100 p-2 sm:p-3 rounded-lg shrink-0">
+                <Users className="text-purple-600" size={20} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-800">{regularStudents.length}</p>
-                <p className="text-sm text-gray-500">Clases Regulares</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">{regularStudents.length}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Regulares</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Calendar className="text-orange-600" size={24} />
+          <div className="bg-white rounded-xl shadow p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-orange-100 p-2 sm:p-3 rounded-lg shrink-0">
+                <Calendar className="text-orange-600" size={20} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-800">{sabadosStudents.length}</p>
-                <p className="text-sm text-gray-500">Sábados Intensivos</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">{sabadosStudents.length}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Sab. Intensivos</p>
               </div>
             </div>
           </div>
 
           <div
             onClick={() => setShowCashRegister(true)}
-            className="bg-white rounded-xl shadow p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 border-transparent hover:border-green-300"
+            className="bg-white rounded-xl shadow p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 border-transparent hover:border-green-300"
             title="Ver cuadre de caja"
           >
-            <div className="flex items-center gap-3">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <DollarSign className="text-green-600" size={24} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-green-100 p-2 sm:p-3 rounded-lg shrink-0">
+                <DollarSign className="text-green-600" size={20} />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-green-600">${todayIncome.toFixed(2)}</p>
-                <p className="text-sm text-gray-500">Ingresos hoy</p>
-                <p className="text-xs text-gray-400">{todayPaymentsCount} pagos</p>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">${todayIncome.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Ingresos hoy</p>
               </div>
             </div>
           </div>
 
-          <div className={`bg-white rounded-xl shadow p-4 ${overduePayments.length > 0 ? 'animate-pulse-urgent border-2 border-red-300' : ''}`}>
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-lg ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
-                <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-yellow-600'} size={24} />
+          <div className={`bg-white rounded-xl shadow p-3 sm:p-4 ${overduePayments.length > 0 ? 'animate-pulse-urgent border-2 border-red-300' : ''}`}>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className={`p-2 sm:p-3 rounded-lg shrink-0 ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
+                <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-yellow-600'} size={20} />
               </div>
-              <div>
+              <div className="min-w-0">
                 {overduePayments.length > 0 ? (
                   <>
-                    <p className="text-2xl font-bold text-red-600">{overduePayments.length}</p>
-                    <p className="text-sm text-red-500 font-medium">Por renovar</p>
+                    <p className="text-xl sm:text-2xl font-bold text-red-600">{overduePayments.length}</p>
+                    <p className="text-xs sm:text-sm text-red-500 font-medium">Por renovar</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-sm text-gray-500">Cobros próximos</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Proximos</p>
                   </>
-                )}
-                {overduePayments.length > 0 && upcomingPayments.length > overduePayments.length && (
-                  <p className="text-xs text-yellow-600">+{upcomingPayments.length - overduePayments.length} próximos</p>
                 )}
               </div>
             </div>
