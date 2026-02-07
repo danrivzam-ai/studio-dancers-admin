@@ -1457,7 +1457,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v3.8
+          💾 Datos en la nube • v4.5
         </div>
       </div>
     </div>
