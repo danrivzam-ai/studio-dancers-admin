@@ -458,7 +458,8 @@ export default function App() {
           <img
             src="/logo2.png"
             alt="Studio Dancers"
-            className="object-contain mx-auto w-[120px] sm:w-[160px] md:w-[180px]"
+            className="object-contain mx-auto"
+            style={{ width: '160px', maxWidth: '40%', height: 'auto' }}
           />
         </div>
 
