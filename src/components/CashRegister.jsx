@@ -235,20 +235,20 @@ export default function CashRegister({ onClose, settings }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-green-50 to-emerald-50">
+        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <DollarSign className="text-green-600" size={24} />
+              <div className="bg-white/20 p-2 rounded-lg">
+                <DollarSign size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Cuadre de Caja</h2>
-                <p className="text-sm text-gray-500">{settings?.name || 'Academia'}</p>
+                <h2 className="text-xl font-semibold">Cuadre de Caja</h2>
+                <p className="text-sm text-purple-200">{settings?.name || 'Academia'}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X size={20} />
             </button>
@@ -263,7 +263,7 @@ export default function CashRegister({ onClose, settings }) {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
             />
             <button
               onClick={() => fetchDayData(selectedDate)}
@@ -522,7 +522,7 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={closingAmount}
                         onChange={(e) => setClosingAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                         placeholder="0.00"
                       />
                     </div>
@@ -564,7 +564,7 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                       placeholder="Observaciones del cierre..."
                     />
                   </div>
@@ -645,7 +645,7 @@ export default function CashRegister({ onClose, settings }) {
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>

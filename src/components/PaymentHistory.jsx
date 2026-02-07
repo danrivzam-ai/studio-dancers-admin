@@ -319,20 +319,20 @@ export default function PaymentHistory({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Calendar className="text-blue-600" size={24} />
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Calendar size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Historial de Pagos</h2>
-                <p className="text-sm text-gray-500">Consulta, reimprime y anula comprobantes</p>
+                <h2 className="text-xl font-semibold">Historial de Pagos</h2>
+                <p className="text-sm text-purple-200">Consulta, reimprime y anula comprobantes</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
             >
               <X size={20} />
             </button>
@@ -356,25 +356,25 @@ export default function PaymentHistory({
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setDatePreset('today')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
                 >
                   Hoy
                 </button>
                 <button
                   onClick={() => setDatePreset('week')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
                 >
                   Última semana
                 </button>
                 <button
                   onClick={() => setDatePreset('month')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
                 >
                   Último mes
                 </button>
                 <button
                   onClick={() => setDatePreset('year')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
                 >
                   Último año
                 </button>
@@ -508,7 +508,7 @@ export default function PaymentHistory({
                         <>
                           <button
                             onClick={() => handleReprintStudent(payment)}
-                            className="p-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-colors"
+                            className="p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl transition-colors"
                             title="Reimprimir comprobante"
                           >
                             <Printer size={18} />
@@ -577,7 +577,7 @@ export default function PaymentHistory({
                         <>
                           <button
                             onClick={() => handleReprintQuick(payment)}
-                            className="p-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-colors"
+                            className="p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl transition-colors"
                             title="Reimprimir comprobante"
                           >
                             <Printer size={18} />
@@ -612,7 +612,7 @@ export default function PaymentHistory({
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>
@@ -684,14 +684,14 @@ export default function PaymentHistory({
                 <button
                   type="button"
                   onClick={closeVoidModal}
-                  className="flex-1 px-3 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-semibold border border-gray-300"
+                  className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={voidLoading || voidPin.length < 4}
-                  className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
+                  className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
                     voidLoading || voidPin.length < 4
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-red-600 hover:bg-red-700 text-white'

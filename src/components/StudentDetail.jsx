@@ -65,19 +65,19 @@ export default function StudentDetail({ student, onClose, onPayment }) {
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="bg-purple-100 text-purple-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
                 {student.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-800">{student.name}</h2>
-                <p className="text-sm text-gray-500">{course?.name || 'Sin curso'}</p>
-                {student.cedula && <p className="text-xs text-gray-400">CI: {student.cedula}</p>}
+                <h2 className="text-lg font-bold">{student.name}</h2>
+                <p className="text-sm text-purple-200">{course?.name || 'Sin curso'}</p>
+                {student.cedula && <p className="text-xs text-purple-300">CI: {student.cedula}</p>}
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/50 rounded-lg transition-colors">
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -310,7 +310,7 @@ export default function StudentDetail({ student, onClose, onPayment }) {
         <div className="p-4 border-t bg-gray-50 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>

@@ -144,13 +144,13 @@ export default function ManageCategories({ onClose }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white p-5">
+        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Palette size={24} />
               <div>
                 <h2 className="text-xl font-bold">Gestionar Categorías</h2>
-                <p className="text-red-100 text-sm">{activeCount} activas{inactiveCount > 0 ? ` · ${inactiveCount} inactivas` : ''}</p>
+                <p className="text-purple-200 text-sm">{activeCount} activas{inactiveCount > 0 ? ` · ${inactiveCount} inactivas` : ''}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
@@ -289,7 +289,7 @@ export default function ManageCategories({ onClose }) {
                   </button>
                   <button
                     onClick={closeCategoryForm}
-                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
                   </button>

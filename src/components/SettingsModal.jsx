@@ -254,7 +254,7 @@ export default function SettingsModal({
                 <button
                   type="button"
                   onClick={() => setChangingPin(true)}
-                  className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Lock size={16} />
                   {formData.security_pin ? 'Cambiar PIN' : 'Configurar PIN'}

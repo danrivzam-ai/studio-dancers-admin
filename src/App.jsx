@@ -568,8 +568,7 @@ export default function App() {
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all shadow-sm hover:opacity-90 text-sm"
-                style={{ backgroundColor: '#551735', color: 'white' }}
+                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
                 title="Pago rápido (clase diaria)"
               >
                 <Zap size={18} />
@@ -605,7 +604,7 @@ export default function App() {
               {can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 h-10 rounded-xl transition-colors"
+                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
                   title="Exportar listado"
                 >
                   <Download size={18} />
@@ -614,7 +613,7 @@ export default function App() {
               {can('canEditSettings') && (
                 <button
                   onClick={handleRecalculateDates}
-                  className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 w-10 h-10 rounded-xl transition-colors"
+                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
                   title="Recalcular fechas"
                 >
                   <RefreshCw size={18} />
@@ -623,7 +622,7 @@ export default function App() {
               {isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
-                  className="flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 rounded-xl transition-colors"
+                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
                   title="Log de auditoría"
                 >
                   <ScrollText size={18} />
@@ -637,35 +636,35 @@ export default function App() {
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setActiveTab('students')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'students' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'students' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
             <Users size={18} className="inline mr-2" />
             Alumnos ({students.length})
           </button>
           <button
             onClick={() => setActiveTab('sales')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'sales' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'sales' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
             <ShoppingBag size={18} className="inline mr-2" />
             Ventas ({sales.length})
           </button>
           <button
             onClick={() => setActiveTab('courses')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'courses' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'courses' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
             <Calendar size={18} className="inline mr-2" />
             Cursos
           </button>
           <button
             onClick={() => setActiveTab('expenses')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'expenses' ? 'bg-red-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'expenses' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
             <TrendingDown size={18} className="inline mr-2" />
             Egresos
           </button>
           <button
             onClick={() => setActiveTab('report')}
-            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'report' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+            className={`px-6 py-3 rounded-xl font-medium transition-colors whitespace-nowrap ${activeTab === 'report' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
           >
             <BarChart3 size={18} className="inline mr-2" />
             Reporte
@@ -1073,7 +1072,7 @@ export default function App() {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowManageItems(true)}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
               >
                 <Package size={18} />
                 Gestionar Cursos y Productos
@@ -1154,14 +1153,14 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowManageCategories(true)}
-                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg font-medium transition-colors text-sm"
+                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-xl font-medium transition-colors text-sm"
                 >
                   <Palette size={16} />
                   Categorías
                 </button>
                 <button
                   onClick={() => setShowExpenses(true)}
-                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
                 >
                   <TrendingDown size={18} />
                   Registrar Egreso
@@ -1232,7 +1231,7 @@ export default function App() {
                     required
                     value={saleForm.customerName}
                     onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Nombre"
                     list="students-list"
                   />
@@ -1251,7 +1250,7 @@ export default function App() {
                     required
                     value={saleForm.productId}
                     onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   >
                     <option value="">Seleccionar artículo</option>
                     {allProducts.map(product => (
@@ -1273,7 +1272,7 @@ export default function App() {
                       min="1"
                       value={saleForm.quantity}
                       onChange={(e) => setSaleForm({...saleForm, quantity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     />
                   </div>
                   <div>
@@ -1284,7 +1283,7 @@ export default function App() {
                       type="date"
                       value={saleForm.date}
                       onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     />
                   </div>
                 </div>

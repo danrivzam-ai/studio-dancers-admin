@@ -118,25 +118,25 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-red-50 to-orange-50">
+        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-red-100 p-2 rounded-lg">
-                <TrendingDown className="text-red-600" size={24} />
+              <div className="bg-white/20 p-2 rounded-lg">
+                <TrendingDown size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Egresos</h2>
-                <p className="text-sm text-gray-500">{settings?.name || 'Academia'}</p>
+                <h2 className="text-xl font-semibold">Egresos</h2>
+                <p className="text-sm text-purple-200">{settings?.name || 'Academia'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-xs text-gray-500">Hoy</p>
-                <p className="text-lg font-bold text-red-600">-${todayExpensesTotal.toFixed(2)}</p>
+                <p className="text-xs text-purple-300">Hoy</p>
+                <p className="text-lg font-bold text-red-300">-${todayExpensesTotal.toFixed(2)}</p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -150,7 +150,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
             onClick={() => setActiveTab('register')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'register'
-                ? 'text-red-600 border-b-2 border-red-600 bg-white'
+                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -160,7 +160,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
             onClick={() => setActiveTab('history')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'history'
-                ? 'text-red-600 border-b-2 border-red-600 bg-white'
+                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -201,7 +201,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                     onClick={() => setFormData({ ...formData, categoryId: cat.id, subcategoryId: '' })}
                     className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-left ${
                       formData.categoryId === cat.id
-                        ? 'border-red-500 bg-red-50 text-red-700'
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -226,7 +226,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 <select
                   value={formData.subcategoryId}
                   onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="">Seleccionar...</option>
                   {subcategories.map(sub => (
@@ -249,7 +249,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg"
+                  className="w-full pl-8 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
                   placeholder="0.00"
                   required
                 />
@@ -271,7 +271,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                       onClick={() => setFormData({ ...formData, paymentMethod: method.id })}
                       className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
                         formData.paymentMethod === method.id
-                          ? 'border-red-500 bg-red-50 text-red-700'
+                          ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -291,7 +291,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Describe el gasto..."
                 rows={2}
                 required
@@ -307,7 +307,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Nombre del proveedor (opcional)"
               />
             </div>
@@ -321,7 +321,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.receiptNumber}
                 onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Número de comprobante (opcional)"
               />
             </div>
@@ -335,7 +335,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Observaciones adicionales (opcional)"
               />
             </div>
@@ -344,7 +344,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
+              className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
             >
               {submitting ? 'Registrando...' : 'Registrar Egreso'}
             </button>
@@ -365,7 +365,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 <p className="text-gray-500">No hay egresos registrados hoy</p>
                 <button
                   onClick={() => setActiveTab('register')}
-                  className="mt-3 text-red-600 hover:text-red-700 text-sm font-medium"
+                  className="mt-3 text-purple-600 hover:text-purple-700 text-sm font-medium"
                 >
                   Registrar un egreso
                 </button>
@@ -459,7 +459,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>

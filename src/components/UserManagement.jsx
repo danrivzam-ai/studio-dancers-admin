@@ -226,7 +226,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium"
                 >
                   <Check size={18} />
                   Agregar
@@ -234,7 +234,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
                 >
                   Cancelar
                 </button>

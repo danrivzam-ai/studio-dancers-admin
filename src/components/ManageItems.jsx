@@ -512,13 +512,13 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-4 py-2.5 text-white rounded-lg flex items-center justify-center gap-2 font-medium ${
+                  className={`flex-1 px-4 py-2.5 text-white rounded-xl flex items-center justify-center gap-2 font-medium ${
                     formData.type === 'product'
                       ? 'bg-green-600 hover:bg-green-700'
                       : formData.type === 'program'
@@ -604,7 +604,7 @@ export default function ManageItems({
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>
@@ -767,13 +767,13 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium"
             >
               Eliminar
             </button>

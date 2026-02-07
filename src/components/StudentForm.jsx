@@ -71,7 +71,7 @@ export default function StudentForm({
           <h2 className="font-semibold text-gray-800">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg">
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-xl">
             <X size={18} />
           </button>
         </div>
@@ -302,13 +302,13 @@ export default function StudentForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm"
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
               <Check size={16} />
               {isEditing ? 'Guardar' : 'Registrar'}

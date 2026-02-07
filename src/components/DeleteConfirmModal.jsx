@@ -96,14 +96,14 @@ export default function DeleteConfirmModal({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-semibold border border-gray-300"
+              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || (requiredPin && pin.length < 4)}
-              className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
+              className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
                 loading || (requiredPin && pin.length < 4)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-red-600 hover:bg-red-700 text-white'

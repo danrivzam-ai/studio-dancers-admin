@@ -146,29 +146,29 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <ArrowLeftRight className="text-blue-600" size={24} />
+              <div className="bg-white/20 p-2 rounded-lg">
+                <ArrowLeftRight size={24} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Movimientos de Caja</h2>
-                <p className="text-sm text-gray-500">{settings?.name || 'Academia'}</p>
+                <h2 className="text-xl font-semibold">Movimientos de Caja</h2>
+                <p className="text-sm text-purple-200">{settings?.name || 'Academia'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               {movements.length > 0 && (
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">Neto</p>
-                  <p className={`text-lg font-bold ${netTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className="text-xs text-purple-300">Neto</p>
+                  <p className={`text-lg font-bold ${netTotal >= 0 ? 'text-green-300' : 'text-red-300'}`}>
                     {netTotal >= 0 ? '+' : ''}{netTotal.toFixed(2)}
                   </p>
                 </div>
               )}
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -182,7 +182,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
             onClick={() => setActiveTab('register')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'register'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -192,7 +192,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
             onClick={() => setActiveTab('history')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'history'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -243,7 +243,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                       onClick={() => setFormData({ ...formData, type: type.id, bank: '' })}
                       className={`p-3 rounded-lg border-2 text-left transition-all ${
                         formData.type === type.id
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-purple-500 bg-purple-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -274,7 +274,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                  className="w-full pl-8 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
                   placeholder="0.00"
                   required
                 />
@@ -291,7 +291,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                   type="text"
                   value={formData.bank}
                   onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Nombre del banco"
                 />
               </div>
@@ -306,7 +306,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.receiptNumber}
                 onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Número de comprobante (opcional)"
               />
             </div>
@@ -320,7 +320,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.responsible}
                 onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Quién realiza el movimiento (opcional)"
               />
             </div>
@@ -334,7 +334,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Observaciones (opcional)"
               />
             </div>
@@ -343,7 +343,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
             <button
               type="submit"
               disabled={submitting || !cashRegisterId}
-              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
+              className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
             >
               {submitting ? 'Registrando...' : 'Registrar Movimiento'}
             </button>
@@ -364,7 +364,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                 <p className="text-gray-500">No hay movimientos registrados</p>
                 <button
                   onClick={() => setActiveTab('register')}
-                  className="mt-3 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="mt-3 text-purple-600 hover:text-purple-700 text-sm font-medium"
                 >
                   Registrar un movimiento
                 </button>
@@ -475,7 +475,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors font-medium"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
           >
             Cerrar
           </button>
