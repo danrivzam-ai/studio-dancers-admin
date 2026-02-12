@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, PRODUCTS } from '../lib/courses'
+import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, PRODUCTS, setDynamicCourses } from '../lib/courses'
 
 // Combinar cursos predeterminados como fallback
 const DEFAULT_COURSES = [...COURSES, ...SABADOS_INTENSIVOS, ...DANCE_CAMP].map(c => ({
@@ -26,6 +26,11 @@ export function useItems() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [usingSupabase, setUsingSupabase] = useState(false)
+
+  // Sync courses to global registry so getCourseById works everywhere
+  useEffect(() => {
+    setDynamicCourses(courses)
+  }, [courses])
 
   // Cargar cursos desde Supabase
   const fetchCourses = async () => {

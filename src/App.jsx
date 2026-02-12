@@ -1165,6 +1165,7 @@ export default function App() {
         {showForm && (
           <StudentForm
             student={editingStudent}
+            courses={allCourses}
             onSubmit={handleStudentFormSubmit}
             onClose={() => {
               setShowForm(false)

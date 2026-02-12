@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { X, Check, User, Users, CreditCard } from 'lucide-react'
-import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, getSuggestedCourses } from '../lib/courses'
 
 export default function StudentForm({
   student = null,
+  courses = [],
   onSubmit,
   onClose
 }) {
@@ -265,28 +265,43 @@ export default function StudentForm({
               className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 mb-2"
             >
               <option value="">Seleccionar curso *</option>
-              <optgroup label="📚 Clases Regulares">
-                {COURSES.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} - ${c.price}/{c.priceType}</option>
-                ))}
-              </optgroup>
-              <optgroup label="🌟 Sábados Intensivos">
-                {SABADOS_INTENSIVOS.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} - ${c.price}</option>
-                ))}
-              </optgroup>
-              <optgroup label="🎪 Dance Camp 2026">
-                {DANCE_CAMP.map(c => (
-                  <option key={c.id} value={c.id}>{c.name.replace('Dance Camp 2026 - ', '')} - ${c.price}</option>
-                ))}
-              </optgroup>
+              {(() => {
+                const regular = courses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+                const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
+                return (
+                  <>
+                    {regular.length > 0 && (
+                      <optgroup label="Clases Regulares">
+                        {regular.map(c => (
+                          <option key={c.id || c.code} value={c.id || c.code}>
+                            {c.name} - ${c.price}/{c.priceType || c.price_type}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {programs.length > 0 && (
+                      <optgroup label="Programas">
+                        {programs.map(c => (
+                          <option key={c.id || c.code} value={c.id || c.code}>
+                            {c.name} - ${c.price}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                )
+              })()}
             </select>
 
-            {formData.age && getSuggestedCourses(parseInt(formData.age)).length > 0 && (
-              <p className="text-xs text-purple-600 mb-2">
-                💡 Sugeridos: {getSuggestedCourses(parseInt(formData.age)).map(c => c.name.split(' - ')[0].replace('Dance Camp 2026 - ', '')).slice(0, 2).join(', ')}
-              </p>
-            )}
+            {formData.age && (() => {
+              const age = parseInt(formData.age)
+              const suggested = courses.filter(c => age >= (c.ageMin || c.age_min || 3) && age <= (c.ageMax || c.age_max || 99))
+              return suggested.length > 0 ? (
+                <p className="text-xs text-purple-600 mb-2">
+                  Sugeridos: {suggested.map(c => c.name.split(' - ')[0]).slice(0, 3).join(', ')}
+                </p>
+              ) : null
+            })()}
 
             <textarea
               value={formData.notes}

@@ -21,6 +21,11 @@ export const DANCE_CAMP = [
 
 export const ALL_COURSES = [...COURSES, ...SABADOS_INTENSIVOS, ...DANCE_CAMP]
 
+// Dynamic courses registry - updated by useItems hook
+let _dynamicCourses = []
+export const setDynamicCourses = (courses) => { _dynamicCourses = courses }
+export const getDynamicCourses = () => _dynamicCourses
+
 // Artículos a la venta
 export const PRODUCTS = [
   { id: 'camiseta', name: 'Camiseta', price: 10 },
@@ -41,14 +46,17 @@ export const BANKS = [
   { id: 'produbanco', name: 'Produbanco' },
 ]
 
-// Obtener curso por ID
+// Obtener curso por ID (busca en dinámicos primero, luego en hardcodeados)
 export const getCourseById = (courseId) => {
-  return ALL_COURSES.find(c => c.id === courseId)
+  if (!courseId) return null
+  return _dynamicCourses.find(c => c.id === courseId || c.code === courseId)
+    || ALL_COURSES.find(c => c.id === courseId)
 }
 
 // Obtener cursos sugeridos por edad
 export const getSuggestedCourses = (age) => {
-  return ALL_COURSES.filter(c => age >= c.ageMin && age <= c.ageMax)
+  const all = _dynamicCourses.length > 0 ? _dynamicCourses : ALL_COURSES
+  return all.filter(c => age >= (c.ageMin || c.age_min || 3) && age <= (c.ageMax || c.age_max || 99))
 }
 
 // Obtener producto por ID
