@@ -404,14 +404,14 @@ export default function PaymentHistory({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <div className="flex items-center gap-1.5 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 px-2 py-1.5 bg-white">
+                    <Search className="text-gray-400 shrink-0" size={14} />
                     <input
                       type="text"
                       placeholder="Nombre, cédula..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-7 pr-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full text-sm outline-none bg-transparent"
                     />
                   </div>
                 </div>

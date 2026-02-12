@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search, Users } from 'lucide-react'
+import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search } from 'lucide-react'
 import { BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
 
@@ -155,18 +155,17 @@ export default function QuickPayment({
           {students.length > 0 && (
             <div ref={searchRef} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                <Users size={14} className="inline mr-1" />
                 Buscar alumno registrado (opcional)
               </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <div className="flex items-center gap-2 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 px-3 py-2">
+                <Search className="text-gray-400 shrink-0" size={16} />
                 <input
                   type="text"
                   value={studentSearch}
                   onChange={(e) => { setStudentSearch(e.target.value); setShowStudentDropdown(true) }}
                   onFocus={() => studentSearch && setShowStudentDropdown(true)}
-                  className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
-                  placeholder="Buscar por nombre o cédula..."
+                  className="w-full text-sm outline-none bg-transparent"
+                  placeholder="Nombre o cédula..."
                 />
               </div>
               {showStudentDropdown && studentSearch && filteredStudents.length > 0 && (

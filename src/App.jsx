@@ -1439,14 +1439,14 @@ export default function App() {
               {/* Search and Filters */}
               <div className="p-3 sm:p-4 border-b bg-gray-50">
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <div className="flex-1 flex items-center gap-2 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 px-3 py-2 bg-white">
+                    <Search className="text-gray-400 shrink-0" size={18} />
                     <input
                       type="text"
                       placeholder="Buscar por nombre o cédula..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full text-sm outline-none bg-transparent"
                     />
                   </div>
                   <select
