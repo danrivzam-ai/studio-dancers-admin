@@ -72,6 +72,7 @@ export default function App() {
   const [showManageCategories, setShowManageCategories] = useState(false)
   const [showAuditLog, setShowAuditLog] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
+  const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -131,6 +132,20 @@ export default function App() {
   const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
   const sabadosStudents = students.filter(s => s.course_id?.startsWith('sabados-'))
   const regularStudents = students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-'))
+
+  // Alumnos con saldos pendientes (abonos parciales)
+  const studentsWithBalance = students.filter(s => {
+    const course = getCourseById(s.course_id)
+    if (!course) return false
+    const amountPaid = parseFloat(s.amount_paid || 0)
+    const coursePrice = parseFloat(course.price || 0)
+    return amountPaid > 0 && amountPaid < coursePrice
+  }).map(s => {
+    const course = getCourseById(s.course_id)
+    const amountPaid = parseFloat(s.amount_paid || 0)
+    const coursePrice = parseFloat(course?.price || 0)
+    return { ...s, courseName: course?.name, amountPaid, coursePrice, balance: coursePrice - amountPaid }
+  })
 
   // Manejar cambio de curso
   const handleCourseChange = (courseId) => {
@@ -570,6 +585,18 @@ export default function App() {
 
             {/* Grupo derecho: Herramientas */}
             <div className="flex items-center gap-1.5">
+              {studentsWithBalance.length > 0 && (
+                <button
+                  onClick={() => setShowBalanceAlerts(true)}
+                  className="flex items-center justify-center bg-orange-100 hover:bg-orange-200 text-orange-700 w-10 h-10 rounded-xl transition-colors relative"
+                  title={`Saldos pendientes (${studentsWithBalance.length})`}
+                >
+                  <Wallet size={18} />
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {studentsWithBalance.length}
+                  </span>
+                </button>
+              )}
               <button
                 onClick={() => setShowPaymentHistory(true)}
                 className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
@@ -648,31 +675,7 @@ export default function App() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white rounded-xl shadow p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-purple-100 p-2 sm:p-3 rounded-lg shrink-0">
-                <Users className="text-purple-600" size={20} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-gray-800">{regularStudents.length}</p>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">Regulares</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow p-3 sm:p-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-orange-100 p-2 sm:p-3 rounded-lg shrink-0">
-                <Calendar className="text-orange-600" size={20} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-gray-800">{sabadosStudents.length}</p>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">Sab. Intensivos</p>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
             className="bg-white rounded-xl shadow p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 border-transparent hover:border-green-300"
@@ -1426,6 +1429,71 @@ export default function App() {
           <AuditLog onClose={() => setShowAuditLog(false)} />
         )}
 
+        {/* Balance Alerts Modal */}
+        {showBalanceAlerts && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Wallet className="text-white" size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-white">Saldos Pendientes</h2>
+                      <p className="text-white/80 text-sm">{studentsWithBalance.length} alumno{studentsWithBalance.length !== 1 ? 's' : ''} con abonos parciales</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowBalanceAlerts(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white">
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {studentsWithBalance.map(s => (
+                  <div
+                    key={s.id}
+                    className="p-4 rounded-xl border-2 border-orange-200 bg-orange-50 hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => {
+                      setShowBalanceAlerts(false)
+                      openPaymentModal(s)
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-800">{s.name}</p>
+                        <p className="text-sm text-gray-500">{s.courseName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-orange-600">${s.balance.toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">pendiente</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                      <span>Pagado: <strong className="text-green-600">${s.amountPaid.toFixed(2)}</strong></span>
+                      <span>Total: <strong>${s.coursePrice.toFixed(2)}</strong></span>
+                    </div>
+                  </div>
+                ))}
+                {studentsWithBalance.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <Check size={48} className="mx-auto mb-3 text-green-400" />
+                    <p className="font-medium">No hay saldos pendientes</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
+                <p className="text-sm text-gray-500">
+                  Total por cobrar: <strong className="text-orange-600">${studentsWithBalance.reduce((sum, s) => sum + s.balance, 0).toFixed(2)}</strong>
+                </p>
+                <button onClick={() => setShowBalanceAlerts(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Delete Confirmation Modal */}
         <DeleteConfirmModal
           isOpen={deleteModal.isOpen}
@@ -1457,7 +1525,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v4.5
+          💾 Datos en la nube • v4.6
         </div>
       </div>
     </div>
