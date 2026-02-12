@@ -122,14 +122,14 @@ export default function AuditLog({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Log de Auditoria</h2>
-              <p className="text-purple-200 text-sm">{logs.length} eventos{hasMore ? '+' : ''}</p>
+              <p className="text-white/80 text-sm">{logs.length} eventos{hasMore ? '+' : ''}</p>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
               <X size={22} />

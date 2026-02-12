@@ -316,8 +316,8 @@ export default function PaymentHistory({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
@@ -327,7 +327,7 @@ export default function PaymentHistory({
               </div>
               <div>
                 <h2 className="text-base sm:text-xl font-semibold">Historial de Pagos</h2>
-                <p className="text-xs sm:text-sm text-purple-200 hidden sm:block">Consulta, reimprime y anula comprobantes</p>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Consulta, reimprime y anula comprobantes</p>
               </div>
             </div>
             <button

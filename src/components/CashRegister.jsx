@@ -232,8 +232,8 @@ export default function CashRegister({ onClose, settings }) {
   const netBalance = todayData.totalIncome - todayData.expensesTotal
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
@@ -243,7 +243,7 @@ export default function CashRegister({ onClose, settings }) {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">Cuadre de Caja</h2>
-                <p className="text-sm text-purple-200">{settings?.name || 'Academia'}</p>
+                <p className="text-sm text-white/80">{settings?.name || 'Academia'}</p>
               </div>
             </div>
             <button

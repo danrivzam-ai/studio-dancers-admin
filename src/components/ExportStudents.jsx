@@ -156,8 +156,8 @@ export default function ExportStudents({ students, settings, onClose }) {
   const danceCamp = ALL_COURSES.filter(c => c.id.startsWith('camp-'))
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">

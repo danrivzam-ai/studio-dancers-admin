@@ -141,8 +141,8 @@ export default function ManageCategories({ onClose }) {
   const inactiveCount = categories.filter(c => c.active === false).length
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
           <div className="flex items-center justify-between">
@@ -150,7 +150,7 @@ export default function ManageCategories({ onClose }) {
               <Palette size={24} />
               <div>
                 <h2 className="text-xl font-bold">Gestionar Categorías</h2>
-                <p className="text-purple-200 text-sm">{activeCount} activas{inactiveCount > 0 ? ` · ${inactiveCount} inactivas` : ''}</p>
+                <p className="text-white/80 text-sm">{activeCount} activas{inactiveCount > 0 ? ` · ${inactiveCount} inactivas` : ''}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">

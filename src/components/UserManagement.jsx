@@ -132,8 +132,8 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
@@ -141,7 +141,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
               <Shield size={28} />
               <div>
                 <h2 className="text-xl font-bold">Gestión de Usuarios</h2>
-                <p className="text-purple-200 text-sm">Administra quién tiene acceso al sistema</p>
+                <p className="text-white/80 text-sm">Administra quién tiene acceso al sistema</p>
               </div>
             </div>
             <button

@@ -1232,8 +1232,8 @@ export default function App() {
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowSaleForm(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 border-b flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
                 <button
@@ -1416,8 +1416,8 @@ export default function App() {
         {/* Student Detail Modal */}
         {/* Student List Modal */}
         {showStudentListModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
                 <div className="flex items-center justify-between">
@@ -1427,7 +1427,7 @@ export default function App() {
                     </div>
                     <div>
                       <h2 className="text-base sm:text-xl font-semibold">Alumnos ({filteredStudents.length})</h2>
-                      <p className="text-xs sm:text-sm text-purple-200 hidden sm:block">Gestiona tu lista de alumnos</p>
+                      <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Gestiona tu lista de alumnos</p>
                     </div>
                   </div>
                   <button onClick={() => setShowStudentListModal(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
@@ -1669,8 +1669,8 @@ export default function App() {
 
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

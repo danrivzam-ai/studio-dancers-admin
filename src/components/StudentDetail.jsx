@@ -73,7 +73,7 @@ export default function StudentDetail({ student, onClose, onPayment }) {
               </div>
               <div>
                 <h2 className="text-lg font-bold">{student.name}</h2>
-                <p className="text-sm text-purple-200">{course?.name || 'Sin curso'}</p>
+                <p className="text-sm text-white/80">{course?.name || 'Sin curso'}</p>
                 {student.cedula && <p className="text-xs text-purple-300">CI: {student.cedula}</p>}
               </div>
             </div>
