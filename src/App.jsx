@@ -73,6 +73,7 @@ export default function App() {
   const [showAuditLog, setShowAuditLog] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
+  const [showStudentListModal, setShowStudentListModal] = useState(false)
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function App() {
       showExport, showManageItems, showQuickPayment, showPaymentHistory,
       showCashRegister, showExpenses, showCashMovements, showManageCategories,
       showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-      !!showStudentDetail, !!selectedStudent
+      !!showStudentDetail, !!selectedStudent, showStudentListModal
     ]
     const anyModalOpen = allModals.some(Boolean)
 
@@ -99,6 +100,7 @@ export default function App() {
       if (showBalanceAlerts) { setShowBalanceAlerts(false); return }
       if (showStudentDetail) { setShowStudentDetail(null); return }
       if (selectedStudent) { setSelectedStudent(null); return }
+      if (showStudentListModal) { setShowStudentListModal(false); return }
       if (showForm) { setShowForm(false); setEditingStudent(null); return }
       if (showSaleForm) { setShowSaleForm(false); return }
       if (showQuickPayment) { setShowQuickPayment(false); return }
@@ -122,7 +124,7 @@ export default function App() {
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
     showCashRegister, showExpenses, showCashMovements, showManageCategories,
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-    showStudentDetail, selectedStudent
+    showStudentDetail, selectedStudent, showStudentListModal
   ])
 
   const [formData, setFormData] = useState({
@@ -765,7 +767,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Upcoming Payments Alert */}
+        {/* Upcoming Payments Alert - visible on dashboard */}
         {upcomingPayments.length > 0 && activeTab === 'students' && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl mb-6 overflow-hidden">
             <button
@@ -823,205 +825,219 @@ export default function App() {
           </div>
         )}
 
-        {/* Students Tab */}
+        {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
           <>
-            {/* Search and Filters */}
-            <div className="bg-white rounded-xl shadow p-4 mb-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o cédula..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
-                <select
-                  value={filterCourse}
-                  onChange={(e) => setFilterCourse(e.target.value)}
-                  className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="all">Todos los cursos</option>
-                  {(() => {
-                    const regular = allCourses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
-                    const programs = allCourses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
-                    return (
-                      <>
-                        {regular.length > 0 && (
-                          <optgroup label="Clases Regulares">
-                            {regular.map(c => (
-                              <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
-                            ))}
-                          </optgroup>
-                        )}
-                        {programs.length > 0 && (
-                          <optgroup label="Programas">
-                            {programs.map(c => (
-                              <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
-                            ))}
-                          </optgroup>
-                        )}
-                      </>
-                    )
-                  })()}
-                </select>
-                <select
-                  value={filterPayment}
-                  onChange={(e) => setFilterPayment(e.target.value)}
-                  className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="all">Todos los pagos</option>
-                  <option value="overdue">Por renovar</option>
-                  <option value="upcoming">Próximos (5 días)</option>
-                </select>
-              </div>
+            {/* Quick Action: Nuevo Alumno */}
+            <div className="mb-4">
+              <button
+                onClick={() => setShowForm(true)}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md hover:shadow-lg"
+              >
+                <Plus size={18} />
+                Nuevo Alumno
+              </button>
             </div>
 
-            {/* Students List */}
-            <div className="bg-white rounded-xl shadow overflow-hidden">
+            {/* Quick Access Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+              {/* View Students Button */}
               <button
-                onClick={() => setShowStudentList(!showStudentList)}
-                className="w-full p-4 border-b bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                onClick={() => setShowStudentListModal(true)}
+                className="bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 border-transparent hover:border-purple-300 text-left"
               >
-                <h2 className="font-semibold text-gray-800">Lista de Alumnos ({filteredStudents.length})</h2>
-                {showStudentList ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-2.5 sm:p-3 rounded-xl">
+                    <Users className="text-purple-600" size={22} />
+                  </div>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-bold text-purple-600">{students.length}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Alumnos</p>
+                  </div>
+                </div>
               </button>
 
-              {filteredStudents.length === 0 ? (
-                <div className="p-12 text-center text-gray-500">
-                  <Users size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>No hay alumnos registrados</p>
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
-                  >
-                    Agregar primer alumno
-                  </button>
+              {/* Overdue Payments */}
+              <button
+                onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                className={`bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 text-left ${
+                  overduePayments.length > 0 ? 'border-transparent hover:border-red-300' : 'border-transparent'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 sm:p-3 rounded-xl ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-gray-100'}`}>
+                    <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-gray-400'} size={22} />
+                  </div>
+                  <div>
+                    <p className={`text-2xl sm:text-3xl font-bold ${overduePayments.length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                      {overduePayments.length}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Vencidos</p>
+                  </div>
                 </div>
-              ) : showStudentList && (
-                <div className="divide-y max-h-[600px] overflow-y-auto">
-                  {filteredStudents.map(student => {
-                    const course = getCourseById(student.course_id)
-                    const paymentStatus = getPaymentStatus(student, course)
-                    const isCamp = student.course_id?.startsWith('camp-')
+              </button>
 
+              {/* Upcoming Payments */}
+              <button
+                onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
+                className={`bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 text-left ${
+                  upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'border-transparent hover:border-yellow-300' : 'border-transparent'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 sm:p-3 rounded-xl ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'} size={22} />
+                  </div>
+                  <div>
+                    <p className={`text-2xl sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                      {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Próximos</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Balance Alerts */}
+              <button
+                onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
+                className={`bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 text-left ${
+                  studentsWithBalance.length > 0 ? 'border-transparent hover:border-orange-300' : 'border-transparent'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 sm:p-3 rounded-xl ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
+                    <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={22} />
+                  </div>
+                  <div>
+                    <p className={`text-2xl sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                      {studentsWithBalance.length}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Saldos</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Cobros Vencidos Alert */}
+            {overduePayments.length > 0 && (
+              <div
+                onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-red-800 flex items-center gap-2">
+                    <AlertCircle size={18} />
+                    Cobros Vencidos
+                  </h3>
+                  <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {overduePayments.length} alumno{overduePayments.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {overduePayments.slice(0, 3).map(s => {
+                    const course = getCourseById(s.course_id)
+                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     return (
-                      <div key={student.id} className={`p-4 hover:bg-gray-50 transition-colors ${isCamp ? 'border-l-4 border-pink-400' : ''}`}>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-start gap-3">
-                              <div className={`${isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'} w-10 h-10 rounded-full flex items-center justify-center font-bold`}>
-                                {student.name.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                                <p className="text-sm text-gray-500">
-                                  {student.age} años • {course?.name || 'Sin curso asignado'}
-                                </p>
-                                {student.parent_name && (
-                                  <p className="text-sm text-gray-400">👤 {student.parent_name}</p>
-                                )}
-                                {student.phone && (
-                                  <p className="text-sm text-gray-400">📱 {student.phone}</p>
-                                )}
-                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && student.last_payment_date && (() => {
-                                  const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-                                  const cycleInfo = getCycleInfo(student.last_payment_date, student.next_payment_date, course?.classDays, cycleClasses)
-                                  if (!cycleInfo) return null
-                                  const progress = (cycleInfo.classesPassed / cycleInfo.totalClasses) * 100
-                                  return (
-                                    <div className="mt-1.5 max-w-[220px]">
-                                      <div className="flex items-center justify-between text-[10px] text-gray-400 mb-0.5">
-                                        <span>{cycleInfo.daysLabel} • {cycleInfo.cycleStart}</span>
-                                        <span>{cycleInfo.cycleEnd}</span>
-                                      </div>
-                                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div
-                                          className="h-full bg-purple-500 rounded-full transition-all"
-                                          style={{ width: `${Math.min(progress, 100)}%` }}
-                                        />
-                                      </div>
-                                      <p className="text-[10px] text-gray-400 mt-0.5">
-                                        Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
-                                        {student.next_payment_date && ` • Cobro: ${formatDate(student.next_payment_date)}`}
-                                      </p>
-                                    </div>
-                                  )
-                                })()}
-                                {student.is_paused && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                    ⏸ Pausado
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <p className="font-semibold text-gray-800">
-                                ${student.monthly_fee}
-                                <span className="text-sm font-normal text-gray-500">
-                                  /{course?.priceType === 'mes' ? (course?.classesPerCycle ? `${course.classesPerCycle} clases` : 'mes') : course?.priceType === 'clase' ? 'clase' : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases` : 'programa'}
-                                </span>
-                              </p>
-                              <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-medium ${paymentStatus.color}`}>
-                                {paymentStatus.label}
-                              </span>
-                            </div>
-
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => setShowStudentDetail(student)}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                                title="Ver detalle del alumno"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button
-                                onClick={() => openPaymentModal(student)}
-                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                title="Registrar pago"
-                              >
-                                <CreditCard size={18} />
-                              </button>
-                              {(course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date && (
-                                <button
-                                  onClick={() => handlePauseStudent(student)}
-                                  className={`p-2 rounded-lg transition-colors ${
-                                    student.is_paused
-                                      ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                                      : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-                                  }`}
-                                  title={student.is_paused ? 'Reactivar clase' : 'Pausar 1 clase'}
-                                >
-                                  {student.is_paused ? <Play size={18} /> : <Pause size={18} />}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleEdit(student)}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                              >
-                                <Edit2 size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(student)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </div>
+                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
+                        <div>
+                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
+                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
                         </div>
+                        <span className="text-xs font-bold text-red-600">{days} día{days !== 1 ? 's' : ''} vencido</span>
                       </div>
                     )
                   })}
+                  {overduePayments.length > 3 && (
+                    <p className="text-xs text-red-600 text-center pt-1">
+                      +{overduePayments.length - 3} más · Toca para ver todos
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Cobros Próximos Alert */}
+            {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
+              <div
+                onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
+                className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-yellow-800 flex items-center gap-2">
+                    <Calendar size={18} />
+                    Cobros Próximos (5 días)
+                  </h3>
+                  <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length} alumno{upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).slice(0, 3).map(s => {
+                    const course = getCourseById(s.course_id)
+                    const days = getDaysUntilDue(s.next_payment_date)
+                    return (
+                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
+                        <div>
+                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
+                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
+                        </div>
+                        <span className={`text-xs font-bold ${days === 0 ? 'text-orange-600' : 'text-yellow-600'}`}>
+                          {days === 0 ? 'Hoy' : `en ${days} día${days !== 1 ? 's' : ''}`}
+                        </span>
+                      </div>
+                    )
+                  })}
+                  {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 3 && (
+                    <p className="text-xs text-yellow-600 text-center pt-1">
+                      +{upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length - 3} más · Toca para ver todos
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Saldos pendientes resumen */}
+            {studentsWithBalance.length > 0 && (
+              <div
+                onClick={() => setShowBalanceAlerts(true)}
+                className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-orange-800 flex items-center gap-2">
+                    <Wallet size={18} />
+                    Saldos por cobrar
+                  </h3>
+                  <span className="text-lg font-bold text-orange-600">
+                    ${studentsWithBalance.reduce((sum, s) => sum + s.balance, 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {studentsWithBalance.slice(0, 3).map(s => (
+                    <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
+                      <div>
+                        <p className="font-medium text-sm text-gray-800">{s.name}</p>
+                        <p className="text-xs text-gray-500">{s.courseName}</p>
+                      </div>
+                      <p className="font-bold text-orange-600">${s.balance.toFixed(2)}</p>
+                    </div>
+                  ))}
+                  {studentsWithBalance.length > 3 && (
+                    <p className="text-xs text-orange-600 text-center pt-1">
+                      +{studentsWithBalance.length - 3} más · Toca para ver todos
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state when no alerts */}
+            {overduePayments.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
+                <Check size={32} className="mx-auto mb-2 text-green-500" />
+                <p className="font-medium text-green-800">¡Todo al día!</p>
+                <p className="text-sm text-green-600 mt-1">No hay cobros pendientes ni saldos por cobrar</p>
+              </div>
+            )}
           </>
         )}
 
@@ -1419,6 +1435,196 @@ export default function App() {
         )}
 
         {/* Student Detail Modal */}
+        {/* Student List Modal */}
+        {showStudentListModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                      <Users size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-xl font-semibold">Alumnos ({filteredStudents.length})</h2>
+                      <p className="text-xs sm:text-sm text-purple-200 hidden sm:block">Gestiona tu lista de alumnos</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowStudentListModal(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Search and Filters */}
+              <div className="p-3 sm:p-4 border-b bg-gray-50">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o cédula..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <select
+                    value={filterCourse}
+                    onChange={(e) => setFilterCourse(e.target.value)}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="all">Todos los cursos</option>
+                    {(() => {
+                      const regular = allCourses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+                      const programs = allCourses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
+                      return (
+                        <>
+                          {regular.length > 0 && (
+                            <optgroup label="Clases Regulares">
+                              {regular.map(c => (
+                                <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                          {programs.length > 0 && (
+                            <optgroup label="Programas">
+                              {programs.map(c => (
+                                <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                              ))}
+                            </optgroup>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </select>
+                  <select
+                    value={filterPayment}
+                    onChange={(e) => setFilterPayment(e.target.value)}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="overdue">Por renovar</option>
+                    <option value="upcoming">Próximos</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Student List */}
+              <div className="flex-1 overflow-y-auto">
+                {filteredStudents.length === 0 ? (
+                  <div className="p-12 text-center text-gray-500">
+                    <Users size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>No hay alumnos registrados</p>
+                    <button
+                      onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
+                      className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      Agregar primer alumno
+                    </button>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {filteredStudents.map(student => {
+                      const course = getCourseById(student.course_id)
+                      const paymentStatus = getPaymentStatus(student, course)
+                      const isCamp = student.course_id?.startsWith('camp-')
+
+                      return (
+                        <div key={student.id} className={`p-3 sm:p-4 hover:bg-gray-50 transition-colors ${isCamp ? 'border-l-4 border-pink-400' : ''}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                              <div className={`${isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'} w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0`}>
+                                {student.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{student.name}</h3>
+                                <p className="text-xs sm:text-sm text-gray-500 truncate">
+                                  {student.age} años • {course?.name || 'Sin curso'}
+                                </p>
+                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && student.last_payment_date && (() => {
+                                  const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
+                                  const cycleInfo = getCycleInfo(student.last_payment_date, student.next_payment_date, course?.classDays, cycleClasses)
+                                  if (!cycleInfo) return null
+                                  const progress = (cycleInfo.classesPassed / cycleInfo.totalClasses) * 100
+                                  return (
+                                    <div className="mt-1 max-w-[180px]">
+                                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
+                                      </div>
+                                      <p className="text-[10px] text-gray-400 mt-0.5">
+                                        Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
+                                      </p>
+                                    </div>
+                                  )
+                                })()}
+                                {student.is_paused && (
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium">Pausado</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+                              <div className="text-right hidden sm:block">
+                                <p className="font-semibold text-gray-800 text-sm">${student.monthly_fee}</p>
+                                <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${paymentStatus.color}`}>
+                                  {paymentStatus.label}
+                                </span>
+                              </div>
+
+                              <div className="flex gap-0.5 sm:gap-1">
+                                <button
+                                  onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                  title="Ver detalle"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Registrar pago"
+                                >
+                                  <CreditCard size={16} />
+                                </button>
+                                <button
+                                  onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors hidden sm:block"
+                                  title="Editar"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(student)}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors hidden sm:block"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-2 sm:p-4 border-t bg-gray-50">
+                <button
+                  onClick={() => setShowStudentListModal(false)}
+                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showStudentDetail && (
           <StudentDetail
             student={showStudentDetail}
@@ -1578,7 +1784,7 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v4.6
+          💾 Datos en la nube • v4.7
         </div>
       </div>
     </div>
