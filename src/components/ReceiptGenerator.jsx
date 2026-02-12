@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { X, Download, Send } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
@@ -11,9 +11,32 @@ export default function ReceiptGenerator({
   onClose
 }) {
   const receiptRef = useRef(null)
+  const [logoBase64, setLogoBase64] = useState(null)
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
+
+  // Pre-load logo as base64 so html2canvas can render it (avoids cross-origin issues)
+  useEffect(() => {
+    if (!settings?.logo_url) return
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+        setLogoBase64(canvas.toDataURL('image/png'))
+      } catch {
+        // If toDataURL fails (tainted canvas), ignore — logo won't appear in download
+        setLogoBase64(null)
+      }
+    }
+    img.onerror = () => setLogoBase64(null)
+    img.src = settings.logo_url
+  }, [settings?.logo_url])
 
   // Cerrar con Escape
   useEffect(() => {
@@ -39,28 +62,10 @@ export default function ReceiptGenerator({
     if (!receiptRef.current) return
 
     try {
-      // Clone the receipt and remove any cross-origin images that might cause issues
-      const clonedReceipt = receiptRef.current.cloneNode(true)
-      const images = clonedReceipt.querySelectorAll('img')
-      images.forEach(img => {
-        img.crossOrigin = 'anonymous'
-        // If image failed to load, hide it
-        img.onerror = () => { img.style.display = 'none' }
-      })
-
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        // Ignore cross-origin images that fail
-        onclone: (clonedDoc) => {
-          const clonedImages = clonedDoc.querySelectorAll('img')
-          clonedImages.forEach(img => {
-            img.crossOrigin = 'anonymous'
-          })
-        }
+        logging: false
       })
 
       const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
@@ -71,30 +76,7 @@ export default function ReceiptGenerator({
       link.click()
     } catch (err) {
       console.error('Error generating receipt:', err)
-      // Fallback: try without images
-      try {
-        const images = receiptRef.current.querySelectorAll('img')
-        images.forEach(img => { img.style.display = 'none' })
-
-        const canvas = await html2canvas(receiptRef.current, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          logging: false
-        })
-
-        // Restore images
-        images.forEach(img => { img.style.display = '' })
-
-        const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
-        const customerName = student?.name || 'Cliente'
-        const link = document.createElement('a')
-        link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
-        link.href = canvas.toDataURL('image/png')
-        link.click()
-      } catch (err2) {
-        console.error('Error generating receipt (fallback):', err2)
-        alert('Error al generar el comprobante. Intenta usar captura de pantalla.')
-      }
+      alert('Error al generar el comprobante. Intenta usar captura de pantalla.')
     }
   }
 
@@ -171,11 +153,10 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
           >
             {/* School Header */}
             <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-              {settings.logo_url ? (
+              {(logoBase64 || settings.logo_url) ? (
                 <img
-                  src={settings.logo_url}
+                  src={logoBase64 || settings.logo_url}
                   alt="Logo"
-                  crossOrigin="anonymous"
                   className="h-12 max-w-[150px] mx-auto mb-2 object-contain"
                   onError={(e) => {
                     e.target.onerror = null
