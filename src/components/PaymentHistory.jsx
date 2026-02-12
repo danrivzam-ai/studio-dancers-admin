@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle } from 'lucide-react'
+import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
@@ -21,7 +21,7 @@ export default function PaymentHistory({
   })
   const [dateTo, setDateTo] = useState(formatDateForInput(new Date()))
   const [searchTerm, setSearchTerm] = useState('')
-  const [showFilters, setShowFilters] = useState(true)
+  const [showFilters, setShowFilters] = useState(window.innerWidth >= 768)
   const [viewType, setViewType] = useState('all') // 'all', 'students', 'quick'
 
   // Estado para anulación
@@ -317,17 +317,17 @@ export default function PaymentHistory({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Calendar size={24} />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                <Calendar size={20} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold">Historial de Pagos</h2>
-                <p className="text-sm text-purple-200">Consulta, reimprime y anula comprobantes</p>
+                <h2 className="text-base sm:text-xl font-semibold">Historial de Pagos</h2>
+                <p className="text-xs sm:text-sm text-purple-200 hidden sm:block">Consulta, reimprime y anula comprobantes</p>
               </div>
             </div>
             <button
@@ -340,55 +340,45 @@ export default function PaymentHistory({
         </div>
 
         {/* Filters */}
-        <div className="p-4 border-b bg-gray-50">
+        <div className="p-3 sm:p-4 border-b bg-gray-50">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 text-gray-700 font-medium mb-3"
+            className="flex items-center gap-2 text-gray-700 font-medium mb-2"
           >
-            <Filter size={18} />
-            Filtros
-            {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            <Filter size={16} />
+            <span className="text-sm">Filtros</span>
+            {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
 
           {showFilters && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Presets */}
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setDatePreset('today')}
-                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
-                >
-                  Hoy
-                </button>
-                <button
-                  onClick={() => setDatePreset('week')}
-                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
-                >
-                  Última semana
-                </button>
-                <button
-                  onClick={() => setDatePreset('month')}
-                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
-                >
-                  Último mes
-                </button>
-                <button
-                  onClick={() => setDatePreset('year')}
-                  className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200 transition-colors"
-                >
-                  Último año
-                </button>
+              <div className="flex gap-1.5 flex-wrap">
+                {[
+                  { key: 'today', label: 'Hoy' },
+                  { key: 'week', label: 'Semana' },
+                  { key: 'month', label: 'Mes' },
+                  { key: 'year', label: 'Año' }
+                ].map(p => (
+                  <button
+                    key={p.key}
+                    onClick={() => setDatePreset(p.key)}
+                    className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
 
               {/* Date range */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Desde</label>
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div>
@@ -397,7 +387,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div>
@@ -405,23 +395,23 @@ export default function PaymentHistory({
                   <select
                     value={viewType}
                     onChange={(e) => setViewType(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="all">Todos los pagos</option>
-                    <option value="students">Solo alumnos</option>
-                    <option value="quick">Solo pagos rápidos</option>
+                    <option value="all">Todos</option>
+                    <option value="students">Alumnos</option>
+                    <option value="quick">Rápidos</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                     <input
                       type="text"
-                      placeholder="Nombre, cédula o N° recibo..."
+                      placeholder="Nombre, cédula..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-7 pr-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -429,22 +419,22 @@ export default function PaymentHistory({
             </div>
           )}
 
-          {/* Summary */}
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-3 text-center border">
-              <p className="text-xs text-gray-500">Pagos Alumnos</p>
-              <p className="text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
-              <p className="text-xs text-gray-400">{filteredPayments.filter(p => !p.voided).length} pagos</p>
+          {/* Summary - always visible */}
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-white rounded-lg p-2 sm:p-3 text-center border">
+              <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
+              <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{filteredPayments.filter(p => !p.voided).length} pagos</p>
             </div>
-            <div className="bg-white rounded-lg p-3 text-center border">
-              <p className="text-xs text-gray-500">Pagos Rápidos</p>
-              <p className="text-lg font-bold text-yellow-600">${totalQuickPayments.toFixed(2)}</p>
-              <p className="text-xs text-gray-400">{filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
+            <div className="bg-white rounded-lg p-2 sm:p-3 text-center border">
+              <p className="text-[10px] sm:text-xs text-gray-500">Rápidos</p>
+              <p className="text-sm sm:text-lg font-bold text-yellow-600">${totalQuickPayments.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
-              <p className="text-xs text-green-600 font-medium">TOTAL</p>
-              <p className="text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
-              <p className="text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
+            <div className="bg-green-50 rounded-lg p-2 sm:p-3 text-center border border-green-200">
+              <p className="text-[10px] sm:text-xs text-green-600 font-medium">TOTAL</p>
+              <p className="text-sm sm:text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
             </div>
           </div>
         </div>
@@ -462,65 +452,61 @@ export default function PaymentHistory({
               {(viewType === 'all' || viewType === 'students') && filteredPayments.map(payment => (
                 <div
                   key={`student-${payment.id}`}
-                  className={`p-4 transition-colors ${payment.voided ? 'bg-red-50/50 opacity-60' : 'hover:bg-gray-50'}`}
+                  className={`p-3 sm:p-4 transition-colors ${payment.voided ? 'bg-red-50/50 opacity-60' : 'hover:bg-gray-50'}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                         payment.voided ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'
                       }`}>
-                        {payment.voided ? <Ban size={18} /> : (payment.students?.name?.charAt(0) || '?')}
+                        {payment.voided ? <Ban size={16} /> : (payment.students?.name?.charAt(0) || '?')}
                       </div>
-                      <div>
-                        <p className={`font-medium ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                      <div className="min-w-0">
+                        <p className={`font-medium text-sm truncate ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                           {payment.students?.name || 'Desconocido'}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-gray-500 truncate">
                           {payment.receipt_number} • {formatDate(payment.payment_date)}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 truncate hidden sm:block">
                           {payment.payment_method}
                           {payment.bank_name && ` - ${payment.bank_name}`}
                         </p>
                         {payment.voided && (
-                          <p className="text-xs text-red-500 font-medium mt-0.5">
+                          <p className="text-xs text-red-500 font-medium mt-0.5 truncate">
                             ANULADO {payment.voided_reason ? `- ${payment.voided_reason}` : ''}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <div className="text-right">
-                        <p className={`font-bold ${payment.voided ? 'text-red-400 line-through' : 'text-green-600'}`}>
+                        <p className={`font-bold text-sm sm:text-base ${payment.voided ? 'text-red-400 line-through' : 'text-green-600'}`}>
                           ${parseFloat(payment.amount).toFixed(2)}
                         </p>
-                        {payment.voided ? (
-                          <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
-                            Anulado
-                          </span>
-                        ) : (
-                          <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">
-                            Alumno
-                          </span>
-                        )}
+                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full ${
+                          payment.voided ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {payment.voided ? 'Anulado' : 'Alumno'}
+                        </span>
                       </div>
                       {!payment.voided && (
-                        <>
+                        <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintStudent(payment)}
-                            className="p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl transition-colors"
-                            title="Reimprimir comprobante"
+                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors"
+                            title="Reimprimir"
                           >
-                            <Printer size={18} />
+                            <Printer size={16} />
                           </button>
                           <button
                             onClick={() => openVoidModal('student', payment)}
-                            className="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
-                            title="Anular comprobante"
+                            className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                            title="Anular"
                           >
-                            <Ban size={16} />
+                            <Ban size={14} />
                           </button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -531,65 +517,61 @@ export default function PaymentHistory({
               {(viewType === 'all' || viewType === 'quick') && filteredQuickPayments.map(payment => (
                 <div
                   key={`quick-${payment.id}`}
-                  className={`p-4 transition-colors ${payment.voided ? 'bg-red-50/50 opacity-60' : 'hover:bg-yellow-50/50'}`}
+                  className={`p-3 sm:p-4 transition-colors ${payment.voided ? 'bg-red-50/50 opacity-60' : 'hover:bg-yellow-50/50'}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                         payment.voided ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                       }`}>
-                        {payment.voided ? <Ban size={18} /> : '⚡'}
+                        {payment.voided ? <Ban size={16} /> : <Zap size={16} />}
                       </div>
-                      <div>
-                        <p className={`font-medium ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                      <div className="min-w-0">
+                        <p className={`font-medium text-sm truncate ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                           {payment.customer_name}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-gray-500 truncate">
                           {payment.receipt_number} • {formatDate(payment.payment_date)}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 truncate hidden sm:block">
                           {payment.class_name} • {payment.payment_method}
                           {payment.bank_name && ` - ${payment.bank_name}`}
                         </p>
                         {payment.voided && (
-                          <p className="text-xs text-red-500 font-medium mt-0.5">
+                          <p className="text-xs text-red-500 font-medium mt-0.5 truncate">
                             ANULADO {payment.voided_reason ? `- ${payment.voided_reason}` : ''}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <div className="text-right">
-                        <p className={`font-bold ${payment.voided ? 'text-red-400 line-through' : 'text-green-600'}`}>
+                        <p className={`font-bold text-sm sm:text-base ${payment.voided ? 'text-red-400 line-through' : 'text-green-600'}`}>
                           ${parseFloat(payment.amount).toFixed(2)}
                         </p>
-                        {payment.voided ? (
-                          <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
-                            Anulado
-                          </span>
-                        ) : (
-                          <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
-                            Clase Diaria
-                          </span>
-                        )}
+                        <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full ${
+                          payment.voided ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {payment.voided ? 'Anulado' : 'Rápido'}
+                        </span>
                       </div>
                       {!payment.voided && (
-                        <>
+                        <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintQuick(payment)}
-                            className="p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl transition-colors"
-                            title="Reimprimir comprobante"
+                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors"
+                            title="Reimprimir"
                           >
-                            <Printer size={18} />
+                            <Printer size={16} />
                           </button>
                           <button
                             onClick={() => openVoidModal('quick', payment)}
-                            className="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
-                            title="Anular comprobante"
+                            className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                            title="Anular"
                           >
-                            <Ban size={16} />
+                            <Ban size={14} />
                           </button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -609,10 +591,10 @@ export default function PaymentHistory({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-2 sm:p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+            className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
           >
             Cerrar
           </button>

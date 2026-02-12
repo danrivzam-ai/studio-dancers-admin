@@ -74,6 +74,57 @@ export default function App() {
   const [showStudentDetail, setShowStudentDetail] = useState(null)
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
 
+  // Browser back button closes modals instead of leaving the app
+  useEffect(() => {
+    const allModals = [
+      showForm, showSaleForm, showPaymentModal, showReceipt, showSettings,
+      showExport, showManageItems, showQuickPayment, showPaymentHistory,
+      showCashRegister, showExpenses, showCashMovements, showManageCategories,
+      showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
+      !!showStudentDetail, !!selectedStudent
+    ]
+    const anyModalOpen = allModals.some(Boolean)
+
+    if (anyModalOpen) {
+      // Push a state so back button has somewhere to go
+      window.history.pushState({ modal: true }, '')
+    }
+
+    const handlePopState = (e) => {
+      // Close modals in reverse priority order
+      if (showPinPrompt) { setShowPinPrompt(false); setPendingSettingsAccess(false); return }
+      if (deleteModal.isOpen) { setDeleteModal({ isOpen: false, type: '', id: null, name: '' }); return }
+      if (showReceipt) { setShowReceipt(false); return }
+      if (showPaymentModal) { setShowPaymentModal(false); return }
+      if (showBalanceAlerts) { setShowBalanceAlerts(false); return }
+      if (showStudentDetail) { setShowStudentDetail(null); return }
+      if (selectedStudent) { setSelectedStudent(null); return }
+      if (showForm) { setShowForm(false); setEditingStudent(null); return }
+      if (showSaleForm) { setShowSaleForm(false); return }
+      if (showQuickPayment) { setShowQuickPayment(false); return }
+      if (showPaymentHistory) { setShowPaymentHistory(false); return }
+      if (showCashRegister) { setShowCashRegister(false); return }
+      if (showExpenses) { setShowExpenses(false); return }
+      if (showCashMovements) { setShowCashMovements(false); return }
+      if (showManageCategories) { setShowManageCategories(false); return }
+      if (showManageItems) { setShowManageItems(false); return }
+      if (showExport) { setShowExport(false); return }
+      if (showSettings) { setShowSettings(false); return }
+      if (showAuditLog) { setShowAuditLog(false); return }
+      // No modal open — push state back so we don't leave the app
+      window.history.pushState({ app: true }, '')
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [
+    showForm, showSaleForm, showPaymentModal, showReceipt, showSettings,
+    showExport, showManageItems, showQuickPayment, showPaymentHistory,
+    showCashRegister, showExpenses, showCashMovements, showManageCategories,
+    showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
+    showStudentDetail, selectedStudent
+  ])
+
   const [formData, setFormData] = useState({
     name: '',
     age: '',
