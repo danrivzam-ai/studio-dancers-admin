@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import html2canvas from 'html2canvas'
+import { toPng } from 'html-to-image'
 import { X, Download, Send } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
@@ -62,21 +62,23 @@ export default function ReceiptGenerator({
     if (!receiptRef.current) return
 
     try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 2,
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 1,
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
-        logging: false
+        cacheBust: true,
+        skipFonts: true
       })
 
       const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
       const customerName = student?.name || 'Cliente'
       const link = document.createElement('a')
       link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.href = dataUrl
       link.click()
     } catch (err) {
       console.error('Error generating receipt:', err)
-      alert('Error al generar el comprobante. Intenta usar captura de pantalla.')
+      alert('Error al generar. Intenta de nuevo o usa captura de pantalla.')
     }
   }
 
