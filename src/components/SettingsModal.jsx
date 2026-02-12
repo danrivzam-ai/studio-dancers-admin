@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Building2, Lock, Eye, EyeOff, Shield } from 'lucide-react'
+import BackupExport from './BackupExport'
 
 export default function SettingsModal({
   settings,
@@ -359,6 +360,9 @@ export default function SettingsModal({
               </div>
             )}
           </div>
+
+          {/* Backup Export */}
+          <BackupExport settings={settings} />
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
