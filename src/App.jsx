@@ -12,7 +12,7 @@ import { useDailyIncome } from './hooks/useDailyIncome'
 import { useCashRegister } from './hooks/useCashRegister'
 import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
-import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, getSuggestedCourses } from './lib/courses'
+// courses.js static exports no longer used directly - allCourses from useItems() is the single source of truth
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo } from './lib/dateUtils'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
@@ -845,21 +845,28 @@ export default function App() {
                   className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="all">Todos los cursos</option>
-                  <optgroup label="Clases Regulares">
-                    {COURSES.map(course => (
-                      <option key={course.id} value={course.id}>{course.name}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Sábados Intensivos ($40 x 4 clases)">
-                    {SABADOS_INTENSIVOS.map(course => (
-                      <option key={course.id} value={course.id}>{course.name}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Dance Camp 2026">
-                    {DANCE_CAMP.map(course => (
-                      <option key={course.id} value={course.id}>{course.name}</option>
-                    ))}
-                  </optgroup>
+                  {(() => {
+                    const regular = allCourses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+                    const programs = allCourses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
+                    return (
+                      <>
+                        {regular.length > 0 && (
+                          <optgroup label="Clases Regulares">
+                            {regular.map(c => (
+                              <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {programs.length > 0 && (
+                          <optgroup label="Programas">
+                            {programs.map(c => (
+                              <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </>
+                    )
+                  })()}
                 </select>
                 <select
                   value={filterPayment}
@@ -1105,69 +1112,63 @@ export default function App() {
               </button>
             </div>
 
-            {/* Regular Classes */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="font-semibold text-gray-800 mb-4">📚 Clases Regulares</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {COURSES.map(course => {
-                  const enrolledCount = students.filter(s => s.course_id === course.id).length
-                  return (
-                    <div key={course.id} className="border rounded-lg p-4 hover:border-purple-300 transition-colors">
-                      <h3 className="font-medium text-purple-700">{course.name}</h3>
-                      <p className="text-sm text-gray-500">{course.schedule}</p>
-                      <p className="text-lg font-bold text-green-600 mt-2">
-                        ${course.price}/{course.priceType === 'mes' ? (course.classesPerCycle ? `${course.classesPerCycle} clases` : 'mes') : course.priceType === 'clase' ? 'clase' : course.priceType}
-                      </p>
-                      <p className="text-sm font-medium text-gray-700 mt-2">
-                        {enrolledCount} alumno{enrolledCount !== 1 ? 's' : ''} inscrito{enrolledCount !== 1 ? 's' : ''}
-                      </p>
+            {/* All Courses - Dynamic */}
+            {(() => {
+              const regular = allCourses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+              const programs = allCourses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
+              return (
+                <>
+                  {regular.length > 0 && (
+                    <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+                      <h2 className="font-semibold text-gray-800 mb-4">Clases Regulares</h2>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        {regular.map(course => {
+                          const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
+                          return (
+                            <div key={course.id || course.code} className="border rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all">
+                              <h3 className="font-medium text-purple-700">{course.name}</h3>
+                              <p className="text-sm text-gray-500 mt-1">{course.schedule || 'Sin horario definido'}</p>
+                              <p className="text-lg font-bold text-green-600 mt-2">
+                                ${course.price}/{(course.priceType || course.price_type) === 'mes' ? 'mes' : 'clase'}
+                              </p>
+                              <p className="text-sm font-medium text-gray-700 mt-2">
+                                {enrolledCount} alumno{enrolledCount !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Sábados Intensivos */}
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl shadow p-6">
-              <h2 className="font-semibold text-orange-800 mb-4">🌟 Sábados Intensivos - $40 por paquete de 4 clases</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                {SABADOS_INTENSIVOS.map(course => {
-                  const enrolledCount = students.filter(s => s.course_id === course.id).length
-                  return (
-                    <div key={course.id} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <h3 className="font-medium text-orange-700">{course.name}</h3>
-                      <p className="text-sm text-gray-500">Edades: {course.ageMin} - {course.ageMax} años</p>
-                      <p className="text-sm text-gray-500">{course.schedule}</p>
-                      <p className="text-lg font-bold text-green-600 mt-2">${course.price}</p>
-                      <p className="text-xs text-orange-600">Paquete: 4 clases (se renueva al completar)</p>
-                      <p className="text-sm font-medium text-gray-700 mt-2">
-                        {enrolledCount} inscrito{enrolledCount !== 1 ? 's' : ''}
-                      </p>
+                  )}
+                  {programs.length > 0 && (
+                    <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl shadow p-4 sm:p-6">
+                      <h2 className="font-semibold text-orange-800 mb-4">Programas</h2>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        {programs.map(course => {
+                          const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
+                          return (
+                            <div key={course.id || course.code} className="bg-white rounded-xl p-4 hover:shadow-md transition-shadow">
+                              <h3 className="font-medium text-orange-700">{course.name}</h3>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {(course.ageMin || course.age_min)} - {(course.ageMax || course.age_max)} años
+                                {course.schedule && ` • ${course.schedule}`}
+                              </p>
+                              <p className="text-lg font-bold text-green-600 mt-2">${course.price}</p>
+                              {(course.allowsInstallments || course.allows_installments) && (
+                                <p className="text-xs text-orange-600">{course.installmentCount || course.installment_count || 2} cuotas</p>
+                              )}
+                              <p className="text-sm font-medium text-gray-700 mt-2">
+                                {enrolledCount} inscrito{enrolledCount !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Dance Camp */}
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl shadow p-6">
-              <h2 className="font-semibold text-pink-800 mb-4">🎪 Dance Camp 2026 - Programa Completo $99</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                {DANCE_CAMP.map(course => {
-                  const enrolledCount = students.filter(s => s.course_id === course.id).length
-                  return (
-                    <div key={course.id} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <h3 className="font-medium text-pink-700">{course.name.replace('Dance Camp 2026 - ', '')}</h3>
-                      <p className="text-sm text-gray-500">Edades: {course.ageMin} - {course.ageMax} años</p>
-                      <p className="text-sm text-gray-500">{course.schedule}</p>
-                      <p className="text-sm font-medium text-gray-700 mt-2">
-                        {enrolledCount} inscrito{enrolledCount !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         )}
 
