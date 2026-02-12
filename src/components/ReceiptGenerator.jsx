@@ -16,26 +16,41 @@ export default function ReceiptGenerator({
   const isReprint = payment?.isReprint || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
 
-  // Pre-load logo as base64 so html2canvas can render it (avoids cross-origin issues)
+  // Pre-load logo as base64 for image capture (avoids cross-origin issues)
   useEffect(() => {
-    if (!settings?.logo_url) return
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0)
-        setLogoBase64(canvas.toDataURL('image/png'))
-      } catch {
-        // If toDataURL fails (tainted canvas), ignore — logo won't appear in download
-        setLogoBase64(null)
-      }
+    const tryLoadAsBase64 = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas')
+            canvas.width = img.naturalWidth
+            canvas.height = img.naturalHeight
+            const ctx = canvas.getContext('2d')
+            ctx.drawImage(img, 0, 0)
+            resolve(canvas.toDataURL('image/png'))
+          } catch {
+            resolve(null)
+          }
+        }
+        img.onerror = () => resolve(null)
+        img.src = url
+      })
     }
-    img.onerror = () => setLogoBase64(null)
-    img.src = settings.logo_url
+
+    const loadLogo = async () => {
+      if (!settings?.logo_url) return
+      // Try the configured URL first
+      let base64 = await tryLoadAsBase64(settings.logo_url)
+      // If it fails (CORS), fallback to local logo
+      if (!base64 && settings.logo_url !== '/logo.png') {
+        base64 = await tryLoadAsBase64('/logo.png')
+      }
+      setLogoBase64(base64)
+    }
+
+    loadLogo()
   }, [settings?.logo_url])
 
   // Cerrar con Escape
@@ -62,13 +77,32 @@ export default function ReceiptGenerator({
     if (!receiptRef.current) return
 
     try {
-      const dataUrl = await toPng(receiptRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        cacheBust: true,
-        skipFonts: true
-      })
+      // First attempt with filter to skip problematic external images
+      let dataUrl
+      try {
+        dataUrl = await toPng(receiptRef.current, {
+          quality: 1,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff',
+          cacheBust: true,
+          skipFonts: true
+        })
+      } catch {
+        // If first attempt fails, retry filtering out images that aren't base64
+        dataUrl = await toPng(receiptRef.current, {
+          quality: 1,
+          pixelRatio: 2,
+          backgroundColor: '#ffffff',
+          skipFonts: true,
+          filter: (node) => {
+            // Skip img elements with external URLs (non-base64)
+            if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) {
+              return false
+            }
+            return true
+          }
+        })
+      }
 
       const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
       const customerName = student?.name || 'Cliente'
