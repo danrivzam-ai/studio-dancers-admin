@@ -61,8 +61,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCourse, setFilterCourse] = useState('all')
   const [filterPayment, setFilterPayment] = useState('all')
-  const [showStudentList, setShowStudentList] = useState(true) // Para lista desplegable
-  const [showUpcomingPayments, setShowUpcomingPayments] = useState(true) // Para alertas de cobros
+  // showStudentList and showUpcomingPayments removed - now handled by dashboard cards
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: '', id: null, name: '' })
   const [showPinPrompt, setShowPinPrompt] = useState(false)
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
@@ -119,6 +118,41 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
+  }, [
+    showForm, showSaleForm, showPaymentModal, showReceipt, showSettings,
+    showExport, showManageItems, showQuickPayment, showPaymentHistory,
+    showCashRegister, showExpenses, showCashMovements, showManageCategories,
+    showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
+    showStudentDetail, selectedStudent, showStudentListModal
+  ])
+
+  // ESC key closes the topmost modal (same priority as back button)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key !== 'Escape') return
+      if (showPinPrompt) { setShowPinPrompt(false); setPendingSettingsAccess(false); return }
+      if (deleteModal.isOpen) { setDeleteModal({ isOpen: false, type: '', id: null, name: '' }); return }
+      if (showReceipt) { setShowReceipt(false); return }
+      if (showPaymentModal) { setShowPaymentModal(false); return }
+      if (showBalanceAlerts) { setShowBalanceAlerts(false); return }
+      if (showStudentDetail) { setShowStudentDetail(null); return }
+      if (selectedStudent) { setSelectedStudent(null); return }
+      if (showStudentListModal) { setShowStudentListModal(false); return }
+      if (showForm) { setShowForm(false); setEditingStudent(null); return }
+      if (showSaleForm) { setShowSaleForm(false); return }
+      if (showQuickPayment) { setShowQuickPayment(false); return }
+      if (showPaymentHistory) { setShowPaymentHistory(false); return }
+      if (showCashRegister) { setShowCashRegister(false); return }
+      if (showExpenses) { setShowExpenses(false); return }
+      if (showCashMovements) { setShowCashMovements(false); return }
+      if (showManageCategories) { setShowManageCategories(false); return }
+      if (showManageItems) { setShowManageItems(false); return }
+      if (showExport) { setShowExport(false); return }
+      if (showSettings) { setShowSettings(false); return }
+      if (showAuditLog) { setShowAuditLog(false); return }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [
     showForm, showSaleForm, showPaymentModal, showReceipt, showSettings,
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
@@ -767,63 +801,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Upcoming Payments Alert - visible on dashboard */}
-        {upcomingPayments.length > 0 && activeTab === 'students' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl mb-6 overflow-hidden">
-            <button
-              onClick={() => setShowUpcomingPayments(!showUpcomingPayments)}
-              className="w-full p-4 flex items-center justify-between hover:bg-yellow-100/50 transition-colors"
-            >
-              <h3 className="font-semibold text-yellow-800 flex items-center gap-2">
-                <AlertCircle size={18} />
-                Cobros próximos o pendientes ({upcomingPayments.length})
-              </h3>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-yellow-600">
-                  {showUpcomingPayments ? 'Ocultar' : 'Mostrar'}
-                </span>
-                {showUpcomingPayments ? <ChevronUp size={18} className="text-yellow-600" /> : <ChevronDown size={18} className="text-yellow-600" />}
-              </div>
-            </button>
-            {showUpcomingPayments && (
-              <div className="px-4 pb-4 space-y-2">
-                {upcomingPayments.slice(0, 10).map(student => {
-                  const course = getCourseById(student.course_id)
-                  const paymentStatus = getPaymentStatus(student, course)
-                  return (
-                    <div key={student.id} className="flex items-center justify-between bg-white rounded-lg p-3">
-                      <div>
-                        <p className="font-medium text-gray-800">{student.name}</p>
-                        <p className="text-sm text-gray-500">{course?.name || 'Sin curso'}</p>
-                        <p className="text-xs text-gray-400">Cobro: {formatDate(student.next_payment_date)}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${paymentStatus.color}`}>
-                            {paymentStatus.label}
-                          </span>
-                          <p className="text-sm text-gray-600 mt-1">${student.monthly_fee}</p>
-                        </div>
-                        <button
-                          onClick={() => openPaymentModal(student)}
-                          className="p-2 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition-colors"
-                          title="Registrar pago"
-                        >
-                          <CreditCard size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-                {upcomingPayments.length > 10 && (
-                  <p className="text-xs text-yellow-600 text-center pt-2">
-                    ... y {upcomingPayments.length - 10} más
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        {/* Old upcoming payments section removed - now integrated in dashboard cards */}
 
         {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
@@ -1248,6 +1226,7 @@ export default function App() {
             onClose={() => setShowQuickPayment(false)}
             onPaymentComplete={handleQuickPayment}
             settings={settings}
+            students={students}
           />
         )}
 

@@ -100,6 +100,15 @@ export default function AuditLog({ onClose }) {
     fetchLogs(filters)
   }, [])
 
+  // ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const handleFilter = () => {
     fetchLogs(filters)
   }

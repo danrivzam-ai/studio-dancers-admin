@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search, Users } from 'lucide-react'
 import { BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
 
@@ -18,22 +18,71 @@ const DAILY_CLASSES = [
 export default function QuickPayment({
   onClose,
   onPaymentComplete,
-  settings
+  settings,
+  students = []
 }) {
   const { generateReceiptNumber } = usePayments()
   const [loading, setLoading] = useState(false)
+  const [studentSearch, setStudentSearch] = useState('')
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false)
+  const searchRef = useRef(null)
   const [formData, setFormData] = useState({
     customerName: '',
     customerCedula: '',
     customerPhone: '',
     classType: 'clase-diaria-adultos',
     amount: '12',
-    paymentDate: new Date().toISOString().split('T')[0], // Fecha del pago (por defecto hoy)
+    paymentDate: new Date().toISOString().split('T')[0],
     paymentMethod: 'efectivo',
     bankId: '',
     transferReceipt: '',
     notes: ''
   })
+
+  // ESC key to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (showStudentDropdown) {
+          setShowStudentDropdown(false)
+        } else {
+          onClose()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose, showStudentDropdown])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowStudentDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  // Filter students for search
+  const filteredStudents = students.filter(s => {
+    const search = studentSearch.toLowerCase()
+    return s.name?.toLowerCase().includes(search) ||
+           s.cedula?.includes(studentSearch) ||
+           s.parent_name?.toLowerCase().includes(search)
+  }).slice(0, 8)
+
+  const selectStudent = (student) => {
+    setFormData({
+      ...formData,
+      customerName: student.name,
+      customerCedula: student.cedula || student.parent_cedula || '',
+      customerPhone: student.phone || student.parent_phone || ''
+    })
+    setStudentSearch('')
+    setShowStudentDropdown(false)
+  }
 
   const selectedClass = DAILY_CLASSES.find(c => c.id === formData.classType)
 
@@ -102,6 +151,52 @@ export default function QuickPayment({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Buscar alumno registrado */}
+          {students.length > 0 && (
+            <div ref={searchRef} className="relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Users size={14} className="inline mr-1" />
+                Buscar alumno registrado (opcional)
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  value={studentSearch}
+                  onChange={(e) => { setStudentSearch(e.target.value); setShowStudentDropdown(true) }}
+                  onFocus={() => studentSearch && setShowStudentDropdown(true)}
+                  className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                  placeholder="Buscar por nombre o cédula..."
+                />
+              </div>
+              {showStudentDropdown && studentSearch && filteredStudents.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {filteredStudents.map(s => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => selectStudent(s)}
+                      className="w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors flex items-center gap-2 border-b border-gray-50 last:border-0"
+                    >
+                      <div className="bg-purple-100 text-purple-700 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                        {s.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{s.cedula || s.parent_cedula || 'Sin cédula'}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showStudentDropdown && studentSearch && filteredStudents.length === 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-center text-sm text-gray-500">
+                  No se encontraron alumnos
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Datos del cliente */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
