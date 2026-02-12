@@ -39,9 +39,28 @@ export default function ReceiptGenerator({
     if (!receiptRef.current) return
 
     try {
+      // Clone the receipt and remove any cross-origin images that might cause issues
+      const clonedReceipt = receiptRef.current.cloneNode(true)
+      const images = clonedReceipt.querySelectorAll('img')
+      images.forEach(img => {
+        img.crossOrigin = 'anonymous'
+        // If image failed to load, hide it
+        img.onerror = () => { img.style.display = 'none' }
+      })
+
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        // Ignore cross-origin images that fail
+        onclone: (clonedDoc) => {
+          const clonedImages = clonedDoc.querySelectorAll('img')
+          clonedImages.forEach(img => {
+            img.crossOrigin = 'anonymous'
+          })
+        }
       })
 
       const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
@@ -52,7 +71,30 @@ export default function ReceiptGenerator({
       link.click()
     } catch (err) {
       console.error('Error generating receipt:', err)
-      alert('Error al generar el comprobante')
+      // Fallback: try without images
+      try {
+        const images = receiptRef.current.querySelectorAll('img')
+        images.forEach(img => { img.style.display = 'none' })
+
+        const canvas = await html2canvas(receiptRef.current, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        })
+
+        // Restore images
+        images.forEach(img => { img.style.display = '' })
+
+        const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
+        const customerName = student?.name || 'Cliente'
+        const link = document.createElement('a')
+        link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      } catch (err2) {
+        console.error('Error generating receipt (fallback):', err2)
+        alert('Error al generar el comprobante. Intenta usar captura de pantalla.')
+      }
     }
   }
 
@@ -133,6 +175,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
                 <img
                   src={settings.logo_url}
                   alt="Logo"
+                  crossOrigin="anonymous"
                   className="h-12 max-w-[150px] mx-auto mb-2 object-contain"
                   onError={(e) => {
                     e.target.onerror = null
