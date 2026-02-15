@@ -3,6 +3,7 @@ import {
   X, Search, ChevronDown, ChevronUp, RefreshCw,
   Plus, Trash2, Edit2, Eye, LogIn, LogOut, DollarSign, Settings, RotateCcw
 } from 'lucide-react'
+import { getTodayEC, getNowEC } from '../lib/dateUtils'
 import { useAuditLog } from '../hooks/useAuditLog'
 
 const ACTION_CONFIG = {
@@ -86,8 +87,10 @@ function getDescription(log) {
 export default function AuditLog({ onClose }) {
   const { logs, loading, hasMore, fetchLogs, loadMore } = useAuditLog()
 
-  const today = new Date().toISOString().split('T')[0]
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]
+  const today = getTodayEC()
+  const weekAgoDate = getNowEC()
+  weekAgoDate.setDate(weekAgoDate.getDate() - 7)
+  const weekAgo = `${weekAgoDate.getFullYear()}-${String(weekAgoDate.getMonth() + 1).padStart(2, '0')}-${String(weekAgoDate.getDate()).padStart(2, '0')}`
 
   const [dateFrom, setDateFrom] = useState(weekAgo)
   const [dateTo, setDateTo] = useState(today)

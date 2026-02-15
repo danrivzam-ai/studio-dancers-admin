@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate } from '../lib/dateUtils'
+import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, getTodayEC, getNowEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
 export default function PaymentHistory({
@@ -15,11 +15,11 @@ export default function PaymentHistory({
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState(() => {
     // Por defecto, últimos 30 días
-    const date = new Date()
+    const date = getNowEC()
     date.setDate(date.getDate() - 30)
     return formatDateForInput(date)
   })
-  const [dateTo, setDateTo] = useState(formatDateForInput(new Date()))
+  const [dateTo, setDateTo] = useState(getTodayEC())
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(window.innerWidth >= 768)
   const [viewType, setViewType] = useState('all') // 'all', 'students', 'quick'
@@ -97,7 +97,7 @@ export default function PaymentHistory({
   // Anular comprobante
   const handleVoid = async () => {
     if (!settings.security_pin) {
-      setVoidError('No hay PIN configurado')
+      setVoidError('No hay PIN configurado. Ve a Configuración para crear uno.')
       return
     }
     if (voidPin !== settings.security_pin) {
@@ -111,6 +111,7 @@ export default function PaymentHistory({
       const { type, payment } = voidModal
       const table = type === 'student' ? 'payments' : 'quick_payments'
 
+      // Intentar actualizar con columnas voided
       const { error } = await supabase
         .from(table)
         .update({
@@ -120,7 +121,18 @@ export default function PaymentHistory({
         })
         .eq('id', payment.id)
 
-      if (error) throw error
+      // Si las columnas no existen, usar soft delete con deleted_at
+      if (error) {
+        console.warn('Void columns may not exist, trying deleted_at:', error.message)
+        const { error: fallbackError } = await supabase
+          .from(table)
+          .update({
+            deleted_at: new Date().toISOString()
+          })
+          .eq('id', payment.id)
+
+        if (fallbackError) throw fallbackError
+      }
 
       // Si es pago de alumno, recalcular next_payment_date desde el pago anterior
       if (type === 'student' && payment.student_id) {
@@ -293,8 +305,8 @@ export default function PaymentHistory({
 
   // Presets de fecha
   const setDatePreset = (preset) => {
-    const today = new Date()
-    let from = new Date()
+    const today = getNowEC()
+    let from = getNowEC()
 
     switch (preset) {
       case 'today':
@@ -603,8 +615,8 @@ export default function PaymentHistory({
 
       {/* Modal de Anulación */}
       {voidModal.show && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-white rounded-xl shadow-xl w-80">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
             <div className="px-4 py-3 border-b bg-red-50 rounded-t-xl flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="text-red-500" size={18} />

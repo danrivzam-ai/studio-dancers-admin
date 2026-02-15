@@ -2,6 +2,28 @@ import { addMonths, addDays, subDays, differenceInDays, format, parseISO, getDay
 import { es } from 'date-fns/locale'
 
 /**
+ * Obtener la fecha actual en zona horaria de Ecuador (UTC-5)
+ * Evita que new Date() devuelva el día siguiente cuando el servidor está en UTC
+ */
+export const getNowEC = () => {
+  const now = new Date()
+  // Obtener offset de Ecuador: UTC-5 = -300 minutos
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000
+  return new Date(utcMs - 5 * 3600000)
+}
+
+/**
+ * Obtener la fecha de hoy como string yyyy-MM-dd en zona horaria de Ecuador
+ */
+export const getTodayEC = () => {
+  const ec = getNowEC()
+  const y = ec.getFullYear()
+  const m = String(ec.getMonth() + 1).padStart(2, '0')
+  const d = String(ec.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
  * Obtener el próximo día de clase a partir de una fecha
  * @param {Date} fromDate - Fecha desde la cual buscar
  * @param {number[]} classDays - Días de clase (0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb)
@@ -168,6 +190,9 @@ export const formatDateForInput = (date) => {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   return format(dateObj, 'yyyy-MM-dd')
 }
+
+// Alias: fecha de hoy para inputs (zona horaria Ecuador)
+export const todayForInput = () => getTodayEC()
 
 // Obtener nombre del mes
 export const getMonthName = (date) => {

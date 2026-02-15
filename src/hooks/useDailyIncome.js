@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { formatDateForInput } from '../lib/dateUtils'
+import { formatDateForInput, getTodayEC } from '../lib/dateUtils'
 
 export function useDailyIncome() {
   const [todayIncome, setTodayIncome] = useState(0)
@@ -10,7 +10,7 @@ export function useDailyIncome() {
   const fetchTodayIncome = useCallback(async () => {
     try {
       setLoading(true)
-      const today = formatDateForInput(new Date())
+      const today = getTodayEC()
 
       // Pagos de estudiantes de hoy
       const { data: studentPayments, error: studentError } = await supabase

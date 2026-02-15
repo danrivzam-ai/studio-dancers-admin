@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { formatDateForInput } from '../lib/dateUtils'
+import { formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { logAudit } from '../lib/auditLog'
 
 export function useExpenses() {
@@ -29,7 +29,7 @@ export function useExpenses() {
   const fetchExpenses = useCallback(async (date) => {
     try {
       setLoading(true)
-      const targetDate = date || formatDateForInput(new Date())
+      const targetDate = date || getTodayEC()
 
       const { data, error } = await supabase
         .from('expenses')

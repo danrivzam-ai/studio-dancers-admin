@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { getTodayEC } from '../lib/dateUtils'
 
 export function useDailyReport() {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(getTodayEC())
 
   const fetchReport = useCallback(async (targetDate) => {
     try {

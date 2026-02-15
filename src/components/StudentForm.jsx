@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Check, User, Users, CreditCard } from 'lucide-react'
+import { getTodayEC } from '../lib/dateUtils'
 
 export default function StudentForm({
   student = null,
@@ -16,7 +17,7 @@ export default function StudentForm({
     hasDifferentPayer: false,
     payerName: '', payerCedula: '', payerPhone: '', payerAddress: '',
     courseId: '', notes: '',
-    enrollmentDate: new Date().toISOString().split('T')[0]
+    enrollmentDate: getTodayEC()
   })
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function StudentForm({
         payerAddress: student.payer_address || '',
         courseId: student.course_id || '',
         notes: student.notes || '',
-        enrollmentDate: student.enrollment_date || new Date().toISOString().split('T')[0]
+        enrollmentDate: student.enrollment_date || getTodayEC()
       })
     }
   }, [student])

@@ -4,6 +4,7 @@ import {
   CreditCard, ArrowLeftRight, ChevronLeft, ChevronRight, RefreshCw, Calendar
 } from 'lucide-react'
 import { useDailyReport } from '../hooks/useDailyReport'
+import { getTodayEC } from '../lib/dateUtils'
 
 const fmt = (n) => `$${parseFloat(n || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
@@ -14,7 +15,7 @@ export default function DailyReport({ cashRegister }) {
     fetchReport(date)
   }, [date, fetchReport])
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayEC()
   const isToday = date === today
 
   const changeDate = (days) => {

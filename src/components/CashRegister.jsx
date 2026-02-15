@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
-import { formatDate, formatDateForInput } from '../lib/dateUtils'
+import { formatDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 
 export default function CashRegister({ onClose, settings }) {
   const [loading, setLoading] = useState(true)
@@ -25,7 +25,7 @@ export default function CashRegister({ onClose, settings }) {
   const [openingAmount, setOpeningAmount] = useState('')
   const [closingAmount, setClosingAmount] = useState('')
   const [notes, setNotes] = useState('')
-  const [selectedDate, setSelectedDate] = useState(formatDateForInput(new Date()))
+  const [selectedDate, setSelectedDate] = useState(getTodayEC())
 
   // Cargar datos del día
   const fetchDayData = async (date) => {
@@ -212,7 +212,7 @@ export default function CashRegister({ onClose, settings }) {
     }
   }
 
-  const isToday = selectedDate === formatDateForInput(new Date())
+  const isToday = selectedDate === getTodayEC()
 
   // Fórmula de cuadre real:
   // Esperado = Apertura + Ingresos(efectivo) - Egresos(efectivo) - Depósitos + Retiros/Préstamos - Reembolsos

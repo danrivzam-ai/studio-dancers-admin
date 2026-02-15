@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
+import { getTodayEC } from '../lib/dateUtils'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -40,7 +41,7 @@ export default function PaymentModal({
     amount: '',
     paymentMethod: 'efectivo',
     paymentType: 'full', // full, installment, balance
-    paymentDate: new Date().toISOString().split('T')[0],
+    paymentDate: getTodayEC(),
     bankId: '',
     transferReceipt: '',
     notes: ''

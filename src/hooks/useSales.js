@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { formatDateForInput } from '../lib/dateUtils'
+import { formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { logAudit } from '../lib/auditLog'
 
 export function useSales() {
@@ -42,7 +42,7 @@ export function useSales() {
         quantity: parseInt(saleData.quantity),
         unit_price: parseFloat(saleData.unitPrice),
         total: parseFloat(saleData.total),
-        sale_date: saleData.date || formatDateForInput(new Date()),
+        sale_date: saleData.date || getTodayEC(),
         notes: saleData.notes || null
       }
 

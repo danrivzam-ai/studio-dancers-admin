@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search } from 'lucide-react'
 import { BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
+import { getTodayEC } from '../lib/dateUtils'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -32,7 +33,7 @@ export default function QuickPayment({
     customerPhone: '',
     classType: 'clase-diaria-adultos',
     amount: '12',
-    paymentDate: new Date().toISOString().split('T')[0],
+    paymentDate: getTodayEC(),
     paymentMethod: 'efectivo',
     bankId: '',
     transferReceipt: '',

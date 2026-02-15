@@ -13,7 +13,7 @@ import { useCashRegister } from './hooks/useCashRegister'
 import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // courses.js static exports no longer used directly - allCourses from useItems() is the single source of truth
-import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo } from './lib/dateUtils'
+import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -181,7 +181,7 @@ export default function App() {
     customerName: '',
     productId: '',
     quantity: 1,
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayEC(),
     notes: ''
   })
 
@@ -281,7 +281,7 @@ export default function App() {
         customerName: '',
         productId: '',
         quantity: 1,
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayEC(),
         notes: ''
       })
       setShowSaleForm(false)
@@ -626,139 +626,124 @@ export default function App() {
             </div>
           </div>
 
-          {/* Fila 2: Botones de acciones */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
-            {/* Grupo izquierdo: Acciones principales */}
-            <div className="flex flex-wrap gap-2">
+          {/* Fila 2: Acciones principales - grid adaptable */}
+          <div className="pt-3 border-t border-gray-100 space-y-3">
+            {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
+            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
                 <Plus size={18} />
-                <span className="hidden sm:inline">Nuevo Alumno</span>
+                <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-green-600 hover:bg-green-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
                 <ShoppingBag size={18} />
-                <span className="hidden sm:inline">Venta</span>
+                <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
-                title="Pago rapido (clase diaria)"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
                 <Zap size={18} />
-                <span className="hidden sm:inline">Pago Rapido</span>
+                <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
-                title="Registrar egreso"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-red-600 hover:bg-red-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
                 <TrendingDown size={18} />
-                <span className="hidden sm:inline">Egreso</span>
+                <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl font-medium transition-colors shadow-sm text-sm"
-                title="Movimiento de caja"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
                 <ArrowLeftRight size={18} />
-                <span className="hidden sm:inline">Movimiento</span>
+                <span>Movimiento</span>
+              </button>
+              <button
+                onClick={() => setShowPaymentHistory(true)}
+                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors text-xs sm:text-sm"
+              >
+                <History size={18} />
+                <span>Historial</span>
               </button>
             </div>
 
-            {/* Grupo derecho: Herramientas */}
-            <div className="flex items-center gap-1.5">
+            {/* Herramientas secundarias */}
+            <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
               {studentsWithBalance.length > 0 && (
                 <button
                   onClick={() => setShowBalanceAlerts(true)}
-                  className="flex items-center justify-center bg-orange-100 hover:bg-orange-200 text-orange-700 w-10 h-10 rounded-xl transition-colors relative"
-                  title={`Saldos pendientes (${studentsWithBalance.length})`}
+                  className="flex items-center gap-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium relative"
                 >
-                  <Wallet size={18} />
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  <Wallet size={14} />
+                  Saldos
+                  <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                     {studentsWithBalance.length}
                   </span>
                 </button>
               )}
-              <button
-                onClick={() => setShowPaymentHistory(true)}
-                className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
-                title="Historial de pagos"
-              >
-                <History size={18} />
-              </button>
               {can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
-                  title="Exportar listado"
+                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
                 >
-                  <Download size={18} />
+                  <Download size={14} />
+                  Exportar
                 </button>
               )}
               {can('canEditSettings') && (
                 <button
                   onClick={handleRecalculateDates}
-                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
-                  title="Recalcular fechas"
+                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
                 >
-                  <RefreshCw size={18} />
+                  <RefreshCw size={14} />
+                  Recalcular
                 </button>
               )}
               {isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
-                  className="flex items-center justify-center bg-purple-100 hover:bg-purple-200 text-purple-700 w-10 h-10 rounded-xl transition-colors"
-                  title="Log de auditoría"
+                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
                 >
-                  <ScrollText size={18} />
+                  <ScrollText size={14} />
+                  Auditoría
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2">
-          <button
-            onClick={() => setActiveTab('students')}
-            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'students' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
-          >
-            <Users size={16} className="inline mr-1.5" />
-            <span className="hidden sm:inline">Alumnos</span> ({students.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('sales')}
-            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'sales' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
-          >
-            <ShoppingBag size={16} className="inline mr-1.5" />
-            <span className="hidden sm:inline">Ventas</span> ({sales.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('courses')}
-            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'courses' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
-          >
-            <Calendar size={16} className="inline mr-1.5" />
-            Cursos
-          </button>
-          <button
-            onClick={() => setActiveTab('expenses')}
-            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'expenses' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
-          >
-            <TrendingDown size={16} className="inline mr-1.5" />
-            Egresos
-          </button>
-          <button
-            onClick={() => setActiveTab('report')}
-            className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-sm ${activeTab === 'report' ? 'bg-purple-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'}`}
-          >
-            <BarChart3 size={16} className="inline mr-1.5" />
-            Reporte
-          </button>
+        {/* Tabs - Siempre con texto visible */}
+        <div className="flex gap-1 sm:gap-2 mb-6 overflow-x-auto pb-2">
+          {[
+            { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
+            { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
+            { id: 'courses', icon: Calendar, label: 'Cursos' },
+            { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
+            { id: 'report', icon: BarChart3, label: 'Reporte' },
+          ].map(tab => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-xs sm:text-sm ${
+                  activeTab === tab.id
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'
+                }`}
+              >
+                <Icon size={15} />
+                {tab.label}{tab.count !== undefined ? ` (${tab.count})` : ''}
+              </button>
+            )
+          })}
         </div>
 
         {/* Stats Cards */}
