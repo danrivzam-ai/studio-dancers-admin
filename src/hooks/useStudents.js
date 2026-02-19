@@ -219,7 +219,9 @@ export function useStudents() {
 
       if (isProgram) {
         // Programa: acumula hasta completar precio total
-        const totalPrice = parseFloat(student?.total_program_price || coursePrice)
+        // Si tiene descuento, el precio efectivo del programa es el descontado
+        const originalTotalPrice = parseFloat(student?.total_program_price || coursePrice)
+        const totalPrice = hasDiscount ? effectiveCyclePrice : originalTotalPrice
         newBalance = totalPrice - newAmountPaid
         if (newBalance <= 0) {
           newPaymentStatus = 'paid'
@@ -289,9 +291,15 @@ export function useStudents() {
         pause_date: null
       }
 
-      // Para programas mantener total_program_price
+      // Para programas mantener total_program_price (ajustado por descuento si aplica)
       if (isProgram) {
-        updateFields.total_program_price = parseFloat(student?.total_program_price || coursePrice)
+        const existingTotal = parseFloat(student?.total_program_price || coursePrice)
+        // Si es primer pago con descuento, guardar el precio descontado como total del programa
+        if (hasDiscount && prevAmountPaid === 0) {
+          updateFields.total_program_price = effectiveCyclePrice
+        } else {
+          updateFields.total_program_price = existingTotal
+        }
       }
 
       const { error: studentError } = await supabase

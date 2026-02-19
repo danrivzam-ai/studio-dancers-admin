@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, RefreshCw, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -36,7 +36,7 @@ import './App.css'
 
 export default function App() {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, recalculatePaymentDates } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent } = useStudents()
   const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
@@ -222,16 +222,14 @@ export default function App() {
 
   // Alumnos con saldos pendientes (abonos parciales)
   const studentsWithBalance = students.filter(s => {
-    const course = getCourseById(s.course_id)
-    if (!course) return false
+    if (s.payment_status !== 'partial') return false
     const amountPaid = parseFloat(s.amount_paid || 0)
-    const coursePrice = parseFloat(course.price || 0)
-    return amountPaid > 0 && amountPaid < coursePrice
+    return amountPaid > 0 && parseFloat(s.balance || 0) > 0
   }).map(s => {
     const course = getCourseById(s.course_id)
     const amountPaid = parseFloat(s.amount_paid || 0)
-    const coursePrice = parseFloat(course?.price || 0)
-    return { ...s, courseName: course?.name, amountPaid, coursePrice, balance: coursePrice - amountPaid }
+    const effectivePrice = parseFloat(s.total_program_price || course?.price || 0)
+    return { ...s, courseName: course?.name, amountPaid, coursePrice: effectivePrice, balance: parseFloat(s.balance || 0) }
   })
 
   // Manejar cambio de curso
@@ -466,24 +464,6 @@ export default function App() {
     }
   }
 
-  // Recalcular fechas de pago de todos los alumnos
-  const handleRecalculateDates = async () => {
-    if (!confirm('¿Recalcular las fechas de pago de todos los alumnos?\nEsto corregirá los ciclos según la nueva lógica (8 clases MTJ, 4 sábados).')) return
-    try {
-      const results = await recalculatePaymentDates()
-      if (results.length === 0) {
-        alert('Todas las fechas ya están correctas. No se requieren cambios.')
-      } else {
-        const summary = results.map(r =>
-          `${r.name}: ${r.oldDate} → ${r.newDate}${r.error ? ' (ERROR: ' + r.error + ')' : ' ✓'}`
-        ).join('\n')
-        alert(`Se actualizaron ${results.length} alumno(s):\n\n${summary}`)
-      }
-    } catch (err) {
-      alert('Error: ' + err.message)
-    }
-  }
-
   const openPaymentModal = (student) => {
     setSelectedStudent(student)
     setShowPaymentModal(true)
@@ -629,89 +609,68 @@ export default function App() {
           {/* Fila 2: Acciones principales - grid adaptable */}
           <div className="pt-3 border-t border-gray-100 space-y-3">
             {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
-            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
+            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
-                <Plus size={18} />
+                <Plus size={20} />
                 <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-green-600 hover:bg-green-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
-                <ShoppingBag size={18} />
+                <ShoppingBag size={20} />
                 <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
-                <Zap size={18} />
+                <Zap size={20} />
                 <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-red-600 hover:bg-red-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
-                <TrendingDown size={18} />
+                <TrendingDown size={20} />
                 <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
               >
-                <ArrowLeftRight size={18} />
+                <ArrowLeftRight size={20} />
                 <span>Movimiento</span>
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 sm:px-3 py-2.5 sm:py-2 rounded-xl font-medium transition-colors text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors text-xs sm:text-sm"
               >
-                <History size={18} />
+                <History size={20} />
                 <span>Historial</span>
               </button>
             </div>
 
             {/* Herramientas secundarias */}
-            <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap">
-              {studentsWithBalance.length > 0 && (
-                <button
-                  onClick={() => setShowBalanceAlerts(true)}
-                  className="flex items-center gap-1.5 bg-orange-100 hover:bg-orange-200 text-orange-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium relative"
-                >
-                  <Wallet size={14} />
-                  Saldos
-                  <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {studentsWithBalance.length}
-                  </span>
-                </button>
-              )}
+            <div className="flex items-center justify-center sm:justify-end gap-3 flex-wrap">
               {can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
+                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
                 >
-                  <Download size={14} />
+                  <Download size={16} />
                   Exportar
-                </button>
-              )}
-              {can('canEditSettings') && (
-                <button
-                  onClick={handleRecalculateDates}
-                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
-                >
-                  <RefreshCw size={14} />
-                  Recalcular
                 </button>
               )}
               {isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
-                  className="flex items-center gap-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
+                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
                 >
-                  <ScrollText size={14} />
+                  <ScrollText size={16} />
                   Auditoría
                 </button>
               )}
@@ -764,7 +723,11 @@ export default function App() {
             </div>
           </div>
 
-          <div className={`bg-white rounded-xl shadow p-3 sm:p-4 ${overduePayments.length > 0 ? 'animate-pulse-urgent border-2 border-red-300' : ''}`}>
+          <div
+            onClick={() => { setFilterPayment(overduePayments.length > 0 ? 'overdue' : 'upcoming'); setShowStudentListModal(true) }}
+            className={`bg-white rounded-xl shadow p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 ${overduePayments.length > 0 ? 'animate-pulse-urgent border-red-300 hover:border-red-400' : 'border-transparent hover:border-yellow-300'}`}
+            title={overduePayments.length > 0 ? 'Ver alumnos por renovar' : 'Ver próximos cobros'}
+          >
             <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 sm:p-3 rounded-lg shrink-0 ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
                 <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-yellow-600'} size={20} />
@@ -778,7 +741,7 @@ export default function App() {
                 ) : (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Proximos</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Próximos</p>
                   </>
                 )}
               </div>
@@ -835,7 +798,7 @@ export default function App() {
                     <p className={`text-2xl sm:text-3xl font-bold ${overduePayments.length > 0 ? 'text-red-600' : 'text-gray-400'}`}>
                       {overduePayments.length}
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Vencidos</p>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Por renovar</p>
                   </div>
                 </div>
               </button>

@@ -216,8 +216,8 @@ export const getPaymentStatus = (student, course) => {
 
   // Si es programa (pago único o con abonos)
   if (course?.priceType === 'programa' || course?.price_type === 'programa') {
-    // Verificar si tiene balance pendiente (abono)
-    const totalPrice = course?.price || student?.monthly_fee || 0
+    // Usar total_program_price del alumno (puede incluir descuento) o precio del curso
+    const totalPrice = student?.total_program_price || course?.price || student?.monthly_fee || 0
     const amountPaid = student?.amount_paid || 0
     const balance = student?.balance ?? (totalPrice - amountPaid)
 
