@@ -655,7 +655,7 @@ export default function App() {
             </div>
 
             {/* Herramientas secundarias */}
-            <div className="flex items-center justify-center sm:justify-end gap-4 sm:gap-5 flex-wrap">
+            <div className="flex items-center justify-center sm:justify-end gap-4 sm:gap-5 flex-wrap pt-2 mt-1 border-t border-gray-100">
               {can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
@@ -766,19 +766,19 @@ export default function App() {
             </div>
 
             {/* Quick Access Cards */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 border-transparent hover:border-purple-300 text-left"
+                className="bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 border-transparent hover:border-purple-300"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
-                    <Users className="text-purple-600" size={20} />
+                    <Users className="text-purple-600" size={18} />
                   </div>
-                  <div>
-                    <p className="text-xl sm:text-3xl font-bold text-purple-600">{students.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Alumnos</p>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-3xl font-bold text-purple-600">{students.length}</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Alumnos</p>
                   </div>
                 </div>
               </button>
@@ -786,19 +786,19 @@ export default function App() {
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className={`bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 text-left ${
+                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
                   upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'border-transparent hover:border-yellow-300' : 'border-transparent'
                 }`}
               >
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-yellow-100' : 'bg-gray-100'}`}>
-                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'} size={20} />
+                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'} size={18} />
                   </div>
-                  <div>
-                    <p className={`text-xl sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                  <div className="min-w-0">
+                    <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
                       {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Próximos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Próximos</p>
                   </div>
                 </div>
               </button>
@@ -806,19 +806,19 @@ export default function App() {
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className={`bg-white rounded-xl shadow p-4 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 text-left ${
+                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
                   studentsWithBalance.length > 0 ? 'border-transparent hover:border-orange-300' : 'border-transparent'
                 }`}
               >
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                    <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={20} />
+                    <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={18} />
                   </div>
-                  <div>
-                    <p className={`text-xl sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                  <div className="min-w-0">
+                    <p className={`text-lg sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
                       {studentsWithBalance.length}
                     </p>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium">Saldos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Saldos</p>
                   </div>
                 </div>
               </button>
