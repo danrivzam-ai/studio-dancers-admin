@@ -9,7 +9,8 @@ export function useSchoolSettings() {
     phone: '',
     email: '',
     logo_url: '/logo.png',
-    ruc: ''
+    ruc: '',
+    auto_inactive_days: 10
   })
   const [loading, setLoading] = useState(true)
 

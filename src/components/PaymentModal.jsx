@@ -12,6 +12,7 @@ const PAYMENT_METHODS = [
 
 export default function PaymentModal({
   student,
+  autoInactiveDays = 10,
   onClose,
   onPaymentComplete
 }) {
@@ -44,7 +45,10 @@ export default function PaymentModal({
   })() : 0
 
   // Opción de inicio de ciclo: 'original' = desde fecha que le correspondía, 'today' = desde hoy
-  const [cycleStartOption, setCycleStartOption] = useState('original')
+  // Si la alumna está inactiva (pasó el periodo de gracia), por defecto empezar desde hoy
+  const [cycleStartOption, setCycleStartOption] = useState(
+    isOverdue && daysOverdue > autoInactiveDays ? 'today' : 'original'
+  )
 
   // Estado de descuento
   const [discountEnabled, setDiscountEnabled] = useState(false)

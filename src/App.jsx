@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, UserX
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -197,7 +197,8 @@ export default function App() {
     const matchesCourse = filterCourse === 'all' || student.course_id === filterCourse
     const daysUntil = getDaysUntilDue(student.next_payment_date)
     const matchesPayment = filterPayment === 'all' ||
-                          (filterPayment === 'overdue' && daysUntil < 0) ||
+                          (filterPayment === 'overdue' && daysUntil < 0 && Math.abs(daysUntil) <= autoInactiveDays) ||
+                          (filterPayment === 'inactive' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
                           (filterPayment === 'upcoming' && daysUntil >= 0 && daysUntil <= 5)
     return matchesSearch && matchesCourse && matchesPayment
   })
@@ -212,8 +213,22 @@ export default function App() {
     .filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) <= 5)
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
 
-  // Alumnos con pago vencido (días negativos)
-  const overduePayments = recurringStudents.filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) < 0)
+  // Días de gracia antes de marcar como inactiva
+  const autoInactiveDays = settings.auto_inactive_days || 10
+
+  // Alumnos con pago vencido pero dentro del periodo de gracia
+  const overduePayments = recurringStudents.filter(s => {
+    if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const days = getDaysUntilDue(s.next_payment_date)
+    return days < 0 && Math.abs(days) <= autoInactiveDays
+  })
+
+  // Alumnos inactivos (pasaron el periodo de gracia)
+  const inactiveStudents = recurringStudents.filter(s => {
+    if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const days = getDaysUntilDue(s.next_payment_date)
+    return days < 0 && Math.abs(days) > autoInactiveDays
+  })
 
   const totalMonthlyIncome = recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0)
   const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
@@ -766,7 +781,7 @@ export default function App() {
             </div>
 
             {/* Quick Access Cards */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
@@ -822,6 +837,26 @@ export default function App() {
                   </div>
                 </div>
               </button>
+
+              {/* Inactive Students */}
+              <button
+                onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
+                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
+                  inactiveStudents.length > 0 ? 'border-transparent hover:border-gray-400' : 'border-transparent'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-gray-200' : 'bg-gray-100'}`}>
+                    <UserX className={inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'} size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'}`}>
+                      {inactiveStudents.length}
+                    </p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Inactivas</p>
+                  </div>
+                </div>
+              </button>
             </div>
 
             {/* Cobros Vencidos Alert */}
@@ -856,6 +891,44 @@ export default function App() {
                   {overduePayments.length > 3 && (
                     <p className="text-xs text-red-600 text-center pt-1">
                       +{overduePayments.length - 3} más · Toca para ver todos
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Alumnas Inactivas Alert */}
+            {inactiveStudents.length > 0 && (
+              <div
+                onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
+                className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+                    <UserX size={18} />
+                    Alumnas Inactivas
+                  </h3>
+                  <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {inactiveStudents.length} alumna{inactiveStudents.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {inactiveStudents.slice(0, 3).map(s => {
+                    const course = getCourseById(s.course_id)
+                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
+                    return (
+                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
+                        <div>
+                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
+                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
+                        </div>
+                        <span className="text-xs font-bold text-gray-500">{days} días sin pagar</span>
+                      </div>
+                    )
+                  })}
+                  {inactiveStudents.length > 3 && (
+                    <p className="text-xs text-gray-500 text-center pt-1">
+                      +{inactiveStudents.length - 3} más · Toca para ver todas
                     </p>
                   )}
                 </div>
@@ -937,7 +1010,7 @@ export default function App() {
             )}
 
             {/* Empty state when no alerts */}
-            {overduePayments.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
+            {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
                 <Check size={32} className="mx-auto mb-2 text-green-500" />
                 <p className="font-medium text-green-800">¡Todo al día!</p>
@@ -1273,6 +1346,7 @@ export default function App() {
         {showPaymentModal && selectedStudent && (
           <PaymentModal
             student={selectedStudent}
+            autoInactiveDays={autoInactiveDays}
             onClose={() => {
               setShowPaymentModal(false)
               setSelectedStudent(null)
@@ -1413,6 +1487,7 @@ export default function App() {
                   >
                     <option value="all">Todos</option>
                     <option value="overdue">Por renovar</option>
+                    <option value="inactive">Inactivas</option>
                     <option value="upcoming">Próximos</option>
                   </select>
                 </div>
@@ -1435,7 +1510,7 @@ export default function App() {
                   <div className="divide-y">
                     {filteredStudents.map(student => {
                       const course = getCourseById(student.course_id)
-                      const paymentStatus = getPaymentStatus(student, course)
+                      const paymentStatus = getPaymentStatus(student, course, autoInactiveDays)
                       const isCamp = student.course_id?.startsWith('camp-')
 
                       return (

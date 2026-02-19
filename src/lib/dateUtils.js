@@ -202,7 +202,8 @@ export const getMonthName = (date) => {
 }
 
 // Estado del pago basado en fecha de vencimiento
-export const getPaymentStatus = (student, course) => {
+// autoInactiveDays: días de gracia antes de marcar como inactiva (default 10)
+export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
   // Si es pago por clase
   if (course?.priceType === 'clase' || course?.price_type === 'clase') {
     return {
@@ -268,6 +269,16 @@ export const getPaymentStatus = (student, course) => {
 
     const days = getDaysUntilDue(student.next_payment_date)
 
+    if (days < 0 && Math.abs(days) > autoInactiveDays) {
+      return {
+        status: 'inactive',
+        label: 'Inactiva',
+        color: 'bg-gray-400 text-white',
+        colorCode: 'gray',
+        priority: 6
+      }
+    }
+
     if (days < 0) {
       return {
         status: 'overdue',
@@ -311,6 +322,17 @@ export const getPaymentStatus = (student, course) => {
   }
 
   const days = getDaysUntilDue(student.next_payment_date)
+
+  // Inactiva: vencida más allá del periodo de gracia
+  if (days < 0 && Math.abs(days) > autoInactiveDays) {
+    return {
+      status: 'inactive',
+      label: 'Inactiva',
+      color: 'bg-gray-400 text-white',
+      colorCode: 'gray',
+      priority: 6
+    }
+  }
 
   if (days < 0) {
     const absDays = Math.abs(days)

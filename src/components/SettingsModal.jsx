@@ -14,7 +14,8 @@ export default function SettingsModal({
     email: '',
     logo_url: '',
     ruc: '',
-    security_pin: ''
+    security_pin: '',
+    auto_inactive_days: 10
   })
   const [loading, setLoading] = useState(false)
   const [showPin, setShowPin] = useState(false)
@@ -33,7 +34,8 @@ export default function SettingsModal({
         email: settings.email || '',
         logo_url: settings.logo_url || '',
         ruc: settings.ruc || '',
-        security_pin: settings.security_pin || ''
+        security_pin: settings.security_pin || '',
+        auto_inactive_days: settings.auto_inactive_days ?? 10
       })
     }
   }, [settings])
@@ -180,6 +182,24 @@ export default function SettingsModal({
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               placeholder="escuela@email.com"
             />
+          </div>
+
+          {/* Auto-Inactivación */}
+          <div className="border-t pt-4 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Días para inactivar alumna
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={90}
+              value={formData.auto_inactive_days}
+              onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 10})}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Después de este número de días sin pagar, la alumna se marca como "Inactiva" automáticamente.
+            </p>
           </div>
 
           <div>
