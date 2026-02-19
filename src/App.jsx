@@ -655,11 +655,11 @@ export default function App() {
             </div>
 
             {/* Herramientas secundarias */}
-            <div className="flex items-center justify-center sm:justify-end gap-3 flex-wrap">
+            <div className="flex items-center justify-center sm:justify-end gap-4 sm:gap-5 flex-wrap">
               {can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
                 >
                   <Download size={16} />
                   Exportar
@@ -668,7 +668,7 @@ export default function App() {
               {isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
-                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
                 >
                   <ScrollText size={16} />
                   Auditoría
