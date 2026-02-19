@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, UserX
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -185,6 +185,9 @@ export default function App() {
     notes: ''
   })
 
+  // Días de gracia antes de marcar como inactiva
+  const autoInactiveDays = settings.auto_inactive_days || 10
+
   // Filtrar estudiantes (incluye búsqueda por cédula)
   const filteredStudents = students.filter(student => {
     const course = getCourseById(student.course_id)
@@ -213,9 +216,6 @@ export default function App() {
   const upcomingPayments = recurringStudents
     .filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) <= 5)
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
-
-  // Días de gracia antes de marcar como inactiva
-  const autoInactiveDays = settings.auto_inactive_days || 10
 
   // Alumnos con pago vencido pero dentro del periodo de gracia
   const overduePayments = recurringStudents.filter(s => {
@@ -848,7 +848,7 @@ export default function App() {
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-gray-200' : 'bg-gray-100'}`}>
-                    <UserX className={inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'} size={18} />
+                    <Pause className={inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'} size={18} />
                   </div>
                   <div className="min-w-0">
                     <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -906,7 +906,7 @@ export default function App() {
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                    <UserX size={18} />
+                    <Pause size={18} />
                     Alumnas Inactivas
                   </h3>
                   <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs font-bold">
