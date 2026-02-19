@@ -607,7 +607,7 @@ export default function App() {
           </div>
 
           {/* Fila 2: Acciones principales - grid adaptable */}
-          <div className="pt-3 border-t border-gray-100 space-y-3">
+          <div className="pt-3 border-t border-gray-100 space-y-5">
             {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
               <button
