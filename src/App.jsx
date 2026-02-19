@@ -196,9 +196,10 @@ export default function App() {
                          student.payer_cedula?.includes(searchTerm)
     const matchesCourse = filterCourse === 'all' || student.course_id === filterCourse
     const daysUntil = getDaysUntilDue(student.next_payment_date)
+    const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
     const matchesPayment = filterPayment === 'all' ||
-                          (filterPayment === 'overdue' && daysUntil < 0 && Math.abs(daysUntil) <= autoInactiveDays) ||
-                          (filterPayment === 'inactive' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
+                          (filterPayment === 'overdue' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) <= autoInactiveDays) ||
+                          (filterPayment === 'inactive' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
                           (filterPayment === 'upcoming' && daysUntil >= 0 && daysUntil <= 5)
     return matchesSearch && matchesCourse && matchesPayment
   })
