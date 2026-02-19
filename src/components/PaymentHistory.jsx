@@ -194,8 +194,11 @@ export default function PaymentHistory({
 
       if (validPayments.length > 0) {
         // Hay pagos anteriores válidos: recalcular desde el último
+        // Usar cycle_start_date si existe, sino payment_date (retro-compatible)
         const lastValidPayment = validPayments[0]
-        const lastPayDate = new Date(lastValidPayment.payment_date + 'T12:00:00')
+        const lastPayDate = lastValidPayment.cycle_start_date
+          ? new Date(lastValidPayment.cycle_start_date + 'T12:00:00')
+          : new Date(lastValidPayment.payment_date + 'T12:00:00')
         let newNextPayment = null
 
         if (isPackage && classDays) {

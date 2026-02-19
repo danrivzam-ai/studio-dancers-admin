@@ -200,6 +200,21 @@ export function useStudents() {
       // Obtener los días de clase del curso (si tiene)
       const classDays = course?.classDays || null
 
+      // --- Separar fecha de pago (contable) vs fecha de inicio de ciclo (operativa) ---
+      // effectiveCycleDate = desde cuándo calcular el ciclo de clases
+      // paymentDate = siempre la fecha real del dinero (para caja/reportes)
+      const effectiveCycleDate = paymentData.cycleStartDate
+        ? new Date(paymentData.cycleStartDate + 'T12:00:00')
+        : paymentDate
+
+      // Calcular días de atraso
+      const studentNextPaymentDate = student?.next_payment_date
+        ? new Date(student.next_payment_date + 'T12:00:00')
+        : null
+      const daysLate = studentNextPaymentDate && paymentDate > studentNextPaymentDate
+        ? Math.round((paymentDate - studentNextPaymentDate) / (1000 * 60 * 60 * 24))
+        : 0
+
       // Verificar si es pago con descuento (NO es abono parcial)
       const hasDiscount = paymentData.discount?.hasDiscount || false
       // Si tiene descuento, el precio efectivo del ciclo es lo que pagó (pago completo con descuento)
@@ -247,19 +262,19 @@ export function useStudents() {
           // Resetear amount_paid para el próximo ciclo
           newAmountPaid = 0
 
-          // Recalcular next_payment_date
+          // Recalcular next_payment_date usando effectiveCycleDate (no paymentDate)
           if (isPackage) {
             const classesPerPackage = course?.classesPerPackage || 4
             const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
 
-            let cycleStartDate
-            if (currentNextPaymentDate && currentNextPaymentDate > paymentDate) {
-              cycleStartDate = currentNextPaymentDate
+            let cycleStart
+            if (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate) {
+              cycleStart = currentNextPaymentDate
             } else {
-              cycleStartDate = getNextClassDay(paymentDate, classDays)
+              cycleStart = getNextClassDay(effectiveCycleDate, classDays)
             }
 
-            const packageEnd = calculatePackageEndDate(cycleStartDate, classDays, classesPerPackage)
+            const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
             nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
             classesUsed = 0
           } else if (isMonthly) {
@@ -267,12 +282,12 @@ export function useStudents() {
             const classesPerCycle = course?.classesPerCycle || null
 
             if (!currentNextPaymentDate) {
-              const startDate = classDays ? getNextClassDay(paymentDate, classDays) : paymentDate
+              const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
               nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
-            } else if (currentNextPaymentDate > paymentDate) {
+            } else if (currentNextPaymentDate > effectiveCycleDate) {
               nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
             } else {
-              const startDate = classDays ? getNextClassDay(paymentDate, classDays) : paymentDate
+              const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
               nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
             }
           }
@@ -321,7 +336,9 @@ export function useStudents() {
         transfer_receipt: paymentData.transferReceipt || null,
         payer_name: student?.payer_name || student?.parent_name || student?.name || null,
         payer_cedula: student?.payer_cedula || student?.parent_cedula || student?.cedula || null,
-        notes: paymentData.notes || null
+        notes: paymentData.notes || null,
+        cycle_start_date: paymentData.cycleStartDate || null,
+        days_late: daysLate
       }
 
       // Agregar datos de descuento si aplica
@@ -485,7 +502,7 @@ export function useStudents() {
       // Obtener pagos válidos del alumno desde Supabase
       const { data: validPayments } = await supabase
         .from('payments')
-        .select('payment_date')
+        .select('payment_date, cycle_start_date')
         .eq('student_id', student.id)
         .eq('voided', false)
         .order('payment_date', { ascending: false })
@@ -519,10 +536,13 @@ export function useStudents() {
         continue
       }
 
-      // Tiene pagos válidos: recalcular fecha
+      // Tiene pagos válidos: recalcular fecha usando cycle_start_date si existe
       if (!classDays || classDays.length === 0) continue
 
-      const lastPayDate = new Date(lastValidPayment.payment_date + 'T12:00:00')
+      const lastCycleDate = lastValidPayment.cycle_start_date
+        ? new Date(lastValidPayment.cycle_start_date + 'T12:00:00')
+        : new Date(lastValidPayment.payment_date + 'T12:00:00')
+      const lastPayDate = lastCycleDate
       let newNextPayment = null
 
       if (isPackage) {

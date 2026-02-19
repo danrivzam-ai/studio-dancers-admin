@@ -316,8 +316,9 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
             {/* Cycle Info & Next Payment - for monthly and package courses */}
             {!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date && (() => {
               const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-              const cycleInfo = payment.payment_date
-                ? getCycleInfo(payment.payment_date, student.next_payment_date, course?.classDays, cycleClasses)
+              const cycleBaseDate = payment.cycle_start_date || payment.payment_date
+              const cycleInfo = cycleBaseDate
+                ? getCycleInfo(cycleBaseDate, student.next_payment_date, course?.classDays, cycleClasses)
                 : null
               const dayNames = { 0: 'Domingos', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábados' }
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''

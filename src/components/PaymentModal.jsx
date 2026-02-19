@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC } from '../lib/dateUtils'
+import { getTodayEC, formatDate } from '../lib/dateUtils'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -30,6 +30,21 @@ export default function PaymentModal({
   const totalPrice = isRecurring ? coursePrice : parseFloat(student?.total_program_price || coursePrice)
   const balance = totalPrice - amountPaid
   const hasBalance = amountPaid > 0 && balance > 0
+
+  // Detectar si el alumno está atrasado (para separar fecha de pago vs inicio de ciclo)
+  const isOverdue = isRecurring && student?.next_payment_date && (() => {
+    const today = new Date(getTodayEC() + 'T12:00:00')
+    const nextPay = new Date(student.next_payment_date + 'T12:00:00')
+    return today >= nextPay
+  })()
+  const daysOverdue = isOverdue ? (() => {
+    const today = new Date(getTodayEC() + 'T12:00:00')
+    const nextPay = new Date(student.next_payment_date + 'T12:00:00')
+    return Math.round((today - nextPay) / (1000 * 60 * 60 * 24))
+  })() : 0
+
+  // Opción de inicio de ciclo: 'original' = desde fecha que le correspondía, 'today' = desde hoy
+  const [cycleStartOption, setCycleStartOption] = useState('original')
 
   // Estado de descuento
   const [discountEnabled, setDiscountEnabled] = useState(false)
@@ -218,6 +233,11 @@ export default function PaymentModal({
         discountAmount: getDiscountAmount().toFixed(2)
       } : null
 
+      // Determinar fecha de inicio de ciclo (solo si alumno atrasado y curso recurrente)
+      const cycleStartDate = isOverdue
+        ? (cycleStartOption === 'original' ? student.next_payment_date : getTodayEC())
+        : null  // null = usa payment_date (retro-compatible)
+
       const paymentData = {
         amount: parseFloat(formData.amount),
         receiptNumber,
@@ -230,7 +250,9 @@ export default function PaymentModal({
         coursePrice: coursePrice,
         courseName: course?.name || 'Sin curso',
         // Datos de descuento
-        discount: discountInfo
+        discount: discountInfo,
+        // Fecha de inicio de ciclo (separada de fecha de pago)
+        cycleStartDate
       }
 
       await onPaymentComplete(student.id, paymentData)
@@ -574,6 +596,45 @@ export default function PaymentModal({
               />
             </div>
           </div>
+
+          {/* Cycle Start Date - solo cuando alumno atrasado y curso recurrente */}
+          {isOverdue && !hasBalance && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-sm font-medium text-amber-800 mb-2 flex items-center gap-1.5">
+                <AlertCircle size={16} />
+                Pago atrasado ({daysOverdue} {daysOverdue === 1 ? 'día' : 'días'})
+              </p>
+              <p className="text-xs text-amber-700 mb-2.5">
+                ¿Desde cuándo empieza el nuevo ciclo de clases?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCycleStartOption('original')}
+                  className={`p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center ${
+                    cycleStartOption === 'original'
+                      ? 'border-amber-500 bg-amber-100 text-amber-800'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <p className="font-semibold text-sm">Fecha original</p>
+                  <p className="text-[10px] mt-0.5 opacity-80">{formatDate(student.next_payment_date)}</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCycleStartOption('today')}
+                  className={`p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center ${
+                    cycleStartOption === 'today'
+                      ? 'border-amber-500 bg-amber-100 text-amber-800'
+                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <p className="font-semibold text-sm">Desde hoy</p>
+                  <p className="text-[10px] mt-0.5 opacity-80">{formatDate(getTodayEC())}</p>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Payment Method */}
           <div>
