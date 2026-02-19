@@ -546,7 +546,7 @@ export default function App() {
         </div>
 
         {/* Header con controles - Blanco */}
-        <div className="bg-white rounded-2xl shadow-lg mb-5 sm:mb-7 p-3 sm:p-4">
+        <div className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-6 p-3 sm:p-4">
           {/* Fila 1: Caja, Nombre, Config */}
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             {/* Izquierda: Estado de caja */}
@@ -607,7 +607,7 @@ export default function App() {
           </div>
 
           {/* Fila 2: Acciones principales - grid adaptable */}
-          <div className="pt-4 mt-2 border-t border-gray-100 space-y-3">
+          <div className="pt-3 border-t border-gray-100 space-y-3">
             {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
               <button
