@@ -168,6 +168,16 @@ export default function QuickPayment({
                   className="w-full text-sm outline-none bg-transparent"
                   placeholder="Nombre o cédula..."
                 />
+                {studentSearch && (
+                  <button
+                    type="button"
+                    onClick={() => { setStudentSearch(''); setShowStudentDropdown(false) }}
+                    className="p-0.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                    title="Limpiar búsqueda"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
               {showStudentDropdown && studentSearch && filteredStudents.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">

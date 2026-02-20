@@ -469,6 +469,81 @@ export function useItems() {
     return courses.filter(c => age >= (c.ageMin || c.age_min) && age <= (c.ageMax || c.age_max))
   }
 
+  // Ajustar stock de un producto (restock, ajuste manual, venta, devolución)
+  const adjustStock = async (productCode, quantity, movementType = 'adjustment', referenceId = null, notes = '') => {
+    try {
+      const product = products.find(p => p.id === productCode || p.code === productCode)
+      if (!product) return { success: false, error: 'Producto no encontrado' }
+
+      const currentStock = product.stock || 0
+      const newStock = currentStock + quantity
+
+      if (newStock < 0) return { success: false, error: 'Stock insuficiente' }
+
+      if (usingSupabase) {
+        // Actualizar stock en products
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ stock: newStock, updated_at: new Date().toISOString() })
+          .eq('code', productCode)
+
+        if (updateError) throw updateError
+
+        // Registrar movimiento de inventario
+        const supabaseProduct = product.supabase_id || product.id
+        await supabase
+          .from('inventory_movements')
+          .insert([{
+            product_id: typeof supabaseProduct === 'string' && supabaseProduct.includes('-') && supabaseProduct.length > 20 ? supabaseProduct : product.supabase_id,
+            product_code: product.code || productCode,
+            movement_type: movementType,
+            quantity,
+            stock_before: currentStock,
+            stock_after: newStock,
+            reference_id: referenceId,
+            notes
+          }])
+      }
+
+      // Actualizar estado local
+      setProducts(prev => prev.map(p =>
+        (p.id === productCode || p.code === productCode)
+          ? { ...p, stock: newStock }
+          : p
+      ))
+
+      return { success: true, newStock }
+    } catch (err) {
+      console.error('Error adjusting stock:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  // Obtener movimientos de inventario de un producto
+  const getInventoryMovements = async (productCode, limit = 20) => {
+    try {
+      if (!usingSupabase) return { success: true, data: [] }
+
+      const { data, error } = await supabase
+        .from('inventory_movements')
+        .select('*')
+        .eq('product_code', productCode)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        // Si la tabla no existe aún, no es un error fatal
+        if (error.code === '42P01') return { success: true, data: [] }
+        throw error
+      }
+
+      return { success: true, data: data || [] }
+    } catch (err) {
+      console.error('Error fetching inventory movements:', err)
+      return { success: false, data: [], error: err.message }
+    }
+  }
+
   // Agrupar cursos por categoría
   const coursesByCategory = {
     regular: courses.filter(c =>
@@ -503,6 +578,8 @@ export function useItems() {
     deleteProduct,
     getCourseById,
     getProductById,
-    getSuggestedCourses
+    getSuggestedCourses,
+    adjustStock,
+    getInventoryMovements
   }
 }

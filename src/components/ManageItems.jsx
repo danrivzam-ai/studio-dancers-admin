@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus } from 'lucide-react'
 
 // Tipos de items
 const ITEM_TYPES = [
@@ -29,6 +29,7 @@ export default function ManageItems({
   onDeleteCourse,
   onSaveProduct,
   onDeleteProduct,
+  onAdjustStock,
   onClose,
   onRequestPin
 }) {
@@ -37,6 +38,9 @@ export default function ManageItems({
   const [editingItem, setEditingItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [restockModal, setRestockModal] = useState(null) // { product, quantity }
+  const [restockQty, setRestockQty] = useState('')
+  const [restockLoading, setRestockLoading] = useState(false)
   const formRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -219,6 +223,32 @@ export default function ManageItems({
     }
 
     setDeleteConfirm(null)
+  }
+
+  // Restock de producto
+  const handleRestock = async () => {
+    if (!restockModal || !restockQty || parseInt(restockQty) <= 0) return
+    setRestockLoading(true)
+    try {
+      const qty = parseInt(restockQty)
+      const result = await onAdjustStock(
+        restockModal.code || restockModal.id,
+        qty,
+        'restock',
+        null,
+        `Restock: +${qty} unidades`
+      )
+      if (result.success) {
+        setRestockModal(null)
+        setRestockQty('')
+      } else {
+        setErrorMessage(result.error || 'Error al actualizar stock')
+      }
+    } catch (err) {
+      setErrorMessage(err.message)
+    } finally {
+      setRestockLoading(false)
+    }
   }
 
   // Separar cursos regulares de programas
@@ -593,6 +623,7 @@ export default function ManageItems({
                     type="product"
                     onEdit={() => handleEdit(product, true)}
                     onDelete={() => handleDeleteRequest(product, true)}
+                    onRestock={onAdjustStock ? () => { setRestockModal(product); setRestockQty('') } : null}
                   />
                 ))
               )}
@@ -619,13 +650,70 @@ export default function ManageItems({
             onCancel={() => setDeleteConfirm(null)}
           />
         )}
+
+        {/* Restock Modal */}
+        {restockModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <PackagePlus size={32} className="text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">Reabastecer Stock</h3>
+                <p className="text-gray-500 mt-1">{restockModal.name}</p>
+                <p className="text-sm text-blue-600 font-medium mt-1">
+                  Stock actual: {restockModal.stock ?? 0} unidades
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cantidad a agregar
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={restockQty}
+                  onChange={(e) => setRestockQty(e.target.value)}
+                  className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                  autoFocus
+                />
+                {restockQty && parseInt(restockQty) > 0 && (
+                  <p className="text-sm text-green-600 font-medium text-center mt-2">
+                    Nuevo stock: {(restockModal.stock ?? 0) + parseInt(restockQty)} unidades
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRestockModal(null)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRestock}
+                  disabled={!restockQty || parseInt(restockQty) <= 0 || restockLoading}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <PackagePlus size={18} />
+                  {restockLoading ? 'Guardando...' : 'Agregar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 // Componente de tarjeta de item
-function ItemCard({ item, type, onEdit, onDelete }) {
+function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
   const isProduct = type === 'product'
   const isProgram = type === 'program' || item.priceType === 'programa'
 
@@ -684,6 +772,15 @@ function ItemCard({ item, type, onEdit, onDelete }) {
 
         {/* Actions */}
         <div className="flex flex-col gap-1">
+          {isProduct && onRestock && (
+            <button
+              onClick={onRestock}
+              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              title="Reabastecer stock"
+            >
+              <PackagePlus size={18} />
+            </button>
+          )}
           <button
             onClick={onEdit}
             className={`p-2 rounded-lg transition-colors ${

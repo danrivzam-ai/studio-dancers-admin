@@ -428,6 +428,15 @@ export default function PaymentHistory({
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full text-sm outline-none bg-transparent"
                     />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="p-0.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                        title="Limpiar búsqueda"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

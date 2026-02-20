@@ -40,7 +40,7 @@ export default function App() {
   const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
-  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById } = useItems()
+  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock } = useItems()
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
@@ -278,19 +278,37 @@ export default function App() {
   const handleSaleSubmit = async (e) => {
     e.preventDefault()
     const product = getProductById(saleForm.productId)
+    const qty = parseInt(saleForm.quantity)
+
+    // Validar stock si el producto tiene control de inventario
+    if (product.stock !== null && product.stock !== undefined && product.stock < qty) {
+      alert(`Stock insuficiente. Disponible: ${product.stock}, Solicitado: ${qty}`)
+      return
+    }
 
     const result = await createSale({
       customerName: saleForm.customerName,
       productId: saleForm.productId,
       productName: product.name,
-      quantity: saleForm.quantity,
+      quantity: qty,
       unitPrice: product.price,
-      total: product.price * saleForm.quantity,
+      total: product.price * qty,
       date: saleForm.date,
       notes: saleForm.notes
     })
 
     if (result.success) {
+      // Descontar stock automáticamente
+      if (product.stock !== null && product.stock !== undefined) {
+        await adjustStock(
+          saleForm.productId,
+          -qty,
+          'sale',
+          result.data?.id || null,
+          `Venta a ${saleForm.customerName}`
+        )
+      }
+
       setSaleForm({
         customerName: '',
         productId: '',
@@ -436,19 +454,33 @@ export default function App() {
       isOpen: true,
       type: 'venta',
       id: sale.id,
-      name: sale.product_name + ' - ' + sale.customer_name
+      name: sale.product_name + ' - ' + sale.customer_name,
+      saleData: sale // guardar datos de la venta para restaurar stock
     })
   }
 
   // Ejecutar eliminación después de confirmar PIN
   const executeDelete = async () => {
-    const { type, id } = deleteModal
+    const { type, id, saleData } = deleteModal
     let result
 
     if (type === 'alumno') {
       result = await deleteStudent(id)
     } else if (type === 'venta') {
       result = await deleteSale(id)
+      // Restaurar stock si la venta tenía producto con inventario
+      if (result.success && saleData) {
+        const product = getProductById(saleData.product_id)
+        if (product && product.stock !== null && product.stock !== undefined) {
+          await adjustStock(
+            saleData.product_id,
+            parseInt(saleData.quantity),
+            'void_return',
+            id,
+            `Devolución por eliminación de venta`
+          )
+        }
+      }
     }
 
     if (!result.success) {
@@ -1046,13 +1078,29 @@ export default function App() {
                   Gestionar
                 </button>
               </div>
-              <div className="flex gap-4 flex-wrap">
-                {allProducts.map(product => (
-                  <div key={product.id} className="bg-white rounded-lg p-3 shadow-sm">
-                    <p className="font-medium text-gray-800">{product.name}</p>
-                    <p className="text-green-600 font-bold">${product.price}</p>
-                  </div>
-                ))}
+              <div className="flex gap-3 flex-wrap">
+                {allProducts.map(product => {
+                  const hasStock = product.stock !== null && product.stock !== undefined
+                  const lowStock = hasStock && product.stock <= 3 && product.stock > 0
+                  const outOfStock = hasStock && product.stock === 0
+                  return (
+                    <div key={product.id} className={`bg-white rounded-lg p-3 shadow-sm border ${outOfStock ? 'border-red-200 opacity-60' : lowStock ? 'border-yellow-200' : 'border-transparent'}`}>
+                      <p className="font-medium text-gray-800">{product.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-green-600 font-bold">${product.price}</p>
+                        {hasStock && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                            outOfStock ? 'bg-red-100 text-red-700' :
+                            lowStock ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {outOfStock ? 'Agotado' : `${product.stock} ud`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
@@ -1278,11 +1326,15 @@ export default function App() {
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   >
                     <option value="">Seleccionar artículo</option>
-                    {allProducts.map(product => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} - ${product.price}
-                      </option>
-                    ))}
+                    {allProducts.map(product => {
+                      const hasStock = product.stock !== null && product.stock !== undefined
+                      const outOfStock = hasStock && product.stock === 0
+                      return (
+                        <option key={product.id} value={product.id} disabled={outOfStock}>
+                          {product.name} - ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
+                        </option>
+                      )
+                    })}
                   </select>
                 </div>
 
@@ -1397,6 +1449,7 @@ export default function App() {
             onDeleteCourse={deleteCourse}
             onSaveProduct={saveProduct}
             onDeleteProduct={deleteProduct}
+            onAdjustStock={adjustStock}
             onClose={() => setShowManageItems(false)}
             onRequestPin={(pin) => {
               // Verificar PIN
@@ -1451,6 +1504,15 @@ export default function App() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full text-sm outline-none bg-transparent"
                     />
+                    {(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
+                      <button
+                        onClick={() => { setSearchTerm(''); setFilterCourse('all'); setFilterPayment('all') }}
+                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                        title="Limpiar filtros"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
                   </div>
                   <select
                     value={filterCourse}
