@@ -76,10 +76,10 @@ export function useItems() {
             allows_installments: c.allows_installments,
             installmentCount: c.installment_count,
             installment_count: c.installment_count,
-            // Datos de ciclo de clases (desde curso predeterminado)
-            classDays: defaultCourse?.classDays || null,
-            classesPerCycle: defaultCourse?.classesPerCycle || null,
-            classesPerPackage: defaultCourse?.classesPerPackage || null,
+            // Datos de ciclo de clases (prioridad: DB > predeterminado)
+            classDays: c.class_days || defaultCourse?.classDays || null,
+            classesPerCycle: c.classes_per_cycle || defaultCourse?.classesPerCycle || null,
+            classesPerPackage: c.classes_per_cycle || defaultCourse?.classesPerPackage || null,
             active: c.active,
             is_default: c.is_default,
             supabase_id: c.id
@@ -218,8 +218,10 @@ export function useItems() {
           price_type: courseData.priceType || courseData.price_type || 'mes',
           allows_installments: courseData.allowsInstallments || courseData.allows_installments || false,
           installment_count: courseData.installmentCount || courseData.installment_count || 1,
+          class_days: courseData.classDays || null,
+          classes_per_cycle: courseData.classesPerCycle || null,
           active: true,
-          is_default: false,
+          is_default: courseData.is_default || false,
           updated_at: new Date().toISOString()
         }
 

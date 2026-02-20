@@ -10,8 +10,19 @@ const ITEM_TYPES = [
 
 const PRICE_TYPES = [
   { id: 'mes', name: 'Mensual' },
+  { id: 'paquete', name: 'Paquete de clases' },
   { id: 'clase', name: 'Por clase' },
   { id: 'programa', name: 'Pago único' },
+]
+
+const DAYS_OF_WEEK = [
+  { id: 1, short: 'Lun', name: 'Lunes' },
+  { id: 2, short: 'Mar', name: 'Martes' },
+  { id: 3, short: 'Mié', name: 'Miércoles' },
+  { id: 4, short: 'Jue', name: 'Jueves' },
+  { id: 5, short: 'Vie', name: 'Viernes' },
+  { id: 6, short: 'Sáb', name: 'Sábado' },
+  { id: 0, short: 'Dom', name: 'Domingo' },
 ]
 
 const AGE_GROUPS = [
@@ -75,7 +86,9 @@ export default function ManageItems({
     priceType: 'mes',
     allowsInstallments: false,
     installmentCount: 2,
-    stock: ''
+    stock: '',
+    classDays: [],
+    classesPerCycle: ''
   })
 
   const resetForm = () => {
@@ -90,7 +103,9 @@ export default function ManageItems({
       priceType: 'mes',
       allowsInstallments: false,
       installmentCount: 2,
-      stock: ''
+      stock: '',
+      classDays: [],
+      classesPerCycle: ''
     })
     setShowForm(false)
     setEditingItem(null)
@@ -132,19 +147,21 @@ export default function ManageItems({
         stock: item.stock?.toString() || ''
       })
     } else {
-      const ageGroup = AGE_GROUPS.find(g => g.ageMin === item.ageMin && g.ageMax === item.ageMax)?.id || 'todos'
+      const ageGroup = AGE_GROUPS.find(g => g.ageMin === (item.ageMin || item.age_min) && g.ageMax === (item.ageMax || item.age_max))?.id || 'todos'
       setFormData({
-        type: item.priceType === 'programa' ? 'program' : 'course',
+        type: item.priceType === 'programa' ? 'program' : item.priceType === 'paquete' ? 'course' : 'course',
         name: item.name,
         ageGroup,
-        ageMin: item.ageMin,
-        ageMax: item.ageMax,
+        ageMin: item.ageMin || item.age_min || 3,
+        ageMax: item.ageMax || item.age_max || 99,
         schedule: item.schedule || '',
         price: item.price.toString(),
         priceType: item.priceType,
         allowsInstallments: item.allowsInstallments || false,
         installmentCount: item.installmentCount || 2,
-        stock: ''
+        stock: '',
+        classDays: item.classDays || [],
+        classesPerCycle: item.classesPerCycle || item.classesPerPackage || ''
       })
     }
     setEditingItem(item)
@@ -173,6 +190,7 @@ export default function ManageItems({
         id: editingItem?.id || `${formData.type}-${Date.now()}`,
         code: editingItem?.code || editingItem?.id || `${formData.type}-${Date.now()}`,
         supabase_id: editingItem?.supabase_id || null,
+        is_default: editingItem?.is_default || false,
         name: formData.name,
         ageMin: formData.ageMin,
         ageMax: formData.ageMax,
@@ -180,7 +198,9 @@ export default function ManageItems({
         price: parseFloat(formData.price),
         priceType: formData.priceType,
         allowsInstallments: formData.allowsInstallments,
-        installmentCount: formData.allowsInstallments ? formData.installmentCount : 1
+        installmentCount: formData.allowsInstallments ? formData.installmentCount : 1,
+        classDays: formData.classDays.length > 0 ? formData.classDays : null,
+        classesPerCycle: formData.classesPerCycle ? parseInt(formData.classesPerCycle) : null
       }
       const result = await onSaveCourse(courseData, !!editingItem)
       if (!result.success) {
@@ -463,6 +483,64 @@ export default function ManageItems({
                       placeholder="Ej: Lunes y Miércoles 17:00 - 18:00"
                     />
                   </div>
+
+                  {/* Días de clase (para mes y paquete) */}
+                  {(formData.priceType === 'mes' || formData.priceType === 'paquete') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <Calendar size={14} className="inline mr-1" />
+                        Días de clase
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {DAYS_OF_WEEK.map(day => {
+                          const isSelected = formData.classDays.includes(day.id)
+                          return (
+                            <button
+                              key={day.id}
+                              type="button"
+                              onClick={() => {
+                                const newDays = isSelected
+                                  ? formData.classDays.filter(d => d !== day.id)
+                                  : [...formData.classDays, day.id].sort((a, b) => a - b)
+                                setFormData({ ...formData, classDays: newDays })
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border-2 ${
+                                isSelected
+                                  ? 'border-purple-500 bg-purple-100 text-purple-700'
+                                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                              }`}
+                            >
+                              {day.short}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Selecciona los días en que se imparte la clase. El sistema calculará automáticamente cuándo toca el próximo pago.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Clases por ciclo */}
+                  {(formData.priceType === 'mes' || formData.priceType === 'paquete') && formData.classDays.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Clases por ciclo
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={formData.classesPerCycle}
+                        onChange={(e) => setFormData({...formData, classesPerCycle: e.target.value})}
+                        className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                        placeholder={`Ej: ${formData.classDays.length * 4}`}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Cuántas clases completa un ciclo de pago. Ej: MTJ = 8 clases, Sáb = 4 clases.
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -737,17 +815,23 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-semibold text-gray-800 truncate">{item.name}</h4>
-            {item.is_default && (
-              <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">Sistema</span>
-            )}
           </div>
 
           {!isProduct && (
-            <p className="text-sm text-gray-500 mt-1">
-              <Users size={12} className="inline mr-1" />
-              {item.ageMin || item.age_min} - {item.ageMax || item.age_max} años
-              {item.schedule && <span className="ml-2">• {item.schedule}</span>}
-            </p>
+            <div className="text-sm text-gray-500 mt-1">
+              <p>
+                <Users size={12} className="inline mr-1" />
+                {item.ageMin || item.age_min} - {item.ageMax || item.age_max} años
+                {item.schedule && <span className="ml-2">• {item.schedule}</span>}
+              </p>
+              {item.classDays && item.classDays.length > 0 && (
+                <p className="text-xs text-purple-600 mt-0.5">
+                  <Calendar size={10} className="inline mr-1" />
+                  {item.classDays.map(d => ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d]).join('/')}
+                  {item.classesPerCycle && ` • ${item.classesPerCycle} clases/ciclo`}
+                </p>
+              )}
+            </div>
           )}
 
           <div className="flex items-center gap-3 mt-2">

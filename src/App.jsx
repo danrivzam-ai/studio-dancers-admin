@@ -1070,13 +1070,15 @@ export default function App() {
                   <Tag size={18} />
                   Artículos Disponibles
                 </h3>
-                <button
-                  onClick={() => setShowManageItems(true)}
-                  className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
-                >
-                  <Package size={14} />
-                  Gestionar
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowManageItems(true)}
+                    className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
+                  >
+                    <Package size={14} />
+                    Gestionar
+                  </button>
+                )}
               </div>
               <div className="flex gap-3 flex-wrap">
                 {allProducts.map(product => {
@@ -1147,13 +1149,15 @@ export default function App() {
           <div className="space-y-6">
             {/* Header con botón de gestionar */}
             <div className="flex justify-end">
-              <button
-                onClick={() => setShowManageItems(true)}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
-              >
-                <Package size={18} />
-                Gestionar Cursos y Productos
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowManageItems(true)}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                >
+                  <Package size={18} />
+                  Gestionar Cursos y Productos
+                </button>
+              )}
             </div>
 
             {/* All Courses - Dynamic */}
