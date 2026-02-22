@@ -201,6 +201,16 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, classDays, classe
       }
       checkDate = addDays(checkDate, 1)
     }
+  } else if (totalClasses) {
+    // Fallback: estimar proporcionalmente por tiempo transcurrido
+    const totalDays = differenceInDays(cycleEnd, cycleStart) + 1
+    const elapsedDays = differenceInDays(today, cycleStart) + 1
+    if (totalDays > 0) {
+      classesPassed = Math.max(0, Math.min(
+        Math.round((elapsedDays / totalDays) * totalClasses),
+        totalClasses
+      ))
+    }
   }
 
   const dayNames = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' }

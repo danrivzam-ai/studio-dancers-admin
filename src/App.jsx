@@ -847,17 +847,6 @@ export default function App() {
         {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
           <>
-            {/* Quick Action: Nuevo Alumno */}
-            <div className="mb-4">
-              <button
-                onClick={() => setShowForm(true)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-md hover:shadow-lg"
-              >
-                <Plus size={18} />
-                Nuevo Alumno
-              </button>
-            </div>
-
             {/* Quick Access Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
               {/* View Students Button */}
