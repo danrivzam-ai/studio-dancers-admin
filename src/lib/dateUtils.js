@@ -158,32 +158,59 @@ export const getDaysUntilDue = (nextPaymentDate) => {
  * @returns {{ cycleStart: string, cycleEnd: string, totalClasses: number, label: string } | null}
  */
 export const getCycleInfo = (lastPaymentDate, nextPaymentDate, classDays, classesPerCycle) => {
-  if (!lastPaymentDate || !classDays || classDays.length === 0 || !classesPerCycle) return null
+  if (!lastPaymentDate || !nextPaymentDate) return null
 
   const lastPay = typeof lastPaymentDate === 'string' ? parseISO(lastPaymentDate) : lastPaymentDate
-  const cycleStart = getNextClassDay(lastPay, classDays)
-  const cycleEnd = calculatePackageEndDate(cycleStart, classDays, classesPerCycle)
+  const nextPay = typeof nextPaymentDate === 'string' ? parseISO(nextPaymentDate) : nextPaymentDate
+
+  let cycleStart, cycleEnd, totalClasses
+
+  if (classDays && classDays.length > 0 && classesPerCycle) {
+    // Cálculo preciso con días de clase
+    cycleStart = getNextClassDay(lastPay, classDays)
+    cycleEnd = calculatePackageEndDate(cycleStart, classDays, classesPerCycle)
+    totalClasses = classesPerCycle
+  } else {
+    // Fallback: usar las fechas directamente
+    // Ciclo va desde la fecha de pago/inicio hasta un día antes del próximo cobro
+    cycleStart = lastPay
+    cycleEnd = subDays(nextPay, 1)
+    // Estimar clases si tenemos classDays
+    if (classDays && classDays.length > 0) {
+      let count = 0
+      let d = new Date(cycleStart)
+      while (d <= cycleEnd) {
+        if (classDays.includes(getDay(d))) count++
+        d = addDays(d, 1)
+      }
+      totalClasses = count
+    } else {
+      totalClasses = classesPerCycle || null
+    }
+  }
 
   // Calcular cuántas clases han pasado desde el inicio del ciclo
   const today = new Date()
   today.setHours(12, 0, 0, 0)
   let classesPassed = 0
-  let checkDate = new Date(cycleStart)
-  while (checkDate <= today && checkDate <= cycleEnd) {
-    if (classDays?.includes(getDay(checkDate))) {
-      classesPassed++
+  if (classDays && classDays.length > 0) {
+    let checkDate = new Date(cycleStart)
+    while (checkDate <= today && checkDate <= cycleEnd) {
+      if (classDays.includes(getDay(checkDate))) {
+        classesPassed++
+      }
+      checkDate = addDays(checkDate, 1)
     }
-    checkDate = addDays(checkDate, 1)
   }
 
   const dayNames = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' }
-  const daysLabel = classDays.map(d => dayNames[d]).join('/')
+  const daysLabel = classDays?.map(d => dayNames[d]).join('/') || ''
 
   return {
     cycleStart: format(cycleStart, 'dd/MM', { locale: es }),
     cycleEnd: format(cycleEnd, 'dd/MM', { locale: es }),
-    totalClasses: classesPerCycle,
-    classesPassed: Math.min(classesPassed, classesPerCycle),
+    totalClasses: totalClasses,
+    classesPassed: totalClasses ? Math.min(classesPassed, totalClasses) : classesPassed,
     daysLabel
   }
 }

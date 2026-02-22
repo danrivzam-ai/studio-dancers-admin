@@ -338,9 +338,11 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
                           <span className="font-bold text-purple-700 ml-1">{cycleInfo.cycleEnd}</span>
                         </div>
                       </div>
-                      <p className="text-[10px] text-purple-500 mt-1">
-                        {cycleInfo.totalClasses} clases • {classDaysLabel}
-                      </p>
+                      {(cycleInfo.totalClasses || classDaysLabel) && (
+                        <p className="text-[10px] text-purple-500 mt-1">
+                          {cycleInfo.totalClasses ? `${cycleInfo.totalClasses} clases` : ''}{cycleInfo.totalClasses && classDaysLabel ? ' • ' : ''}{classDaysLabel}
+                        </p>
+                      )}
                     </div>
                   )}
                   <p className="text-sm text-center">
