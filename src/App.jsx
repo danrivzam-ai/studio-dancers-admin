@@ -1712,6 +1712,7 @@ export default function App() {
         {showStudentDetail && (
           <StudentDetail
             student={showStudentDetail}
+            course={allCourses.find(c => c.id === showStudentDetail?.course_id) || getCourseById(showStudentDetail?.course_id)}
             onClose={() => setShowStudentDetail(null)}
             onPayment={(student) => {
               setShowStudentDetail(null)

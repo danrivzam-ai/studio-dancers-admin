@@ -4,11 +4,11 @@ import { supabase } from '../lib/supabase'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
-export default function StudentDetail({ student, onClose, onPayment }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const course = getCourseById(student?.course_id)
+  const course = courseProp || getCourseById(student?.course_id)
   const paymentStatus = getPaymentStatus(student, course)
   const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
   const isProgram = course?.priceType === 'programa'
