@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC, formatDate } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue } from '../lib/dateUtils'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -32,23 +32,12 @@ export default function PaymentModal({
   const balance = totalPrice - amountPaid
   const hasBalance = amountPaid > 0 && balance > 0
 
-  // Detectar si el alumno está atrasado (para separar fecha de pago vs inicio de ciclo)
-  const isOverdue = isRecurring && student?.next_payment_date && (() => {
-    try {
-      const today = new Date(getTodayEC() + 'T12:00:00')
-      const nextPay = new Date(student.next_payment_date + 'T12:00:00')
-      if (isNaN(today.getTime()) || isNaN(nextPay.getTime())) return false
-      return today >= nextPay
-    } catch { return false }
-  })()
-  const daysOverdue = isOverdue ? (() => {
-    try {
-      const today = new Date(getTodayEC() + 'T12:00:00')
-      const nextPay = new Date(student.next_payment_date + 'T12:00:00')
-      if (isNaN(today.getTime()) || isNaN(nextPay.getTime())) return 0
-      return Math.round((today - nextPay) / (1000 * 60 * 60 * 24))
-    } catch { return 0 }
-  })() : 0
+  // Detectar si el alumno está atrasado (consistente con getDaysUntilDue que usa la lista)
+  const daysUntilDue = isRecurring && student?.next_payment_date
+    ? getDaysUntilDue(student.next_payment_date)
+    : 999
+  const isOverdue = daysUntilDue <= 0
+  const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0
 
   // Opción de inicio de ciclo: 'original' = desde fecha que le correspondía, 'today' = desde hoy
   // Si la alumna está inactiva (pasó el periodo de gracia), por defecto empezar desde hoy
