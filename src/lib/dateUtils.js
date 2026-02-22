@@ -38,7 +38,7 @@ export const getNextClassDay = (fromDate, classDays) => {
   const currentDayOfWeek = getDay(date) // 0-6
 
   // Si hoy es día de clase, retornar hoy
-  if (classDays.includes(currentDayOfWeek)) {
+  if (classDays?.includes(currentDayOfWeek)) {
     return date
   }
 
@@ -46,7 +46,7 @@ export const getNextClassDay = (fromDate, classDays) => {
   for (let i = 1; i <= 7; i++) {
     const nextDay = addDays(date, i)
     const dayOfWeek = getDay(nextDay)
-    if (classDays.includes(dayOfWeek)) {
+    if (classDays?.includes(dayOfWeek)) {
       return nextDay
     }
   }
@@ -96,16 +96,23 @@ export const calculateNextPaymentDate = (startDate, classDays = null, classesPer
 export const calculatePackageEndDate = (startDate, classDays, classesPerPackage = 4) => {
   const date = typeof startDate === 'string' ? parseISO(startDate) : new Date(startDate)
 
+  // Guard: si no hay días de clase, estimar por semanas
+  if (!classDays || classDays.length === 0) {
+    return addDays(date, (classesPerPackage - 1) * 7)
+  }
+
   // El primer día de clase cuenta como clase 1
   let classCount = 1
   let current = date
 
-  // Avanzar hasta completar las clases del paquete
-  while (classCount < classesPerPackage) {
+  // Avanzar hasta completar las clases del paquete (máx 365 días para evitar loop infinito)
+  let safety = 0
+  while (classCount < classesPerPackage && safety < 365) {
     current = addDays(current, 1)
-    if (classDays.includes(getDay(current))) {
+    if (classDays?.includes(getDay(current))) {
       classCount++
     }
+    safety++
   }
 
   return current
@@ -120,6 +127,10 @@ export const calculatePackageEndDate = (startDate, classDays, classesPerPackage 
  */
 export const calculateNextPackagePaymentDate = (packageEndDate, classDays) => {
   const date = typeof packageEndDate === 'string' ? parseISO(packageEndDate) : new Date(packageEndDate)
+  // Guard: si no hay días de clase, agregar 1 día
+  if (!classDays || classDays.length === 0) {
+    return addDays(date, 1)
+  }
   // El siguiente día de clase después de completar el paquete
   return getNextClassDay(addDays(date, 1), classDays)
 }
@@ -159,7 +170,7 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, classDays, classe
   let classesPassed = 0
   let checkDate = new Date(cycleStart)
   while (checkDate <= today && checkDate <= cycleEnd) {
-    if (classDays.includes(getDay(checkDate))) {
+    if (classDays?.includes(getDay(checkDate))) {
       classesPassed++
     }
     checkDate = addDays(checkDate, 1)

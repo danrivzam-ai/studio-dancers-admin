@@ -11,7 +11,7 @@ export default function StudentForm({
   const isEditing = !!student
 
   const [formData, setFormData] = useState({
-    name: '', cedula: '', age: '', phone: '', email: '',
+    name: '', cedula: '', age: '', phone: '', email: '', address: '',
     isMinor: true,
     parentName: '', parentCedula: '', parentPhone: '', parentEmail: '', parentAddress: '',
     hasDifferentPayer: false,
@@ -32,6 +32,7 @@ export default function StudentForm({
         age: student.age?.toString() || '',
         phone: student.phone || '',
         email: student.email || '',
+        address: student.address || '',
         isMinor: student.is_minor !== false,
         parentName: student.parent_name || '',
         parentCedula: student.parent_cedula || '',
@@ -50,6 +51,7 @@ export default function StudentForm({
     }
   }, [student])
 
+  // Auto-detectar menor/adulto según edad
   useEffect(() => {
     const age = parseInt(formData.age)
     if (age && age >= 18) {
@@ -78,10 +80,38 @@ export default function StudentForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* ALUMNO */}
+          {/* Toggle Menor / Adulto */}
+          <div className="flex rounded-lg overflow-hidden border-2 border-purple-200">
+            <button
+              type="button"
+              onClick={() => setFormData({...formData, isMinor: true})}
+              className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                formData.isMinor
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Users size={14} />
+              Menor de edad
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData({...formData, isMinor: false, age: ''})}
+              className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                !formData.isMinor
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <User size={14} />
+              Adulto
+            </button>
+          </div>
+
+          {/* DATOS DEL ALUMNO */}
           <div className="bg-purple-50 rounded-lg p-3">
             <h3 className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-1.5">
-              <User size={14} /> Alumno
+              <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
             <div className="space-y-2">
               <input
@@ -98,47 +128,74 @@ export default function StudentForm({
                   value={formData.cedula}
                   onChange={(e) => setFormData({...formData, cedula: e.target.value})}
                   className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Cédula"
+                  placeholder="Cedula"
                 />
-                <input
-                  type="number"
-                  min="3"
-                  max="99"
-                  value={formData.age}
-                  onChange={(e) => setFormData({...formData, age: e.target.value})}
-                  className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Edad"
-                />
+                {formData.isMinor ? (
+                  <input
+                    type="number"
+                    min="3"
+                    max="17"
+                    required
+                    value={formData.age}
+                    onChange={(e) => setFormData({...formData, age: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Edad *"
+                  />
+                ) : (
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Telefono *"
+                  />
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Teléfono"
-                />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Email"
-                />
-              </div>
+
+              {/* Adultos: email + direccion */}
+              {!formData.isMinor && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Email"
+                  />
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Direccion"
+                  />
+                </div>
+              )}
+
+              {/* Menores: telefono y email opcionales */}
+              {formData.isMinor && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Telefono (opcional)"
+                  />
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Email (opcional)"
+                  />
+                </div>
+              )}
             </div>
-            <label className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-              <input
-                type="checkbox"
-                checked={formData.isMinor}
-                onChange={(e) => setFormData({...formData, isMinor: e.target.checked})}
-                className="w-3.5 h-3.5 text-purple-600 rounded"
-              />
-              Menor de edad
-            </label>
           </div>
 
-          {/* REPRESENTANTE */}
+          {/* REPRESENTANTE (solo menores) */}
           {formData.isMinor && (
             <div className="bg-blue-50 rounded-lg p-3">
               <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-1.5">
@@ -148,7 +205,7 @@ export default function StudentForm({
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
-                    required={formData.isMinor}
+                    required
                     value={formData.parentName}
                     onChange={(e) => setFormData({...formData, parentName: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -159,17 +216,17 @@ export default function StudentForm({
                     value={formData.parentCedula}
                     onChange={(e) => setFormData({...formData, parentCedula: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Cédula/RUC"
+                    placeholder="Cedula/RUC"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="tel"
-                    required={formData.isMinor}
+                    required
                     value={formData.parentPhone}
                     onChange={(e) => setFormData({...formData, parentPhone: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Teléfono *"
+                    placeholder="Telefono *"
                   />
                   <input
                     type="email"
@@ -184,7 +241,7 @@ export default function StudentForm({
                   value={formData.parentAddress}
                   onChange={(e) => setFormData({...formData, parentAddress: e.target.value})}
                   className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Dirección"
+                  placeholder="Direccion"
                 />
               </div>
             </div>
@@ -220,7 +277,7 @@ export default function StudentForm({
                     value={formData.payerCedula}
                     onChange={(e) => setFormData({...formData, payerCedula: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Cédula/RUC *"
+                    placeholder="Cedula/RUC *"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -229,46 +286,34 @@ export default function StudentForm({
                     value={formData.payerPhone}
                     onChange={(e) => setFormData({...formData, payerPhone: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Teléfono"
+                    placeholder="Telefono"
                   />
                   <input
                     type="text"
                     value={formData.payerAddress || ''}
                     onChange={(e) => setFormData({...formData, payerAddress: e.target.value})}
                     className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Dirección"
+                    placeholder="Direccion"
                   />
                 </div>
               </div>
             )}
           </div>
 
-          {/* FECHA DE REGISTRO */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <label className="block text-sm font-semibold text-gray-800 mb-2">
-              📅 Fecha de Registro
-            </label>
-            <input
-              type="date"
-              value={formData.enrollmentDate}
-              onChange={(e) => setFormData({...formData, enrollmentDate: e.target.value})}
-              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
-
-          {/* CURSO */}
-          <div className="bg-gray-50 rounded-lg p-3">
-            <h3 className="text-sm font-semibold text-gray-800 mb-2">Curso</h3>
+          {/* CURSO y REGISTRO */}
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            <h3 className="text-sm font-semibold text-gray-800">Curso y Registro</h3>
             <select
               required
               value={formData.courseId}
               onChange={(e) => setFormData({...formData, courseId: e.target.value})}
-              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 mb-2"
+              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
             >
               <option value="">Seleccionar curso *</option>
               {(() => {
                 const regular = courses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
-                const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa' || (c.priceType || c.price_type) === 'paquete')
+                const packages = courses.filter(c => (c.priceType || c.price_type) === 'paquete')
+                const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa')
                 return (
                   <>
                     {regular.length > 0 && (
@@ -276,6 +321,15 @@ export default function StudentForm({
                         {regular.map(c => (
                           <option key={c.id || c.code} value={c.id || c.code}>
                             {c.name} - ${c.price}/{c.priceType || c.price_type}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {packages.length > 0 && (
+                      <optgroup label="Paquetes">
+                        {packages.map(c => (
+                          <option key={c.id || c.code} value={c.id || c.code}>
+                            {c.name} - ${c.price}
                           </option>
                         ))}
                       </optgroup>
@@ -298,11 +352,18 @@ export default function StudentForm({
               const age = parseInt(formData.age)
               const suggested = courses.filter(c => age >= (c.ageMin || c.age_min || 3) && age <= (c.ageMax || c.age_max || 99))
               return suggested.length > 0 ? (
-                <p className="text-xs text-purple-600 mb-2">
+                <p className="text-xs text-purple-600">
                   Sugeridos: {suggested.map(c => c.name.split(' - ')[0]).slice(0, 3).join(', ')}
                 </p>
               ) : null
             })()}
+
+            <input
+              type="date"
+              value={formData.enrollmentDate}
+              onChange={(e) => setFormData({...formData, enrollmentDate: e.target.value})}
+              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+            />
 
             <textarea
               value={formData.notes}

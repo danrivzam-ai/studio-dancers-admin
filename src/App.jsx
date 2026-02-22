@@ -327,11 +327,14 @@ export default function App() {
     const result = await registerPayment(studentId, paymentData)
 
     if (result.success) {
-      // Mostrar comprobante
+      // Mostrar comprobante (incluir datos actualizados del pago)
       const student = students.find(s => s.id === studentId)
       setSelectedStudent({
         ...student,
-        next_payment_date: result.data.next_payment_date || student.next_payment_date
+        next_payment_date: result.data.next_payment_date ?? student.next_payment_date,
+        amount_paid: result.data.newAmountPaid ?? student.amount_paid,
+        balance: result.data.newBalance ?? student.balance,
+        payment_status: result.data.paymentStatus ?? student.payment_status
       })
       setLastPayment(result.data)
       setShowPaymentModal(false)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { addDays } from 'date-fns'
+import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput } from '../lib/dateUtils'
@@ -56,6 +56,7 @@ export function useStudents() {
         age: studentData.age ? parseInt(studentData.age) : null,
         phone: studentData.phone || null,
         email: studentData.email || null,
+        address: studentData.address || null,
         is_minor: studentData.isMinor !== false,
         // Datos del representante
         parent_name: studentData.parentName || null,
@@ -118,9 +119,10 @@ export function useStudents() {
       const updateData = {
         name: studentData.name,
         cedula: studentData.cedula || null,
-        age: parseInt(studentData.age),
+        age: studentData.age ? parseInt(studentData.age) : null,
         phone: studentData.phone || null,
         email: studentData.email || null,
+        address: studentData.address || null,
         is_minor: studentData.isMinor !== false,
         parent_name: studentData.parentName || null,
         parent_cedula: studentData.parentCedula || null,
@@ -263,33 +265,38 @@ export function useStudents() {
           newAmountPaid = 0
 
           // Recalcular next_payment_date usando effectiveCycleDate (no paymentDate)
-          if (isPackage) {
-            const classesPerPackage = course?.classesPerPackage || 4
-            const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
+          try {
+            if (isPackage) {
+              const classesPerPackage = course?.classesPerPackage || 4
+              const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
 
-            let cycleStart
-            if (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate) {
-              cycleStart = currentNextPaymentDate
-            } else {
-              cycleStart = getNextClassDay(effectiveCycleDate, classDays)
+              let cycleStart
+              if (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate) {
+                cycleStart = currentNextPaymentDate
+              } else {
+                cycleStart = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+              }
+
+              const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
+              nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
+              classesUsed = 0
+            } else if (isMonthly) {
+              const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
+              const classesPerCycle = course?.classesPerCycle || null
+
+              if (!currentNextPaymentDate) {
+                const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+              } else if (currentNextPaymentDate > effectiveCycleDate) {
+                nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
+              } else {
+                const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+              }
             }
-
-            const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
-            nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
-            classesUsed = 0
-          } else if (isMonthly) {
-            const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
-            const classesPerCycle = course?.classesPerCycle || null
-
-            if (!currentNextPaymentDate) {
-              const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-              nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
-            } else if (currentNextPaymentDate > effectiveCycleDate) {
-              nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
-            } else {
-              const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-              nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
-            }
+          } catch (calcErr) {
+            console.error('Error calculando próximo pago, usando fallback +30 días:', calcErr)
+            nextPayment = formatDateForInput(addMonths(effectiveCycleDate, 1))
           }
         }
       }

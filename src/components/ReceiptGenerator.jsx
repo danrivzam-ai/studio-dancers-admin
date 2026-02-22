@@ -68,8 +68,8 @@ export default function ReceiptGenerator({
   const coursePrice = course?.price || 0
   const isProgram = !isQuickPayment && course?.priceType === 'programa'
   const isRecurring = !isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete')
-  const totalPaid = parseFloat(payment?.newAmountPaid || student?.amount_paid || payment?.amount || 0)
-  const balance = parseFloat(payment?.newBalance || student?.balance || 0)
+  const totalPaid = parseFloat(payment?.newAmountPaid ?? student?.amount_paid ?? payment?.amount ?? 0)
+  const balance = parseFloat(payment?.newBalance ?? student?.balance ?? 0)
   const hasBalance = (isProgram || isRecurring) && balance > 0
   const isPartialPayment = payment?.isPartialPayment || payment?.paymentStatus === 'partial' || (isRecurring && totalPaid > 0 && totalPaid < coursePrice)
 

@@ -174,6 +174,64 @@ export default function CashRegister({ onClose, settings }) {
     }
   }
 
+  // Reabrir caja cerrada (corregir error)
+  const handleReopenRegister = async () => {
+    if (!window.confirm('¿Reabrir esta caja? Se borrarán los datos de cierre y podrás corregir la apertura.')) return
+
+    try {
+      const { data, error } = await supabase
+        .from('cash_registers')
+        .update({
+          closing_amount: null,
+          expected_amount: null,
+          difference: null,
+          total_income: null,
+          total_expenses: null,
+          total_movements: null,
+          status: 'open',
+          closed_at: null,
+          notes: notes || null
+        })
+        .eq('id', cashRegister.id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setCashRegister(data)
+      setClosingAmount('')
+      logAudit({ action: 'cash_register_reopened', tableName: 'cash_registers', recordId: data.id, newData: { register_date: data.register_date } })
+      alert('Caja reabierta. Puedes ajustar el monto de apertura y volver a cerrar.')
+    } catch (err) {
+      console.error('Error reopening register:', err)
+      alert('Error: ' + err.message)
+    }
+  }
+
+  // Actualizar monto de apertura (caja abierta)
+  const handleUpdateOpening = async () => {
+    if (!openingAmount || parseFloat(openingAmount) < 0) {
+      alert('Ingrese un monto válido')
+      return
+    }
+    try {
+      const { data, error } = await supabase
+        .from('cash_registers')
+        .update({ opening_amount: parseFloat(openingAmount) })
+        .eq('id', cashRegister.id)
+        .select()
+        .single()
+
+      if (error) throw error
+      setCashRegister(data)
+      logAudit({ action: 'cash_register_updated', tableName: 'cash_registers', recordId: data.id, newData: { opening_amount: data.opening_amount } })
+      alert('Monto de apertura actualizado')
+    } catch (err) {
+      console.error('Error updating opening:', err)
+      alert('Error: ' + err.message)
+    }
+  }
+
   // Cerrar caja
   const handleCloseRegister = async () => {
     if (!closingAmount || parseFloat(closingAmount) < 0) {
@@ -464,6 +522,34 @@ export default function CashRegister({ onClose, settings }) {
               </div>
             )}
 
+            {/* Editar apertura (caja abierta) */}
+            {cashRegister?.status === 'open' && isToday && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <h4 className="text-sm font-semibold text-amber-800 mb-2">Monto de apertura</h4>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={openingAmount}
+                      onChange={(e) => setOpeningAmount(e.target.value)}
+                      className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 text-sm"
+                    />
+                  </div>
+                  {parseFloat(openingAmount) !== parseFloat(cashRegister.opening_amount) && (
+                    <button
+                      onClick={handleUpdateOpening}
+                      className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Actualizar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Formulario: Cerrar caja */}
             {cashRegister?.status === 'open' && isToday && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4">
@@ -582,7 +668,17 @@ export default function CashRegister({ onClose, settings }) {
             {/* Resumen de caja cerrada */}
             {cashRegister?.status === 'closed' && (
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Resumen del cierre</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-800">Resumen del cierre</h3>
+                  {isToday && (
+                    <button
+                      onClick={handleReopenRegister}
+                      className="text-xs px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Reabrir Caja
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Apertura:</span>
