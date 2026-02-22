@@ -40,6 +40,28 @@ const toNoonLocal = (date) => {
 }
 
 /**
+ * Normalizar classDays a un array de números.
+ * Supabase puede devolver: [6], ["6"], "{6}", "[6]", null, etc.
+ */
+const normalizeClassDays = (classDays) => {
+  if (!classDays) return null
+  if (Array.isArray(classDays)) {
+    const nums = classDays.map(d => typeof d === 'string' ? parseInt(d, 10) : d).filter(n => !isNaN(n))
+    return nums.length > 0 ? nums : null
+  }
+  if (typeof classDays === 'string') {
+    try {
+      const parsed = JSON.parse(classDays)
+      if (Array.isArray(parsed)) return normalizeClassDays(parsed)
+    } catch { /* no es JSON válido */ }
+    // Formato PostgreSQL: "{6}" o "{1,4}"
+    const nums = classDays.replace(/[{}\[\]]/g, '').split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n))
+    return nums.length > 0 ? nums : null
+  }
+  return null
+}
+
+/**
  * Obtener el próximo día de clase a partir de una fecha
  * @param {Date} fromDate - Fecha desde la cual buscar
  * @param {number[]} classDays - Días de clase (0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb)
@@ -173,11 +195,12 @@ export const getDaysUntilDue = (nextPaymentDate) => {
  * @param {number} classesPerCycle - Clases por ciclo (8 para MTJ, 4 para Sábados)
  * @returns {{ cycleStart: string, cycleEnd: string, totalClasses: number, label: string } | null}
  */
-export const getCycleInfo = (lastPaymentDate, nextPaymentDate, classDays, classesPerCycle) => {
+export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, classesPerCycle) => {
   if (!lastPaymentDate || !nextPaymentDate) return null
 
   const lastPay = toNoonLocal(lastPaymentDate)
   const nextPay = toNoonLocal(nextPaymentDate)
+  const classDays = normalizeClassDays(rawClassDays)
 
   let cycleStart, cycleEnd, totalClasses
 
@@ -331,8 +354,8 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     // Calcular clases tomadas automáticamente por fechas (más preciso que classes_used manual)
     const baseDate = student.last_payment_date || student.enrollment_date
     let classesTaken = student.classes_used || 0
-    if (baseDate && student.next_payment_date && course?.classDays) {
-      const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course.classDays, classesTotal)
+    if (baseDate && student.next_payment_date && (course?.classDays || course?.class_days)) {
+      const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course.classDays || course.class_days, classesTotal)
       if (cycleInfo && cycleInfo.classesPassed > 0) {
         classesTaken = cycleInfo.classesPassed
       }
