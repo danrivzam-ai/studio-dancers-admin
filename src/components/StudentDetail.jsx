@@ -41,8 +41,9 @@ export default function StudentDetail({ student, onClose, onPayment }) {
 
   // Ciclo info
   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-  const cycleInfo = isRecurring && student.last_payment_date
-    ? getCycleInfo(student.last_payment_date, student.next_payment_date, course?.classDays, cycleClasses)
+  const baseDate = student.last_payment_date || student.enrollment_date
+  const cycleInfo = isRecurring && baseDate
+    ? getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
     : null
 
   // Saldo

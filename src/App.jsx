@@ -1626,9 +1626,10 @@ export default function App() {
                                 <p className="text-xs sm:text-sm text-gray-500 truncate">
                                   {student.age} años • {course?.name || 'Sin curso'}
                                 </p>
-                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && student.last_payment_date && (() => {
+                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && (student.last_payment_date || student.enrollment_date) && student.next_payment_date && (() => {
+                                  const baseDate = student.last_payment_date || student.enrollment_date
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-                                  const cycleInfo = getCycleInfo(student.last_payment_date, student.next_payment_date, course?.classDays, cycleClasses)
+                                  const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
                                   const progress = (cycleInfo.classesPassed / cycleInfo.totalClasses) * 100
                                   return (

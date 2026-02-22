@@ -311,9 +311,17 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       }
     }
 
-    const classesUsed = student.classes_used || 0
-    const classesTotal = course?.classesPerPackage || course?.classes_per_package || 4
-    const remaining = classesTotal - classesUsed
+    const classesTotal = course?.classesPerPackage || course?.classesPerCycle || course?.classes_per_package || 4
+    // Calcular clases tomadas automáticamente por fechas (más preciso que classes_used manual)
+    const baseDate = student.last_payment_date || student.enrollment_date
+    let classesTaken = student.classes_used || 0
+    if (baseDate && student.next_payment_date && course?.classDays) {
+      const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course.classDays, classesTotal)
+      if (cycleInfo && cycleInfo.classesPassed > 0) {
+        classesTaken = cycleInfo.classesPassed
+      }
+    }
+    const remaining = classesTotal - classesTaken
 
     const days = getDaysUntilDue(student.next_payment_date)
 
