@@ -1642,14 +1642,14 @@ export default function App() {
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors hidden sm:block"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
                                 </button>
                                 <button
                                   onClick={() => handleDelete(student)}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors hidden sm:block"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                   title="Eliminar"
                                 >
                                   <Trash2 size={16} />
