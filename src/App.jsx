@@ -1629,7 +1629,7 @@ export default function App() {
                                 {(course?.priceType === 'mes' || course?.priceType === 'paquete') && student.last_payment_date && (() => {
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
                                   const cycleInfo = getCycleInfo(student.last_payment_date, student.next_payment_date, course?.classDays, cycleClasses)
-                                  if (!cycleInfo) return null
+                                  if (!cycleInfo || !cycleInfo.totalClasses) return null
                                   const progress = (cycleInfo.classesPassed / cycleInfo.totalClasses) * 100
                                   return (
                                     <div className="mt-1 max-w-[180px]">
