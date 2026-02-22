@@ -7,9 +7,10 @@
  * @param {string} params.name - Nombre completo del suscriptor
  * @param {string} params.apiKey - MailerLite API key (Bearer token)
  * @param {string} [params.groupId] - MailerLite group ID (opcional)
+ * @param {Object} [params.fields] - Campos personalizados extra (tipo_alumno, edad_alumno, etc.)
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-export async function syncToMailerLite({ email, name, apiKey, groupId }) {
+export async function syncToMailerLite({ email, name, apiKey, groupId, fields: extraFields }) {
   if (!email || !apiKey) {
     return { success: false, error: 'Missing email or API key' }
   }
@@ -24,7 +25,8 @@ export async function syncToMailerLite({ email, name, apiKey, groupId }) {
       email: email.trim().toLowerCase(),
       fields: {
         name: firstName,
-        last_name: lastName
+        last_name: lastName,
+        ...extraFields
       }
     }
 

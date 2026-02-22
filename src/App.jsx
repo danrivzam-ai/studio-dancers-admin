@@ -257,24 +257,42 @@ export default function App() {
     })
   }
 
-  // Sincronizar emails de nuevo alumno con MailerLite (fire-and-forget)
+  // Sincronizar alumno con MailerLite segmentado por edad (fire-and-forget)
   const syncNewStudentToMailerLite = (studentData) => {
     if (!settings.mailerlite_api_key) return
-    if (studentData.email) {
-      syncToMailerLite({
-        email: studentData.email,
-        name: studentData.name,
-        apiKey: settings.mailerlite_api_key,
-        groupId: settings.mailerlite_group_id
-      })
+
+    const isMinor = studentData.isMinor
+    const extraFields = {
+      tipo_alumno: isMinor ? 'menor' : 'mayor',
+      nombre_alumno: studentData.name
     }
-    if (studentData.parentEmail && studentData.parentEmail !== studentData.email) {
-      syncToMailerLite({
-        email: studentData.parentEmail,
-        name: studentData.parentName || studentData.name,
-        apiKey: settings.mailerlite_api_key,
-        groupId: settings.mailerlite_group_id
-      })
+    if (studentData.age) {
+      extraFields.edad_alumno = parseInt(studentData.age, 10)
+    }
+
+    if (isMinor) {
+      // Menores: usar email del representante
+      const email = studentData.parentEmail || studentData.email
+      if (email) {
+        syncToMailerLite({
+          email,
+          name: studentData.parentName || studentData.name,
+          apiKey: settings.mailerlite_api_key,
+          groupId: settings.mailerlite_group_id,
+          fields: extraFields
+        })
+      }
+    } else {
+      // Adultos: usar email del alumno
+      if (studentData.email) {
+        syncToMailerLite({
+          email: studentData.email,
+          name: studentData.name,
+          apiKey: settings.mailerlite_api_key,
+          groupId: settings.mailerlite_group_id,
+          fields: extraFields
+        })
+      }
     }
   }
 
