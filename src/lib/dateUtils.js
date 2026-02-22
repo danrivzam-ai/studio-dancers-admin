@@ -24,6 +24,22 @@ export const getTodayEC = () => {
 }
 
 /**
+ * Parsear fecha como mediodía local para evitar que UTC midnight
+ * se interprete como el día anterior en zonas horarias oeste de UTC.
+ * Ej: parseISO('2026-02-21') → Feb 21 00:00 UTC → en Ecuador (UTC-5) = Feb 20 7pm → getDay = Viernes ✗
+ *     toNoonLocal('2026-02-21') → Feb 21 12:00 local → getDay = Sábado ✓
+ */
+const toNoonLocal = (date) => {
+  if (!date) return null
+  if (typeof date === 'string') return new Date(date + 'T12:00:00')
+  // Date object: extraer fecha UTC y crear mediodía local
+  const y = date.getUTCFullYear()
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(date.getUTCDate()).padStart(2, '0')
+  return new Date(`${y}-${m}-${d}T12:00:00`)
+}
+
+/**
  * Obtener el próximo día de clase a partir de una fecha
  * @param {Date} fromDate - Fecha desde la cual buscar
  * @param {number[]} classDays - Días de clase (0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb)
@@ -34,7 +50,7 @@ export const getNextClassDay = (fromDate, classDays) => {
     return fromDate // Si no hay días específicos, usar la misma fecha
   }
 
-  const date = typeof fromDate === 'string' ? parseISO(fromDate) : new Date(fromDate)
+  const date = toNoonLocal(fromDate)
   const currentDayOfWeek = getDay(date) // 0-6
 
   // Si hoy es día de clase, retornar hoy
@@ -160,8 +176,8 @@ export const getDaysUntilDue = (nextPaymentDate) => {
 export const getCycleInfo = (lastPaymentDate, nextPaymentDate, classDays, classesPerCycle) => {
   if (!lastPaymentDate || !nextPaymentDate) return null
 
-  const lastPay = typeof lastPaymentDate === 'string' ? parseISO(lastPaymentDate) : lastPaymentDate
-  const nextPay = typeof nextPaymentDate === 'string' ? parseISO(nextPaymentDate) : nextPaymentDate
+  const lastPay = toNoonLocal(lastPaymentDate)
+  const nextPay = toNoonLocal(nextPaymentDate)
 
   let cycleStart, cycleEnd, totalClasses
 
