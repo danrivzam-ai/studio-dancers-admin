@@ -12,7 +12,8 @@ import { useDailyIncome } from './hooks/useDailyIncome'
 import { useCashRegister } from './hooks/useCashRegister'
 import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
-// courses.js static exports no longer used directly - allCourses from useItems() is the single source of truth
+// ALL_COURSES se usa como fallback para enriquecer cursos que no tienen classDays en Supabase
+import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
 import PaymentModal from './components/PaymentModal'
@@ -45,6 +46,25 @@ export default function App() {
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
+
+  // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
+  // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
+  const enrichCourse = (course) => {
+    if (!course) return null
+    if (course.classDays && course.classDays.length > 0) return course
+    // 1. Match exacto por id/code en cursos hardcodeados
+    const hardcoded = ALL_COURSES.find(c => c.id === course.code || c.id === course.id)
+    if (hardcoded) {
+      return { ...course, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage }
+    }
+    // 2. Match por patrón: cursos custom de sábados (ej: sabados-intensivos-adultos)
+    const key = (course.code || course.id || '').toLowerCase()
+    const name = (course.name || '').toLowerCase()
+    if (key.includes('sabados') || key.includes('sabado') || name.includes('sábado') || name.includes('sabado')) {
+      return { ...course, classDays: [6], classesPerPackage: course.classesPerPackage || 4 }
+    }
+    return course
+  }
 
   const [activeTab, setActiveTab] = useState('students')
   const [showForm, setShowForm] = useState(false)
@@ -1610,7 +1630,7 @@ export default function App() {
                 ) : (
                   <div className="divide-y">
                     {filteredStudents.map(student => {
-                      const course = getCourseById(student.course_id)
+                      const course = enrichCourse(getCourseById(student.course_id))
                       const paymentStatus = getPaymentStatus(student, course, autoInactiveDays)
                       const isCamp = student.course_id?.startsWith('camp-')
 
@@ -1712,7 +1732,7 @@ export default function App() {
         {showStudentDetail && (
           <StudentDetail
             student={showStudentDetail}
-            course={allCourses.find(c => c.id === showStudentDetail?.course_id) || getCourseById(showStudentDetail?.course_id)}
+            course={enrichCourse(allCourses.find(c => c.id === showStudentDetail?.course_id) || getCourseById(showStudentDetail?.course_id))}
             onClose={() => setShowStudentDetail(null)}
             onPayment={(student) => {
               setShowStudentDetail(null)

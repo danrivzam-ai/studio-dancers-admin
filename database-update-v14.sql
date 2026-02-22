@@ -33,3 +33,7 @@ WHERE code = 'sabados-kids-teens';
 
 UPDATE courses SET class_days = '[6]'::jsonb, classes_per_cycle = 4
 WHERE code = 'sabados-avanzado';
+
+-- Cursos custom de sábados creados por el usuario
+UPDATE courses SET class_days = '[6]'::jsonb, classes_per_cycle = 4
+WHERE code LIKE 'sabados-%' AND class_days IS NULL;

@@ -2,13 +2,34 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, CreditCard, Clock, Eye, AlertCircle, CheckCircle, Ban } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue } from '../lib/dateUtils'
-import { getCourseById } from '../lib/courses'
+import { getCourseById, ALL_COURSES } from '../lib/courses'
 
 export default function StudentDetail({ student, course: courseProp, onClose, onPayment }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const course = courseProp || getCourseById(student?.course_id)
+  // Obtener curso base (de prop o lookup)
+  const rawCourse = courseProp || getCourseById(student?.course_id)
+
+  // Enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
+  // Esto resuelve el caso donde class_days es NULL en Supabase (migración no ejecutada o datos viejos)
+  const course = (() => {
+    if (!rawCourse) return null
+    if (rawCourse.classDays && rawCourse.classDays.length > 0) return rawCourse
+    // 1. Match exacto por id/code en cursos hardcodeados
+    const hardcoded = ALL_COURSES.find(c => c.id === rawCourse.code || c.id === rawCourse.id)
+    if (hardcoded) {
+      return { ...rawCourse, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage }
+    }
+    // 2. Match por patrón: cursos custom de sábados (ej: sabados-intensivos-adultos)
+    const key = (rawCourse.code || rawCourse.id || '').toLowerCase()
+    const name = (rawCourse.name || '').toLowerCase()
+    if (key.includes('sabados') || key.includes('sabado') || name.includes('sábado') || name.includes('sabado')) {
+      return { ...rawCourse, classDays: [6], classesPerPackage: rawCourse.classesPerPackage || 4 }
+    }
+    return rawCourse
+  })()
+
   const paymentStatus = getPaymentStatus(student, course)
   const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
   const isProgram = course?.priceType === 'programa'

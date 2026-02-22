@@ -28,14 +28,24 @@ export const getTodayEC = () => {
  * se interprete como el día anterior en zonas horarias oeste de UTC.
  * Ej: parseISO('2026-02-21') → Feb 21 00:00 UTC → en Ecuador (UTC-5) = Feb 20 7pm → getDay = Viernes ✗
  *     toNoonLocal('2026-02-21') → Feb 21 12:00 local → getDay = Sábado ✓
+ *
+ * Maneja todos los formatos de Supabase:
+ * - '2026-02-21' (date column)
+ * - '2026-02-21T00:00:00' (timestamp)
+ * - '2026-02-21T00:00:00+00:00' (timestamptz)
+ * - '2026-02-21 05:00:00' (timestamp sin T)
  */
 const toNoonLocal = (date) => {
   if (!date) return null
-  if (typeof date === 'string') return new Date(date + 'T12:00:00')
-  // Date object: extraer fecha UTC y crear mediodía local
-  const y = date.getUTCFullYear()
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const d = String(date.getUTCDate()).padStart(2, '0')
+  if (typeof date === 'string') {
+    // Extraer solo YYYY-MM-DD, ignorar cualquier parte de hora/timezone
+    const dateOnly = date.includes('T') ? date.split('T')[0] : date.substring(0, 10)
+    return new Date(dateOnly + 'T12:00:00')
+  }
+  // Date object: extraer fecha LOCAL y crear mediodía local
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
   return new Date(`${y}-${m}-${d}T12:00:00`)
 }
 
@@ -229,21 +239,32 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
   }
 
   // Calcular cuántas clases han pasado desde el inicio del ciclo
-  const today = new Date()
-  today.setHours(12, 0, 0, 0)
+  // Usar getTodayEC() para consistencia con zona horaria Ecuador
+  const todayStr = getTodayEC() // 'yyyy-MM-dd'
+  const todayNoon = new Date(todayStr + 'T12:00:00')
   let classesPassed = 0
   if (classDays && classDays.length > 0) {
-    let checkDate = new Date(cycleStart)
-    while (checkDate <= today && checkDate <= cycleEnd) {
-      if (classDays.includes(getDay(checkDate))) {
+    // Iterar día por día usando strings para evitar problemas de timezone
+    const startStr = `${cycleStart.getFullYear()}-${String(cycleStart.getMonth() + 1).padStart(2, '0')}-${String(cycleStart.getDate()).padStart(2, '0')}`
+    const endStr = `${cycleEnd.getFullYear()}-${String(cycleEnd.getMonth() + 1).padStart(2, '0')}-${String(cycleEnd.getDate()).padStart(2, '0')}`
+    const limitStr = todayStr <= endStr ? todayStr : endStr
+
+    let current = new Date(startStr + 'T12:00:00')
+    let currentStr = startStr
+    let safety = 0
+    while (currentStr <= limitStr && safety < 400) {
+      const dow = current.getDay() // 0=Dom, 6=Sáb
+      if (classDays.includes(dow)) {
         classesPassed++
       }
-      checkDate = addDays(checkDate, 1)
+      current.setDate(current.getDate() + 1)
+      currentStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`
+      safety++
     }
   } else if (totalClasses) {
     // Fallback: estimar proporcionalmente por tiempo transcurrido
     const totalDays = differenceInDays(cycleEnd, cycleStart) + 1
-    const elapsedDays = differenceInDays(today, cycleStart) + 1
+    const elapsedDays = differenceInDays(todayNoon, cycleStart) + 1
     if (totalDays > 0) {
       classesPassed = Math.max(0, Math.min(
         Math.round((elapsedDays / totalDays) * totalClasses),
