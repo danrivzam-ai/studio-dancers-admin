@@ -38,7 +38,7 @@ export const getNextClassDay = (fromDate, classDays) => {
   const currentDayOfWeek = getDay(date) // 0-6
 
   // Si hoy es día de clase, retornar hoy
-  if (classDays.includes(currentDayOfWeek)) {
+  if (classDays?.includes(currentDayOfWeek)) {
     return date
   }
 
@@ -46,7 +46,7 @@ export const getNextClassDay = (fromDate, classDays) => {
   for (let i = 1; i <= 7; i++) {
     const nextDay = addDays(date, i)
     const dayOfWeek = getDay(nextDay)
-    if (classDays.includes(dayOfWeek)) {
+    if (classDays?.includes(dayOfWeek)) {
       return nextDay
     }
   }
