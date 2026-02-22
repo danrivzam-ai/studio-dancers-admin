@@ -14,6 +14,7 @@ import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // courses.js static exports no longer used directly - allCourses from useItems() is the single source of truth
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
+import { syncToMailerLite } from './lib/mailerlite'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -256,6 +257,27 @@ export default function App() {
     })
   }
 
+  // Sincronizar emails de nuevo alumno con MailerLite (fire-and-forget)
+  const syncNewStudentToMailerLite = (studentData) => {
+    if (!settings.mailerlite_api_key) return
+    if (studentData.email) {
+      syncToMailerLite({
+        email: studentData.email,
+        name: studentData.name,
+        apiKey: settings.mailerlite_api_key,
+        groupId: settings.mailerlite_group_id
+      })
+    }
+    if (studentData.parentEmail && studentData.parentEmail !== studentData.email) {
+      syncToMailerLite({
+        email: studentData.parentEmail,
+        name: studentData.parentName || studentData.name,
+        apiKey: settings.mailerlite_api_key,
+        groupId: settings.mailerlite_group_id
+      })
+    }
+  }
+
   // Crear/Editar estudiante
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -265,6 +287,7 @@ export default function App() {
       result = await updateStudent(editingStudent.id, formData)
     } else {
       result = await createStudent(formData)
+      if (result.success) syncNewStudentToMailerLite(formData)
     }
 
     if (result.success) {
@@ -431,6 +454,7 @@ export default function App() {
       result = await updateStudent(editingStudent.id, formData)
     } else {
       result = await createStudent(formData)
+      if (result.success) syncNewStudentToMailerLite(formData)
     }
 
     if (result.success) {

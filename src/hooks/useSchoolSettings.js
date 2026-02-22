@@ -10,7 +10,9 @@ export function useSchoolSettings() {
     email: '',
     logo_url: '/logo.png',
     ruc: '',
-    auto_inactive_days: 10
+    auto_inactive_days: 10,
+    mailerlite_api_key: '',
+    mailerlite_group_id: ''
   })
   const [loading, setLoading] = useState(true)
 

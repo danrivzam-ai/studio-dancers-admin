@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail } from 'lucide-react'
 import BackupExport from './BackupExport'
 
 export default function SettingsModal({
@@ -15,10 +15,13 @@ export default function SettingsModal({
     logo_url: '',
     ruc: '',
     security_pin: '',
-    auto_inactive_days: 10
+    auto_inactive_days: 10,
+    mailerlite_api_key: '',
+    mailerlite_group_id: ''
   })
   const [loading, setLoading] = useState(false)
   const [showPin, setShowPin] = useState(false)
+  const [showApiKey, setShowApiKey] = useState(false)
   const [changingPin, setChangingPin] = useState(false)
   const [currentPinInput, setCurrentPinInput] = useState('')
   const [newPin, setNewPin] = useState('')
@@ -35,7 +38,9 @@ export default function SettingsModal({
         logo_url: settings.logo_url || '',
         ruc: settings.ruc || '',
         security_pin: settings.security_pin || '',
-        auto_inactive_days: settings.auto_inactive_days ?? 10
+        auto_inactive_days: settings.auto_inactive_days ?? 10,
+        mailerlite_api_key: settings.mailerlite_api_key || '',
+        mailerlite_group_id: settings.mailerlite_group_id || ''
       })
     }
   }, [settings])
@@ -379,6 +384,49 @@ export default function SettingsModal({
                 </div>
               </div>
             )}
+          </div>
+
+          {/* MailerLite Email Marketing */}
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail size={16} className="text-green-600" />
+              <label className="text-sm font-medium text-gray-700">MailerLite (Email Marketing)</label>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Sincroniza emails de nuevos alumnos con MailerLite al registrarlos.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">API Key</label>
+                <div className="relative">
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={formData.mailerlite_api_key}
+                    onChange={(e) => setFormData({...formData, mailerlite_api_key: e.target.value})}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 pr-10 text-sm"
+                    placeholder="eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Group ID (opcional)</label>
+                <input
+                  type="text"
+                  value={formData.mailerlite_group_id}
+                  onChange={(e) => setFormData({...formData, mailerlite_group_id: e.target.value})}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  placeholder="123456789"
+                />
+                <p className="text-xs text-gray-400 mt-1">Grupo donde se agregan los suscriptores.</p>
+              </div>
+            </div>
           </div>
 
           {/* Backup Export */}
