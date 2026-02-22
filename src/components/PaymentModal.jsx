@@ -33,11 +33,18 @@ export default function PaymentModal({
   const hasBalance = amountPaid > 0 && balance > 0
 
   // Detectar si el alumno está atrasado (para separar fecha de pago vs inicio de ciclo)
-  const isOverdue = isRecurring && student?.next_payment_date && (() => {
+  const isOverdue = (() => {
+  if (!isRecurring || !student?.next_payment_date) return false
+  try {
     const today = new Date(getTodayEC() + 'T12:00:00')
     const nextPay = new Date(student.next_payment_date + 'T12:00:00')
+    if (isNaN(today.getTime()) || isNaN(nextPay.getTime())) return false
     return today >= nextPay
-  })()
+  } catch (e) {
+    console.error('Error calculating overdue:', e)
+    return false
+  }
+})()
   const daysOverdue = isOverdue ? (() => {
     const today = new Date(getTodayEC() + 'T12:00:00')
     const nextPay = new Date(student.next_payment_date + 'T12:00:00')
