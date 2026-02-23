@@ -220,22 +220,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
                 </p>
 
-                {/* Barra de progreso */}
-                <div className="relative">
-                  <div className="flex items-center justify-between text-[10px] text-purple-500 mb-1">
-                    <span>Inicio</span>
-                    <span className="font-bold text-purple-700">
-                      {cycleInfo.classesPassed} de {cycleInfo.totalClasses} clases
-                    </span>
-                    <span>Fin</span>
-                  </div>
-                  <div className="w-full h-3 bg-purple-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all"
-                      style={{ width: `${Math.min((cycleInfo.classesPassed / cycleInfo.totalClasses) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
+                {/* Conteo de clases */}
+                <p className="text-center text-lg font-bold text-purple-700">
+                  Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
+                </p>
               </div>
             </div>
           )}

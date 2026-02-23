@@ -1651,16 +1651,10 @@ export default function App() {
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
                                   const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
-                                  const progress = (cycleInfo.classesPassed / cycleInfo.totalClasses) * 100
                                   return (
-                                    <div className="mt-1 max-w-[180px]">
-                                      <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${Math.min(progress, 100)}%` }} />
-                                      </div>
-                                      <p className="text-[10px] text-gray-400 mt-0.5">
-                                        Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
-                                      </p>
-                                    </div>
+                                    <p className="text-[10px] text-purple-600 font-semibold mt-0.5">
+                                      Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
+                                    </p>
                                   )
                                 })()}
                                 {student.is_paused && (
