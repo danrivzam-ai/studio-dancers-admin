@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -67,6 +67,7 @@ export default function App() {
   }
 
   const [activeTab, setActiveTab] = useState('students')
+  const [hideIncome, setHideIncome] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [showSaleForm, setShowSaleForm] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
@@ -829,8 +830,16 @@ export default function App() {
               <div className="bg-green-100 p-2 sm:p-3 rounded-lg shrink-0">
                 <DollarSign className="text-green-600" size={20} />
               </div>
-              <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">${todayIncome.toFixed(2)}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <p className={`text-xl sm:text-2xl font-bold text-green-600 truncate transition-all ${hideIncome ? 'blur-md select-none' : ''}`}>${todayIncome.toFixed(2)}</p>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
+                    className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
+                  >
+                    {hideIncome ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
                 <p className="text-xs sm:text-sm text-gray-500">Ingresos hoy</p>
               </div>
             </div>
