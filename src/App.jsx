@@ -67,7 +67,7 @@ export default function App() {
   }
 
   const [activeTab, setActiveTab] = useState('students')
-  const [hideIncome, setHideIncome] = useState(false)
+  const [hideIncome, setHideIncome] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showSaleForm, setShowSaleForm] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
