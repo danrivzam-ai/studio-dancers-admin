@@ -1539,7 +1539,7 @@ export default function App() {
         {/* Student Detail Modal */}
         {/* Student List Modal */}
         {showStudentListModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
+          <div className={`fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50 ${showStudentDetail ? 'hidden' : ''}`} onClick={() => setShowStudentListModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
