@@ -1682,7 +1682,7 @@ export default function App() {
 
                               <div className="flex gap-0.5 sm:gap-1">
                                 <button
-                                  onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
+                                  onClick={() => { setShowStudentDetail(student) }}
                                   className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                                   title="Ver detalle"
                                 >
