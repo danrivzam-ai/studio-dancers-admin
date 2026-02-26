@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload } from 'lucide-react'
+import { supabase } from '../lib/supabase'
 
 // Tipos de items
 const ITEM_TYPES = [
@@ -88,7 +89,10 @@ export default function ManageItems({
     installmentCount: 2,
     stock: '',
     classDays: [],
-    classesPerCycle: ''
+    classesPerCycle: '',
+    imageUrl: '',
+    benefits: '',
+    requirements: ''
   })
 
   const resetForm = () => {
@@ -105,7 +109,10 @@ export default function ManageItems({
       installmentCount: 2,
       stock: '',
       classDays: [],
-      classesPerCycle: ''
+      classesPerCycle: '',
+      imageUrl: '',
+      benefits: '',
+      requirements: ''
     })
     setShowForm(false)
     setEditingItem(null)
@@ -161,7 +168,10 @@ export default function ManageItems({
         installmentCount: item.installmentCount || 2,
         stock: '',
         classDays: item.classDays || [],
-        classesPerCycle: item.classesPerCycle || item.classesPerPackage || ''
+        classesPerCycle: item.classesPerCycle || item.classesPerPackage || '',
+        imageUrl: item.imageUrl || '',
+        benefits: item.benefits || '',
+        requirements: item.requirements || ''
       })
     }
     setEditingItem(item)
@@ -200,7 +210,10 @@ export default function ManageItems({
         allowsInstallments: formData.allowsInstallments,
         installmentCount: formData.allowsInstallments ? formData.installmentCount : 1,
         classDays: formData.classDays.length > 0 ? formData.classDays : null,
-        classesPerCycle: formData.classesPerCycle ? parseInt(formData.classesPerCycle) : null
+        classesPerCycle: formData.classesPerCycle ? parseInt(formData.classesPerCycle) : null,
+        imageUrl: formData.imageUrl || null,
+        benefits: formData.benefits || null,
+        requirements: formData.requirements || null
       }
       const result = await onSaveCourse(courseData, !!editingItem)
       if (!result.success) {
@@ -613,6 +626,88 @@ export default function ManageItems({
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Imagen, Beneficios, Requisitos (solo cursos/programas) */}
+              {formData.type !== 'product' && (
+                <>
+                  {/* Imagen del curso */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <ImageIcon size={14} className="inline mr-1" />
+                      Imagen del curso
+                    </label>
+                    {formData.imageUrl && (
+                      <div className="mb-2 relative">
+                        <img src={formData.imageUrl} alt="Curso" className="w-full h-32 object-cover rounded-lg" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData({...formData, imageUrl: ''})}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        try {
+                          // Comprimir imagen
+                          const canvas = document.createElement('canvas')
+                          const img = new Image()
+                          img.src = URL.createObjectURL(file)
+                          await new Promise(r => img.onload = r)
+                          const maxW = 800
+                          const scale = Math.min(1, maxW / img.width)
+                          canvas.width = img.width * scale
+                          canvas.height = img.height * scale
+                          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+                          const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8))
+                          URL.revokeObjectURL(img.src)
+                          // Subir a Supabase Storage
+                          const fileName = `course_${Date.now()}.jpg`
+                          const { error: uploadErr } = await supabase.storage.from('course-images').upload(fileName, blob, { contentType: 'image/jpeg' })
+                          if (uploadErr) throw uploadErr
+                          const { data: urlData } = supabase.storage.from('course-images').getPublicUrl(fileName)
+                          setFormData(prev => ({...prev, imageUrl: urlData.publicUrl}))
+                        } catch (err) {
+                          console.error('Error uploading image:', err)
+                          alert('Error al subir imagen')
+                        }
+                        e.target.value = ''
+                      }}
+                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                    />
+                  </div>
+
+                  {/* Beneficios */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Beneficios</label>
+                    <textarea
+                      value={formData.benefits}
+                      onChange={(e) => setFormData({...formData, benefits: e.target.value})}
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white text-sm"
+                      placeholder="Un beneficio por línea&#10;Ej: Mejora la postura&#10;Aumenta la flexibilidad"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Requisitos */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Requisitos</label>
+                    <textarea
+                      value={formData.requirements}
+                      onChange={(e) => setFormData({...formData, requirements: e.target.value})}
+                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white text-sm"
+                      placeholder="Un requisito por línea&#10;Ej: Zapatillas de media punta&#10;Ropa ajustada"
+                      rows={3}
+                    />
+                  </div>
+                </>
               )}
 
               {/* Botones */}

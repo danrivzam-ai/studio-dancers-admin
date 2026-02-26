@@ -80,6 +80,9 @@ export function useItems() {
             classDays: c.class_days || defaultCourse?.classDays || null,
             classesPerCycle: c.classes_per_cycle || defaultCourse?.classesPerCycle || null,
             classesPerPackage: c.classes_per_cycle || defaultCourse?.classesPerPackage || null,
+            imageUrl: c.image_url || null,
+            benefits: c.benefits || null,
+            requirements: c.requirements || null,
             active: c.active,
             is_default: c.is_default,
             supabase_id: c.id
@@ -220,6 +223,9 @@ export function useItems() {
           installment_count: courseData.installmentCount || courseData.installment_count || 1,
           class_days: courseData.classDays || null,
           classes_per_cycle: courseData.classesPerCycle || null,
+          image_url: courseData.imageUrl || courseData.image_url || null,
+          benefits: courseData.benefits || null,
+          requirements: courseData.requirements || null,
           active: true,
           is_default: courseData.is_default || false,
           updated_at: new Date().toISOString()
