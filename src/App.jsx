@@ -886,13 +886,13 @@ export default function App() {
         </div>
 
         {/* Global Search Bar */}
-        <div className="mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
-            <Search className="text-gray-400 shrink-0" size={18} />
+        <div className="mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2 max-w-sm focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
+            <Search className="text-gray-400 shrink-0" size={16} />
             <input
               ref={globalSearchRef}
               type="text"
-              placeholder="Buscar alumno por nombre o cédula... (Ctrl+K)"
+              placeholder="Buscar alumno... (Ctrl+K)"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -903,7 +903,7 @@ export default function App() {
                   setShowStudentListModal(true)
                 }
               }}
-              className="w-full text-sm outline-none bg-transparent"
+              className="w-full text-xs sm:text-sm outline-none bg-transparent"
             />
             {searchTerm && (
               <button
@@ -1699,6 +1699,9 @@ export default function App() {
                                 <p className="text-xs sm:text-sm text-gray-500 truncate">
                                   {student.age} años • {course?.name || 'Sin curso'}
                                 </p>
+                                {searchTerm && student.parent_name && student.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) && (
+                                  <p className="text-[10px] text-gray-400 truncate">Representante: {student.parent_name}</p>
+                                )}
                                 {(course?.priceType === 'mes' || course?.priceType === 'paquete') && (student.last_payment_date || student.enrollment_date) && student.next_payment_date && (() => {
                                   const baseDate = student.last_payment_date || student.enrollment_date
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
