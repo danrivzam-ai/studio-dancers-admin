@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -16,6 +16,7 @@ import { useAuth } from './hooks/useAuth'
 import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
+import { openWhatsApp, buildReminderMessage } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -95,6 +96,7 @@ export default function App() {
   const [showStudentDetail, setShowStudentDetail] = useState(null)
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
+  const globalSearchRef = useRef(null)
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -182,6 +184,18 @@ export default function App() {
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
     showStudentDetail, selectedStudent, showStudentListModal
   ])
+
+  // Ctrl+K / Cmd+K focuses global search
+  useEffect(() => {
+    const handleCtrlK = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        globalSearchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleCtrlK)
+    return () => window.removeEventListener('keydown', handleCtrlK)
+  }, [])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -871,7 +885,37 @@ export default function App() {
           </div>
         </div>
 
-        {/* Old upcoming payments section removed - now integrated in dashboard cards */}
+        {/* Global Search Bar */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl shadow-sm px-4 py-2.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
+            <Search className="text-gray-400 shrink-0" size={18} />
+            <input
+              ref={globalSearchRef}
+              type="text"
+              placeholder="Buscar alumno por nombre o cédula... (Ctrl+K)"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                if (e.target.value && activeTab !== 'students') {
+                  setActiveTab('students')
+                }
+                if (e.target.value) {
+                  setShowStudentListModal(true)
+                }
+              }}
+              className="w-full text-sm outline-none bg-transparent"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                title="Limpiar búsqueda"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
@@ -1694,6 +1738,20 @@ export default function App() {
                                   title="Registrar pago"
                                 >
                                   <CreditCard size={16} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const phone = student.payer_phone || student.parent_phone || student.phone
+                                    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
+                                    const course = enrichCourse(getCourseById(student.course_id))
+                                    const days = getDaysUntilDue(student.next_payment_date)
+                                    const msg = buildReminderMessage(student, course?.name || 'N/A', days, settings.name)
+                                    openWhatsApp(phone, msg)
+                                  }}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Recordatorio WhatsApp"
+                                >
+                                  <MessageCircle size={16} />
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}

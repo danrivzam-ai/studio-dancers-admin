@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw, ArrowDownCircle, ArrowUpCircle } from 'lucide-react'
+import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircle, Calendar, RefreshCw, ArrowDownCircle, ArrowUpCircle, Download, Send } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import CashCloseReport from './CashCloseReport'
 
 export default function CashRegister({ onClose, settings }) {
   const [loading, setLoading] = useState(true)
@@ -26,6 +27,7 @@ export default function CashRegister({ onClose, settings }) {
   const [closingAmount, setClosingAmount] = useState('')
   const [notes, setNotes] = useState('')
   const [selectedDate, setSelectedDate] = useState(getTodayEC())
+  const [showCloseReport, setShowCloseReport] = useState(false)
 
   // Cargar datos del día
   const fetchDayData = async (date) => {
@@ -731,10 +733,35 @@ export default function CashRegister({ onClose, settings }) {
                   {cashRegister.notes && (
                     <p className="text-xs text-gray-500 mt-2">Notas: {cashRegister.notes}</p>
                   )}
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => setShowCloseReport(true)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                    >
+                      <Download size={16} />
+                      Descargar Reporte
+                    </button>
+                    <button
+                      onClick={() => setShowCloseReport(true)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    >
+                      <Send size={16} />
+                      WhatsApp
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
+        )}
+
+        {showCloseReport && (
+          <CashCloseReport
+            cashRegister={cashRegister}
+            todayData={todayData}
+            settings={settings}
+            onClose={() => setShowCloseReport(false)}
+          />
         )}
 
         {/* Footer */}
