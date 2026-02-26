@@ -45,20 +45,25 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('transfer-receipts', 'transfer-receipts', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Política: cualquiera puede subir imágenes (anon)
-CREATE POLICY IF NOT EXISTS "Anyone can upload receipts"
+-- Políticas de Storage (drop+create para idempotencia)
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Anyone can upload receipts" ON storage.objects;
+    DROP POLICY IF EXISTS "Anyone can view receipts" ON storage.objects;
+    DROP POLICY IF EXISTS "Auth users can delete receipts" ON storage.objects;
+END $$;
+
+CREATE POLICY "Anyone can upload receipts"
 ON storage.objects FOR INSERT
 TO anon, authenticated
 WITH CHECK (bucket_id = 'transfer-receipts');
 
--- Política: cualquiera puede ver imágenes (público)
-CREATE POLICY IF NOT EXISTS "Anyone can view receipts"
+CREATE POLICY "Anyone can view receipts"
 ON storage.objects FOR SELECT
 TO anon, authenticated
 USING (bucket_id = 'transfer-receipts');
 
--- Política: solo auth users pueden borrar
-CREATE POLICY IF NOT EXISTS "Auth users can delete receipts"
+CREATE POLICY "Auth users can delete receipts"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'transfer-receipts');
