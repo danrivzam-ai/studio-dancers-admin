@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark } from 'lucide-react'
 import BackupExport from './BackupExport'
 
 export default function SettingsModal({
@@ -17,7 +17,11 @@ export default function SettingsModal({
     security_pin: '',
     auto_inactive_days: 10,
     mailerlite_api_key: '',
-    mailerlite_group_id: ''
+    mailerlite_group_id: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_holder: '',
+    bank_account_type: 'Ahorros'
   })
   const [loading, setLoading] = useState(false)
   const [showPin, setShowPin] = useState(false)
@@ -40,7 +44,11 @@ export default function SettingsModal({
         security_pin: settings.security_pin || '',
         auto_inactive_days: settings.auto_inactive_days ?? 10,
         mailerlite_api_key: settings.mailerlite_api_key || '',
-        mailerlite_group_id: settings.mailerlite_group_id || ''
+        mailerlite_group_id: settings.mailerlite_group_id || '',
+        bank_name: settings.bank_name || '',
+        bank_account_number: settings.bank_account_number || '',
+        bank_account_holder: settings.bank_account_holder || '',
+        bank_account_type: settings.bank_account_type || 'Ahorros'
       })
     }
   }, [settings])
@@ -425,6 +433,72 @@ export default function SettingsModal({
                   placeholder="123456789"
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo donde se agregan los suscriptores.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Datos Bancarios (Portal del Cliente) */}
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Landmark size={16} className="text-blue-600" />
+              <label className="text-sm font-medium text-gray-700">Datos Bancarios</label>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Se muestran a los clientes en el portal de pagos para que hagan transferencias.
+            </p>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Banco</label>
+                  <select
+                    value={formData.bank_name}
+                    onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="Banco Pichincha">Banco Pichincha</option>
+                    <option value="Banco del Pacífico">Banco del Pacífico</option>
+                    <option value="Banco de Guayaquil">Banco de Guayaquil</option>
+                    <option value="Banco Bolivariano">Banco Bolivariano</option>
+                    <option value="Banco del Austro">Banco del Austro</option>
+                    <option value="Banco Internacional">Banco Internacional</option>
+                    <option value="Banco Solidario">Banco Solidario</option>
+                    <option value="Produbanco">Produbanco</option>
+                    <option value="Cooperativa JEP">Cooperativa JEP</option>
+                    <option value="Cooperativa Jardín Azuayo">Cooperativa Jardín Azuayo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de cuenta</label>
+                  <select
+                    value={formData.bank_account_type}
+                    onChange={(e) => setFormData({...formData, bank_account_type: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  >
+                    <option value="Ahorros">Ahorros</option>
+                    <option value="Corriente">Corriente</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Número de cuenta</label>
+                <input
+                  type="text"
+                  value={formData.bank_account_number}
+                  onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  placeholder="2200123456"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Titular de la cuenta</label>
+                <input
+                  type="text"
+                  value={formData.bank_account_holder}
+                  onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  placeholder="Nombre del titular"
+                />
               </div>
             </div>
           </div>

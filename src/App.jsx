@@ -34,6 +34,8 @@ import CashMovements from './components/CashMovements'
 import ManageCategories from './components/ManageCategories'
 import DailyReport from './components/DailyReport'
 import AuditLog from './components/AuditLog'
+import TransferVerification from './components/TransferVerification'
+import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -47,6 +49,7 @@ export default function App() {
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
+  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest } = useTransferRequests()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -93,6 +96,7 @@ export default function App() {
   const [showCashMovements, setShowCashMovements] = useState(false)
   const [showManageCategories, setShowManageCategories] = useState(false)
   const [showAuditLog, setShowAuditLog] = useState(false)
+  const [showTransferVerification, setShowTransferVerification] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
@@ -105,7 +109,7 @@ export default function App() {
       showExport, showManageItems, showQuickPayment, showPaymentHistory,
       showCashRegister, showExpenses, showCashMovements, showManageCategories,
       showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-      !!showStudentDetail, !!selectedStudent, showStudentListModal
+      !!showStudentDetail, !!selectedStudent, showStudentListModal, showTransferVerification
     ]
     const anyModalOpen = allModals.some(Boolean)
 
@@ -147,7 +151,7 @@ export default function App() {
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
     showCashRegister, showExpenses, showCashMovements, showManageCategories,
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-    showStudentDetail, selectedStudent, showStudentListModal
+    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification
   ])
 
   // ESC key closes the topmost modal (same priority as back button)
@@ -174,6 +178,7 @@ export default function App() {
       if (showExport) { setShowExport(false); return }
       if (showSettings) { setShowSettings(false); return }
       if (showAuditLog) { setShowAuditLog(false); return }
+      if (showTransferVerification) { setShowTransferVerification(false); return }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -182,7 +187,7 @@ export default function App() {
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
     showCashRegister, showExpenses, showCashMovements, showManageCategories,
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-    showStudentDetail, selectedStudent, showStudentListModal
+    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification
   ])
 
   // Ctrl+K / Cmd+K focuses global search
@@ -793,6 +798,18 @@ export default function App() {
                   Exportar
                 </button>
               )}
+              <button
+                onClick={() => setShowTransferVerification(true)}
+                className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium relative"
+              >
+                <DollarSign size={16} />
+                Transferencias
+                {pendingTransfers > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {pendingTransfers}
+                  </span>
+                )}
+              </button>
               {isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
@@ -1855,6 +1872,19 @@ export default function App() {
         {/* Audit Log Modal */}
         {showAuditLog && (
           <AuditLog onClose={() => setShowAuditLog(false)} />
+        )}
+
+        {showTransferVerification && (
+          <TransferVerification
+            requests={transferRequests}
+            loading={false}
+            onApprove={approveRequest}
+            onReject={rejectRequest}
+            onClose={() => { setShowTransferVerification(false); fetchTransferRequests() }}
+            onRegisterPayment={registerPayment}
+            getCourseById={getCourseById}
+            enrichCourse={enrichCourse}
+          />
         )}
 
         {/* Balance Alerts Modal */}

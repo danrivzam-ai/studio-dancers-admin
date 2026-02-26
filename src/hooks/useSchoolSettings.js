@@ -12,7 +12,11 @@ export function useSchoolSettings() {
     ruc: '',
     auto_inactive_days: 10,
     mailerlite_api_key: '',
-    mailerlite_group_id: ''
+    mailerlite_group_id: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_account_holder: '',
+    bank_account_type: 'Ahorros'
   })
   const [loading, setLoading] = useState(true)
 
