@@ -303,7 +303,8 @@ export default function App() {
   }
 
   // Sincronizar alumno con MailerLite segmentado por edad (fire-and-forget)
-  const syncNewStudentToMailerLite = (studentData) => {
+  // Funciona tanto para nuevos alumnos como para actualizaciones de datos
+  const syncStudentToMailerLite = (studentData) => {
     if (!settings.mailerlite_api_key) return
 
     const isMinor = studentData.isMinor
@@ -350,10 +351,10 @@ export default function App() {
       result = await updateStudent(editingStudent.id, formData)
     } else {
       result = await createStudent(formData)
-      if (result.success) syncNewStudentToMailerLite(formData)
     }
 
     if (result.success) {
+      syncStudentToMailerLite(formData)
       resetForm()
     } else {
       alert('Error: ' + result.error)
@@ -517,10 +518,10 @@ export default function App() {
       result = await updateStudent(editingStudent.id, formData)
     } else {
       result = await createStudent(formData)
-      if (result.success) syncNewStudentToMailerLite(formData)
     }
 
     if (result.success) {
+      syncStudentToMailerLite(formData)
       setShowForm(false)
       setEditingStudent(null)
     } else {
