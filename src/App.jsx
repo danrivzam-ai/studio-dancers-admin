@@ -1889,6 +1889,7 @@ export default function App() {
             onRegisterPayment={registerPayment}
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
+            students={students}
           />
         )}
 

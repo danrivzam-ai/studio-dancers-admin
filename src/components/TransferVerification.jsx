@@ -1,7 +1,212 @@
 import { useState } from 'react'
-import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign } from 'lucide-react'
+import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera } from 'lucide-react'
 import { formatDate } from '../lib/dateUtils'
+import { supabase } from '../lib/supabase'
 
+// ═══════ MANUAL TRANSFER FORM (WhatsApp) ═══════
+function ManualTransferForm({ students, onSubmitted, onCancel }) {
+  const [studentId, setStudentId] = useState('')
+  const [amount, setAmount] = useState('')
+  const [bankName, setBankName] = useState('')
+  const [receiptNumber, setReceiptNumber] = useState('')
+  const [notes, setNotes] = useState('')
+  const [image, setImage] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const BANKS = [
+    'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
+    'Banco Bolivariano', 'Banco del Austro', 'Banco Internacional',
+    'Banco Solidario', 'Produbanco', 'Cooperativa JEP',
+    'Cooperativa Jardín Azuayo', 'PayPhone (Tarjeta)', 'Otro'
+  ]
+
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new window.Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const maxWidth = 1200
+          const scale = Math.min(1, maxWidth / img.width)
+          canvas.width = img.width * scale
+          canvas.height = img.height * scale
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          canvas.toBlob(resolve, 'image/jpeg', 0.7)
+        }
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setPreview(ev.target.result)
+    reader.readAsDataURL(file)
+    const compressed = await compressImage(file)
+    setImage(compressed)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!studentId) { setError('Seleccione la alumna'); return }
+    if (!amount || parseFloat(amount) <= 0) { setError('Ingrese el monto'); return }
+    if (!bankName) { setError('Seleccione el banco'); return }
+
+    setLoading(true)
+    try {
+      let receiptUrl = null
+
+      // Upload image if provided
+      if (image) {
+        const fileName = `admin_${studentId}_${Date.now()}.jpg`
+        const { error: uploadError } = await supabase.storage
+          .from('transfer-receipts')
+          .upload(fileName, image, { contentType: 'image/jpeg' })
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = supabase.storage
+          .from('transfer-receipts')
+          .getPublicUrl(fileName)
+        receiptUrl = urlData.publicUrl
+      }
+
+      // Insert directly into transfer_requests (admin has auth)
+      const { error: insertError } = await supabase
+        .from('transfer_requests')
+        .insert({
+          student_id: studentId,
+          amount: parseFloat(amount),
+          bank_name: bankName,
+          receipt_image_url: receiptUrl,
+          receipt_number: receiptNumber.trim() || null,
+          notes: notes.trim() ? `[Registrado por admin vía WhatsApp] ${notes.trim()}` : '[Registrado por admin vía WhatsApp]',
+          submitted_by_cedula: 'ADMIN',
+          submitted_by_phone: 'ADMIN',
+          status: 'pending'
+        })
+
+      if (insertError) throw insertError
+      onSubmitted()
+    } catch (err) {
+      console.error('Manual transfer error:', err)
+      setError('Error al registrar: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="p-4 space-y-3 border-b bg-blue-50">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-sm font-semibold text-blue-800">Registrar transferencia (WhatsApp)</p>
+        <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* Student */}
+      <select
+        value={studentId}
+        onChange={(e) => setStudentId(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+      >
+        <option value="">Seleccionar alumna...</option>
+        {students.map(s => (
+          <option key={s.id} value={s.id}>{s.name}</option>
+        ))}
+      </select>
+
+      {/* Amount + Bank in row */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+          <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+            placeholder="Monto"
+          />
+        </div>
+        <select
+          value={bankName}
+          onChange={(e) => setBankName(e.target.value)}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        >
+          <option value="">Banco...</option>
+          {BANKS.map(b => (
+            <option key={b} value={b}>{b}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Receipt number */}
+      <div className="relative">
+        <Hash size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={receiptNumber}
+          onChange={(e) => setReceiptNumber(e.target.value)}
+          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+          placeholder="N° Comprobante"
+        />
+      </div>
+
+      {/* Image upload */}
+      {preview ? (
+        <div className="relative">
+          <img src={preview} alt="Comprobante" className="w-full rounded-lg border max-h-32 object-contain bg-gray-50" />
+          <button
+            type="button"
+            onClick={() => { setImage(null); setPreview(null) }}
+            className="absolute top-1 right-1 bg-white/90 p-0.5 rounded-full shadow"
+          >
+            <X size={12} className="text-gray-600" />
+          </button>
+        </div>
+      ) : (
+        <label className="flex items-center justify-center gap-2 w-full py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
+          <Camera size={16} className="text-gray-400" />
+          <span className="text-xs text-gray-500">Subir foto (opcional)</span>
+          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+        </label>
+      )}
+
+      {/* Notes */}
+      <input
+        type="text"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        placeholder="Nota (opcional)"
+      />
+
+      {error && <p className="text-red-600 text-xs bg-red-50 rounded-lg p-2">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+      >
+        {loading ? 'Registrando...' : (
+          <><Upload size={14} /> Registrar transferencia</>
+        )}
+      </button>
+    </form>
+  )
+}
+
+// ═══════ MAIN COMPONENT ═══════
 export default function TransferVerification({
   requests,
   loading,
@@ -10,13 +215,15 @@ export default function TransferVerification({
   onClose,
   onRegisterPayment,
   getCourseById,
-  enrichCourse
+  enrichCourse,
+  students
 }) {
   const [filter, setFilter] = useState('pending')
   const [expandedImage, setExpandedImage] = useState(null)
   const [rejectingId, setRejectingId] = useState(null)
   const [rejectReason, setRejectReason] = useState('')
   const [processing, setProcessing] = useState(null)
+  const [showManualForm, setShowManualForm] = useState(false)
 
   const filtered = requests.filter(r => filter === 'all' || r.status === filter)
 
@@ -24,7 +231,6 @@ export default function TransferVerification({
     if (!confirm(`¿Aprobar transferencia de $${request.amount} para ${request.students?.name}?`)) return
     setProcessing(request.id)
     try {
-      // Registrar como pago real usando el flujo existente
       const student = request.students
       if (onRegisterPayment && student) {
         const course = enrichCourse(getCourseById(student.course_id))
@@ -32,8 +238,8 @@ export default function TransferVerification({
           amount: parseFloat(request.amount),
           paymentMethod: 'Transferencia',
           bankName: request.bank_name || '',
-          transferReceipt: request.id.slice(0, 8),
-          notes: `Aprobado desde portal. Ref: ${request.id.slice(0, 8)}`
+          transferReceipt: request.receipt_number || request.id.slice(0, 8),
+          notes: `Aprobado desde portal. ${request.receipt_number ? 'Comp: ' + request.receipt_number : 'Ref: ' + request.id.slice(0, 8)}`
         })
       }
       await onApprove(request.id)
@@ -83,14 +289,35 @@ export default function TransferVerification({
                 <p className="text-xs text-white/80">Verificación de comprobantes</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowManualForm(!showManualForm)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                title="Registrar transferencia manual (WhatsApp)"
+              >
+                <Plus size={20} />
+              </button>
+              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Manual Transfer Form */}
+        {showManualForm && (
+          <ManualTransferForm
+            students={students || []}
+            onSubmitted={() => {
+              setShowManualForm(false)
+              onClose() // Close and re-fetch
+            }}
+            onCancel={() => setShowManualForm(false)}
+          />
+        )}
+
         {/* Filters */}
-        <div className="p-3 border-b flex gap-2">
+        <div className="p-3 border-b flex gap-2 overflow-x-auto">
           {[
             { key: 'pending', label: 'Pendientes', count: requests.filter(r => r.status === 'pending').length },
             { key: 'approved', label: 'Aprobadas', count: requests.filter(r => r.status === 'approved').length },
@@ -100,7 +327,7 @@ export default function TransferVerification({
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
                 filter === f.key ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
@@ -126,13 +353,24 @@ export default function TransferVerification({
                     <div className="min-w-0">
                       <h3 className="font-semibold text-sm text-gray-800 truncate">{req.students?.name || 'Alumno'}</h3>
                       <p className="text-xs text-gray-500">{req.bank_name || 'Sin banco'} • {formatDate(req.submitted_at)}</p>
-                      <p className="text-xs text-gray-400">Cédula: {req.submitted_by_cedula}</p>
+                      <p className="text-xs text-gray-400">
+                        {req.submitted_by_cedula === 'ADMIN' ? 'Registrado por admin' : `Cédula: ${req.submitted_by_cedula}`}
+                      </p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-bold text-green-600">${parseFloat(req.amount).toFixed(2)}</p>
                       {statusBadge(req.status)}
                     </div>
                   </div>
+
+                  {/* Receipt Number */}
+                  {req.receipt_number && (
+                    <div className="flex items-center gap-1.5 mb-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
+                      <Hash size={12} className="text-gray-400" />
+                      <span className="text-xs text-gray-600">N° Comprobante:</span>
+                      <span className="text-xs font-semibold text-gray-800 font-mono">{req.receipt_number}</span>
+                    </div>
+                  )}
 
                   {/* Receipt Image */}
                   {req.receipt_image_url && (
@@ -150,7 +388,7 @@ export default function TransferVerification({
                       <img
                         src={req.receipt_image_url}
                         alt="Comprobante"
-                        className="w-full max-h-80 object-contain bg-gray-50"
+                        className="w-full max-h-80 object-contain bg-gray-50 cursor-pointer"
                         onClick={() => window.open(req.receipt_image_url, '_blank')}
                       />
                     </div>
@@ -229,12 +467,6 @@ export default function TransferVerification({
           </button>
         </div>
       </div>
-
-      {/* Full-screen image overlay */}
-      {expandedImage && (() => {
-        const req = requests.find(r => r.id === expandedImage)
-        return null // Handled inline above
-      })()}
     </div>
   )
 }
