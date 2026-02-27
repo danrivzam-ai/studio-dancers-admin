@@ -152,14 +152,27 @@ export function useTransferRequests() {
     }
   }, [fetchRequests])
 
+  // Optimistic local update — avoids full refetch after each action
+  const updateRequestLocally = (requestId, updates) => {
+    setRequests(prev => {
+      const updated = prev.map(r => r.id === requestId ? { ...r, ...updates } : r)
+      setPendingCount(updated.filter(r => r.status === 'pending').length)
+      return updated
+    })
+  }
+
   const approveRequest = async (requestId) => {
+    // Optimistic update first (instant UI feedback)
+    updateRequestLocally(requestId, { status: 'approved', verified_at: new Date().toISOString() })
+
     try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
       const { data, error } = await supabase
         .from('transfer_requests')
         .update({
           status: 'approved',
           verified_at: new Date().toISOString(),
-          verified_by: (await supabase.auth.getUser()).data.user?.id
+          verified_by: userId
         })
         .eq('id', requestId)
         .select()
@@ -167,23 +180,27 @@ export function useTransferRequests() {
 
       if (error) throw error
       logAudit({ action: 'transfer_approved', tableName: 'transfer_requests', recordId: requestId, newData: data })
-      await fetchRequests()
       return { success: true, data }
     } catch (err) {
       console.error('Error approving transfer:', err)
+      // Revert on error
+      updateRequestLocally(requestId, { status: 'pending', verified_at: null })
       return { success: false, error: err.message }
     }
   }
 
   const rejectRequest = async (requestId, reason) => {
+    updateRequestLocally(requestId, { status: 'rejected', rejection_reason: reason, verified_at: new Date().toISOString() })
+
     try {
+      const userId = (await supabase.auth.getUser()).data.user?.id
       const { data, error } = await supabase
         .from('transfer_requests')
         .update({
           status: 'rejected',
           rejection_reason: reason,
           verified_at: new Date().toISOString(),
-          verified_by: (await supabase.auth.getUser()).data.user?.id
+          verified_by: userId
         })
         .eq('id', requestId)
         .select()
@@ -191,10 +208,10 @@ export function useTransferRequests() {
 
       if (error) throw error
       logAudit({ action: 'transfer_rejected', tableName: 'transfer_requests', recordId: requestId, newData: data })
-      await fetchRequests()
       return { success: true, data }
     } catch (err) {
       console.error('Error rejecting transfer:', err)
+      updateRequestLocally(requestId, { status: 'pending', rejection_reason: null, verified_at: null })
       return { success: false, error: err.message }
     }
   }
