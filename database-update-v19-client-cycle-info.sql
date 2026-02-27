@@ -3,7 +3,10 @@
 -- Agrega classes_used y classes_per_cycle al login del portal
 -- =============================================
 
--- Actualizar rpc_client_login para incluir info del ciclo
+-- Primero eliminar la función existente (PostgreSQL no permite cambiar RETURNS TABLE)
+DROP FUNCTION IF EXISTS rpc_client_login(TEXT, TEXT);
+
+-- Recrear con columnas adicionales
 CREATE OR REPLACE FUNCTION rpc_client_login(p_cedula TEXT, p_phone_last4 TEXT)
 RETURNS TABLE (
     id UUID,
