@@ -49,7 +49,7 @@ export default function App() {
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
-  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest } = useTransferRequests()
+  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -101,6 +101,11 @@ export default function App() {
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const globalSearchRef = useRef(null)
+
+  // Connect notification click to open transfer verification modal
+  useEffect(() => {
+    onNewTransferRef.current = () => setShowTransferVerification(true)
+  }, [onNewTransferRef])
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -1983,9 +1988,38 @@ export default function App() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-400">
-          💾 Datos en la nube • v4.7
+          💾 Datos en la nube • v4.8
         </div>
       </div>
+
+      {/* Toast notification for new transfers */}
+      {newTransferAlert && (
+        <div
+          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
+          onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-green-100 rounded-full shrink-0">
+              <span className="text-lg">💰</span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-800 text-sm">Nueva solicitud de pago</p>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {newTransferAlert.studentName} — ${newTransferAlert.amount}
+              </p>
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                vía {newTransferAlert.method} • Toque para revisar
+              </p>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setNewTransferAlert(null) }}
+              className="text-gray-400 hover:text-gray-600 shrink-0"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
