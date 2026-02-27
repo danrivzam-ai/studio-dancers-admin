@@ -2,6 +2,18 @@ import { useState, useEffect } from 'react'
 import { X, Check, User, Users, CreditCard } from 'lucide-react'
 import { getTodayEC } from '../lib/dateUtils'
 
+// Reusable labeled input component
+function LabeledInput({ label, required, children }) {
+  return (
+    <div>
+      <label className="block text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">
+        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
+
 export default function StudentForm({
   student = null,
   courses = [],
@@ -66,6 +78,10 @@ export default function StudentForm({
     onSubmit(formData)
   }
 
+  const inputClass = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+  const inputClassBlue = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+  const inputClassGreen = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -114,82 +130,99 @@ export default function StudentForm({
               <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
             <div className="space-y-2">
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                placeholder="Nombre completo *"
-              />
-              <div className="grid grid-cols-2 gap-2">
+              <LabeledInput label="Nombre completo" required>
                 <input
                   type="text"
-                  value={formData.cedula}
-                  onChange={(e) => setFormData({...formData, cedula: e.target.value})}
-                  className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Cedula"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className={inputClass}
+                  placeholder="Nombre completo"
                 />
+              </LabeledInput>
+
+              <div className="grid grid-cols-2 gap-2">
+                <LabeledInput label="Cédula">
+                  <input
+                    type="text"
+                    value={formData.cedula}
+                    onChange={(e) => setFormData({...formData, cedula: e.target.value})}
+                    className={inputClass}
+                    placeholder="0912345678"
+                  />
+                </LabeledInput>
                 {formData.isMinor ? (
-                  <input
-                    type="number"
-                    min="3"
-                    max="17"
-                    required
-                    value={formData.age}
-                    onChange={(e) => setFormData({...formData, age: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Edad *"
-                  />
+                  <LabeledInput label="Edad" required>
+                    <input
+                      type="number"
+                      min="3"
+                      max="17"
+                      required
+                      value={formData.age}
+                      onChange={(e) => setFormData({...formData, age: e.target.value})}
+                      className={inputClass}
+                      placeholder="Edad"
+                    />
+                  </LabeledInput>
                 ) : (
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Telefono *"
-                  />
+                  <LabeledInput label="Teléfono" required>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className={inputClass}
+                      placeholder="09XXXXXXXX"
+                    />
+                  </LabeledInput>
                 )}
               </div>
 
-              {/* Adultos: email + direccion */}
+              {/* Adultos: email + dirección */}
               {!formData.isMinor && (
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Email"
-                  />
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Direccion"
-                  />
+                  <LabeledInput label="Email">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className={inputClass}
+                      placeholder="correo@email.com"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Dirección">
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      className={inputClass}
+                      placeholder="Dirección"
+                    />
+                  </LabeledInput>
                 </div>
               )}
 
-              {/* Menores: telefono y email opcionales */}
+              {/* Menores: teléfono y email opcionales */}
               {formData.isMinor && (
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Telefono (opcional)"
-                  />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                    placeholder="Email (opcional)"
-                  />
+                  <LabeledInput label="Teléfono">
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className={inputClass}
+                      placeholder="09XXXXXXXX"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Email">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className={inputClass}
+                      placeholder="correo@email.com"
+                    />
+                  </LabeledInput>
                 </div>
               )}
             </div>
@@ -203,46 +236,56 @@ export default function StudentForm({
               </h3>
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={formData.parentName}
-                    onChange={(e) => setFormData({...formData, parentName: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Nombre *"
-                  />
-                  <input
-                    type="text"
-                    value={formData.parentCedula}
-                    onChange={(e) => setFormData({...formData, parentCedula: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Cedula/RUC"
-                  />
+                  <LabeledInput label="Nombre" required>
+                    <input
+                      type="text"
+                      required
+                      value={formData.parentName}
+                      onChange={(e) => setFormData({...formData, parentName: e.target.value})}
+                      className={inputClassBlue}
+                      placeholder="Nombre completo"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Cédula / RUC">
+                    <input
+                      type="text"
+                      value={formData.parentCedula}
+                      onChange={(e) => setFormData({...formData, parentCedula: e.target.value})}
+                      className={inputClassBlue}
+                      placeholder="0912345678"
+                    />
+                  </LabeledInput>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="tel"
-                    required
-                    value={formData.parentPhone}
-                    onChange={(e) => setFormData({...formData, parentPhone: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Telefono *"
-                  />
-                  <input
-                    type="email"
-                    value={formData.parentEmail}
-                    onChange={(e) => setFormData({...formData, parentEmail: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Email"
-                  />
+                  <LabeledInput label="Teléfono" required>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.parentPhone}
+                      onChange={(e) => setFormData({...formData, parentPhone: e.target.value})}
+                      className={inputClassBlue}
+                      placeholder="09XXXXXXXX"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Email">
+                    <input
+                      type="email"
+                      value={formData.parentEmail}
+                      onChange={(e) => setFormData({...formData, parentEmail: e.target.value})}
+                      className={inputClassBlue}
+                      placeholder="correo@email.com"
+                    />
+                  </LabeledInput>
                 </div>
-                <input
-                  type="text"
-                  value={formData.parentAddress}
-                  onChange={(e) => setFormData({...formData, parentAddress: e.target.value})}
-                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Direccion"
-                />
+                <LabeledInput label="Dirección">
+                  <input
+                    type="text"
+                    value={formData.parentAddress}
+                    onChange={(e) => setFormData({...formData, parentAddress: e.target.value})}
+                    className={`w-full ${inputClassBlue}`}
+                    placeholder="Dirección"
+                  />
+                </LabeledInput>
               </div>
             </div>
           )}
@@ -263,38 +306,46 @@ export default function StudentForm({
             {formData.hasDifferentPayer && (
               <div className="mt-3 space-y-2 bg-green-50 rounded-lg p-2">
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    required={formData.hasDifferentPayer}
-                    value={formData.payerName}
-                    onChange={(e) => setFormData({...formData, payerName: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Nombre *"
-                  />
-                  <input
-                    type="text"
-                    required={formData.hasDifferentPayer}
-                    value={formData.payerCedula}
-                    onChange={(e) => setFormData({...formData, payerCedula: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Cedula/RUC *"
-                  />
+                  <LabeledInput label="Nombre" required>
+                    <input
+                      type="text"
+                      required={formData.hasDifferentPayer}
+                      value={formData.payerName}
+                      onChange={(e) => setFormData({...formData, payerName: e.target.value})}
+                      className={inputClassGreen}
+                      placeholder="Nombre completo"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Cédula / RUC" required>
+                    <input
+                      type="text"
+                      required={formData.hasDifferentPayer}
+                      value={formData.payerCedula}
+                      onChange={(e) => setFormData({...formData, payerCedula: e.target.value})}
+                      className={inputClassGreen}
+                      placeholder="0912345678"
+                    />
+                  </LabeledInput>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="tel"
-                    value={formData.payerPhone}
-                    onChange={(e) => setFormData({...formData, payerPhone: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Telefono"
-                  />
-                  <input
-                    type="text"
-                    value={formData.payerAddress || ''}
-                    onChange={(e) => setFormData({...formData, payerAddress: e.target.value})}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Direccion"
-                  />
+                  <LabeledInput label="Teléfono">
+                    <input
+                      type="tel"
+                      value={formData.payerPhone}
+                      onChange={(e) => setFormData({...formData, payerPhone: e.target.value})}
+                      className={inputClassGreen}
+                      placeholder="09XXXXXXXX"
+                    />
+                  </LabeledInput>
+                  <LabeledInput label="Dirección">
+                    <input
+                      type="text"
+                      value={formData.payerAddress || ''}
+                      onChange={(e) => setFormData({...formData, payerAddress: e.target.value})}
+                      className={inputClassGreen}
+                      placeholder="Dirección"
+                    />
+                  </LabeledInput>
                 </div>
               </div>
             )}
@@ -303,50 +354,52 @@ export default function StudentForm({
           {/* CURSO y REGISTRO */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-2">
             <h3 className="text-sm font-semibold text-gray-800">Curso y Registro</h3>
-            <select
-              required
-              value={formData.courseId}
-              onChange={(e) => setFormData({...formData, courseId: e.target.value})}
-              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Seleccionar curso *</option>
-              {(() => {
-                const regular = courses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
-                const packages = courses.filter(c => (c.priceType || c.price_type) === 'paquete')
-                const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa')
-                return (
-                  <>
-                    {regular.length > 0 && (
-                      <optgroup label="Clases Regulares">
-                        {regular.map(c => (
-                          <option key={c.id || c.code} value={c.id || c.code}>
-                            {c.name} - ${c.price}/{c.priceType || c.price_type}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    {packages.length > 0 && (
-                      <optgroup label="Paquetes">
-                        {packages.map(c => (
-                          <option key={c.id || c.code} value={c.id || c.code}>
-                            {c.name} - ${c.price}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    {programs.length > 0 && (
-                      <optgroup label="Programas">
-                        {programs.map(c => (
-                          <option key={c.id || c.code} value={c.id || c.code}>
-                            {c.name} - ${c.price}
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </>
-                )
-              })()}
-            </select>
+            <LabeledInput label="Curso" required>
+              <select
+                required
+                value={formData.courseId}
+                onChange={(e) => setFormData({...formData, courseId: e.target.value})}
+                className={inputClass}
+              >
+                <option value="">Seleccionar curso</option>
+                {(() => {
+                  const regular = courses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+                  const packages = courses.filter(c => (c.priceType || c.price_type) === 'paquete')
+                  const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa')
+                  return (
+                    <>
+                      {regular.length > 0 && (
+                        <optgroup label="Clases Regulares">
+                          {regular.map(c => (
+                            <option key={c.id || c.code} value={c.id || c.code}>
+                              {c.name} - ${c.price}/{c.priceType || c.price_type}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {packages.length > 0 && (
+                        <optgroup label="Paquetes">
+                          {packages.map(c => (
+                            <option key={c.id || c.code} value={c.id || c.code}>
+                              {c.name} - ${c.price}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {programs.length > 0 && (
+                        <optgroup label="Programas">
+                          {programs.map(c => (
+                            <option key={c.id || c.code} value={c.id || c.code}>
+                              {c.name} - ${c.price}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
+                  )
+                })()}
+              </select>
+            </LabeledInput>
 
             {formData.age && (() => {
               const age = parseInt(formData.age)
@@ -358,20 +411,24 @@ export default function StudentForm({
               ) : null
             })()}
 
-            <input
-              type="date"
-              value={formData.enrollmentDate}
-              onChange={(e) => setFormData({...formData, enrollmentDate: e.target.value})}
-              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-            />
+            <LabeledInput label="Fecha de inscripción">
+              <input
+                type="date"
+                value={formData.enrollmentDate}
+                onChange={(e) => setFormData({...formData, enrollmentDate: e.target.value})}
+                className={inputClass}
+              />
+            </LabeledInput>
 
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-              rows={2}
-              placeholder="Notas (opcional)"
-            />
+            <LabeledInput label="Notas">
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                className={inputClass}
+                rows={2}
+                placeholder="Notas adicionales..."
+              />
+            </LabeledInput>
           </div>
 
           {/* BOTONES */}
