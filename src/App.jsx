@@ -342,6 +342,56 @@ export default function App() {
     }
   }
 
+  // ── Sincronización masiva única: enviar TODOS los alumnos a MailerLite ──
+  // Se ejecuta 1 sola vez (flag en localStorage). No duplica porque MailerLite hace upsert por email.
+  useEffect(() => {
+    if (!settings.mailerlite_api_key || students.length === 0 || studentsLoading) return
+    const flag = localStorage.getItem('ml_bulk_sync_v1')
+    if (flag) return // Ya se hizo
+
+    console.log('[MailerLite] Iniciando sincronización masiva de', students.length, 'alumnos...')
+    let synced = 0
+    students.forEach((s) => {
+      const studentData = {
+        name: s.name,
+        email: s.email || null,
+        isMinor: s.is_minor !== false,
+        parentEmail: s.parent_email || null,
+        parentName: s.parent_name || null,
+        age: s.age || null
+      }
+      // Reusar la misma lógica de sync individual
+      const isMinor = studentData.isMinor
+      const extraFields = {
+        tipo_alumno: isMinor ? 'menor' : 'mayor',
+        nombre_alumno: studentData.name
+      }
+      if (studentData.age) extraFields.edad_alumno = parseInt(studentData.age, 10)
+
+      let email = null
+      let name = studentData.name
+      if (isMinor) {
+        email = studentData.parentEmail || studentData.email
+        name = studentData.parentName || studentData.name
+      } else {
+        email = studentData.email
+      }
+
+      if (email) {
+        syncToMailerLite({
+          email,
+          name,
+          apiKey: settings.mailerlite_api_key,
+          groupId: settings.mailerlite_group_id,
+          fields: extraFields
+        })
+        synced++
+      }
+    })
+    console.log('[MailerLite] Sincronización masiva enviada:', synced, 'de', students.length)
+    localStorage.setItem('ml_bulk_sync_v1', Date.now().toString())
+  }, [settings.mailerlite_api_key, students, studentsLoading])
+
   // Crear/Editar estudiante
   const handleSubmit = async (e) => {
     e.preventDefault()
