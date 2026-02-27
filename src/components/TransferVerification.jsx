@@ -233,14 +233,16 @@ export default function TransferVerification({
     try {
       const student = request.students
       if (onRegisterPayment && student) {
-        const course = enrichCourse(getCourseById(student.course_id))
-        await onRegisterPayment(request.student_id, {
+        const result = await onRegisterPayment(request.student_id, {
           amount: parseFloat(request.amount),
           paymentMethod: 'Transferencia',
           bankName: request.bank_name || '',
           transferReceipt: request.receipt_number || request.id.slice(0, 8),
           notes: `Aprobado desde portal. ${request.receipt_number ? 'Comp: ' + request.receipt_number : 'Ref: ' + request.id.slice(0, 8)}`
         })
+        if (!result?.success) {
+          throw new Error(result?.error || 'Error registrando el pago del estudiante')
+        }
       }
       await onApprove(request.id)
     } catch (err) {
