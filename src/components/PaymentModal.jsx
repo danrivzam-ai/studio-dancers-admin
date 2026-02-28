@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC, formatDate, getDaysUntilDue } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier } from '../lib/dateUtils'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -269,6 +269,20 @@ export default function PaymentModal({
   const finalAmount = parseFloat(formData.amount || 0)
   const showDiscountSummary = discountEnabled && finalAmount < baseAmount
 
+  // Fidelidad
+  const loyaltyTier = getLoyaltyTier(student?.consecutive_months)
+  const hasLoyaltyDiscount = isRecurring && loyaltyTier.tier !== null
+
+  const applyLoyaltyDiscount = () => {
+    setDiscountEnabled(true)
+    setDiscountType('percent')
+    setDiscountValue(loyaltyTier.discount.toString())
+    setCustomFinalPrice('')
+    const base = getBaseAmount()
+    const discounted = Math.max(0, base - (base * loyaltyTier.discount / 100))
+    setFormData(prev => ({ ...prev, amount: discounted.toFixed(2) }))
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -300,6 +314,39 @@ export default function PaymentModal({
             </div>
           </div>
         </div>
+
+        {/* Loyalty Banner — solo si tiene tier activo en curso recurrente */}
+        {hasLoyaltyDiscount && (
+          <div className="px-6 py-3 border-b flex items-center justify-between"
+            style={{ background: loyaltyTier.tier === 'oro' ? '#fffbeb' : loyaltyTier.tier === 'plata' ? '#f8fafc' : '#fff7ed',
+                     borderColor: loyaltyTier.tier === 'oro' ? '#fcd34d' : loyaltyTier.tier === 'plata' ? '#cbd5e1' : '#fdba74' }}>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{loyaltyTier.emoji}</span>
+              <div>
+                <p className="text-sm font-bold" style={{ color: loyaltyTier.tier === 'oro' ? '#92400e' : loyaltyTier.tier === 'plata' ? '#334155' : '#9a3412' }}>
+                  Fidelidad {loyaltyTier.label} · {loyaltyTier.months} {loyaltyTier.months === 1 ? 'mes' : 'meses'} consecutivos
+                </p>
+                <p className="text-xs" style={{ color: loyaltyTier.tier === 'oro' ? '#b45309' : loyaltyTier.tier === 'plata' ? '#475569' : '#c2410c' }}>
+                  Descuento disponible: {loyaltyTier.discount}% off
+                </p>
+              </div>
+            </div>
+            {!discountEnabled && (
+              <button
+                type="button"
+                onClick={applyLoyaltyDiscount}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: loyaltyTier.tier === 'oro' ? '#fde68a' : loyaltyTier.tier === 'plata' ? '#e2e8f0' : '#fed7aa',
+                         color: loyaltyTier.tier === 'oro' ? '#78350f' : loyaltyTier.tier === 'plata' ? '#1e293b' : '#7c2d12' }}
+              >
+                Aplicar
+              </button>
+            )}
+            {discountEnabled && (
+              <span className="text-xs font-semibold text-green-600 flex items-center gap-1">✓ Aplicado</span>
+            )}
+          </div>
+        )}
 
         {/* Course Price Info */}
         <div className="px-6 py-4 bg-gray-50 border-b">

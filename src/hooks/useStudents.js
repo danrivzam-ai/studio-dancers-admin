@@ -313,6 +313,11 @@ export function useStudents() {
         pause_date: null
       }
 
+      // Fidelidad: incrementar meses consecutivos al completar un pago mensual/paquete
+      if ((isMonthly || isPackage) && newPaymentStatus === 'paid') {
+        updateFields.consecutive_months = (parseInt(student?.consecutive_months) || 0) + 1
+      }
+
       // Para programas mantener total_program_price (ajustado por descuento si aplica)
       if (isProgram) {
         const existingTotal = parseFloat(student?.total_program_price || coursePrice)
@@ -644,7 +649,8 @@ export function useStudents() {
           balance: 0,
           payment_status: 'paid',
           is_paused: false,
-          pause_date: null
+          pause_date: null,
+          consecutive_months: 0  // gracia = rompe la racha de fidelidad
         })
         .eq('id', studentId)
 
@@ -661,7 +667,8 @@ export function useStudents() {
             balance: 0,
             payment_status: 'paid',
             is_paused: false,
-            pause_date: null
+            pause_date: null,
+            consecutive_months: 0
           }
         }
         return s

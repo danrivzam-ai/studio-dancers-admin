@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Calendar, CreditCard, Clock, Eye, AlertCircle, CheckCircle, Ban, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput } from '../lib/dateUtils'
+import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
 
 export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate }) {
@@ -241,6 +241,41 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               </div>
             )}
           </div>
+
+          {/* Fidelidad — solo cursos recurrentes */}
+          {isRecurring && (() => {
+            const loyalty = getLoyaltyTier(student.consecutive_months)
+            if (loyalty.months === 0) return null
+            return (
+              <div className="col-span-2 rounded-xl p-3"
+                style={{ background: loyalty.tier === 'oro' ? '#fffbeb' : loyalty.tier === 'plata' ? '#f8fafc' : loyalty.tier === 'bronce' ? '#fff7ed' : '#f9fafb',
+                         border: `1px solid ${loyalty.tier === 'oro' ? '#fcd34d' : loyalty.tier === 'plata' ? '#cbd5e1' : loyalty.tier === 'bronce' ? '#fdba74' : '#e5e7eb'}` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{loyalty.emoji || '⭐'}</span>
+                    <div>
+                      <p className="text-sm font-bold"
+                        style={{ color: loyalty.tier === 'oro' ? '#92400e' : loyalty.tier === 'plata' ? '#334155' : loyalty.tier === 'bronce' ? '#9a3412' : '#374151' }}>
+                        {loyalty.tier ? `Nivel ${loyalty.label}` : 'Acumulando fidelidad'}
+                      </p>
+                      <p className="text-xs text-gray-500">{loyalty.months} {loyalty.months === 1 ? 'mes' : 'meses'} consecutivo{loyalty.months !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                  {loyalty.tier && (
+                    <span className="text-lg font-bold"
+                      style={{ color: loyalty.tier === 'oro' ? '#b45309' : loyalty.tier === 'plata' ? '#475569' : '#c2410c' }}>
+                      {loyalty.discount}% off
+                    </span>
+                  )}
+                </div>
+                {loyalty.next && (
+                  <p className="text-[11px] text-gray-400 mt-1.5 text-center">
+                    {loyalty.nextMonths} {loyalty.nextMonths === 1 ? 'mes' : 'meses'} más para alcanzar nivel {loyalty.next}
+                  </p>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Cycle Progress Bar */}
           {cycleInfo && (
