@@ -41,7 +41,7 @@ import './App.css'
 
 export default function App() {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
   const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
@@ -1875,6 +1875,7 @@ export default function App() {
               setShowStudentDetail(null)
               openPaymentModal(student)
             }}
+            onReactivate={reactivateCycle}
           />
         )}
 

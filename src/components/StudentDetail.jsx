@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
-import { X, Calendar, CreditCard, Clock, Eye, AlertCircle, CheckCircle, Ban } from 'lucide-react'
+import { X, Calendar, CreditCard, Clock, Eye, AlertCircle, CheckCircle, Ban, RefreshCw } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue } from '../lib/dateUtils'
+import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showReactivateDialog, setShowReactivateDialog] = useState(false)
+  const [reactivating, setReactivating] = useState(false)
+  const [reactivateError, setReactivateError] = useState(null)
+  const [reactivateSuccess, setReactivateSuccess] = useState(false)
 
   // Obtener curso base (de prop o lookup)
   const rawCourse = courseProp || getCourseById(student?.course_id)
@@ -79,6 +83,47 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
   // Total pagado históricamente
   const totalHistoricPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
+
+  // --- Reactivar ciclo: cálculos para el diálogo ---
+  const todayStr = getTodayEC()
+  const todayDate = new Date(todayStr + 'T12:00:00')
+  // Admin usa 0=Dom...6=Sáb (igual que JS getDay)
+  const isTodayClassDay = !!(course?.classDays && course.classDays.includes(todayDate.getDay()))
+  // Preview de próximo pago si se reactiva hoy
+  const previewNextPayment = (() => {
+    if (!course || !isRecurring) return null
+    try {
+      const classDays = course.classDays || null
+      if (course.priceType === 'paquete') {
+        const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
+        const packageEnd = calculatePackageEndDate(cycleStart, classDays, course.classesPerPackage || 4)
+        const next = calculateNextPackagePaymentDate(packageEnd, classDays)
+        return formatDateForInput(new Date(next))
+      } else {
+        const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
+        const next = calculateNextPaymentDate(cycleStart, classDays, course.classesPerCycle)
+        return formatDateForInput(new Date(next))
+      }
+    } catch { return null }
+  })()
+
+  const handleReactivate = async () => {
+    if (!onReactivate) return
+    setReactivating(true)
+    setReactivateError(null)
+    const result = await onReactivate(student.id)
+    setReactivating(false)
+    if (result.success) {
+      setReactivateSuccess(true)
+      setTimeout(() => {
+        setShowReactivateDialog(false)
+        setReactivateSuccess(false)
+        onClose()
+      }, 1500)
+    } else {
+      setReactivateError(result.error || 'Error al reactivar el ciclo')
+    }
+  }
 
   return (
     <div
@@ -317,25 +362,118 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t bg-gray-50 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-          >
-            Cerrar
-          </button>
-          <button
-            onClick={() => {
-              onClose()
-              if (onPayment) onPayment(student)
-            }}
-            className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
-          >
-            <CreditCard size={18} />
-            Registrar Pago
-          </button>
+        <div className="p-4 border-t bg-gray-50 space-y-2">
+          {/* Reactivar ciclo — solo para cursos mensuales/paquete */}
+          {isRecurring && onReactivate && (
+            <button
+              onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
+              className="w-full px-4 py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
+            >
+              <RefreshCw size={16} />
+              Reactivar ciclo (gracia)
+            </button>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+            >
+              Cerrar
+            </button>
+            <button
+              onClick={() => {
+                onClose()
+                if (onPayment) onPayment(student)
+              }}
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+            >
+              <CreditCard size={18} />
+              Registrar Pago
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Diálogo de confirmación: Reactivar ciclo */}
+      {showReactivateDialog && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
+            <h3 className="text-lg font-bold text-gray-800 mb-1 text-center flex items-center justify-center gap-2">
+              <RefreshCw size={20} className="text-purple-600" />
+              Reactivar ciclo
+            </h3>
+            <p className="text-xs text-gray-500 text-center mb-4">{student.name}</p>
+
+            {reactivateSuccess ? (
+              <div className="text-center py-4">
+                <CheckCircle size={40} className="text-green-500 mx-auto mb-2" />
+                <p className="text-green-700 font-semibold">¡Ciclo reactivado!</p>
+                <p className="text-xs text-gray-500 mt-1">Próximo cobro: {previewNextPayment ? formatDate(previewNextPayment) : '-'}</p>
+              </div>
+            ) : (
+              <>
+                {/* Indicador: ¿hoy es día de clase? */}
+                <div className={`rounded-xl p-3 mb-3 text-center ${isTodayClassDay ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
+                  <p className={`text-sm font-medium ${isTodayClassDay ? 'text-green-700' : 'text-orange-700'}`}>
+                    {isTodayClassDay ? '✅ Hoy es día de clase' : '⚠️ Hoy no es día de clase'}
+                  </p>
+                  {!isTodayClassDay && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      El ciclo arrancará desde la próxima clase disponible
+                    </p>
+                  )}
+                </div>
+
+                {/* Preview de fechas */}
+                <div className="bg-gray-50 rounded-xl p-3 mb-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Inicio ciclo:</span>
+                    <span className="font-semibold text-gray-800">{formatDate(todayStr)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Próximo cobro:</span>
+                    <span className="font-semibold text-purple-700">{previewNextPayment ? formatDate(previewNextPayment) : '-'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Clases usadas:</span>
+                    <span className="font-semibold text-gray-800">Se reinicia a 0</span>
+                  </div>
+                </div>
+
+                {reactivateError && (
+                  <p className="text-sm text-red-600 text-center mb-3 bg-red-50 rounded-lg px-3 py-2">
+                    {reactivateError}
+                  </p>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowReactivateDialog(false)}
+                    disabled={reactivating}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleReactivate}
+                    disabled={reactivating}
+                    className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium disabled:opacity-70 flex items-center justify-center gap-2"
+                  >
+                    {reactivating ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        Activando...
+                      </>
+                    ) : (
+                      'Reactivar'
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

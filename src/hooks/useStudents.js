@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
-import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput } from '../lib/dateUtils'
+import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
 export function useStudents() {
@@ -598,6 +598,89 @@ export function useStudents() {
     return results
   }
 
+  // Reactivar ciclo: activa el ciclo desde hoy (gracia por inasistencia)
+  // Actualiza last_payment_date = hoy, next_payment_date = próxima fecha calculada, classes_used = 0
+  const reactivateCycle = async (studentId) => {
+    try {
+      const student = students.find(s => s.id === studentId)
+      if (!student) throw new Error('Alumno no encontrado')
+
+      const course = getCourseById(student.course_id)
+      if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
+        throw new Error('Solo se puede reactivar ciclo para cursos mensuales o por paquete')
+      }
+
+      const todayStr = getTodayEC()
+      const todayDate = new Date(todayStr + 'T12:00:00')
+      const classDays = course.classDays || null
+      const classesPerCycle = course.classesPerCycle || null
+      const classesPerPackage = course.classesPerPackage || null
+
+      let nextPayment
+      try {
+        if (course.priceType === 'paquete') {
+          const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
+          const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage || 4)
+          nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
+        } else {
+          // mensual
+          const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
+          nextPayment = calculateNextPaymentDate(cycleStart, classDays, classesPerCycle)
+        }
+      } catch (calcErr) {
+        console.error('Error calculando próximo pago, usando fallback +1 mes:', calcErr)
+        nextPayment = addMonths(todayDate, 1)
+      }
+
+      const nextPaymentStr = nextPayment ? formatDateForInput(new Date(nextPayment)) : null
+
+      const { error } = await supabase
+        .from('students')
+        .update({
+          last_payment_date: todayStr,
+          next_payment_date: nextPaymentStr,
+          classes_used: 0,
+          amount_paid: 0,
+          balance: 0,
+          payment_status: 'paid',
+          is_paused: false,
+          pause_date: null
+        })
+        .eq('id', studentId)
+
+      if (error) throw error
+
+      setStudents(prev => prev.map(s => {
+        if (s.id === studentId) {
+          return {
+            ...s,
+            last_payment_date: todayStr,
+            next_payment_date: nextPaymentStr,
+            classes_used: 0,
+            amount_paid: 0,
+            balance: 0,
+            payment_status: 'paid',
+            is_paused: false,
+            pause_date: null
+          }
+        }
+        return s
+      }))
+
+      logAudit({
+        action: 'cycle_reactivated',
+        tableName: 'students',
+        recordId: studentId,
+        newData: { last_payment_date: todayStr, next_payment_date: nextPaymentStr }
+      })
+
+      return { success: true, nextPaymentDate: nextPaymentStr, todayDate: todayStr }
+    } catch (err) {
+      console.error('Error reactivating cycle:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
   return {
     students,
     loading,
@@ -609,6 +692,7 @@ export function useStudents() {
     registerPayment,
     pauseStudent,
     unpauseStudent,
-    recalculatePaymentDates
+    recalculatePaymentDates,
+    reactivateCycle
   }
 }
