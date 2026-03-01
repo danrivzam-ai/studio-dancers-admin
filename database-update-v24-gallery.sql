@@ -31,7 +31,9 @@ CREATE POLICY "gallery_public_read"
 DROP POLICY IF EXISTS "gallery_auth_write" ON gallery_photos;
 CREATE POLICY "gallery_auth_write"
   ON gallery_photos FOR ALL
-  USING (auth.role() = 'authenticated');
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
 
 -- ═══════════════════════════════════════════════════════════
 -- INSTRUCCIONES MANUALES (Supabase Dashboard):

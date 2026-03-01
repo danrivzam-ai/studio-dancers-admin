@@ -22,13 +22,16 @@ export default function GalleryManager() {
     if (!files.length) return
     e.target.value = ''
 
+    let errors = 0
     for (const file of files) {
       const result = await uploadPhoto(file)
       if (!result.success) {
-        showToast(`Error al subir: ${result.error}`, 'err')
+        errors++
+        showToast(`Error al subir "${file.name}": ${result.error}`, 'err')
       }
     }
-    showToast(`${files.length === 1 ? 'Foto subida' : `${files.length} fotos subidas`} correctamente`)
+    const ok = files.length - errors
+    if (ok > 0) showToast(`${ok === 1 ? 'Foto subida' : `${ok} fotos subidas`} correctamente`)
   }
 
   // ── Delete ───────────────────────────────────────────────────────────

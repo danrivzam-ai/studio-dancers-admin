@@ -87,8 +87,8 @@ export function useGallery() {
         .single()
       if (dbErr) throw dbErr
 
-      setPhotos(prev => [data, ...prev])
       logAudit({ action: 'gallery_photo_uploaded', tableName: 'gallery_photos', recordId: data.id, newData: { filename } })
+      await fetchPhotos() // refresh list from DB to confirm row exists
       return { success: true, data }
     } catch (err) {
       console.error('[Gallery] uploadPhoto error:', err)
