@@ -6,7 +6,7 @@ export default function GalleryManager() {
   const { photos, loading, uploading, getPhotoUrl, uploadPhoto, deletePhoto, updateCaption } = useGallery()
 
   const fileInputRef = useRef(null)
-  const [deleteConfirm, setDeleteConfirm] = useState(null) // photo id pending delete
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [editingCaption, setEditingCaption] = useState(null) // { id, value }
   const [savingCaption, setSavingCaption] = useState(false)
   const [toast, setToast] = useState(null)
@@ -37,40 +37,31 @@ export default function GalleryManager() {
   // ── Delete ───────────────────────────────────────────────────────────
   const confirmDelete = async (photo) => {
     const result = await deletePhoto(photo)
-    if (result.success) {
-      showToast('Foto eliminada')
-    } else {
-      showToast(`Error: ${result.error}`, 'err')
-    }
+    if (result.success) showToast('Foto eliminada')
+    else showToast(`Error: ${result.error}`, 'err')
     setDeleteConfirm(null)
   }
 
   // ── Caption ──────────────────────────────────────────────────────────
-  const startEditCaption = (photo) => {
-    setEditingCaption({ id: photo.id, value: photo.caption || '' })
-  }
-
   const saveCaption = async () => {
     if (!editingCaption) return
     setSavingCaption(true)
     const result = await updateCaption(editingCaption.id, editingCaption.value)
     setSavingCaption(false)
-    if (result.success) {
-      showToast('Pie de foto actualizado')
-    } else {
-      showToast(`Error: ${result.error}`, 'err')
-    }
+    if (result.success) showToast('Pie de foto actualizado')
+    else showToast(`Error: ${result.error}`, 'err')
     setEditingCaption(null)
   }
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Images size={20} className="text-purple-600" />
-          <h2 className="text-lg font-semibold text-gray-800">Galería del estudio</h2>
+          <Images size={18} className="text-purple-600" />
+          <h2 className="text-base font-semibold text-gray-800">Galería del estudio</h2>
           {!loading && (
             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
               {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
@@ -80,28 +71,17 @@ export default function GalleryManager() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
         >
-          {uploading ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : (
-            <Upload size={15} />
-          )}
+          {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
           {uploading ? 'Subiendo...' : 'Subir fotos'}
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
       </div>
 
       {/* Toast */}
       {toast && (
-        <div className={`text-sm px-4 py-2 rounded-xl font-medium ${
+        <div className={`text-xs px-3 py-2 rounded-lg font-medium ${
           toast.type === 'err' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
         }`}>
           {toast.msg}
@@ -110,117 +90,120 @@ export default function GalleryManager() {
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-200 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse" />
           ))}
         </div>
       )}
 
       {/* Empty state */}
       {!loading && photos.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
-          <ImageOff size={40} strokeWidth={1.5} />
+        <div className="flex flex-col items-center justify-center py-14 text-gray-400 gap-2">
+          <ImageOff size={36} strokeWidth={1.5} />
           <p className="text-sm font-medium">No hay fotos aún</p>
           <p className="text-xs text-gray-400">Sube las primeras imágenes del estudio</p>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors"
+            className="mt-2 flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors"
           >
-            <Upload size={14} />
+            <Upload size={13} />
             Subir fotos
           </button>
         </div>
       )}
 
-      {/* Photo grid */}
+      {/* Thumbnail grid */}
       {!loading && photos.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
           {photos.map(photo => {
             const url = getPhotoUrl(photo.storage_path)
             const isEditing = editingCaption?.id === photo.id
             const isDeleting = deleteConfirm === photo.id
 
             return (
-              <div key={photo.id} className="group relative bg-gray-100 rounded-xl overflow-hidden shadow-sm">
-                {/* Image */}
-                <div className="aspect-square">
-                  <img
-                    src={url}
-                    alt={photo.caption || 'Foto del estudio'}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
+              <div key={photo.id} className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                {/* Thumbnail */}
+                <img
+                  src={url}
+                  alt={photo.caption || 'Foto del estudio'}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
 
-                {/* Caption area */}
-                <div className="p-2 bg-white border-t border-gray-100">
-                  {isEditing ? (
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        value={editingCaption.value}
-                        onChange={e => setEditingCaption(prev => ({ ...prev, value: e.target.value }))}
-                        onKeyDown={e => { if (e.key === 'Enter') saveCaption(); if (e.key === 'Escape') setEditingCaption(null) }}
-                        placeholder="Pie de foto..."
-                        autoFocus
-                        className="flex-1 text-xs border border-purple-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-400 min-w-0"
-                      />
+                {/* Hover overlay — caption + actions */}
+                {!isEditing && !isDeleting && (
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex flex-col justify-between p-1.5 opacity-0 group-hover:opacity-100">
+                    {/* Delete — top right */}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => setDeleteConfirm(photo.id)}
+                        className="p-1 bg-red-500 hover:bg-red-600 text-white rounded"
+                        title="Eliminar"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+
+                    {/* Caption — bottom */}
+                    <button
+                      onClick={() => setEditingCaption({ id: photo.id, value: photo.caption || '' })}
+                      className="flex items-center gap-1 bg-black/40 hover:bg-black/60 rounded px-1.5 py-0.5 text-left w-full"
+                      title="Editar pie de foto"
+                    >
+                      <Edit2 size={8} className="text-white/70 shrink-0" />
+                      <span className="text-[9px] text-white/80 truncate leading-tight">
+                        {photo.caption || 'Pie de foto...'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Caption edit mode */}
+                {isEditing && (
+                  <div className="absolute inset-0 bg-black/80 flex flex-col justify-end p-1.5 gap-1">
+                    <input
+                      type="text"
+                      value={editingCaption.value}
+                      onChange={e => setEditingCaption(prev => ({ ...prev, value: e.target.value }))}
+                      onKeyDown={e => { if (e.key === 'Enter') saveCaption(); if (e.key === 'Escape') setEditingCaption(null) }}
+                      placeholder="Pie de foto..."
+                      autoFocus
+                      className="w-full text-[10px] bg-white/10 border border-white/30 text-white placeholder-white/40 rounded px-1.5 py-1 focus:outline-none focus:border-white/60"
+                    />
+                    <div className="flex gap-1">
                       <button
                         onClick={saveCaption}
                         disabled={savingCaption}
-                        className="p-1 text-green-600 hover:bg-green-50 rounded"
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded py-0.5 text-[9px] font-medium flex items-center justify-center gap-0.5"
                       >
-                        {savingCaption ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                        {savingCaption ? <Loader2 size={9} className="animate-spin" /> : <Check size={9} />}
+                        Guardar
                       </button>
                       <button
                         onClick={() => setEditingCaption(null)}
-                        className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                        className="flex-1 bg-white/20 hover:bg-white/30 text-white rounded py-0.5 text-[9px] font-medium"
                       >
-                        <X size={13} />
+                        Cancelar
                       </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-1 min-h-[24px]">
-                      <p className="text-xs text-gray-500 truncate flex-1">
-                        {photo.caption || <span className="italic text-gray-300">Sin pie de foto</span>}
-                      </p>
-                      <button
-                        onClick={() => startEditCaption(photo)}
-                        className="p-1 text-gray-300 hover:text-purple-500 rounded shrink-0"
-                        title="Editar pie de foto"
-                      >
-                        <Edit2 size={12} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Delete button — top-right overlay */}
-                {!isDeleting && (
-                  <button
-                    onClick={() => setDeleteConfirm(photo.id)}
-                    className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                    title="Eliminar foto"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  </div>
                 )}
 
                 {/* Delete confirm overlay */}
                 {isDeleting && (
-                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 p-3">
-                    <p className="text-white text-xs font-medium text-center">Eliminar esta foto?</p>
-                    <div className="flex gap-2">
+                  <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 p-2">
+                    <p className="text-white text-[10px] font-medium text-center leading-tight">¿Eliminar foto?</p>
+                    <div className="flex gap-1 w-full">
                       <button
                         onClick={() => confirmDelete(photo)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 rounded text-[9px] font-medium"
                       >
                         Eliminar
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(null)}
-                        className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+                        className="flex-1 bg-white/20 hover:bg-white/30 text-white py-1 rounded text-[9px] font-medium"
                       >
                         Cancelar
                       </button>
