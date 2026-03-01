@@ -63,6 +63,44 @@ export function useSales() {
     }
   }
 
+  // Crear venta multi-item (carrito)
+  const createSaleGroup = async ({ customerName, items, date, notes, paymentMethod }) => {
+    try {
+      const groupId = crypto.randomUUID()
+      const saleDate = date || getTodayEC()
+      // Número de comprobante: VTA-YYYYMMDD-XXXX
+      const receiptNumber = `VTA-${saleDate.replace(/-/g, '')}-${Math.floor(Math.random() * 9000 + 1000)}`
+
+      const rows = items.map(item => ({
+        customer_name: customerName,
+        product_id: item.productId,
+        product_name: item.productName,
+        quantity: parseInt(item.quantity),
+        unit_price: parseFloat(item.unitPrice),
+        total: parseFloat(item.unitPrice) * parseInt(item.quantity),
+        sale_date: saleDate,
+        notes: notes || null,
+        payment_method: paymentMethod || 'cash',
+        sale_group_id: groupId,
+        receipt_number: receiptNumber
+      }))
+
+      const { data, error } = await supabase
+        .from('sales')
+        .insert(rows)
+        .select()
+
+      if (error) throw error
+
+      setSales(prev => [...data, ...prev])
+      logAudit({ action: 'sale_group_created', tableName: 'sales', recordId: groupId, newData: { customerName, items: rows.length, receiptNumber } })
+      return { success: true, data, groupId, receiptNumber }
+    } catch (err) {
+      console.error('Error creating sale group:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
   // Eliminar venta (soft delete)
   const deleteSale = async (id) => {
     try {
@@ -91,6 +129,7 @@ export function useSales() {
     error,
     fetchSales,
     createSale,
+    createSaleGroup,
     deleteSale,
     totalSalesIncome
   }

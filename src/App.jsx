@@ -35,6 +35,7 @@ import ManageCategories from './components/ManageCategories'
 import DailyReport from './components/DailyReport'
 import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
+import SaleReceipt from './components/SaleReceipt'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -42,7 +43,7 @@ import './App.css'
 export default function App() {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
-  const { sales, loading: salesLoading, createSale, deleteSale, totalSalesIncome } = useSales()
+  const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock } = useItems()
@@ -228,8 +229,12 @@ export default function App() {
     productId: '',
     quantity: 1,
     date: getTodayEC(),
+    paymentMethod: 'cash',
     notes: ''
   })
+  const [cartItems, setCartItems] = useState([])
+  const [showSaleReceipt, setShowSaleReceipt] = useState(false)
+  const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
 
   // Días de gracia antes de marcar como inactiva
   const autoInactiveDays = settings.auto_inactive_days || 10
@@ -411,48 +416,70 @@ export default function App() {
     }
   }
 
-  // Crear venta
-  const handleSaleSubmit = async (e) => {
-    e.preventDefault()
+  // Agregar ítem al carrito
+  const handleAddToCart = () => {
+    if (!saleForm.productId) return
     const product = getProductById(saleForm.productId)
-    const qty = parseInt(saleForm.quantity)
+    const qty = parseInt(saleForm.quantity) || 1
 
-    // Validar stock si el producto tiene control de inventario
-    if (product.stock !== null && product.stock !== undefined && product.stock < qty) {
-      alert(`Stock insuficiente. Disponible: ${product.stock}, Solicitado: ${qty}`)
+    // Calcular stock ya comprometido en el carrito para este producto
+    const alreadyInCart = cartItems
+      .filter(i => i.productId === saleForm.productId)
+      .reduce((sum, i) => sum + i.quantity, 0)
+    const totalRequested = alreadyInCart + qty
+
+    if (product.stock !== null && product.stock !== undefined && product.stock < totalRequested) {
+      alert(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
       return
     }
 
-    const result = await createSale({
-      customerName: saleForm.customerName,
+    setCartItems(prev => [...prev, {
       productId: saleForm.productId,
       productName: product.name,
       quantity: qty,
-      unitPrice: product.price,
-      total: product.price * qty,
+      unitPrice: product.price
+    }])
+    setSaleForm(prev => ({ ...prev, productId: '', quantity: 1 }))
+  }
+
+  // Registrar venta completa (todos los ítems del carrito)
+  const handleSaleSubmit = async (e) => {
+    e.preventDefault()
+    if (cartItems.length === 0) {
+      alert('Agrega al menos un artículo al carrito')
+      return
+    }
+
+    const result = await createSaleGroup({
+      customerName: saleForm.customerName,
+      items: cartItems,
       date: saleForm.date,
-      notes: saleForm.notes
+      notes: saleForm.notes,
+      paymentMethod: saleForm.paymentMethod
     })
 
     if (result.success) {
-      // Descontar stock automáticamente
-      if (product.stock !== null && product.stock !== undefined) {
-        await adjustStock(
-          saleForm.productId,
-          -qty,
-          'sale',
-          result.data?.id || null,
-          `Venta a ${saleForm.customerName}`
-        )
+      // Descontar stock por cada ítem
+      for (const item of cartItems) {
+        const product = getProductById(item.productId)
+        if (product?.stock !== null && product?.stock !== undefined) {
+          const saleRow = result.data?.find(r => r.product_id === item.productId)
+          await adjustStock(item.productId, -item.quantity, 'sale', saleRow?.id || null, `Venta a ${saleForm.customerName}`)
+        }
       }
-
-      setSaleForm({
-        customerName: '',
-        productId: '',
-        quantity: 1,
-        date: getTodayEC(),
-        notes: ''
+      // Mostrar comprobante
+      setLastSaleReceipt({
+        receiptNumber: result.receiptNumber,
+        customerName: saleForm.customerName,
+        items: cartItems,
+        total: cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
+        date: saleForm.date,
+        paymentMethod: saleForm.paymentMethod
       })
+      setShowSaleReceipt(true)
+      // Reset
+      setCartItems([])
+      setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
       alert('Error: ' + result.error)
@@ -1299,26 +1326,74 @@ export default function App() {
               </div>
             ) : (
               <div className="divide-y">
-                {sales.map(sale => (
-                  <div key={sale.id} className="p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-800">{sale.product_name} x{sale.quantity}</p>
-                        <p className="text-sm text-gray-500">Cliente: {sale.customer_name}</p>
-                        <p className="text-xs text-gray-400">{formatDate(sale.sale_date)}</p>
+                {(() => {
+                  // Agrupar ventas: agrupadas por sale_group_id, o individuales (null)
+                  const groups = []
+                  const seen = new Set()
+                  for (const sale of sales) {
+                    if (sale.sale_group_id) {
+                      if (seen.has(sale.sale_group_id)) continue
+                      seen.add(sale.sale_group_id)
+                      const items = sales.filter(s => s.sale_group_id === sale.sale_group_id)
+                      groups.push({ isGroup: true, id: sale.sale_group_id, items, sale })
+                    } else {
+                      groups.push({ isGroup: false, id: sale.id, items: [sale], sale })
+                    }
+                  }
+                  return groups.map(group => {
+                    const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
+                    return (
+                      <div key={group.id} className="p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            {group.isGroup ? (
+                              <div className="space-y-0.5">
+                                {group.items.map((item, i) => (
+                                  <p key={i} className="text-sm text-gray-800">
+                                    {item.product_name} <span className="text-gray-500">×{item.quantity}</span>
+                                    <span className="text-gray-500 ml-1">${parseFloat(item.total).toFixed(2)}</span>
+                                  </p>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}</p>
+                            <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-purple-400">{group.sale.receipt_number}</span>}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <p className="font-bold text-green-600">${groupTotal.toFixed(2)}</p>
+                            {group.sale.receipt_number && (
+                              <button
+                                onClick={() => {
+                                  setLastSaleReceipt({
+                                    receiptNumber: group.sale.receipt_number,
+                                    customerName: group.sale.customer_name,
+                                    items: group.items.map(i => ({ productName: i.product_name, quantity: i.quantity, unitPrice: i.unit_price })),
+                                    total: groupTotal,
+                                    date: group.sale.sale_date,
+                                    paymentMethod: group.sale.payment_method || 'cash'
+                                  })
+                                  setShowSaleReceipt(true)
+                                }}
+                                className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                                title="Ver comprobante"
+                              >
+                                <ScrollText size={16} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => group.items.forEach(i => handleDeleteSale(i))}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <p className="font-bold text-green-600">${sale.total}</p>
-                        <button
-                          onClick={() => handleDeleteSale(sale)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    )
+                  })
+                })()}
               </div>
             )}
           </div>
@@ -1466,117 +1541,178 @@ export default function App() {
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowSaleForm(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-              <div className="p-6 border-b flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
-                <button
-                  onClick={() => setShowSaleForm(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]) }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
+              <div className="p-5 border-b flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={20} className="text-green-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
+                </div>
+                <button onClick={() => { setShowSaleForm(false); setCartItems([]) }} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <X size={20} />
                 </button>
               </div>
 
-              <form onSubmit={handleSaleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nombre del cliente *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={saleForm.customerName}
-                    onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Nombre"
-                    list="students-list"
-                  />
-                  <datalist id="students-list">
-                    {students.map(s => (
-                      <option key={s.id} value={s.name} />
-                    ))}
-                  </datalist>
-                </div>
+              <form onSubmit={handleSaleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                <div className="p-5 space-y-4 overflow-y-auto flex-1">
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Artículo *
-                  </label>
-                  <select
-                    required
-                    value={saleForm.productId}
-                    onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="">Seleccionar artículo</option>
-                    {allProducts.map(product => {
-                      const hasStock = product.stock !== null && product.stock !== undefined
-                      const outOfStock = hasStock && product.stock === 0
-                      return (
-                        <option key={product.id} value={product.id} disabled={outOfStock}>
-                          {product.name} - ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
-                        </option>
-                      )
-                    })}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                  {/* Cliente */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Cantidad *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
                     <input
-                      type="number"
+                      type="text"
                       required
-                      min="1"
-                      value={saleForm.quantity}
-                      onChange={(e) => setSaleForm({...saleForm, quantity: parseInt(e.target.value)})}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      value={saleForm.customerName}
+                      onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Nombre del cliente"
+                      list="students-list-sale"
                     />
+                    <datalist id="students-list-sale">
+                      {students.map(s => <option key={s.id} value={s.name} />)}
+                    </datalist>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fecha
-                    </label>
-                    <input
-                      type="date"
-                      value={saleForm.date}
-                      onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
+
+                  {/* Selector de artículo + cantidad + botón agregar */}
+                  <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
+                    <div className="flex gap-2">
+                      <select
+                        value={saleForm.productId}
+                        onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      >
+                        <option value="">Seleccionar artículo</option>
+                        {allProducts.map(product => {
+                          const hasStock = product.stock !== null && product.stock !== undefined
+                          const outOfStock = hasStock && product.stock === 0
+                          return (
+                            <option key={product.id} value={product.id} disabled={outOfStock}>
+                              {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
+                            </option>
+                          )
+                        })}
+                      </select>
+                      <input
+                        type="number"
+                        min="1"
+                        value={saleForm.quantity}
+                        onChange={(e) => setSaleForm({...saleForm, quantity: parseInt(e.target.value) || 1})}
+                        className="w-16 px-2 py-2 border rounded-lg text-sm text-center focus:ring-2 focus:ring-green-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddToCart}
+                        disabled={!saleForm.productId}
+                        className="px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                      >
+                        <Plus size={16} />
+                        Agregar
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Carrito */}
+                  {cartItems.length > 0 ? (
+                    <div className="border rounded-xl overflow-hidden">
+                      <div className="bg-green-50 px-4 py-2 flex items-center justify-between border-b">
+                        <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                          🛒 Carrito — {cartItems.length} ítem{cartItems.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="divide-y">
+                        {cartItems.map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between px-4 py-2.5">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-800 truncate">{item.productName}</p>
+                              <p className="text-xs text-gray-500">${item.unitPrice} × {item.quantity}</p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-sm font-bold text-gray-800">
+                                ${(item.unitPrice * item.quantity).toFixed(2)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setCartItems(prev => prev.filter((_, i) => i !== idx))}
+                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t">
+                        <span className="text-sm font-semibold text-gray-600">Total</span>
+                        <span className="text-xl font-bold text-green-600">
+                          ${cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl py-6 text-center text-gray-400 text-sm">
+                      Agrega artículos al carrito
+                    </div>
+                  )}
+
+                  {/* Fecha + Método de pago */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                      <input
+                        type="date"
+                        value={saleForm.date}
+                        onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
+                      <select
+                        value={saleForm.paymentMethod}
+                        onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="cash">Efectivo</option>
+                        <option value="transfer">Transferencia</option>
+                        <option value="card">Tarjeta</option>
+                      </select>
+                    </div>
+                  </div>
+
                 </div>
 
-                {saleForm.productId && (
-                  <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-gray-600">Total:</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${(getProductById(saleForm.productId)?.price || 0) * saleForm.quantity}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
+                {/* Footer con botones */}
+                <div className="p-5 border-t flex gap-3 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setShowSaleForm(false)}
+                    onClick={() => { setShowSaleForm(false); setCartItems([]) }}
                     className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                    disabled={cartItems.length === 0 || !saleForm.customerName}
+                    className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
                   >
-                    <Check size={20} />
+                    <Check size={18} />
                     Registrar venta
                   </button>
                 </div>
               </form>
             </div>
           </div>
+        )}
+
+        {/* Sale Receipt Modal */}
+        {showSaleReceipt && lastSaleReceipt && (
+          <SaleReceipt
+            receipt={lastSaleReceipt}
+            schoolName={settings?.school_name || 'Studio Dancers'}
+            onClose={() => setShowSaleReceipt(false)}
+          />
         )}
 
         {/* Payment Modal */}
