@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images
 } from 'lucide-react'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
@@ -36,6 +36,7 @@ import DailyReport from './components/DailyReport'
 import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
+import GalleryManager from './components/GalleryManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -914,6 +915,7 @@ export default function App() {
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
+            { id: 'gallery', icon: Images, label: 'Galería' },
           ].map(tab => {
             const Icon = tab.icon
             return (
@@ -1514,6 +1516,13 @@ export default function App() {
         {/* Report Tab */}
         {activeTab === 'report' && (
           <DailyReport cashRegister={todayRegister} />
+        )}
+
+        {/* Gallery Tab */}
+        {activeTab === 'gallery' && (
+          <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+            <GalleryManager />
+          </div>
         )}
 
         {/* Modal Form - New/Edit Student */}
