@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { toPng } from 'html-to-image'
-import { X, Download, Printer } from 'lucide-react'
+import { X, Download } from 'lucide-react'
 
 const PAYMENT_LABELS = {
   cash: 'Efectivo',
@@ -24,23 +24,6 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
     }
   }
 
-  const handlePrint = () => {
-    const printContent = receiptRef.current?.innerHTML
-    if (!printContent) return
-    const win = window.open('', '_blank')
-    win.document.write(`
-      <html><head><title>Comprobante ${receipt.receiptNumber}</title>
-      <style>
-        body { font-family: 'Courier New', monospace; font-size: 13px; margin: 0; padding: 20px; }
-        * { box-sizing: border-box; }
-      </style></head>
-      <body>${printContent}</body></html>
-    `)
-    win.document.close()
-    win.print()
-    win.close()
-  }
-
   const formattedDate = (() => {
     if (!receipt.date) return ''
     const [y, m, d] = receipt.date.split('-')
@@ -54,13 +37,6 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <span className="font-semibold text-gray-800">Comprobante de Venta</span>
           <div className="flex items-center gap-1">
-            <button
-              onClick={handlePrint}
-              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-              title="Imprimir"
-            >
-              <Printer size={18} />
-            </button>
             <button
               onClick={handleDownload}
               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
