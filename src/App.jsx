@@ -1577,38 +1577,48 @@ export default function App() {
                   {/* Selector de artículo + cantidad + botón agregar */}
                   <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
+                    {/* Fila 1: selector ancho completo */}
+                    <select
+                      value={saleForm.productId}
+                      onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    >
+                      <option value="">Seleccionar artículo</option>
+                      {allProducts.map(product => {
+                        const hasStock = product.stock !== null && product.stock !== undefined
+                        const outOfStock = hasStock && product.stock === 0
+                        return (
+                          <option key={product.id} value={product.id} disabled={outOfStock}>
+                            {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
+                          </option>
+                        )
+                      })}
+                    </select>
+                    {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
-                      <select
-                        value={saleForm.productId}
-                        onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                        className="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="">Seleccionar artículo</option>
-                        {allProducts.map(product => {
-                          const hasStock = product.stock !== null && product.stock !== undefined
-                          const outOfStock = hasStock && product.stock === 0
-                          return (
-                            <option key={product.id} value={product.id} disabled={outOfStock}>
-                              {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
-                            </option>
-                          )
-                        })}
-                      </select>
-                      <input
-                        type="number"
-                        min="1"
-                        value={saleForm.quantity}
-                        onChange={(e) => setSaleForm({...saleForm, quantity: parseInt(e.target.value) || 1})}
-                        className="w-16 px-2 py-2 border rounded-lg text-sm text-center focus:ring-2 focus:ring-green-500"
-                      />
+                      <div className="flex items-center border rounded-lg bg-white overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setSaleForm(prev => ({ ...prev, quantity: Math.max(1, (prev.quantity || 1) - 1) }))}
+                          className="px-3 py-2 text-gray-500 hover:bg-gray-100 transition-colors text-base font-bold"
+                        >−</button>
+                        <span className="w-8 text-center text-sm font-semibold text-gray-800 select-none">
+                          {saleForm.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSaleForm(prev => ({ ...prev, quantity: (prev.quantity || 1) + 1 }))}
+                          className="px-3 py-2 text-gray-500 hover:bg-gray-100 transition-colors text-base font-bold"
+                        >+</button>
+                      </div>
                       <button
                         type="button"
                         onClick={handleAddToCart}
                         disabled={!saleForm.productId}
-                        className="px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
                       >
-                        <Plus size={16} />
-                        Agregar
+                        <Plus size={15} />
+                        Agregar al carrito
                       </button>
                     </div>
                   </div>
