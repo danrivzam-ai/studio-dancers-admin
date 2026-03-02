@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { COURSES, SABADOS_INTENSIVOS, DANCE_CAMP, PRODUCTS, setDynamicCourses } from '../lib/courses'
+import { COURSES, NINAS, DANCE_CAMP, PRODUCTS, setDynamicCourses } from '../lib/courses'
 
 // Combinar cursos predeterminados como fallback
-const DEFAULT_COURSES = [...COURSES, ...SABADOS_INTENSIVOS, ...DANCE_CAMP].map(c => ({
+const DEFAULT_COURSES = [...COURSES, ...NINAS, ...DANCE_CAMP].map(c => ({
   ...c,
   code: c.id,
   age_min: c.ageMin,
