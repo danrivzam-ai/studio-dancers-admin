@@ -111,15 +111,20 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
     }
   }
 
+  const loyalty = getLoyaltyTier(student.consecutive_months)
+  // Compute days directly (without getDaysUntilDue's -1 offset which is portal-only)
+  const daysUntilDue = (() => {
+    if (!student.next_payment_date) return null
+    const today = new Date(getTodayEC() + 'T12:00:00')
+    const due = new Date(student.next_payment_date + 'T12:00:00')
+    return Math.round((due - today) / (1000 * 60 * 60 * 24))
+  })()
+
   const handleWhatsApp = () => {
     const phone = student.payer_phone || student.parent_phone || student.phone
     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
-    const days = getDaysUntilDue(student.next_payment_date)
-    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', days ?? 0, schoolName || 'Studio Dancers'))
+    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers'))
   }
-
-  const loyalty = getLoyaltyTier(student.consecutive_months)
-  const daysUntilDue = student.next_payment_date ? getDaysUntilDue(student.next_payment_date) : null
 
   return (
     <div
@@ -156,21 +161,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               </div>
             </div>
 
-            {/* Actions: WhatsApp + Close */}
-            <div className="flex items-center gap-2 shrink-0">
-              {(student.phone || student.parent_phone || student.payer_phone) && (
-                <button
-                  onClick={handleWhatsApp}
-                  className="p-2 bg-green-500 hover:bg-green-400 rounded-xl transition-colors"
-                  title="Enviar recordatorio WhatsApp"
-                >
-                  <MessageCircle size={18} />
-                </button>
-              )}
-              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
-                <X size={18} />
-              </button>
-            </div>
+            {/* Close */}
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors shrink-0">
+              <X size={18} />
+            </button>
           </div>
 
           {/* Status + Loyalty badges */}
@@ -446,13 +440,22 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               <RefreshCw size={15} /> Reactivar ciclo (gracia)
             </button>
           )}
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={onClose}
               className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
             >
               Cerrar
             </button>
+            {(student.phone || student.parent_phone || student.payer_phone) && (
+              <button
+                onClick={handleWhatsApp}
+                className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 transition-colors"
+                title="Enviar recordatorio WhatsApp"
+              >
+                <MessageCircle size={18} />
+              </button>
+            )}
             <button
               onClick={() => { onClose(); if (onPayment) onPayment(student) }}
               className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
