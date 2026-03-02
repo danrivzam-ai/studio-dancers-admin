@@ -134,7 +134,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col">
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-purple-700 to-purple-900 text-white px-5 pt-5 pb-4 rounded-t-2xl shrink-0">
+        <div className="text-white px-5 pt-5 pb-4 rounded-t-2xl shrink-0" style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' }}>
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">
