@@ -2200,31 +2200,50 @@ export default function App() {
         </div>
       </div>
 
-      {/* Toast notification for new transfers */}
+      {/* Modal de nueva solicitud de pago — centrado en pantalla */}
       {newTransferAlert && (
-        <div
-          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
-          onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
-        >
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100 rounded-full shrink-0">
-              <span className="text-lg">💰</span>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-5 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-bounce-in">
+            {/* Header verde */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-4 flex items-center gap-3">
+              <div className="w-11 h-11 bg-white/25 rounded-full flex items-center justify-center shrink-0">
+                <span className="text-2xl">💰</span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-white text-base leading-tight">Nueva solicitud de pago</p>
+                <p className="text-[11px] text-white/80 mt-0.5">Revisa y aprueba el comprobante</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-800 text-sm">Nueva solicitud de pago</p>
-              <p className="text-xs text-gray-600 mt-0.5">
-                {newTransferAlert.studentName} — ${newTransferAlert.amount}
-              </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">
-                vía {newTransferAlert.method} • Toque para revisar
-              </p>
+            {/* Detalle */}
+            <div className="px-5 py-4 space-y-2 border-b border-gray-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Alumna</span>
+                <span className="font-semibold text-gray-800">{newTransferAlert.studentName}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Monto</span>
+                <span className="font-bold text-green-600 text-base">${newTransferAlert.amount}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Método</span>
+                <span className="font-medium text-gray-700">{newTransferAlert.method}</span>
+              </div>
             </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setNewTransferAlert(null) }}
-              className="text-gray-400 hover:text-gray-600 shrink-0"
-            >
-              ✕
-            </button>
+            {/* Acciones */}
+            <div className="flex gap-2 p-4">
+              <button
+                onClick={() => setNewTransferAlert(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Ahora no
+              </button>
+              <button
+                onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
+                className="flex-1 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white text-sm font-bold transition-colors"
+              >
+                Revisar pago
+              </button>
+            </div>
           </div>
         </div>
       )}
