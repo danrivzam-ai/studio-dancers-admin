@@ -2357,6 +2357,7 @@ export default function App() {
               openPaymentModal(student)
             }}
             onReactivate={reactivateCycle}
+            schoolName={settings?.name}
           />
         )}
 
