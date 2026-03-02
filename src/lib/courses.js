@@ -1,25 +1,25 @@
-// Cursos regulares
 // classDays: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+
+// Adultas — category: 'regular'
 export const COURSES = [
-  { id: 'individual-adultos', name: 'Clase Individual Adultos Principiantes', ageMin: 18, ageMax: 99, schedule: 'Horario a coordinar', price: 12, priceType: 'clase' },
-  { id: 'ballet-adultos-semana', name: 'Ballet Adultos Principiantes', ageMin: 18, ageMax: 99, schedule: 'Martes y Jueves 7:00 - 8:30 PM', price: 40, priceType: 'mes', classDays: [2, 4], classesPerCycle: 8 },
-  { id: 'ballet-adultos-sabados', name: 'Ballet Adultos Intensivo Sábados', ageMin: 18, ageMax: 99, schedule: 'Sábados 5:30 - 7:30 PM', price: 40, priceType: 'mes', classDays: [6], classesPerCycle: 4 },
+  { id: 'ballet-adultos-semana',  code: 'ballet-adultos-semana',  name: 'Ballet Adultos Principiantes | M - J',    ageMin: 18, ageMax: 99, schedule: 'Martes y Jueves 7:00 - 8:30 PM',  price: 40, priceType: 'mes',      classDays: [2, 4], classesPerCycle: 8 },
+  { id: 'ballet-adultos-sabados', code: 'ballet-adultos-sabados', name: 'Ballet Adultos Intensivo | Sábados',       ageMin: 18, ageMax: 99, schedule: 'Sábados 5:30 - 7:30 PM',          price: 40, priceType: 'mes',      classDays: [6],    classesPerCycle: 4 },
 ]
 
-// Sábados Intensivos - Paquete de 4 clases por $40
-export const SABADOS_INTENSIVOS = [
-  { id: 'sabados-baby', name: 'Sábados Intensivos - Baby Ballet', ageMin: 3, ageMax: 6, schedule: 'Sábados 2:00 - 3:00 PM (1 hora)', price: 40, priceType: 'paquete', classDays: [6], classesPerPackage: 4 },
-  { id: 'sabados-avanzado', name: 'Sábados Intensivos - Avanzado', ageMin: 7, ageMax: 99, schedule: 'Sábados 3:00 - 5:00 PM (2 horas)', price: 40, priceType: 'paquete', classDays: [6], classesPerPackage: 4 },
+// Niñas — category: 'ninas'
+export const NINAS = [
+  { id: 'program-1771900890659', code: 'program-1771900890659', name: 'Sábados - Baby Ballet',                      ageMin: 3, ageMax: 6,  schedule: 'Sábados',                          price: 40, priceType: 'mes',      classDays: [6],    classesPerCycle: 4 },
+  { id: 'sabados-avanzado',      code: 'sabados-avanzado',      name: 'Sábados Intensivos - Dance Crew (8 - 15)', ageMin: 8, ageMax: 15, schedule: 'Sábados 3:00 - 5:30 PM (2.5 h)',  price: 99, priceType: 'mes',      classDays: [6],    classesPerCycle: 4 },
 ]
 
-// Dance Camp 2026
+// Dance Camp 2026 — category: 'especial'
 export const DANCE_CAMP = [
-  { id: 'camp-baby', name: 'Dance Camp 2026 - Baby Ballet', ageMin: 3, ageMax: 5, schedule: '3:00 - 4:00 PM', price: 99, priceType: 'programa' },
-  { id: 'camp-kids', name: 'Dance Camp 2026 - Grupo KIDS', ageMin: 6, ageMax: 9, schedule: '4:00 - 5:30 PM', price: 99, priceType: 'programa' },
-  { id: 'camp-teens', name: 'Dance Camp 2026 - Grupo TEENS', ageMin: 10, ageMax: 16, schedule: '5:30 - 7:00 PM', price: 99, priceType: 'programa' },
+  { id: 'camp-baby',  code: 'camp-baby',  name: 'Dance Camp 2026 - Baby Ballet',  ageMin: 3,  ageMax: 5,  schedule: 'Lun, Mar y Mié 3:00 - 4:00 PM',   price: 99, priceType: 'programa' },
+  { id: 'camp-kids',  code: 'camp-kids',  name: 'Dance Camp 2026 - Grupo KIDS',   ageMin: 6,  ageMax: 9,  schedule: 'Lun, Mar y Mié 4:00 - 5:30 PM',   price: 99, priceType: 'programa' },
+  { id: 'camp-teens', code: 'camp-teens', name: 'Dance Camp 2026 - Grupo TEENS',  ageMin: 10, ageMax: 16, schedule: 'Lun, Mar y Mié 5:30 - 7:00 PM',   price: 99, priceType: 'programa' },
 ]
 
-export const ALL_COURSES = [...COURSES, ...SABADOS_INTENSIVOS, ...DANCE_CAMP]
+export const ALL_COURSES = [...COURSES, ...NINAS, ...DANCE_CAMP]
 
 // Dynamic courses registry - updated by useItems hook
 let _dynamicCourses = []
