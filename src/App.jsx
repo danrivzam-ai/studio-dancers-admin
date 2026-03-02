@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send
 } from 'lucide-react'
+import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
 import { useSchoolSettings } from './hooks/useSchoolSettings'
@@ -104,10 +105,29 @@ export default function App() {
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const globalSearchRef = useRef(null)
 
+  // Tablón de anuncios
+  const [announcements, setAnnouncements] = useState([])
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null)
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', body: '', color: 'purple', pinned: false, expires_at: '' })
+  // Recordatorios: sequential WhatsApp mode (index into reminderStudents array, or null)
+  const [reminderQueueIdx, setReminderQueueIdx] = useState(null)
+  const [showReminders, setShowReminders] = useState(false)
+
   // Connect notification click to open transfer verification modal
   useEffect(() => {
     onNewTransferRef.current = () => setShowTransferVerification(true)
   }, [onNewTransferRef])
+
+  // Cargar tablón de anuncios
+  useEffect(() => {
+    supabase
+      .from('announcements')
+      .select('*')
+      .order('pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setAnnouncements(data) })
+  }, [])
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -506,9 +526,64 @@ export default function App() {
       setShowReceipt(true)
       // Actualizar ingresos del día
       refreshIncome()
+      // Sincronizar próximo pago a MailerLite para activar recordatorio automático
+      if (result.data?.next_payment_date && settings.mailerlite_api_key) {
+        const emailToSync = student?.is_minor !== false
+          ? (student?.parent_email || student?.email)
+          : student?.email
+        if (emailToSync) {
+          syncToMailerLite({
+            email: emailToSync,
+            name: student?.is_minor !== false ? (student?.parent_name || student?.name) : student?.name,
+            apiKey: settings.mailerlite_api_key,
+            groupId: settings.mailerlite_group_id,
+            fields: { proximo_pago: result.data.next_payment_date }
+          })
+        }
+      }
     } else {
       alert('Error: ' + result.error)
     }
+  }
+
+  // ── Tablón de anuncios CRUD ──
+  const saveAnnouncement = async () => {
+    const record = {
+      title: announcementForm.title.trim(),
+      body: announcementForm.body.trim(),
+      color: announcementForm.color,
+      pinned: announcementForm.pinned,
+      expires_at: announcementForm.expires_at || null,
+      active: true
+    }
+    if (!record.title || !record.body) return
+    if (editingAnnouncement) {
+      const { data } = await supabase.from('announcements').update(record).eq('id', editingAnnouncement.id).select().single()
+      if (data) setAnnouncements(prev => prev.map(a => a.id === data.id ? data : a))
+    } else {
+      const { data } = await supabase.from('announcements').insert([record]).select().single()
+      if (data) setAnnouncements(prev => [data, ...prev])
+    }
+    setShowAnnouncementForm(false)
+    setEditingAnnouncement(null)
+    setAnnouncementForm({ title: '', body: '', color: 'purple', pinned: false, expires_at: '' })
+  }
+
+  const toggleAnnouncementActive = async (id, active) => {
+    await supabase.from('announcements').update({ active: !active }).eq('id', id)
+    setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, active: !active } : a))
+  }
+
+  const deleteAnnouncement = async (id) => {
+    if (!window.confirm('¿Eliminar este anuncio?')) return
+    await supabase.from('announcements').delete().eq('id', id)
+    setAnnouncements(prev => prev.filter(a => a.id !== id))
+  }
+
+  const openEditAnnouncement = (a) => {
+    setEditingAnnouncement(a)
+    setAnnouncementForm({ title: a.title, body: a.body, color: a.color || 'purple', pinned: a.pinned || false, expires_at: a.expires_at || '' })
+    setShowAnnouncementForm(true)
   }
 
   const resetForm = () => {
@@ -916,6 +991,7 @@ export default function App() {
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
+            { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
           ].map(tab => {
             const Icon = tab.icon
             return (
@@ -1251,6 +1327,114 @@ export default function App() {
               </div>
             )}
 
+            {/* Recordatorios de pago — WhatsApp masivo */}
+            {(() => {
+              const reminderStudents = [
+                ...overduePayments,
+                ...upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0)
+              ].filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i)
+                .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
+              if (reminderStudents.length === 0) return null
+              const currentStudentInQueue = reminderQueueIdx !== null ? reminderStudents[reminderQueueIdx] : null
+              return (
+                <div className="bg-white border border-green-200 rounded-xl overflow-hidden mb-4">
+                  <button
+                    onClick={() => { setShowReminders(v => !v); setReminderQueueIdx(null) }}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-green-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageCircle size={17} className="text-green-600" />
+                      <span className="font-semibold text-gray-800 text-sm">Recordatorios de pago</span>
+                      <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{reminderStudents.length}</span>
+                    </div>
+                    {showReminders ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                  </button>
+
+                  {showReminders && (
+                    <div className="border-t border-green-100 p-3 space-y-2">
+                      {/* Sequential mode banner */}
+                      {reminderQueueIdx !== null && currentStudentInQueue && (
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-2">
+                          <p className="text-xs text-green-600 font-medium mb-1">
+                            Modo secuencial · {reminderQueueIdx + 1} de {reminderStudents.length}
+                          </p>
+                          <p className="font-semibold text-gray-800">{currentStudentInQueue.name}</p>
+                          <p className="text-xs text-gray-500 mb-3">{enrichCourse(getCourseById(currentStudentInQueue.course_id))?.name}</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
+                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
+                                const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
+                                openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings.name))
+                                setTimeout(() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null), 800)
+                              }}
+                              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                            >
+                              <MessageCircle size={15} /> Abrir WhatsApp
+                            </button>
+                            <button
+                              onClick={() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null)}
+                              className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
+                            >
+                              Saltar
+                            </button>
+                            <button
+                              onClick={() => setReminderQueueIdx(null)}
+                              className="px-3 py-2.5 rounded-xl border border-red-200 text-sm text-red-500 hover:bg-red-50"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Student list */}
+                      {reminderStudents.map((s, idx) => {
+                        const course = enrichCourse(getCourseById(s.course_id))
+                        const days = getDaysUntilDue(s.next_payment_date)
+                        const isOverdue = days < 0
+                        const isActive = reminderQueueIdx === idx
+                        return (
+                          <div key={s.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${isActive ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
+                              <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
+                            </div>
+                            <span className={`text-xs font-bold shrink-0 ${isOverdue ? 'text-red-500' : 'text-amber-500'}`}>
+                              {isOverdue ? `${Math.abs(days)}d vencido` : days === 0 ? 'Hoy' : `${days}d`}
+                            </span>
+                            <button
+                              onClick={() => {
+                                const phone = s.payer_phone || s.parent_phone || s.phone
+                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name))
+                              }}
+                              className="p-1.5 text-green-600 hover:bg-green-100 rounded-lg transition-colors shrink-0"
+                              title="Enviar recordatorio"
+                            >
+                              <MessageCircle size={15} />
+                            </button>
+                          </div>
+                        )
+                      })}
+
+                      {/* Send all button */}
+                      {reminderQueueIdx === null && (
+                        <button
+                          onClick={() => setReminderQueueIdx(0)}
+                          className="w-full flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl border border-green-300 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
+                        >
+                          <Send size={14} /> Enviar a todos en secuencia
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             {/* Empty state when no alerts */}
             {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
@@ -1524,6 +1708,148 @@ export default function App() {
             <GalleryManager />
           </div>
         )}
+
+        {/* Tablón Tab */}
+        {activeTab === 'tablon' && (() => {
+          const COLORS = [
+            { id: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300', label: 'Morado' },
+            { id: 'blue',   bg: 'bg-blue-100',   text: 'text-blue-700',   border: 'border-blue-300',   label: 'Azul' },
+            { id: 'green',  bg: 'bg-green-100',  text: 'text-green-700',  border: 'border-green-300',  label: 'Verde' },
+            { id: 'amber',  bg: 'bg-amber-100',  text: 'text-amber-700',  border: 'border-amber-300',  label: 'Amarillo' },
+            { id: 'rose',   bg: 'bg-rose-100',   text: 'text-rose-700',   border: 'border-rose-300',   label: 'Rosa' },
+          ]
+          const colorCfg = (id) => COLORS.find(c => c.id === id) || COLORS[0]
+          return (
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Megaphone size={20} className="text-purple-600" />
+                  <h2 className="text-lg font-semibold text-gray-800">Tablón de anuncios</h2>
+                  <span className="text-xs text-gray-500">{announcements.filter(a => a.active).length} activos</span>
+                </div>
+                <button
+                  onClick={() => { setEditingAnnouncement(null); setAnnouncementForm({ title: '', body: '', color: 'purple', pinned: false, expires_at: '' }); setShowAnnouncementForm(true) }}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <Plus size={15} /> Nuevo aviso
+                </button>
+              </div>
+
+              {/* Create/Edit form */}
+              {showAnnouncementForm && (
+                <div className="bg-white rounded-xl shadow border border-purple-100 p-4 space-y-3">
+                  <h3 className="font-semibold text-gray-800 text-sm">{editingAnnouncement ? 'Editar aviso' : 'Nuevo aviso'}</h3>
+                  <input
+                    type="text"
+                    value={announcementForm.title}
+                    onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="Título del aviso *"
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+                  />
+                  <textarea
+                    value={announcementForm.body}
+                    onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
+                    placeholder="Contenido del aviso *"
+                    rows={3}
+                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none"
+                  />
+                  {/* Color picker */}
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1.5 font-medium">Color</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {COLORS.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setAnnouncementForm(f => ({ ...f, color: c.id }))}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${c.bg} ${c.text} ${announcementForm.color === c.id ? c.border + ' shadow-sm scale-105' : 'border-transparent'}`}
+                        >
+                          {c.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex gap-4 items-center flex-wrap">
+                    {/* Pinned toggle */}
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={announcementForm.pinned}
+                        onChange={e => setAnnouncementForm(f => ({ ...f, pinned: e.target.checked }))}
+                        className="w-4 h-4 accent-purple-600"
+                      />
+                      <span className="text-sm text-gray-700 flex items-center gap-1"><Pin size={13} /> Fijar al tope</span>
+                    </label>
+                    {/* Expiry */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-gray-600">Vence:</label>
+                      <input
+                        type="date"
+                        value={announcementForm.expires_at}
+                        onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
+                        className="px-2 py-1 border rounded-lg text-xs focus:ring-2 focus:ring-purple-400"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={saveAnnouncement}
+                      disabled={!announcementForm.title.trim() || !announcementForm.body.trim()}
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white py-2 rounded-xl text-sm font-medium transition-colors"
+                    >
+                      {editingAnnouncement ? 'Guardar cambios' : 'Publicar aviso'}
+                    </button>
+                    <button
+                      onClick={() => { setShowAnnouncementForm(false); setEditingAnnouncement(null) }}
+                      className="px-4 py-2 rounded-xl border text-sm text-gray-600 hover:bg-gray-50"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Announcement list */}
+              {announcements.length === 0 && (
+                <div className="bg-white rounded-xl shadow p-8 text-center">
+                  <Megaphone size={40} className="mx-auto mb-3 text-gray-300" />
+                  <p className="text-gray-500">No hay avisos aún. Crea el primero.</p>
+                </div>
+              )}
+              {announcements.map(a => {
+                const cfg = colorCfg(a.color)
+                return (
+                  <div key={a.id} className={`bg-white rounded-xl shadow border overflow-hidden ${!a.active ? 'opacity-50' : ''}`}>
+                    <div className={`flex items-center gap-2 px-4 py-2.5 ${cfg.bg}`}>
+                      {a.pinned && <Pin size={13} className={cfg.text} />}
+                      <span className={`font-semibold text-sm flex-1 ${cfg.text}`}>{a.title}</span>
+                      {a.expires_at && <span className="text-xs text-gray-400">Vence: {formatDate(a.expires_at)}</span>}
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${a.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {a.active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                    <div className="px-4 py-3">
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
+                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
+                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-purple-600 transition-colors">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-lg transition-colors ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
+                          {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
 
         {/* Modal Form - New/Edit Student */}
         {showForm && (
