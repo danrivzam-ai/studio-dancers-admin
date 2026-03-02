@@ -506,7 +506,7 @@ export default function ManageItems({
                           min="0"
                           max="99"
                           value={formData.ageMin}
-                          onChange={(e) => setFormData({...formData, ageMin: parseInt(e.target.value) || 0, ageGroup: 'custom'})}
+                          onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMin: n, ageGroup: 'custom'}) }}
                           className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 bg-white"
                         />
                       </div>
@@ -517,7 +517,7 @@ export default function ManageItems({
                           min="0"
                           max="99"
                           value={formData.ageMax}
-                          onChange={(e) => setFormData({...formData, ageMax: parseInt(e.target.value) || 0, ageGroup: 'custom'})}
+                          onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMax: n, ageGroup: 'custom'}) }}
                           className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 bg-white"
                         />
                       </div>
