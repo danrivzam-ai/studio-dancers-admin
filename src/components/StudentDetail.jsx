@@ -191,7 +191,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto min-h-0">
 
           {/* Payment cards grid */}
           <div className="p-4 grid grid-cols-2 gap-3">
