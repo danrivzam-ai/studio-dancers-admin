@@ -201,6 +201,7 @@ export default function ManageItems({
         code: editingItem?.code || editingItem?.id || `${formData.type}-${Date.now()}`,
         supabase_id: editingItem?.supabase_id || null,
         is_default: editingItem?.is_default || false,
+        category: editingItem?.category || undefined,
         name: formData.name,
         ageMin: formData.ageMin,
         ageMax: formData.ageMax,
