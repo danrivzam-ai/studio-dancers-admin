@@ -131,10 +131,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col">
 
         {/* ── Header ── */}
-        <div className="bg-gradient-to-br from-purple-700 to-purple-900 text-white px-5 pt-5 pb-4">
+        <div className="bg-gradient-to-br from-purple-700 to-purple-900 text-white px-5 pt-5 pb-4 rounded-t-2xl shrink-0">
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">
@@ -191,7 +191,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100svh - 270px)' }}>
 
           {/* Payment cards grid */}
           <div className="p-4 grid grid-cols-2 gap-3">
@@ -431,7 +431,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Footer ── */}
-        <div className="p-4 border-t bg-gray-50 space-y-2">
+        <div className="p-4 border-t bg-gray-50 space-y-2 shrink-0">
           {isRecurring && onReactivate && (
             <button
               onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
