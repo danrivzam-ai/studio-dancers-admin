@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Plus, X, Edit2, Check, AlertCircle, Eye, EyeOff,
   UserCheck, UserX, BookOpen, ChevronDown, ChevronUp,
-  RotateCcw, GraduationCap, Calendar
+  RotateCcw, GraduationCap, Calendar, Trash2
 } from 'lucide-react'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
@@ -44,6 +44,12 @@ export default function InstructorManager({ allCourses = [] }) {
   const [coursePanel, setCoursePanel] = useState(null) // instructorId
   const [selectedCourses, setSelectedCourses] = useState([])
   const [savingCourses, setSavingCourses] = useState(false)
+
+  // Eliminar con PIN
+  const [deleteTarget, setDeleteTarget] = useState(null) // instructor a eliminar
+  const [deletePin, setDeletePin] = useState('')
+  const [deletePinError, setDeletePinError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   // Filtros
   const [filterActive, setFilterActive] = useState('all') // 'all' | 'active' | 'inactive'
@@ -206,6 +212,36 @@ export default function InstructorManager({ allCourses = [] }) {
       setSuccess(`${inst.name} ${!inst.active ? 'activada' : 'desactivada'}`)
     } catch (err) {
       setError('Error: ' + err.message)
+    }
+  }
+
+  // ── Eliminar instructora ───────────────────────────────────────────
+  const openDelete = (inst) => {
+    setDeleteTarget(inst)
+    setDeletePin('')
+    setDeletePinError('')
+  }
+
+  const confirmDelete = async () => {
+    const correctPin = import.meta.env.VITE_ADMIN_PIN || '1234'
+    if (deletePin !== correctPin) {
+      setDeletePinError('PIN incorrecto')
+      return
+    }
+    setDeleting(true)
+    try {
+      // Eliminar asignaciones (por si no hay CASCADE configurado)
+      await supabase.from('instructor_courses').delete().eq('instructor_id', deleteTarget.id)
+      await supabase.from('instructor_rhythms').delete().eq('instructor_id', deleteTarget.id)
+      const { error } = await supabase.from('instructors').delete().eq('id', deleteTarget.id)
+      if (error) throw error
+      setDeleteTarget(null)
+      setSuccess(`${deleteTarget.name} eliminada correctamente`)
+      await fetchAll()
+    } catch (err) {
+      setDeletePinError('Error al eliminar: ' + err.message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -402,12 +438,18 @@ export default function InstructorManager({ allCourses = [] }) {
                     onClick={() => toggleActive(inst)}
                     className={`flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg transition-colors ${
                       inst.active
-                        ? 'bg-red-50 hover:bg-red-100 text-red-600'
+                        ? 'bg-amber-50 hover:bg-amber-100 text-amber-600'
                         : 'bg-green-50 hover:bg-green-100 text-green-600'
                     }`}
                   >
                     {inst.active ? <UserX size={13} /> : <UserCheck size={13} />}
-                    {inst.active ? 'Desactivar' : 'Activar'}
+                    {inst.active ? 'Pausar' : 'Activar'}
+                  </button>
+                  <button
+                    onClick={() => openDelete(inst)}
+                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                  >
+                    <Trash2 size={13} />
                   </button>
                 </div>
 
@@ -650,6 +692,80 @@ export default function InstructorManager({ allCourses = [] }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal eliminar con PIN ─────────────────────────────────── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                <Trash2 size={18} className="text-red-500" />
+                Eliminar instructora
+              </h3>
+              <button onClick={() => setDeleteTarget(null)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              {/* Nombre */}
+              <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                <p className="text-sm font-semibold text-red-700">{deleteTarget.name}</p>
+                <p className="text-xs text-red-500 mt-0.5">CI: {deleteTarget.cedula}</p>
+                <p className="text-xs text-red-400 mt-2">
+                  Esta acción eliminará la instructora y todas sus asignaciones de cursos. No se puede deshacer.
+                </p>
+              </div>
+
+              {/* PIN */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Ingresa tu PIN de administrador para confirmar
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  value={deletePin}
+                  onChange={e => { setDeletePin(e.target.value); setDeletePinError('') }}
+                  onKeyDown={e => e.key === 'Enter' && confirmDelete()}
+                  placeholder="••••"
+                  autoComplete="off"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-400 focus:outline-none tracking-widest text-center text-lg"
+                />
+                {deletePinError && (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    {deletePinError}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting || !deletePin}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Trash2 size={14} />
+                )}
+                {deleting ? 'Eliminando…' : 'Eliminar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
