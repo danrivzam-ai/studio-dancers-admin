@@ -451,7 +451,8 @@ export default function InstructorManager({ allCourses = [] }) {
               </button>
             </div>
 
-            <form onSubmit={handleSave} autoComplete="off" className="px-6 py-5 pb-7 space-y-4 overflow-y-auto">
+            <form onSubmit={handleSave} autoComplete="off" className="flex flex-col flex-1 min-h-0">
+              <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
               {/* Nombre */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre completo *</label>
@@ -534,21 +535,23 @@ export default function InstructorManager({ allCourses = [] }) {
               )}
 
               {/* Estado activo */}
-              <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-                <div className="flex-1">
+              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                <div>
                   <p className="text-sm font-medium text-gray-700">Estado</p>
                   <p className="text-xs text-gray-400">Las inactivas no pueden iniciar sesión</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, active: !f.active }))}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-                <span className={`text-xs font-medium w-12 text-left ${form.active ? 'text-purple-600' : 'text-gray-400'}`}>
-                  {form.active ? 'Activa' : 'Inactiva'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs font-medium ${form.active ? 'text-purple-600' : 'text-gray-400'}`}>
+                    {form.active ? 'Activa' : 'Inactiva'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, active: !f.active }))}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
               </div>
 
               {/* Error form */}
@@ -558,9 +561,10 @@ export default function InstructorManager({ allCourses = [] }) {
                   {formError}
                 </div>
               )}
+              </div>{/* fin scroll area */}
 
-              {/* Botones */}
-              <div className="flex gap-3 pt-2">
+              {/* Botones — fijos fuera del scroll */}
+              <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
                 <button
                   type="button"
                   onClick={closeForm}
