@@ -216,15 +216,16 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
   // ── Eliminar instructora ───────────────────────────────────────────
   const openDelete = (inst) => {
     setDeleteTarget(inst)
-    setDeletePin('')
-    setDeletePinError('')
   }
 
   const confirmDelete = async () => {
-    // Eliminar asignaciones (por si no hay CASCADE configurado)
-    await supabase.from('instructor_courses').delete().eq('instructor_id', deleteTarget.id)
-    await supabase.from('instructor_rhythms').delete().eq('instructor_id', deleteTarget.id)
-    const { error } = await supabase.from('instructors').delete().eq('id', deleteTarget.id)
+    const id = deleteTarget.id
+    // Nullificar referencias en attendance (marked_by FK)
+    await supabase.from('attendance').update({ marked_by: null }).eq('marked_by', id)
+    // Eliminar asignaciones
+    await supabase.from('instructor_courses').delete().eq('instructor_id', id)
+    await supabase.from('instructor_rhythms').delete().eq('instructor_id', id)
+    const { error } = await supabase.from('instructors').delete().eq('id', id)
     if (error) throw error
     const name = deleteTarget.name
     setDeleteTarget(null)
