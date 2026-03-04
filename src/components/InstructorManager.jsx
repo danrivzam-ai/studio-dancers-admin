@@ -18,11 +18,14 @@ const COURSE_COLORS = [
   'bg-red-100 text-red-700 border-red-200',
 ]
 
-const emptyForm = { name: '', cedula: '', password: '', active: true }
+const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyrical', 'Ritmos Tropicales']
+
+const emptyForm = { name: '', cedula: '', password: '', active: true, rhythms: [] }
 
 export default function InstructorManager({ allCourses = [] }) {
   const [instructors, setInstructors] = useState([])
   const [assignments, setAssignments] = useState({}) // { instructorId: [courseId, ...] }
+  const [instructorRhythms, setInstructorRhythms] = useState({}) // { instructorId: [ritmo, ...] }
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -59,20 +62,28 @@ export default function InstructorManager({ allCourses = [] }) {
   const fetchAll = async () => {
     setLoading(true)
     try {
-      const [{ data: instData, error: e1 }, { data: assignData, error: e2 }] = await Promise.all([
+      const [{ data: instData, error: e1 }, { data: assignData, error: e2 }, { data: rhythmData, error: e3 }] = await Promise.all([
         supabase.from('instructors').select('*').order('name'),
-        supabase.from('instructor_courses').select('instructor_id, course_id')
+        supabase.from('instructor_courses').select('instructor_id, course_id'),
+        supabase.from('instructor_rhythms').select('instructor_id, ritmo'),
       ])
       if (e1) throw e1
       if (e2 && e2.code !== '42P01') throw e2
       setInstructors(instData || [])
-      // Agrupar por instructor
+      // Agrupar asignaciones por instructor
       const map = {}
       for (const row of (assignData || [])) {
         if (!map[row.instructor_id]) map[row.instructor_id] = []
         map[row.instructor_id].push(row.course_id)
       }
       setAssignments(map)
+      // Agrupar ritmos por instructor
+      const rmap = {}
+      for (const row of (rhythmData || [])) {
+        if (!rmap[row.instructor_id]) rmap[row.instructor_id] = []
+        rmap[row.instructor_id].push(row.ritmo)
+      }
+      setInstructorRhythms(rmap)
     } catch (err) {
       setError('Error al cargar instructoras: ' + err.message)
     } finally {
@@ -93,7 +104,7 @@ export default function InstructorManager({ allCourses = [] }) {
   // ── Abrir modal editar ─────────────────────────────────────────────
   const openEdit = (inst) => {
     setEditing(inst)
-    setForm({ name: inst.name, cedula: inst.cedula, password: '', active: inst.active })
+    setForm({ name: inst.name, cedula: inst.cedula, password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [] })
     setFormError('')
     setResetPass(false)
     setShowPass(false)
@@ -120,6 +131,8 @@ export default function InstructorManager({ allCourses = [] }) {
 
     setSaving(true)
     try {
+      let instructorId = editing?.id
+
       if (editing) {
         // Verificar cédula duplicada (distinta instructora)
         const { data: dup } = await supabase
@@ -152,16 +165,26 @@ export default function InstructorManager({ allCourses = [] }) {
         if (dup) { setFormError('Ya existe una instructora con esa cédula'); return }
 
         const hashedPassword = await bcrypt.hash(form.password, 10)
-        const { error } = await supabase.from('instructors').insert({
+        const { data: newInst, error } = await supabase.from('instructors').insert({
           name: form.name.trim(),
           cedula: form.cedula.trim(),
           password: hashedPassword,
           active: form.active,
           must_change_password: true,
-        })
+        }).select('id').single()
         if (error) throw error
+        instructorId = newInst.id
         setSuccess('Instructora creada correctamente')
       }
+
+      // Guardar ritmos: eliminar todos los anteriores y reemplazar
+      await supabase.from('instructor_rhythms').delete().eq('instructor_id', instructorId)
+      if (form.rhythms.length > 0) {
+        const rows = form.rhythms.map(r => ({ instructor_id: instructorId, ritmo: r }))
+        const { error: re } = await supabase.from('instructor_rhythms').insert(rows)
+        if (re) throw re
+      }
+
       await fetchAll()
       closeForm()
     } catch (err) {
@@ -331,6 +354,17 @@ export default function InstructorManager({ allCourses = [] }) {
                     {inst.active ? 'Activa' : 'Inactiva'}
                   </span>
                 </div>
+
+                {/* Ritmos */}
+                {(instructorRhythms[inst.id] || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {instructorRhythms[inst.id].map(r => (
+                      <span key={r} className="text-xs px-2 py-0.5 rounded-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-700 font-medium">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Cursos asignados */}
                 <div>
@@ -551,6 +585,41 @@ export default function InstructorManager({ allCourses = [] }) {
                   >
                     <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
+                </div>
+              </div>
+
+              {/* Ritmos que enseña */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-2">Ritmos que enseña</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {AVAILABLE_RHYTHMS.map(r => {
+                    const checked = form.rhythms.includes(r)
+                    return (
+                      <label
+                        key={r}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors text-xs font-medium border ${
+                          checked
+                            ? 'bg-fuchsia-50 border-fuchsia-300 text-fuchsia-700'
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            setForm(f => ({
+                              ...f,
+                              rhythms: checked
+                                ? f.rhythms.filter(x => x !== r)
+                                : [...f.rhythms, r],
+                            }))
+                          }
+                          className="accent-fuchsia-600"
+                        />
+                        {r}
+                      </label>
+                    )
+                  })}
                 </div>
               </div>
 
