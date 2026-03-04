@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
+import DeleteConfirmModal from './DeleteConfirmModal'
 
 const COURSE_COLORS = [
   'bg-purple-100 text-purple-700 border-purple-200',
@@ -22,7 +23,7 @@ const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyr
 
 const emptyForm = { name: '', cedula: '', password: '', active: true, rhythms: [] }
 
-export default function InstructorManager({ allCourses = [] }) {
+export default function InstructorManager({ allCourses = [], securityPin }) {
   const [instructors, setInstructors] = useState([])
   const [assignments, setAssignments] = useState({}) // { instructorId: [courseId, ...] }
   const [instructorRhythms, setInstructorRhythms] = useState({}) // { instructorId: [ritmo, ...] }
@@ -47,9 +48,6 @@ export default function InstructorManager({ allCourses = [] }) {
 
   // Eliminar con PIN
   const [deleteTarget, setDeleteTarget] = useState(null) // instructor a eliminar
-  const [deletePin, setDeletePin] = useState('')
-  const [deletePinError, setDeletePinError] = useState('')
-  const [deleting, setDeleting] = useState(false)
 
   // Filtros
   const [filterActive, setFilterActive] = useState('all') // 'all' | 'active' | 'inactive'
@@ -223,26 +221,15 @@ export default function InstructorManager({ allCourses = [] }) {
   }
 
   const confirmDelete = async () => {
-    const correctPin = import.meta.env.VITE_ADMIN_PIN || '1234'
-    if (deletePin !== correctPin) {
-      setDeletePinError('PIN incorrecto')
-      return
-    }
-    setDeleting(true)
-    try {
-      // Eliminar asignaciones (por si no hay CASCADE configurado)
-      await supabase.from('instructor_courses').delete().eq('instructor_id', deleteTarget.id)
-      await supabase.from('instructor_rhythms').delete().eq('instructor_id', deleteTarget.id)
-      const { error } = await supabase.from('instructors').delete().eq('id', deleteTarget.id)
-      if (error) throw error
-      setDeleteTarget(null)
-      setSuccess(`${deleteTarget.name} eliminada correctamente`)
-      await fetchAll()
-    } catch (err) {
-      setDeletePinError('Error al eliminar: ' + err.message)
-    } finally {
-      setDeleting(false)
-    }
+    // Eliminar asignaciones (por si no hay CASCADE configurado)
+    await supabase.from('instructor_courses').delete().eq('instructor_id', deleteTarget.id)
+    await supabase.from('instructor_rhythms').delete().eq('instructor_id', deleteTarget.id)
+    const { error } = await supabase.from('instructors').delete().eq('id', deleteTarget.id)
+    if (error) throw error
+    const name = deleteTarget.name
+    setDeleteTarget(null)
+    setSuccess(`${name} eliminada correctamente`)
+    await fetchAll()
   }
 
   // ── Abrir panel de cursos ──────────────────────────────────────────
@@ -696,79 +683,15 @@ export default function InstructorManager({ allCourses = [] }) {
         </div>
       )}
 
-      {/* ── Modal eliminar con PIN ─────────────────────────────────── */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <Trash2 size={18} className="text-red-500" />
-                Eliminar instructora
-              </h3>
-              <button onClick={() => setDeleteTarget(null)} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="px-6 py-5 space-y-4">
-              {/* Nombre */}
-              <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                <p className="text-sm font-semibold text-red-700">{deleteTarget.name}</p>
-                <p className="text-xs text-red-500 mt-0.5">CI: {deleteTarget.cedula}</p>
-                <p className="text-xs text-red-400 mt-2">
-                  Esta acción eliminará la instructora y todas sus asignaciones de cursos. No se puede deshacer.
-                </p>
-              </div>
-
-              {/* PIN */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  Ingresa tu PIN de administrador para confirmar
-                </label>
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  value={deletePin}
-                  onChange={e => { setDeletePin(e.target.value); setDeletePinError('') }}
-                  onKeyDown={e => e.key === 'Enter' && confirmDelete()}
-                  placeholder="••••"
-                  autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-400 focus:outline-none tracking-widest text-center text-lg"
-                />
-                {deletePinError && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <AlertCircle size={12} />
-                    {deletePinError}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Botones */}
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleting || !deletePin}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                {deleting ? (
-                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Trash2 size={14} />
-                )}
-                {deleting ? 'Eliminando…' : 'Eliminar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Modal eliminar con PIN del sistema ─────────────────────── */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        itemName={deleteTarget?.name}
+        itemType="instructora"
+        requiredPin={securityPin}
+      />
     </div>
   )
 }

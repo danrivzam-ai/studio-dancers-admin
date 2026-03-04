@@ -1713,7 +1713,7 @@ export default function App() {
 
         {/* Instructoras Tab */}
         {activeTab === 'instructoras' && (
-          <InstructorManager allCourses={allCourses} />
+          <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} />
         )}
 
         {/* Tablón Tab */}
