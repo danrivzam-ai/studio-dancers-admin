@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { X, Check, User, Users, CreditCard } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { X, Check, User, Users, CreditCard, Search, UserCheck } from 'lucide-react'
 import { getTodayEC } from '../lib/dateUtils'
 
 // Reusable labeled input component
@@ -17,10 +17,58 @@ function LabeledInput({ label, required, children }) {
 export default function StudentForm({
   student = null,
   courses = [],
+  allStudents = [],
   onSubmit,
   onClose
 }) {
   const isEditing = !!student
+
+  // ── Buscador de representante ────────────────────────────────────
+  const [parentSearch, setParentSearch] = useState('')
+  const [parentDropdown, setParentDropdown] = useState(false)
+  const searchRef = useRef(null)
+
+  // Extrae representantes únicos de alumnos existentes (solo menores con parent_name)
+  const knownParents = (() => {
+    const seen = new Set()
+    return (allStudents || [])
+      .filter(s => s.is_minor && s.parent_name)
+      .filter(s => {
+        const key = (s.parent_name || '').toLowerCase().trim()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map(s => ({
+        name:    s.parent_name    || '',
+        cedula:  s.parent_cedula  || '',
+        phone:   s.parent_phone   || '',
+        email:   s.parent_email   || '',
+        address: s.parent_address || '',
+      }))
+  })()
+
+  const filteredParents = parentSearch.trim().length >= 2
+    ? knownParents.filter(p =>
+        p.name.toLowerCase().includes(parentSearch.toLowerCase()) ||
+        p.phone.includes(parentSearch) ||
+        p.cedula.includes(parentSearch)
+      )
+    : []
+
+  function applyParent(p) {
+    setFormData(prev => ({
+      ...prev,
+      parentName:    p.name,
+      parentCedula:  p.cedula,
+      parentPhone:   p.phone,
+      parentEmail:   p.email,
+      parentAddress: p.address,
+    }))
+    setParentSearch('')
+    setParentDropdown(false)
+  }
+  // ─────────────────────────────────────────────────────────────────
 
   const [formData, setFormData] = useState({
     name: '', cedula: '', age: '', phone: '', email: '', address: '',
@@ -234,6 +282,48 @@ export default function StudentForm({
               <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-1.5">
                 <Users size={14} /> Representante
               </h3>
+
+              {/* ── Buscador de representante existente ── */}
+              {!isEditing && knownParents.length > 0 && (
+                <div className="relative mb-3" ref={searchRef}>
+                  <div className="flex items-center gap-1.5 w-full border border-blue-200 rounded-lg bg-white px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-400">
+                    <Search size={13} className="text-blue-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={parentSearch}
+                      onChange={e => { setParentSearch(e.target.value); setParentDropdown(true) }}
+                      onFocus={() => setParentDropdown(true)}
+                      onBlur={() => setTimeout(() => setParentDropdown(false), 150)}
+                      placeholder="Buscar representante existente…"
+                      className="flex-1 min-w-0 text-xs bg-transparent focus:outline-none placeholder-blue-300"
+                    />
+                  </div>
+                  {parentDropdown && filteredParents.length > 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-200 rounded-lg shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                      {filteredParents.map((p, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onMouseDown={() => applyParent(p)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                        >
+                          <UserCheck size={14} className="text-blue-500 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-gray-800 truncate">{p.name}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{p.phone}{p.cedula ? ` · ${p.cedula}` : ''}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {parentDropdown && parentSearch.trim().length >= 2 && filteredParents.length === 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-100 rounded-lg shadow px-3 py-2">
+                      <p className="text-xs text-gray-400">Sin coincidencias — ingresa los datos manualmente</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Nombre" required>

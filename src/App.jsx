@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -38,6 +38,7 @@ import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import GalleryManager from './components/GalleryManager'
+import InstructorManager from './components/InstructorManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -988,6 +989,7 @@ export default function App() {
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
             { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
+            { id: 'instructoras', icon: GraduationCap, label: 'Instructoras' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
@@ -1709,6 +1711,11 @@ export default function App() {
           </div>
         )}
 
+        {/* Instructoras Tab */}
+        {activeTab === 'instructoras' && (
+          <InstructorManager allCourses={allCourses} />
+        )}
+
         {/* Tablón Tab */}
         {activeTab === 'tablon' && (() => {
           const COLORS = [
@@ -1856,6 +1863,7 @@ export default function App() {
           <StudentForm
             student={editingStudent}
             courses={allCourses}
+            allStudents={students}
             onSubmit={handleStudentFormSubmit}
             onClose={() => {
               setShowForm(false)
