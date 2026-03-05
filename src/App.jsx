@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -39,6 +39,8 @@ import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
+import ReportesManager from './components/ReportesManager'
+import ClasesAdultasManager from './components/ClasesAdultasManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -994,6 +996,8 @@ export default function App() {
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
+            { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
+            { id: 'clases_adultas', icon: Calendar, label: 'Clases' },
           ].map(tab => {
             const Icon = tab.icon
             return (
@@ -1857,6 +1861,18 @@ export default function App() {
             </div>
           )
         })()}
+
+
+        {/* Reportes de Ciclo Tab */}
+        {activeTab === 'reportes_ciclo' && (
+          <ReportesManager />
+        )}
+
+        {/* Clases Adultas Tab */}
+        {activeTab === 'clases_adultas' && (
+          <ClasesAdultasManager />
+        )}
+
 
         {/* Modal Form - New/Edit Student */}
         {showForm && (
