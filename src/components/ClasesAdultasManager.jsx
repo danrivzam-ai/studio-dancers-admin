@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { BookOpen, Calendar, CheckCircle, ChevronDown, ChevronRight, Clock, Lightbulb, Lock, Plus, Trash2, X } from 'lucide-react'
+import { BookOpen, Calendar, CheckCircle, ChevronDown, ChevronRight, Clock, Lock, Plus, Trash2, X } from 'lucide-react'
 import {
   getCursos, getCiclos, createCiclo, closeCiclo,
   getStudentsForCourse, getAsistencias, upsertAsistencia,
@@ -681,15 +681,14 @@ export default function ClasesAdultasManager() {
     { id: 'asistencia', label: 'Asistencia', icon: CheckCircle },
     { id: 'bitacora', label: 'Bitácora', icon: BookOpen },
     { id: 'progresion', label: 'Progresión', icon: ChevronRight },
-    { id: 'tips', label: 'Tips', icon: Lightbulb },
   ]
 
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Gestión de Clases Adultas</h2>
-          <p className="text-sm text-gray-500">Ciclos · Asistencia · Bitácora · Progresión · Tips</p>
+          <h2 className="text-xl font-bold text-gray-800">Gestión de Clases Niñas</h2>
+          <p className="text-sm text-gray-500">Ciclos · Asistencia · Bitácora · Progresión</p>
         </div>
       </div>
 
@@ -748,9 +747,6 @@ export default function ClasesAdultasManager() {
             )}
             {subTab === 'progresion' && (
               <ProgresionTab course={selectedCourse} activeCiclo={activeCiclo} />
-            )}
-            {subTab === 'tips' && (
-              <TipsTab course={selectedCourse} />
             )}
           </div>
         </>

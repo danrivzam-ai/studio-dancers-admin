@@ -1,8 +1,9 @@
 import { supabase } from './supabase'
-import { COURSES } from './courses'
+import { NINAS, DANCE_CAMP } from './courses'
 
-// Códigos de cursos adultas (fuente de verdad: courses.js)
-const ADULTAS_CODES = new Set(COURSES.map(c => c.code))
+// Códigos de cursos niñas (fuente de verdad: courses.js)
+// Incluye Ballet Niñas, Sábados Avanzado y Dance Camp
+const NINAS_CODES = new Set([...NINAS.map(c => c.code), ...DANCE_CAMP.map(c => c.code)])
 
 // ── Cursos ────────────────────────────────────────────────────────
 export async function getCursos() {
@@ -11,8 +12,8 @@ export async function getCursos() {
     .select('id, code, name, class_days, classes_per_cycle, plantilla_progresion_id')
     .eq('active', true)
     .order('name')
-  // Solo cursos de adultas — excluye niñas, Dance Camp y otros
-  const filtered = (data || []).filter(c => ADULTAS_CODES.has(c.code))
+  // Solo cursos de niñas — excluye Ballet Adultas
+  const filtered = (data || []).filter(c => NINAS_CODES.has(c.code))
   return { data: filtered, error }
 }
 
