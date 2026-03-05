@@ -1,4 +1,8 @@
 import { supabase } from './supabase'
+import { COURSES } from './courses'
+
+// Códigos de cursos adultas (fuente de verdad: courses.js)
+const ADULTAS_CODES = new Set(COURSES.map(c => c.code))
 
 // ── Cursos ────────────────────────────────────────────────────────
 export async function getCursos() {
@@ -7,7 +11,9 @@ export async function getCursos() {
     .select('id, code, name, class_days, classes_per_cycle, plantilla_progresion_id')
     .eq('active', true)
     .order('name')
-  return { data: data || [], error }
+  // Solo cursos de adultas — excluye niñas, Dance Camp y otros
+  const filtered = (data || []).filter(c => ADULTAS_CODES.has(c.code))
+  return { data: filtered, error }
 }
 
 // ── Ciclos ────────────────────────────────────────────────────────
@@ -20,7 +26,7 @@ export async function getCiclos(cursoCode) {
   return { data: data || [], error }
 }
 
-export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, objetivoCiclo }) {
+export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, fechaFin, objetivoCiclo }) {
   const { data, error } = await supabase
     .from('ciclos')
     .insert({
@@ -28,6 +34,7 @@ export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaIn
       numero_ciclo: numeroCiclo,
       total_clases: totalClases,
       fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin || null,
       objetivo_ciclo: objetivoCiclo || null,
       estado: 'activo'
     })

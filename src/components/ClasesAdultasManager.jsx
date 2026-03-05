@@ -49,6 +49,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
 
   const [form, setForm] = useState({
     fechaInicio: getTodayEC(),
+    fechaFin: '',
     totalClases: defaultClases,
     objetivoCiclo: ''
   })
@@ -61,6 +62,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
       numeroCiclo: nextNum,
       totalClases: parseInt(form.totalClases, 10),
       fechaInicio: form.fechaInicio,
+      fechaFin: form.fechaFin || null,
       objetivoCiclo: form.objetivoCiclo
     })
     setSaving(false)
@@ -97,7 +99,9 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
               <span className="text-xs text-green-600 font-medium">● Activo</span>
             </div>
             <p className="text-sm text-gray-600">
-              Inicio: {formatDateShort(activeCiclo.fecha_inicio)} · {activeCiclo.total_clases} clases
+              Inicio: {formatDateShort(activeCiclo.fecha_inicio)}
+              {activeCiclo.fecha_fin && <> · Fin: {formatDateShort(activeCiclo.fecha_fin)}</>}
+              {' '}· {activeCiclo.total_clases} clases
             </p>
             {activeCiclo.objetivo_ciclo && (
               <p className="text-sm text-gray-500 mt-1 italic">"{activeCiclo.objetivo_ciclo}"</p>
@@ -147,11 +151,18 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
                 className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
             </div>
             <div>
-              <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
-              <input type="number" required min={1} max={20} value={form.totalClases}
-                onChange={e => setForm({ ...form, totalClases: e.target.value })}
+              <label className="text-xs text-gray-600 block mb-1">Fecha de fin (opcional)</label>
+              <input type="date" value={form.fechaFin}
+                min={form.fechaInicio || undefined}
+                onChange={e => setForm({ ...form, fechaFin: e.target.value })}
                 className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
             </div>
+          </div>
+          <div>
+            <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
+            <input type="number" required min={1} max={20} value={form.totalClases}
+              onChange={e => setForm({ ...form, totalClases: e.target.value })}
+              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
           </div>
           <div>
             <label className="text-xs text-gray-600 block mb-1">Objetivo del ciclo (opcional)</label>
