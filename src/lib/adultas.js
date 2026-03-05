@@ -22,60 +22,63 @@ export function clearPortalAuth() {
 }
 
 // ── Login del cliente (cédula + últimos 4 del teléfono) ──────────
-export async function clientLogin(cedula, phoneLast4) {
+export async function clientLogin(cedula, phone4) {
   const { data, error } = await supabase.rpc('rpc_client_login', {
     p_cedula: cedula.trim(),
-    p_phone_last4: phoneLast4.trim()
+    p_phone_last4: phone4.trim()
   })
   return { data: data || [], error }
 }
 
-// ── Dashboard: ciclo actual + asistencias (Bloque 1) ─────────────
-export async function getAdultasCicloActual(cedula, phoneLast4, studentId) {
-  const { data, error } = await supabase.rpc('rpc_client_adultas_ciclo', {
-    p_cedula: cedula,
-    p_phone_last4: phoneLast4,
-    p_student_id: studentId
+// ── Bienestar: piezas publicadas (con paginación) ────────────────
+export async function getBienestar(cedula, phone4, studentId, limit = 20, offset = 0) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_bienestar', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId,
+    p_limit: limit, p_offset: offset
+  })
+  return { data: data || [], error }
+}
+
+// ── Retos: activo + historial ─────────────────────────────────────
+export async function getRetos(cedula, phone4, studentId, limit = 20) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_retos', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId, p_limit: limit
+  })
+  return { data: data || [], error }
+}
+
+// ── Diario: listar entradas ───────────────────────────────────────
+export async function getDiarioList(cedula, phone4, studentId, limit = 20, offset = 0) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_diario_list', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId,
+    p_limit: limit, p_offset: offset
+  })
+  return { data: data || [], error }
+}
+
+// ── Diario: crear entrada ─────────────────────────────────────────
+export async function createDiarioEntry(cedula, phone4, studentId, fecha, contenido, estadoAnimo = null) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_diario_create', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId,
+    p_fecha: fecha, p_contenido: contenido, p_estado_animo: estadoAnimo
+  })
+  return { data: data?.[0] || null, error }
+}
+
+// ── Diario: actualizar entrada ────────────────────────────────────
+export async function updateDiarioEntry(cedula, phone4, studentId, entradaId, contenido, estadoAnimo = null) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_diario_update', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId,
+    p_entrada_id: entradaId, p_contenido: contenido, p_estado_animo: estadoAnimo
   })
   return { data, error }
 }
 
-// ── Dashboard: bitácora (Bloque 4) ───────────────────────────────
-export async function getAdultasBitacora(cedula, phoneLast4, studentId) {
-  const { data, error } = await supabase.rpc('rpc_client_adultas_bitacora', {
-    p_cedula: cedula,
-    p_phone_last4: phoneLast4,
-    p_student_id: studentId
-  })
-  return { data, error }
-}
-
-// ── Dashboard: mapa de progresión (Bloque 3) ─────────────────────
-export async function getAdultasProgresion(cedula, phoneLast4, studentId) {
-  const { data, error } = await supabase.rpc('rpc_client_adultas_progresion', {
-    p_cedula: cedula,
-    p_phone_last4: phoneLast4,
-    p_student_id: studentId
-  })
-  return { data, error }
-}
-
-// ── Dashboard: constancia y racha (Bloque 2) ─────────────────────
-export async function getAdultasConstancia(cedula, phoneLast4, studentId) {
-  const { data, error } = await supabase.rpc('rpc_client_adultas_constancia', {
-    p_cedula: cedula,
-    p_phone_last4: phoneLast4,
-    p_student_id: studentId
-  })
-  return { data, error }
-}
-
-// ── Dashboard: tips (Bloque 5) ───────────────────────────────────
-export async function getAdultasTips(cedula, phoneLast4, studentId) {
-  const { data, error } = await supabase.rpc('rpc_client_adultas_tips', {
-    p_cedula: cedula,
-    p_phone_last4: phoneLast4,
-    p_student_id: studentId
+// ── Diario: eliminar entrada ──────────────────────────────────────
+export async function deleteDiarioEntry(cedula, phone4, studentId, entradaId) {
+  const { data, error } = await supabase.rpc('rpc_client_adultas_diario_delete', {
+    p_cedula: cedula, p_phone4: phone4, p_student_id: studentId,
+    p_entrada_id: entradaId
   })
   return { data, error }
 }
