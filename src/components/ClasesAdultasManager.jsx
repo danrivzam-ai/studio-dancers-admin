@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { BookOpen, Calendar, CheckCircle, ChevronDown, ChevronRight, Clock, Lock, Plus, Trash2, X } from 'lucide-react'
 import {
   getCursos, getCiclos, createCiclo, closeCiclo,
@@ -53,6 +53,26 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
     totalClases: defaultClases,
     objetivoCiclo: ''
   })
+
+  // Calcula automáticamente el total de clases cuando hay rango de fechas
+  const autoTotal = useMemo(() => {
+    if (!form.fechaInicio || !form.fechaFin || !classDays.length) return null
+    const start = new Date(form.fechaInicio + 'T12:00:00')
+    const end   = new Date(form.fechaFin   + 'T12:00:00')
+    if (end < start) return null
+    let count = 0
+    let cur = new Date(start)
+    while (cur <= end) {
+      if (classDays.includes(cur.getDay())) count++
+      cur.setDate(cur.getDate() + 1)
+    }
+    return count
+  }, [form.fechaInicio, form.fechaFin, classDays])
+
+  // Actualiza totalClases automáticamente cuando cambia el rango
+  useEffect(() => {
+    if (autoTotal !== null) setForm(prev => ({ ...prev, totalClases: autoTotal }))
+  }, [autoTotal])
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -159,10 +179,24 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
-            <input type="number" required min={1} max={20} value={form.totalClases}
+            <label className="text-xs text-gray-600 block mb-1">
+              Total clases *
+              {autoTotal !== null && (
+                <span className="ml-1.5 text-purple-500 font-normal">· calculado del rango de fechas</span>
+              )}
+            </label>
+            <input
+              type="number" required min={1} max={50}
+              value={form.totalClases}
+              readOnly={autoTotal !== null}
               onChange={e => setForm({ ...form, totalClases: e.target.value })}
-              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+              className={`w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 ${
+                autoTotal !== null ? 'bg-purple-50 text-purple-700 font-medium cursor-default' : ''
+              }`}
+            />
+            {autoTotal === null && (
+              <p className="text-[10px] text-gray-400 mt-0.5">O selecciona una fecha de fin para calcular automáticamente</p>
+            )}
           </div>
           <div>
             <label className="text-xs text-gray-600 block mb-1">Objetivo del ciclo (opcional)</label>
