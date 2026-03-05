@@ -161,28 +161,28 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
       )}
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-lg p-3 bg-purple-50 space-y-3">
-          <p className="text-sm font-medium" style={{ color: PURPLE }}>Ciclo {nextNum} — {course.name}</p>
-          <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-xl p-5 bg-purple-50 space-y-4">
+          <p className="text-sm font-semibold" style={{ color: PURPLE }}>Ciclo {nextNum} — {course.name}</p>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-gray-600 block mb-1">Fecha de inicio *</label>
+              <label className="text-xs text-gray-600 block mb-1.5">Fecha de inicio *</label>
               <input type="date" required value={form.fechaInicio}
                 onChange={e => setForm({ ...form, fechaInicio: e.target.value })}
-                className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white" />
             </div>
             <div>
-              <label className="text-xs text-gray-600 block mb-1">Fecha de fin (opcional)</label>
+              <label className="text-xs text-gray-600 block mb-1.5">Fecha de fin (opcional)</label>
               <input type="date" value={form.fechaFin}
                 min={form.fechaInicio || undefined}
                 onChange={e => setForm({ ...form, fechaFin: e.target.value })}
-                className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white" />
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">
+            <label className="text-xs text-gray-600 block mb-1.5">
               Total clases *
               {autoTotal !== null && (
-                <span className="ml-1.5 text-purple-500 font-normal">· calculado del rango de fechas</span>
+                <span className="ml-1.5 text-purple-500 font-normal">· calculado automáticamente</span>
               )}
             </label>
             <input
@@ -190,29 +190,30 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
               value={form.totalClases}
               readOnly={autoTotal !== null}
               onChange={e => setForm({ ...form, totalClases: e.target.value })}
-              className={`w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 ${
-                autoTotal !== null ? 'bg-purple-50 text-purple-700 font-medium cursor-default' : ''
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 ${
+                autoTotal !== null ? 'bg-purple-100 text-purple-700 font-semibold cursor-default' : 'bg-white'
               }`}
             />
-            {autoTotal === null && (
-              <p className="text-[10px] text-gray-400 mt-0.5">O selecciona una fecha de fin para calcular automáticamente</p>
+            {/* Solo muestra el hint si todavía no hay fecha de fin */}
+            {!form.fechaFin && (
+              <p className="text-[10px] text-gray-400 mt-1">Selecciona una fecha de fin para calcular el total automáticamente</p>
             )}
           </div>
           <div>
-            <label className="text-xs text-gray-600 block mb-1">Objetivo del ciclo (opcional)</label>
+            <label className="text-xs text-gray-600 block mb-1.5">Objetivo del ciclo (opcional)</label>
             <input type="text" value={form.objetivoCiclo}
               onChange={e => setForm({ ...form, objetivoCiclo: e.target.value })}
               placeholder="ej. Perfeccionar port de bras"
-              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 shadow-sm"
               style={{ background: PURPLE }}>
               {saving ? 'Creando...' : 'Crear ciclo'}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-600 bg-white border">
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50">
               Cancelar
             </button>
           </div>
