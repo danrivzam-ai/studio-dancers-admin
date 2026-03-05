@@ -41,6 +41,8 @@ export const BANKS = [
   { id: 'solidario', name: 'Banco Solidario' },
   { id: 'internacional', name: 'Banco Internacional' },
   { id: 'pichincha', name: 'Banco Pichincha' },
+  { id: 'procredit', name: 'Banco ProCredit' },
+  { id: 'banecuador', name: 'BanEcuador' },
   { id: 'jardin-azuayo', name: 'Cooperativa Jardín Azuayo' },
   { id: 'jep', name: 'Cooperativa JEP' },
   { id: 'produbanco', name: 'Produbanco' },

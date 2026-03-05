@@ -18,7 +18,8 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
   const BANKS = [
     'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
     'Banco Bolivariano', 'Banco del Austro', 'Banco Internacional',
-    'Banco Solidario', 'Produbanco', 'Cooperativa JEP',
+    'Banco Solidario', 'Banco ProCredit', 'BanEcuador',
+    'Produbanco', 'Cooperativa JEP',
     'Cooperativa Jardín Azuayo', 'PayPhone (Tarjeta)', 'Otro'
   ]
 
