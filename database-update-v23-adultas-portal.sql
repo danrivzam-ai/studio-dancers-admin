@@ -464,35 +464,17 @@ $$;
 
 
 -- ══════════════════════════════════════════════════════════════════════
--- CRON JOBS (pg_cron — habilitar en Supabase: Extensions → pg_cron)
--- Horario Guayaquil UTC-5: 7:00 AM = 12:00 UTC
+-- CRON JOBS — EJECUTAR SOLO DESPUÉS DE HABILITAR pg_cron
+-- Supabase Dashboard → Database → Extensions → pg_cron → Enable
+-- Luego ejecutar este bloque por separado:
 -- ══════════════════════════════════════════════════════════════════════
-
--- Bienestar: lunes (dow=1) y jueves (dow=4)
-SELECT cron.schedule(
-  'publicar-bienestar-lunes',
-  '0 12 * * 1',
-  'SELECT fn_publicar_bienestar()'
-);
-
-SELECT cron.schedule(
-  'publicar-bienestar-jueves',
-  '0 12 * * 4',
-  'SELECT fn_publicar_bienestar()'
-);
-
--- Reto semanal: lunes
-SELECT cron.schedule(
-  'publicar-reto-semanal',
-  '0 12 * * 1',
-  'SELECT fn_publicar_reto()'
-);
-
--- Para ver los jobs creados:
--- SELECT * FROM cron.job;
-
--- Para desactivar un job si es necesario:
--- SELECT cron.unschedule('publicar-bienestar-lunes');
+--
+-- SELECT cron.schedule('publicar-bienestar-lunes',  '0 12 * * 1', 'SELECT fn_publicar_bienestar()');
+-- SELECT cron.schedule('publicar-bienestar-jueves', '0 12 * * 4', 'SELECT fn_publicar_bienestar()');
+-- SELECT cron.schedule('publicar-reto-semanal',     '0 12 * * 1', 'SELECT fn_publicar_reto()');
+--
+-- Verificar jobs activos: SELECT * FROM cron.job;
+-- Eliminar un job:        SELECT cron.unschedule('publicar-bienestar-lunes');
 
 
 -- ══════════════════════════════════════════════════════════════════════
