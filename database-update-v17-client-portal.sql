@@ -96,7 +96,7 @@ BEGIN
         s.balance, s.amount_paid, s.is_paused, s.active,
         s.last_payment_date, s.enrollment_date
     FROM students s
-    LEFT JOIN courses c ON c.id = s.course_id OR c.code = s.course_id
+    LEFT JOIN courses c ON c.id::text = s.course_id OR c.code = s.course_id
     WHERE s.active = true
       AND (s.cedula = p_cedula OR s.parent_cedula = p_cedula OR s.payer_cedula = p_cedula)
       AND (
