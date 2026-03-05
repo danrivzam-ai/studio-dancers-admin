@@ -17,21 +17,23 @@ export async function getCursos() {
   return { data: filtered, error }
 }
 
-// ── Ciclos ────────────────────────────────────────────────────────
+// ── Ciclos ─────────────────────────────────────────────────────────
+// Usamos la tabla 'cycles' (misma que lee el app de Instructoras)
+// para que los ciclos creados aquí sean visibles allá automáticamente.
 export async function getCiclos(cursoCode) {
   const { data, error } = await supabase
-    .from('ciclos')
+    .from('cycles')
     .select('*')
-    .eq('curso_id', cursoCode)
+    .eq('course_id', cursoCode)
     .order('numero_ciclo', { ascending: false })
   return { data: data || [], error }
 }
 
 export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, fechaFin, objetivoCiclo }) {
   const { data, error } = await supabase
-    .from('ciclos')
+    .from('cycles')
     .insert({
-      curso_id: cursoCode,
+      course_id: cursoCode,
       numero_ciclo: numeroCiclo,
       total_clases: totalClases,
       fecha_inicio: fechaInicio,
@@ -45,10 +47,9 @@ export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaIn
 }
 
 export async function closeCiclo(cicloId) {
-  const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
-    .from('ciclos')
-    .update({ estado: 'cerrado', fecha_fin_estimada: today })
+    .from('cycles')
+    .update({ estado: 'cerrado' })
     .eq('id', cicloId)
     .select()
     .single()
