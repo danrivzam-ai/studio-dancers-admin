@@ -73,9 +73,14 @@ export default function StudentForm({
     }
   }, [formData.age])
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(formData)
+    if (submitting) return
+    setSubmitting(true)
+    await onSubmit(formData)
+    setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
   const inputClass = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
@@ -442,10 +447,23 @@ export default function StudentForm({
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
+              disabled={submitting}
+              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
-              <Check size={16} />
-              {isEditing ? 'Guardar' : 'Registrar'}
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Check size={16} />
+                  {isEditing ? 'Guardar' : 'Registrar'}
+                </>
+              )}
             </button>
           </div>
         </form>
