@@ -44,7 +44,8 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
   const [saving, setSaving] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const classDays = normalizeClassDays(course.class_days)
-  const defaultClases = classDays.includes(6) && !classDays.includes(2) && !classDays.includes(4) ? 4 : 8
+  // Sin class_days → campo vacío (entrada manual); con class_days → 4 si solo sábados, 8 resto
+  const defaultClases = classDays.length === 0 ? '' : (classDays.includes(6) && !classDays.includes(2) && !classDays.includes(4) ? 4 : 8)
   const nextNum = ciclos.length > 0 ? Math.max(...ciclos.map(c => c.numero_ciclo)) + 1 : 1
 
   const [form, setForm] = useState({
@@ -194,9 +195,12 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
                 autoTotal !== null ? 'bg-purple-100 text-purple-700 font-semibold cursor-default' : 'bg-white'
               }`}
             />
-            {/* Solo muestra el hint si todavía no hay fecha de fin */}
-            {!form.fechaFin && (
+            {/* Hint según estado */}
+            {!form.fechaFin && classDays.length > 0 && (
               <p className="text-[10px] text-gray-400 mt-1">Selecciona una fecha de fin para calcular el total automáticamente</p>
+            )}
+            {form.fechaFin && classDays.length === 0 && (
+              <p className="text-[10px] text-amber-500 mt-1">Este curso no tiene días de clase configurados — ingresa el total manualmente</p>
             )}
           </div>
           <div>
