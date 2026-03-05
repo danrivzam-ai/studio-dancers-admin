@@ -277,20 +277,46 @@ function AsistenciaTab({ ciclo, course }) {
     <div className="text-center py-8 text-gray-400 text-sm">Sin ciclo activo. Crea un ciclo primero.</div>
   )
 
+  // Resumen de asistencia para la fecha seleccionada
+  const resumen = {
+    presentes: students.filter(s => asistencias[`${s.id}_${selectedDate}`] === 'presente').length,
+    tardias:   students.filter(s => asistencias[`${s.id}_${selectedDate}`] === 'tardia').length,
+    ausentes:  students.filter(s => asistencias[`${s.id}_${selectedDate}`] === 'ausente').length,
+  }
+
   return (
     <div>
-      {/* Date selector */}
-      <div className="flex items-center gap-3 mb-4">
-        <label className="text-sm font-medium text-gray-600">Fecha de clase:</label>
-        <select value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-          className="border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-300">
-          {classDates.map(d => (
-            <option key={d} value={d}>
-              {formatClassDateShort(d)} ({d > today ? 'futura' : d === today ? 'hoy' : 'pasada'})
-            </option>
-          ))}
-        </select>
+      {/* Date selector + total alumnas */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-600">Fecha:</label>
+          <select value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
+            className="border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-purple-300">
+            {classDates.map(d => (
+              <option key={d} value={d}>
+                {formatClassDateShort(d)} ({d > today ? 'futura' : d === today ? 'hoy' : 'pasada'})
+              </option>
+            ))}
+          </select>
+        </div>
+        {!loadingStudents && students.length > 0 && (
+          <span className="text-sm font-semibold text-gray-500">{students.length} alumna{students.length !== 1 ? 's' : ''}</span>
+        )}
       </div>
+
+      {/* Resumen del día */}
+      {!loadingStudents && students.length > 0 && (
+        <div className="flex gap-3 mb-3 px-1">
+          <span className="text-xs font-medium text-green-600">✓ {resumen.presentes} presentes</span>
+          <span className="text-xs font-medium text-orange-400">⏱ {resumen.tardias} tardías</span>
+          <span className="text-xs font-medium text-red-400">✕ {resumen.ausentes} ausentes</span>
+          {(students.length - resumen.presentes - resumen.tardias - resumen.ausentes) > 0 && (
+            <span className="text-xs text-gray-400">
+              · {students.length - resumen.presentes - resumen.tardias - resumen.ausentes} sin marcar
+            </span>
+          )}
+        </div>
+      )}
 
       {loadingStudents ? (
         <div className="text-sm text-gray-400">Cargando alumnas...</div>
