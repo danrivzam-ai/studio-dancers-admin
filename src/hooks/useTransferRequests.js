@@ -145,7 +145,17 @@ export function useTransferRequests() {
           )
         }
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[Realtime] ✅ Canal transferencias conectado')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[Realtime] ❌ Error en canal de transferencias:', err)
+        } else if (status === 'TIMED_OUT') {
+          console.warn('[Realtime] ⚠️ Canal transferencias timed out')
+        } else {
+          console.log('[Realtime] Canal transferencias:', status)
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)
