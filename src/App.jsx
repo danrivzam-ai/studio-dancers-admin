@@ -46,6 +46,22 @@ import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
+// Mini-component: shows avatar photo from Supabase storage, falls back to initials
+function StudentAvatar({ student, isCamp }) {
+  const [imgError, setImgError] = useState(false)
+  const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student.id}.jpg`).data?.publicUrl
+  const initials = student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+  const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'
+  return (
+    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${imgError ? bgClass : ''}`}>
+      {!imgError
+        ? <img src={avatarUrl} alt={student.name} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+        : <span className="font-bold text-sm">{initials}</span>
+      }
+    </div>
+  )
+}
+
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
@@ -2290,9 +2306,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         <div key={student.id} className={`p-3 sm:p-4 hover:bg-gray-50 transition-colors ${isCamp ? 'border-l-4 border-pink-400' : ''}`}>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                              <div className={`${isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'} w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0`}>
-                                {student.name.charAt(0).toUpperCase()}
-                              </div>
+                              <StudentAvatar student={student} isCamp={isCamp} />
                               <div className="min-w-0">
                                 <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{student.name}</h3>
                                 <p className="text-xs sm:text-sm text-gray-500 truncate">
