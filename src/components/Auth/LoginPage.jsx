@@ -75,7 +75,7 @@ export default function LoginPage({ onLogin }) {
             <img
               src="/logo-cream.png"
               alt="Studio Dancers"
-              className="h-16 mx-auto"
+              className="h-20 mx-auto"
               style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
               onError={(e) => { e.target.src = '/logo.png' }}
             />
@@ -194,7 +194,7 @@ export default function LoginPage({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
                 boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'
