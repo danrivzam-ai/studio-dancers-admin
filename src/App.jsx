@@ -940,15 +940,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <TrendingDown size={20} />
                 <span>Egreso</span>
               </button>
-              {!isRecepcion && (
-                <button
-                  onClick={() => setShowCashMovements(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
-                >
-                  <ArrowLeftRight size={20} />
-                  <span>Movimiento</span>
-                </button>
-              )}
+              <button
+                onClick={() => setShowCashMovements(true)}
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+              >
+                <ArrowLeftRight size={20} />
+                <span>Movimiento</span>
+              </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
                 className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors text-xs sm:text-sm"

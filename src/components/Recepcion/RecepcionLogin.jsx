@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import { Lock, Eye, EyeOff, User } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-
-const PURPLE = '#7B2D8E'
 
 export default function RecepcionLogin({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -47,24 +45,38 @@ export default function RecepcionLogin({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-md"
-            style={{ background: PURPLE }}>
-            <Lock size={28} className="text-white" />
+    <div className="min-h-screen flex items-center justify-center p-4" style={{
+      background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+    }}>
+      <div className="w-full max-w-md">
+        {/* Logo y título */}
+        <div className="text-center mb-6">
+          <div className="mx-auto mb-4">
+            <img
+              src="/logo-cream.png"
+              alt="Studio Dancers"
+              className="h-16 mx-auto"
+              style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
+              onError={(e) => { e.target.src = '/logo.png' }}
+            />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Studio Dancers</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Portal Recepción</p>
+          <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">Studio Dancers</h1>
+          <p className="text-white/70 text-sm">Portal de Recepción</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-          {/* Usuario */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Usuario</label>
-            <div className="relative">
-              <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        {/* Card de login */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Usuario
+              </label>
               <input
                 type="text"
                 value={username}
@@ -72,36 +84,60 @@ export default function RecepcionLogin({ onLogin }) {
                 placeholder="tu.usuario"
                 autoFocus
                 autoCapitalize="none"
-                className="w-full border rounded-xl pl-9 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                required
               />
             </div>
-          </div>
 
-          {/* Contraseña */}
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1.5">Contraseña</label>
-            <div className="relative">
-              <input
-                type={showPw ? 'text' : 'password'}
-                value={password}
-                onChange={e => { setPassword(e.target.value); setError('') }}
-                placeholder="••••••••••"
-                className="w-full border rounded-xl px-4 py-2.5 pr-10 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none"
-              />
-              <button type="button" onClick={() => setShowPw(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError('') }}
+                  placeholder="••••••••"
+                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
-            {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
-          </div>
 
-          <button type="submit" disabled={loading || !username || !password}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
-            style={{ background: PURPLE }}>
-            {loading ? 'Verificando...' : 'Ingresar'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading || !username || !password}
+              className="w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
+                boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'
+              }}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-3">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Verificando...
+                </span>
+              ) : 'Ingresar'}
+            </button>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-purple-200 text-sm mt-8">
+          © {new Date().getFullYear()} Studio Dancers Admin
+        </p>
       </div>
     </div>
   )
