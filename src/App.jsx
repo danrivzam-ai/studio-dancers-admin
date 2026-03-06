@@ -1005,7 +1005,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
             { id: 'clases_adultas', icon: Calendar, label: 'Clases' },
-          ].filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses', 'tablon'].includes(tab.id))
+          ].filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
           .map(tab => {
             const Icon = tab.icon
             return (
@@ -1582,12 +1582,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <ScrollText size={16} />
                               </button>
                             )}
-                            <button
-                              onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {!isRecepcion && (
+                              <button
+                                onClick={() => group.items.forEach(i => handleDeleteSale(i))}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1681,13 +1683,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-800">Egresos del día</h2>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowManageCategories(true)}
-                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-xl font-medium transition-colors text-sm"
-                >
-                  <Palette size={16} />
-                  Categorías
-                </button>
+                {!isRecepcion && (
+                  <button
+                    onClick={() => setShowManageCategories(true)}
+                    className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-xl font-medium transition-colors text-sm"
+                  >
+                    <Palette size={16} />
+                    Categorías
+                  </button>
+                )}
                 <button
                   onClick={() => setShowExpenses(true)}
                   className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
