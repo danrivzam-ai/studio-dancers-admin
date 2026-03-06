@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import RecepcionLogin from './RecepcionLogin'
-import RecepcionDashboard from './RecepcionDashboard'
+import App from '../../App'
 
 export default function RecepcionApp() {
   const [authed, setAuthed] = useState(
@@ -18,5 +18,5 @@ export default function RecepcionApp() {
   }
 
   if (!authed) return <RecepcionLogin onLogin={(name) => { setUserName(name); setAuthed(true) }} />
-  return <RecepcionDashboard onLogout={handleLogout} userName={userName} />
+  return <App isRecepcion={true} userName={userName} onLogout={handleLogout} />
 }

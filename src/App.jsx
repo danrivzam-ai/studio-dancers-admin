@@ -45,7 +45,7 @@ import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
-export default function App() {
+export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
@@ -803,12 +803,12 @@ export default function App() {
     )
   }
 
-  // Si no está autenticado, mostrar página de login
-  if (!isAuthenticated) {
+  // Si no está autenticado, mostrar página de login (solo para admin normal)
+  if (!isRecepcion && !isAuthenticated) {
     return <LoginPage onLogin={(user) => console.log('Logged in:', user.email)} />
   }
 
-  if (loading) {
+  if (!isRecepcion && loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{
         background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fff7ed 100%)'
@@ -871,7 +871,7 @@ export default function App() {
 
             {/* Derecha: Configuración y Logout */}
             <div className="flex items-center gap-1">
-              {can('canEditSettings') && (
+              {!isRecepcion && can('canEditSettings') && (
                 <button
                   onClick={() => {
                     if (settings.security_pin) {
@@ -887,14 +887,21 @@ export default function App() {
                   <Settings size={20} />
                 </button>
               )}
+              {isRecepcion && (
+                <span className="text-xs text-gray-500 mr-1 hidden sm:inline">{recepcionUserName}</span>
+              )}
               <button
                 onClick={async () => {
                   if (confirm('¿Cerrar sesión?')) {
-                    await signOut()
+                    if (isRecepcion && onLogout) {
+                      onLogout()
+                    } else {
+                      await signOut()
+                    }
                   }
                 }}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title={`Cerrar sesión (${user?.email})`}
+                title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
               >
                 <LogOut size={20} />
               </button>
@@ -933,13 +940,15 @@ export default function App() {
                 <TrendingDown size={20} />
                 <span>Egreso</span>
               </button>
-              <button
-                onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
-              >
-                <ArrowLeftRight size={20} />
-                <span>Movimiento</span>
-              </button>
+              {!isRecepcion && (
+                <button
+                  onClick={() => setShowCashMovements(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                >
+                  <ArrowLeftRight size={20} />
+                  <span>Movimiento</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowPaymentHistory(true)}
                 className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors text-xs sm:text-sm"
@@ -951,7 +960,7 @@ export default function App() {
 
             {/* Herramientas secundarias */}
             <div className="flex items-center justify-center sm:justify-end gap-4 sm:gap-5 flex-wrap pt-2 mt-1 border-t border-gray-100">
-              {can('canExport') && (
+              {!isRecepcion && can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
                   className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
@@ -972,7 +981,7 @@ export default function App() {
                   </span>
                 )}
               </button>
-              {isAdmin && (
+              {!isRecepcion && isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
                   className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
@@ -998,7 +1007,8 @@ export default function App() {
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
             { id: 'clases_adultas', icon: Calendar, label: 'Clases' },
-          ].map(tab => {
+          ].filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses', 'tablon'].includes(tab.id))
+          .map(tab => {
             const Icon = tab.icon
             return (
               <button
@@ -2341,13 +2351,15 @@ export default function App() {
                                 >
                                   <Edit2 size={16} />
                                 </button>
-                                <button
-                                  onClick={() => handleDelete(student)}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                  title="Eliminar"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                {!isRecepcion && (
+                                  <button
+                                    onClick={() => handleDelete(student)}
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Eliminar"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
