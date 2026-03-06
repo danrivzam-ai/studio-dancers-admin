@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { LogOut, Phone, MapPin, Calendar, BookOpen, Camera } from 'lucide-react'
-import { supabase } from '../../../../lib/supabase'
+import { supabase } from '../../../lib/supabase'
 
 const STUDIO_WHATSAPP = '593963741884' // TODO: reemplazar con número real
 const STUDIO_DIRECCION = 'La Alborada, Guayaquil'
