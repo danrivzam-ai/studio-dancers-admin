@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -41,6 +41,7 @@ import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
+import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -1005,7 +1006,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
             { id: 'clases_adultas', icon: Calendar, label: 'Clases' },
-          ].filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
+            { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
+          ].filter(tab => !tab.adminOnly || isAdmin)
+           .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
           .map(tab => {
             const Icon = tab.icon
             return (
@@ -1883,6 +1886,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Clases Adultas Tab */}
         {activeTab === 'clases_adultas' && (
           <ClasesAdultasManager />
+        )}
+
+        {/* Recepcionistas Tab */}
+        {activeTab === 'recepcionistas' && (
+          <ReceptionistManager />
         )}
 
 
