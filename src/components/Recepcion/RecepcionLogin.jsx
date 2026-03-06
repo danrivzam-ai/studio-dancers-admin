@@ -114,7 +114,7 @@ export default function RecepcionLogin({ onLogin }) {
 
             <button
               type="submit"
-              disabled={loading || !username || !password}
+              disabled={loading}
               className="w-full mt-4 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
