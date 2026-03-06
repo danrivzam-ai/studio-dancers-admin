@@ -8,7 +8,8 @@ export default function PaymentHistory({
   onClose,
   onShowReceipt,
   onPaymentVoided,
-  settings
+  settings,
+  isRecepcion = false
 }) {
   const [payments, setPayments] = useState([])
   const [quickPayments, setQuickPayments] = useState([])
@@ -342,7 +343,7 @@ export default function PaymentHistory({
               </div>
               <div>
                 <h2 className="text-base sm:text-xl font-semibold">Historial de Pagos</h2>
-                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Consulta, reimprime y anula comprobantes</p>
+                <p className="text-xs sm:text-sm text-white/80 hidden sm:block">{isRecepcion ? 'Consulta y reimprime comprobantes' : 'Consulta, reimprime y anula comprobantes'}</p>
               </div>
             </div>
             <button
@@ -523,13 +524,15 @@ export default function PaymentHistory({
                           >
                             <Printer size={16} />
                           </button>
-                          <button
-                            onClick={() => openVoidModal('student', payment)}
-                            className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
-                            title="Anular"
-                          >
-                            <Ban size={14} />
-                          </button>
+                          {!isRecepcion && (
+                            <button
+                              onClick={() => openVoidModal('student', payment)}
+                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                              title="Anular"
+                            >
+                              <Ban size={14} />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -588,13 +591,15 @@ export default function PaymentHistory({
                           >
                             <Printer size={16} />
                           </button>
-                          <button
-                            onClick={() => openVoidModal('quick', payment)}
-                            className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
-                            title="Anular"
-                          >
-                            <Ban size={14} />
-                          </button>
+                          {!isRecepcion && (
+                            <button
+                              onClick={() => openVoidModal('quick', payment)}
+                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                              title="Anular"
+                            >
+                              <Ban size={14} />
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

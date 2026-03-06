@@ -2167,6 +2167,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onShowReceipt={handleShowReceiptFromHistory}
             onPaymentVoided={() => fetchStudents()}
             settings={settings}
+            isRecepcion={isRecepcion}
           />
         )}
 
