@@ -295,7 +295,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
 }
 
 // ── Dashboard principal ───────────────────────────────────────────
-export default function RecepcionDashboard({ onLogout }) {
+export default function RecepcionDashboard({ onLogout, userName }) {
   const [students, setStudents]       = useState([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
@@ -352,7 +352,7 @@ export default function RecepcionDashboard({ onLogout }) {
             </div>
             <div>
               <p className="font-bold text-gray-800 text-sm leading-tight">Studio Dancers</p>
-              <p className="text-xs text-gray-400 leading-tight">Recepción</p>
+              <p className="text-xs text-gray-400 leading-tight">{userName || 'Recepción'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
