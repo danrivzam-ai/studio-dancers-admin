@@ -510,6 +510,18 @@ export const getStatusColorClass = (colorCode) => {
   return colors[colorCode] || colors.gray
 }
 
+/**
+ * Sistema de fidelidad por meses consecutivos de pago
+ * 3-5 meses → Bronce (5%), 6-11 meses → Plata (10%), 12+ meses → Oro (15%)
+ */
+export function getLoyaltyTier(consecutiveMonths) {
+  const months = parseInt(consecutiveMonths) || 0
+  if (months >= 12) return { tier: 'oro',    label: 'Oro',    emoji: '🥇', discount: 15, next: null,     nextMonths: null,        months }
+  if (months >= 6)  return { tier: 'plata',  label: 'Plata',  emoji: '🥈', discount: 10, next: 'Oro',   nextMonths: 12 - months, months }
+  if (months >= 3)  return { tier: 'bronce', label: 'Bronce', emoji: '🥉', discount: 5,  next: 'Plata', nextMonths: 6 - months,  months }
+  return               { tier: null,     label: null,     emoji: null,  discount: 0,  next: 'Bronce', nextMonths: 3 - months, months }
+}
+
 // Obtener color de indicador (punto/círculo)
 export const getStatusDotColor = (colorCode) => {
   const colors = {

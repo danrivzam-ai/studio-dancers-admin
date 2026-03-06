@@ -463,6 +463,8 @@ export default function SettingsModal({
                     <option value="Banco del Austro">Banco del Austro</option>
                     <option value="Banco Internacional">Banco Internacional</option>
                     <option value="Banco Solidario">Banco Solidario</option>
+                    <option value="Banco ProCredit">Banco ProCredit</option>
+                    <option value="BanEcuador">BanEcuador</option>
                     <option value="Produbanco">Produbanco</option>
                     <option value="Cooperativa JEP">Cooperativa JEP</option>
                     <option value="Cooperativa Jardín Azuayo">Cooperativa Jardín Azuayo</option>
