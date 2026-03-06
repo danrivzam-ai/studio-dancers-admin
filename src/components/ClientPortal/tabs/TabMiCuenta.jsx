@@ -1,6 +1,6 @@
 import { LogOut, Phone, MapPin, Calendar, BookOpen } from 'lucide-react'
 
-const STUDIO_WHATSAPP = '593XXXXXXXXX' // TODO: reemplazar con número real
+const STUDIO_WHATSAPP = '593963741884' // TODO: reemplazar con número real
 const STUDIO_DIRECCION = 'La Alborada, Guayaquil'
 
 function formatFecha(dateStr) {

@@ -198,15 +198,15 @@ function AsistenciaTab({ ciclo, course }) {
 
   useEffect(() => {
     if (!ciclo) return
-    getAsistencias(ciclo.id).then(({ data }) => {
+    getAsistencias(course.code, ciclo.fecha_inicio).then(({ data }) => {
       const map = {}
       for (const a of (data || [])) {
-        const key = `${a.alumna_id}_${a.fecha_clase}`
-        map[key] = a.estado
+        const key = `${a.student_id}_${a.class_date}`
+        map[key] = a.status
       }
       setAsistencias(map)
     })
-  }, [ciclo])
+  }, [ciclo, course.code])
 
   const getEstado = (alumnaId) => asistencias[`${alumnaId}_${selectedDate}`] || null
 
@@ -215,7 +215,7 @@ function AsistenciaTab({ ciclo, course }) {
     // Optimistic update
     setAsistencias(prev => ({ ...prev, [key]: estado }))
     setSaving(prev => ({ ...prev, [alumnaId]: true }))
-    const { error } = await upsertAsistencia(ciclo.id, alumnaId, selectedDate, estado)
+    const { error } = await upsertAsistencia(course.code, alumnaId, selectedDate, estado)
     setSaving(prev => ({ ...prev, [alumnaId]: false }))
     if (error) {
       setAsistencias(prev => ({ ...prev, [key]: null }))
@@ -259,7 +259,7 @@ function AsistenciaTab({ ciclo, course }) {
                 <div className="flex gap-1.5">
                   {[
                     { key: 'presente', label: '✓', bg: '#2A9D8F', title: 'Presente' },
-                    { key: 'tardia', label: '⏱', bg: '#F4A261', title: 'Tardía' },
+                    { key: 'tardanza', label: '⏱', bg: '#F4A261', title: 'Tardía' },
                     { key: 'ausente', label: '✕', bg: '#e57373', title: 'Ausente' }
                   ].map(({ key, label, bg, title }) => (
                     <button key={key} title={title} disabled={isSaving}
@@ -305,10 +305,10 @@ function BitacoraTab({ ciclo, course }) {
   const fetchEntries = useCallback(async () => {
     if (!ciclo) return
     setLoading(true)
-    const { data } = await getBitacora(ciclo.id)
+    const { data } = await getBitacora(course.code, ciclo.fecha_inicio)
     setEntries(data || [])
     setLoading(false)
-  }, [ciclo])
+  }, [ciclo, course.code])
 
   useEffect(() => { fetchEntries() }, [fetchEntries])
 
@@ -317,11 +317,10 @@ function BitacoraTab({ ciclo, course }) {
     if (!form.contenido.trim()) return
     setSaving(true)
     const { error } = await createBitacoraEntry({
-      cicloId: ciclo.id,
-      cursoCode: course.code,
+      courseId:   course.code,
       fechaClase: form.fechaClase,
-      titulo: form.titulo,
-      contenido: form.contenido
+      titulo:     form.titulo,
+      contenido:  form.contenido
     })
     setSaving(false)
     if (!error) {
@@ -409,9 +408,9 @@ function BitacoraTab({ ciclo, course }) {
             <div key={e.id} className="bg-white rounded-xl border px-4 py-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 mb-0.5">{formatDateLong(e.fecha_clase)}</p>
-                  {e.titulo && <p className="font-semibold text-gray-800 text-sm mb-1">{e.titulo}</p>}
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{e.contenido}</p>
+                  <p className="text-xs text-gray-400 mb-0.5">{formatDateLong(e.class_date)}</p>
+                  {e.title && <p className="font-semibold text-gray-800 text-sm mb-1">{e.title}</p>}
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{e.body}</p>
                 </div>
                 <button onClick={() => handleDelete(e.id)} disabled={deleting === e.id}
                   className="p-1.5 text-gray-300 hover:text-red-400 rounded-lg hover:bg-red-50 shrink-0">
@@ -677,8 +676,8 @@ export default function ClasesAdultasManager() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Gestión de Clases Adultas</h2>
-          <p className="text-sm text-gray-500">Ciclos · Asistencia · Bitácora · Progresión · Tips</p>
+          <h2 className="text-xl font-bold text-gray-800">Gestión de Clases Niñas</h2>
+          <p className="text-sm text-gray-500">Ciclos · Asistencia · Bitácora · Progresión</p>
         </div>
       </div>
 

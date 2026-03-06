@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { getPortalAuth, savePortalAuth, clearPortalAuth } from '../../lib/adultas'
+import { COURSES } from '../../lib/courses'
 import ClientLoginPage from './ClientLoginPage'
 import AdultDashboard from './AdultDashboard'
+import NinasDashboard from './NinasDashboard'
+
+// IDs de cursos adultas (solo Ballet Adultos — tienen Bienestar, Retos, Diario, etc.)
+const ADULTAS_IDS = new Set(COURSES.map(c => c.id))
+const isAdulta = (student) => ADULTAS_IDS.has(student?.course_id)
 
 /**
- * ClientPortalApp — La app "Mi Studio" para alumnas adultas.
+ * ClientPortalApp — La app "Mi Studio" para alumnas.
+ * Detecta si la alumna es adulta o niña y muestra el dashboard correcto.
  * Se activa cuando la URL contiene ?portal (o variantes).
  *
  * Auth flow:
@@ -73,16 +80,17 @@ export default function ClientPortalApp() {
     return <StudentSelector students={auth.students} onSelect={handleSelectStudent} onLogout={handleLogout} />
   }
 
-  // Dashboard principal
+  // Dashboard principal — diferenciado por tipo de alumna
   if (selectedStudent) {
-    return (
-      <AdultDashboard
-        student={selectedStudent}
-        auth={auth}
-        onLogout={handleLogout}
-        allStudents={auth.students}
-      />
-    )
+    const sharedProps = {
+      student: selectedStudent,
+      auth,
+      onLogout: handleLogout,
+      allStudents: auth.students,
+    }
+    return isAdulta(selectedStudent)
+      ? <AdultDashboard {...sharedProps} />
+      : <NinasDashboard {...sharedProps} />
   }
 
   // Fallback: volver al login

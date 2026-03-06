@@ -1,34 +1,29 @@
 import { useState } from 'react'
-import { Sparkles, Target, BookHeart, CalendarDays, BarChart2 } from 'lucide-react'
-import TabBienestar from './tabs/TabBienestar'
-import TabRetos from './tabs/TabRetos'
-import TabDiario from './tabs/TabDiario'
+import { CreditCard, CalendarDays, BookOpen, BarChart2 } from 'lucide-react'
+import TabPagos from './tabs/TabPagos'
 import TabCalendario from './tabs/TabCalendario'
-import TabReportes from './tabs/TabReportes'
+import TabGlosario from './tabs/TabGlosario'
+import TabReportesNinas from './tabs/TabReportesNinas'
 
-// Adultas: Bienestar · Retos · Mi Diario · Calendario · Reportes
+// Niñas: Pagos · Calendario · Glosario · Reportes
 const TABS = [
-  { id: 'bienestar',  label: 'Bienestar',  Icon: Sparkles    },
-  { id: 'retos',      label: 'Retos',      Icon: Target      },
-  { id: 'diario',     label: 'Mi diario',  Icon: BookHeart   },
+  { id: 'pagos',      label: 'Pagos',      Icon: CreditCard  },
   { id: 'calendario', label: 'Calendario', Icon: CalendarDays },
+  { id: 'glosario',   label: 'Glosario',   Icon: BookOpen    },
   { id: 'reportes',   label: 'Reportes',   Icon: BarChart2   },
 ]
 
-export default function AdultDashboard({ auth, student, onLogout }) {
-  const [activeTab, setActiveTab] = useState('bienestar')
-
-  const sharedProps = { auth, student }
+export default function NinasDashboard({ auth, student, onLogout }) {
+  const [activeTab, setActiveTab] = useState('pagos')
 
   return (
     <div className="min-h-svh flex flex-col bg-gray-50">
       {/* Contenido principal */}
       <div className="flex-1 overflow-y-auto pb-20">
-        {activeTab === 'bienestar'  && <TabBienestar  {...sharedProps} />}
-        {activeTab === 'retos'      && <TabRetos      {...sharedProps} />}
-        {activeTab === 'diario'     && <TabDiario     {...sharedProps} />}
-        {activeTab === 'calendario' && <TabCalendario {...sharedProps} />}
-        {activeTab === 'reportes'   && <TabReportes   {...sharedProps} onLogout={onLogout} />}
+        {activeTab === 'pagos'      && <TabPagos        auth={auth} student={student} onLogout={onLogout} />}
+        {activeTab === 'calendario' && <TabCalendario   auth={auth} student={student} />}
+        {activeTab === 'glosario'   && <TabGlosario     />}
+        {activeTab === 'reportes'   && <TabReportesNinas auth={auth} student={student} onLogout={onLogout} />}
       </div>
 
       {/* Bottom nav */}

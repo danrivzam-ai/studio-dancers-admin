@@ -1,35 +1,41 @@
 import { supabase } from './supabase'
 
-// ── Cursos ────────────────────────────────────────────────────────
+// IDs de cursos de adultas — excluir del gestor de clases niñas
+const ADULTAS_COURSE_IDS = ['ballet-adultos-semana', 'ballet-adultos-sabados']
+
+// ── Cursos (solo niñas — excluye Ballet Adultos) ──────────────────
 export async function getCursos() {
   const { data, error } = await supabase
     .from('courses')
     .select('id, code, name, class_days, classes_per_cycle, plantilla_progresion_id')
     .eq('active', true)
+    .not('code', 'in', `(${ADULTAS_COURSE_IDS.join(',')})`)
     .order('name')
   return { data: data || [], error }
 }
 
 // ── Ciclos ────────────────────────────────────────────────────────
+// Usa la tabla 'cycles' (app Instructoras) para que la instructora
+// vea el mismo ciclo que el admin activó.
 export async function getCiclos(cursoCode) {
   const { data, error } = await supabase
-    .from('ciclos')
+    .from('cycles')
     .select('*')
-    .eq('curso_id', cursoCode)
+    .eq('course_id', cursoCode)
     .order('numero_ciclo', { ascending: false })
   return { data: data || [], error }
 }
 
 export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, objetivoCiclo }) {
   const { data, error } = await supabase
-    .from('ciclos')
+    .from('cycles')
     .insert({
-      curso_id: cursoCode,
-      numero_ciclo: numeroCiclo,
-      total_clases: totalClases,
-      fecha_inicio: fechaInicio,
+      course_id:      cursoCode,
+      numero_ciclo:   numeroCiclo,
+      total_clases:   totalClases,
+      fecha_inicio:   fechaInicio,
       objetivo_ciclo: objetivoCiclo || null,
-      estado: 'activo'
+      estado:         'activo'
     })
     .select()
     .single()
@@ -39,7 +45,7 @@ export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaIn
 export async function closeCiclo(cicloId) {
   const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
-    .from('ciclos')
+    .from('cycles')
     .update({ estado: 'cerrado', fecha_fin_estimada: today })
     .eq('id', cicloId)
     .select()
@@ -59,43 +65,48 @@ export async function getStudentsForCourse(cursoCode) {
 }
 
 // ── Asistencias ───────────────────────────────────────────────────
-export async function getAsistencias(cicloId) {
+// Usa la tabla 'attendance' (app Instructoras).
+// No tiene cycle_id → filtramos por course_id + class_date >= fecha_inicio del ciclo.
+export async function getAsistencias(courseId, fechaInicio) {
   const { data, error } = await supabase
-    .from('asistencias')
+    .from('attendance')
     .select('*')
-    .eq('ciclo_id', cicloId)
+    .eq('course_id', courseId)
+    .gte('class_date', fechaInicio)
   return { data: data || [], error }
 }
 
-export async function upsertAsistencia(cicloId, alumnaId, fechaClase, estado) {
+export async function upsertAsistencia(courseId, studentId, fechaClase, status) {
   const { error } = await supabase
-    .from('asistencias')
+    .from('attendance')
     .upsert(
-      { ciclo_id: cicloId, alumna_id: alumnaId, fecha_clase: fechaClase, estado },
-      { onConflict: 'ciclo_id,alumna_id,fecha_clase' }
+      { course_id: courseId, student_id: studentId, class_date: fechaClase, status },
+      { onConflict: 'student_id,course_id,class_date' }
     )
   return { error }
 }
 
 // ── Bitácora ──────────────────────────────────────────────────────
-export async function getBitacora(cicloId) {
+// Usa la tabla 'class_log' (app Instructoras).
+// No tiene cycle_id → filtramos por course_id + class_date >= fecha_inicio.
+export async function getBitacora(courseId, fechaInicio) {
   const { data, error } = await supabase
-    .from('bitacora_clases')
+    .from('class_log')
     .select('*')
-    .eq('ciclo_id', cicloId)
-    .order('fecha_clase', { ascending: false })
+    .eq('course_id', courseId)
+    .gte('class_date', fechaInicio)
+    .order('class_date', { ascending: false })
   return { data: data || [], error }
 }
 
-export async function createBitacoraEntry({ cicloId, cursoCode, fechaClase, titulo, contenido }) {
+export async function createBitacoraEntry({ courseId, fechaClase, titulo, contenido }) {
   const { data, error } = await supabase
-    .from('bitacora_clases')
+    .from('class_log')
     .insert({
-      ciclo_id: cicloId,
-      curso_id: cursoCode,
-      fecha_clase: fechaClase,
-      titulo: titulo || null,
-      contenido
+      course_id:  courseId,
+      class_date: fechaClase,
+      title:      titulo || null,
+      body:       contenido
     })
     .select()
     .single()
@@ -103,7 +114,7 @@ export async function createBitacoraEntry({ cicloId, cursoCode, fechaClase, titu
 }
 
 export async function deleteBitacoraEntry(id) {
-  const { error } = await supabase.from('bitacora_clases').delete().eq('id', id)
+  const { error } = await supabase.from('class_log').delete().eq('id', id)
   return { error }
 }
 
@@ -136,7 +147,7 @@ export async function getProgresionAdmin(cursoCode, plantillaId) {
       .sort((a, c) => a.orden - c.orden)
       .map(item => ({
         ...item,
-        estado: estadosMap[item.id]?.estado || 'pendiente',
+        estado:    estadosMap[item.id]?.estado || 'pendiente',
         estado_id: estadosMap[item.id]?.id || null
       }))
   }))
