@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { LogOut, CreditCard, CalendarCheck, TrendingUp, Phone, Camera } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import UploadComprobante from '../UploadComprobante'
 
 const STUDIO_WHATSAPP = '593963741884'  // TODO: reemplazar con número real
 
@@ -170,6 +171,9 @@ export default function TabReportes({ auth, student, onLogout }) {
           </div>
         )}
       </div>
+
+      {/* Upload comprobante de pago */}
+      <UploadComprobante auth={auth} student={student} />
 
       {/* Progreso de clases (barra visual) */}
       {classes_per_cycle > 0 && (

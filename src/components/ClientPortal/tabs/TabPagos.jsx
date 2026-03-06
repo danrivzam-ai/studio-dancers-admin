@@ -1,4 +1,5 @@
 import { LogOut, Phone, MapPin, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import UploadComprobante from '../UploadComprobante'
 
 const STUDIO_WHATSAPP = '593963741884'  // TODO: reemplazar con número real
 
@@ -75,6 +76,9 @@ export default function TabPagos({ auth, student, onLogout }) {
           </div>
         </div>
       </div>
+
+      {/* Upload comprobante */}
+      <UploadComprobante auth={auth} student={student} />
 
       {/* Contacto */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
