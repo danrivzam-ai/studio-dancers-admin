@@ -1231,17 +1231,24 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     {overduePayments.length} alumno{overduePayments.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {overduePayments.slice(0, 3).map(s => {
-                    const course = getCourseById(s.course_id)
+                    const course = enrichCourse(getCourseById(s.course_id))
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     return (
-                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
-                        <div>
-                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
-                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
+                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-red-400 rounded-r-xl pl-3 pr-2 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
                         </div>
-                        <span className="text-xs font-bold text-red-600">{days} día{days !== 1 ? 's' : ''} vencido</span>
+                        <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
+                        <button
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
+                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-lg transition-colors"
+                          title="Enviar recordatorio WhatsApp"
+                        >
+                          <MessageCircle size={13} />
+                        </button>
                       </div>
                     )
                   })}
@@ -1269,17 +1276,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     {inactiveStudents.length} alumna{inactiveStudents.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {inactiveStudents.slice(0, 3).map(s => {
                     const course = getCourseById(s.course_id)
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     return (
-                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
-                        <div>
-                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
-                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
+                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-slate-300 rounded-r-xl pl-3 pr-3 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
                         </div>
-                        <span className="text-xs font-bold text-gray-500">{days} días sin pagar</span>
+                        <span className="shrink-0 text-[11px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{days}d sin pagar</span>
                       </div>
                     )
                   })}
@@ -1307,19 +1314,26 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length} alumno{upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).slice(0, 3).map(s => {
-                    const course = getCourseById(s.course_id)
+                    const course = enrichCourse(getCourseById(s.course_id))
                     const days = getDaysUntilDue(s.next_payment_date)
                     return (
-                      <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
-                        <div>
-                          <p className="font-medium text-sm text-gray-800">{s.name}</p>
-                          <p className="text-xs text-gray-500">{course?.name || 'Sin curso'}</p>
+                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
                         </div>
-                        <span className={`text-xs font-bold ${days === 0 ? 'text-orange-600' : 'text-yellow-600'}`}>
-                          {days === 0 ? 'Hoy' : `en ${days} día${days !== 1 ? 's' : ''}`}
+                        <span className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full ${days === 0 ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
+                        <button
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
+                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-lg transition-colors"
+                          title="Enviar recordatorio WhatsApp"
+                        >
+                          <MessageCircle size={13} />
+                        </button>
                       </div>
                     )
                   })}
@@ -1347,14 +1361,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     ${studentsWithBalance.reduce((sum, s) => sum + s.balance, 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {studentsWithBalance.slice(0, 3).map(s => (
-                    <div key={s.id} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2">
-                      <div>
-                        <p className="font-medium text-sm text-gray-800">{s.name}</p>
-                        <p className="text-xs text-gray-500">{s.courseName}</p>
+                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-3 pr-3 py-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{s.courseName}</p>
                       </div>
-                      <p className="font-bold text-orange-600">${s.balance.toFixed(2)}</p>
+                      <span className="shrink-0 text-sm font-bold bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full">${s.balance.toFixed(2)}</span>
                     </div>
                   ))}
                   {studentsWithBalance.length > 3 && (
