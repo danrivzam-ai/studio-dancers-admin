@@ -1685,15 +1685,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Courses Tab */}
         {activeTab === 'courses' && (
           <div className="space-y-6">
-            {/* Header con botón de gestionar */}
-            <div className="flex justify-end">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Cursos y Programas</h2>
+                <p className="text-sm text-gray-400">{allCourses.length} curso{allCourses.length !== 1 ? 's' : ''} activo{allCourses.length !== 1 ? 's' : ''}</p>
+              </div>
               {isAdmin && (
                 <button
                   onClick={() => setShowManageItems(true)}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
                 >
-                  <Package size={18} />
-                  Gestionar Cursos y Productos
+                  <Package size={16} />
+                  Gestionar
                 </button>
               )}
             </div>
@@ -1705,21 +1709,26 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               return (
                 <>
                   {regular.length > 0 && (
-                    <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-                      <h2 className="font-semibold text-gray-800 mb-4">Clases Regulares</h2>
+                    <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
+                      <h2 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
+                        Clases Regulares
+                      </h2>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {regular.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all">
-                              <h3 className="font-medium text-purple-700">{course.name}</h3>
-                              <p className="text-sm text-gray-500 mt-1">{course.schedule || 'Sin horario definido'}</p>
-                              <p className="text-lg font-bold text-green-600 mt-2">
-                                ${course.price}/{(course.priceType || course.price_type) === 'mes' ? 'mes' : 'clase'}
-                              </p>
-                              <p className="text-sm font-medium text-gray-700 mt-2">
-                                {enrolledCount} alumno{enrolledCount !== 1 ? 's' : ''}
-                              </p>
+                            <div key={course.id || course.code} className="border-t-4 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
+                              <h3 className="font-semibold text-purple-700 leading-tight">{course.name}</h3>
+                              <p className="text-xs text-gray-400 mt-0.5">{course.schedule || 'Sin horario definido'}</p>
+                              <div className="flex items-center justify-between mt-3">
+                                <p className="text-lg font-bold text-emerald-600">
+                                  ${course.price}<span className="text-xs font-normal text-gray-400">/{(course.priceType || course.price_type) === 'mes' ? 'mes' : 'clase'}</span>
+                                </p>
+                                <span className="text-xs font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                                  {enrolledCount} alumna{enrolledCount !== 1 ? 's' : ''}
+                                </span>
+                              </div>
                             </div>
                           )
                         })}
@@ -1727,25 +1736,32 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </div>
                   )}
                   {programs.length > 0 && (
-                    <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl shadow p-4 sm:p-6">
-                      <h2 className="font-semibold text-orange-800 mb-4">Programas</h2>
+                    <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
+                      <h2 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />
+                        Programas
+                      </h2>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {programs.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="bg-white rounded-xl p-4 hover:shadow-md transition-shadow">
-                              <h3 className="font-medium text-orange-700">{course.name}</h3>
-                              <p className="text-sm text-gray-500 mt-1">
+                            <div key={course.id || course.code} className="border-t-4 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
+                              <h3 className="font-semibold text-orange-700 leading-tight">{course.name}</h3>
+                              <p className="text-xs text-gray-400 mt-0.5">
                                 {(course.ageMin || course.age_min)} - {(course.ageMax || course.age_max)} años
-                                {course.schedule && ` • ${course.schedule}`}
+                                {course.schedule && ` · ${course.schedule}`}
                               </p>
-                              <p className="text-lg font-bold text-green-600 mt-2">${course.price}</p>
-                              {(course.allowsInstallments || course.allows_installments) && (
-                                <p className="text-xs text-orange-600">{course.installmentCount || course.installment_count || 2} cuotas</p>
-                              )}
-                              <p className="text-sm font-medium text-gray-700 mt-2">
-                                {enrolledCount} inscrito{enrolledCount !== 1 ? 's' : ''}
-                              </p>
+                              <div className="flex items-center justify-between mt-3">
+                                <div>
+                                  <p className="text-lg font-bold text-emerald-600">${course.price}</p>
+                                  {(course.allowsInstallments || course.allows_installments) && (
+                                    <p className="text-[11px] text-orange-500">{course.installmentCount || course.installment_count || 2} cuotas</p>
+                                  )}
+                                </div>
+                                <span className="text-xs font-semibold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                                  {enrolledCount} inscrito{enrolledCount !== 1 ? 's' : ''}
+                                </span>
+                              </div>
                             </div>
                           )
                         })}
@@ -1762,7 +1778,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {activeTab === 'expenses' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">Egresos del día</h2>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">Egresos del día</h2>
+                <p className="text-sm text-gray-400">{new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+              </div>
               <div className="flex items-center gap-2">
                 {!isRecepcion && (
                   <button
@@ -1775,20 +1794,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 )}
                 <button
                   onClick={() => setShowExpenses(true)}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
                 >
-                  <TrendingDown size={18} />
+                  <TrendingDown size={16} />
                   Registrar Egreso
                 </button>
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow p-6 text-center">
-              <TrendingDown className="mx-auto text-red-400 mb-3" size={48} />
+            <div className="bg-white rounded-2xl shadow-md border-t-4 border-red-400 p-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
+                <TrendingDown className="text-red-400" size={28} />
+              </div>
               <p className="text-3xl font-bold text-red-600 mb-1">-${todayExpensesTotal.toFixed(2)}</p>
-              <p className="text-gray-500">Total egresos de hoy</p>
+              <p className="text-gray-400 text-sm">Total egresos de hoy</p>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="mt-4 text-red-600 hover:text-red-700 text-sm font-medium"
+                className="mt-4 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-sm font-medium transition-colors"
               >
                 Ver detalle y registrar egresos
               </button>
