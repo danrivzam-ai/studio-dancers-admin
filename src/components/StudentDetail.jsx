@@ -263,10 +263,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
           {/* Payment cards grid */}
           <div className="p-4 grid grid-cols-2 gap-3">
-            <div className="bg-gray-50 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">Tarifa</p>
-              <p className="text-xl font-bold text-gray-800">${coursePrice.toFixed(2)}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
+              <p className="text-[10px] text-violet-400 uppercase tracking-wider font-medium mb-1">Tarifa</p>
+              <p className="text-xl font-bold text-violet-700">${coursePrice.toFixed(2)}</p>
+              <p className="text-xs text-violet-300 mt-0.5">
                 {course?.priceType === 'mes' ? (course?.classesPerCycle ? `${course.classesPerCycle} clases` : 'mensual')
                   : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases`
                   : course?.priceType === 'programa' ? 'programa completo'
@@ -274,8 +274,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">Último pago</p>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+              <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-medium mb-1">Último pago</p>
               <p className="text-sm font-bold text-gray-800">
                 {student.last_payment_date ? formatDate(student.last_payment_date) : '—'}
               </p>
@@ -288,7 +288,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               <div className={`rounded-xl p-3 text-center border ${
                 daysUntilDue !== null && daysUntilDue < 0 ? 'bg-red-50 border-red-200'
                 : daysUntilDue !== null && daysUntilDue <= 5 ? 'bg-amber-50 border-amber-200'
-                : 'bg-gray-50 border-transparent'
+                : 'bg-sky-50 border-sky-100'
               }`}>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">Próximo cobro</p>
                 <p className="text-sm font-bold text-gray-800">
@@ -307,7 +307,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             )}
 
             {(isRecurring || isProgram) && (
-              <div className={`rounded-xl p-3 text-center border ${hasBalance ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-transparent'}`}>
+              <div className={`rounded-xl p-3 text-center border ${hasBalance ? 'bg-orange-50 border-orange-200' : 'bg-emerald-50 border-emerald-100'}`}>
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">
                   {hasBalance ? 'Saldo pendiente' : 'Pagado ciclo'}
                 </p>
@@ -320,38 +320,42 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           </div>
 
           {/* Fidelidad */}
-          {isRecurring && loyalty.months > 0 && (
-            <div className="px-4 pb-3">
-              <div className="rounded-xl p-3" style={{
-                background: loyalty.tier === 'oro' ? '#fffbeb' : loyalty.tier === 'plata' ? '#f8fafc' : loyalty.tier === 'bronce' ? '#fff7ed' : '#f9fafb',
-                border: `1px solid ${loyalty.tier === 'oro' ? '#fcd34d' : loyalty.tier === 'plata' ? '#cbd5e1' : loyalty.tier === 'bronce' ? '#fdba74' : '#e5e7eb'}`
-              }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award size={16} style={{ color: loyalty.tier === 'oro' ? '#b45309' : loyalty.tier === 'plata' ? '#475569' : '#c2410c' }} />
-                    <div>
-                      <p className="text-sm font-bold"
-                        style={{ color: loyalty.tier === 'oro' ? '#92400e' : loyalty.tier === 'plata' ? '#334155' : loyalty.tier === 'bronce' ? '#9a3412' : '#374151' }}>
-                        {loyalty.tier ? `Nivel ${loyalty.label}` : 'Acumulando fidelidad'}
-                      </p>
-                      <p className="text-xs text-gray-500">{loyalty.months} {loyalty.months === 1 ? 'mes' : 'meses'} consecutivo{loyalty.months !== 1 ? 's' : ''}</p>
+          {isRecurring && loyalty.months > 0 && (() => {
+            const lc = loyalty.tier === 'oro'
+              ? { card: 'bg-amber-50 border-amber-300', icon: 'text-amber-600', title: 'text-amber-800', pct: 'text-amber-700' }
+              : loyalty.tier === 'plata'
+              ? { card: 'bg-slate-50 border-slate-300', icon: 'text-slate-500', title: 'text-slate-700', pct: 'text-slate-600' }
+              : loyalty.tier === 'bronce'
+              ? { card: 'bg-orange-50 border-orange-300', icon: 'text-orange-600', title: 'text-orange-800', pct: 'text-orange-700' }
+              : { card: 'bg-gray-50 border-gray-200', icon: 'text-gray-400', title: 'text-gray-700', pct: 'text-gray-600' }
+            return (
+              <div className="px-4 pb-3">
+                <div className={`rounded-xl border p-3 ${lc.card}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Award size={16} className={lc.icon} />
+                      <div>
+                        <p className={`text-sm font-bold ${lc.title}`}>
+                          {loyalty.tier ? `Nivel ${loyalty.label}` : 'Acumulando fidelidad'}
+                        </p>
+                        <p className="text-xs text-gray-500">{loyalty.months} {loyalty.months === 1 ? 'mes' : 'meses'} consecutivo{loyalty.months !== 1 ? 's' : ''}</p>
+                      </div>
                     </div>
+                    {loyalty.tier && (
+                      <span className={`text-lg font-bold ${lc.pct}`}>
+                        {loyalty.discount}% off
+                      </span>
+                    )}
                   </div>
-                  {loyalty.tier && (
-                    <span className="text-lg font-bold"
-                      style={{ color: loyalty.tier === 'oro' ? '#b45309' : loyalty.tier === 'plata' ? '#475569' : '#c2410c' }}>
-                      {loyalty.discount}% off
-                    </span>
+                  {loyalty.next && (
+                    <p className="text-[11px] text-gray-400 mt-1.5 text-center">
+                      {loyalty.nextMonths} {loyalty.nextMonths === 1 ? 'mes' : 'meses'} más para nivel {loyalty.next}
+                    </p>
                   )}
                 </div>
-                {loyalty.next && (
-                  <p className="text-[11px] text-gray-400 mt-1.5 text-center">
-                    {loyalty.nextMonths} {loyalty.nextMonths === 1 ? 'mes' : 'meses'} más para nivel {loyalty.next}
-                  </p>
-                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Ciclo actual */}
           {cycleInfo && (
@@ -371,9 +375,15 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <p className="text-xs text-center text-purple-500 mb-1">
                   Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
                 </p>
-                <p className="text-center text-lg font-bold text-purple-700">
+                <p className="text-center text-lg font-bold text-purple-700 mb-2">
                   Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
                 </p>
+                <div className="bg-purple-100 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-purple-500 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, Math.round((cycleInfo.classesPassed / cycleInfo.totalClasses) * 100))}%` }}
+                  />
+                </div>
               </div>
             </div>
           )}
