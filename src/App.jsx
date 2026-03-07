@@ -1110,8 +1110,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Global Search Bar */}
         <div className="mb-3 sm:mb-4">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-2 max-w-sm focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
-            <Search className="text-gray-400 shrink-0" size={16} />
+          <div className="flex items-center gap-2.5 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-2.5 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 focus-within:shadow-md transition-all">
+            <Search className="text-purple-400 shrink-0" size={16} />
             <input
               ref={globalSearchRef}
               type="text"
@@ -1126,7 +1126,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   setShowStudentListModal(true)
                 }
               }}
-              className="w-full text-xs sm:text-sm outline-none bg-transparent"
+              className="w-full text-sm outline-none bg-transparent placeholder:text-gray-400"
             />
             {searchTerm && (
               <button
