@@ -317,7 +317,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'single',
       label: 'Por clase',
-      color: 'bg-blue-100 text-blue-800',
+      color: 'bg-sky-100 text-sky-700 border border-sky-200',
       colorCode: 'blue',
       priority: 5
     }
@@ -334,7 +334,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       return {
         status: 'paid',
         label: 'Pagado',
-        color: 'bg-green-100 text-green-800',
+        color: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
         colorCode: 'green',
         priority: 5
       }
@@ -344,7 +344,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       return {
         status: 'partial',
         label: `Abono: $${amountPaid} / Debe: $${balance.toFixed(2)}`,
-        color: 'bg-orange-100 text-orange-800',
+        color: 'bg-orange-100 text-orange-700 border border-orange-200',
         colorCode: 'orange',
         priority: 2
       }
@@ -353,7 +353,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'pending',
       label: 'Pendiente',
-      color: 'bg-gray-100 text-gray-800',
+      color: 'bg-slate-100 text-slate-500 border border-slate-200',
       colorCode: 'gray',
       priority: 4
     }
@@ -365,7 +365,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       return {
         status: 'pending',
         label: 'Sin pago',
-        color: 'bg-gray-100 text-gray-800',
+        color: 'bg-slate-100 text-slate-500 border border-slate-200',
         colorCode: 'gray',
         priority: 4
       }
@@ -389,7 +389,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       return {
         status: 'inactive',
         label: 'Inactiva',
-        color: 'bg-gray-400 text-white',
+        color: 'bg-slate-200 text-slate-600 border border-slate-300',
         colorCode: 'gray',
         priority: 6
       }
@@ -399,7 +399,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
       return {
         status: 'overdue',
         label: `Renovar paquete`,
-        color: 'bg-red-600 text-white',
+        color: 'bg-red-600 text-white ring-1 ring-red-700',
         colorCode: 'red',
         priority: 1
       }
@@ -408,7 +408,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'active_package',
       label: `${remaining} clase${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}`,
-      color: remaining <= 1 ? 'bg-orange-500 text-white' : 'bg-blue-100 text-blue-800',
+      color: remaining <= 1 ? 'bg-orange-500 text-white ring-1 ring-orange-600' : 'bg-violet-100 text-violet-700 border border-violet-200',
       colorCode: remaining <= 1 ? 'orange' : 'blue',
       priority: remaining <= 1 ? 2 : 4
     }
@@ -421,7 +421,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'partial',
       label: `Abono: $${paid.toFixed(0)} / Debe: $${bal.toFixed(2)}`,
-      color: 'bg-orange-100 text-orange-800',
+      color: 'bg-orange-100 text-orange-700 border border-orange-200',
       colorCode: 'orange',
       priority: 2
     }
@@ -431,7 +431,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'pending',
       label: 'Sin cobro',
-      color: 'bg-gray-200 text-gray-600',
+      color: 'bg-slate-100 text-slate-500 border border-slate-200',
       colorCode: 'gray',
       priority: 4
     }
@@ -444,7 +444,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'inactive',
       label: 'Inactiva',
-      color: 'bg-gray-400 text-white',
+      color: 'bg-slate-200 text-slate-600 border border-slate-300',
       colorCode: 'gray',
       priority: 6
     }
@@ -455,7 +455,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'overdue',
       label: absDays === 1 ? 'Renovar (1 día atrás)' : `Renovar (${absDays} días atrás)`,
-      color: 'bg-red-600 text-white',
+      color: 'bg-red-600 text-white ring-1 ring-red-700',
       colorCode: 'red',
       priority: 1
     }
@@ -464,7 +464,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'due_today',
       label: 'Renovar hoy',
-      color: 'bg-red-500 text-white',
+      color: 'bg-red-500 text-white ring-1 ring-red-600',
       colorCode: 'red',
       priority: 1
     }
@@ -473,7 +473,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'urgent',
       label: days === 1 ? 'Renovar mañana' : `Renovar en ${days} días`,
-      color: 'bg-orange-500 text-white',
+      color: 'bg-orange-500 text-white ring-1 ring-orange-600',
       colorCode: 'orange',
       priority: 2
     }
@@ -482,7 +482,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
     return {
       status: 'upcoming',
       label: `Renovar en ${days} días`,
-      color: 'bg-yellow-500 text-white',
+      color: 'bg-amber-100 text-amber-800 border border-amber-300',
       colorCode: 'yellow',
       priority: 3
     }
@@ -490,7 +490,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
   return {
     status: 'ok',
     label: `Renovación en ${days} días`,
-    color: 'bg-green-100 text-green-800',
+    color: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
     colorCode: 'green',
     priority: 5
   }

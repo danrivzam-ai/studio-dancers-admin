@@ -928,45 +928,45 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           {/* Fila 2: Acciones principales - grid adaptable */}
           <div className="pt-3 border-t border-gray-100 space-y-5">
             {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
-            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <Plus size={20} />
                 <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <ShoppingBag size={20} />
                 <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <Zap size={20} />
                 <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <TrendingDown size={20} />
                 <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <ArrowLeftRight size={20} />
                 <span>Movimiento</span>
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-colors text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
               >
                 <History size={20} />
                 <span>Historial</span>
@@ -986,12 +986,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               )}
               <button
                 onClick={() => setShowTransferVerification(true)}
-                className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium relative"
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-medium relative active:scale-95 ${
+                  pendingTransfers > 0
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
+                    : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                }`}
               >
                 <DollarSign size={16} />
                 Transferencias
                 {pendingTransfers > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
                     {pendingTransfers}
                   </span>
                 )}
@@ -1009,8 +1013,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
         </div>
 
-        {/* Tabs - Siempre con texto visible */}
-        <div className="flex gap-1 sm:gap-2 mb-6 overflow-x-auto pb-2">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
             { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
@@ -1031,14 +1035,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap text-xs sm:text-sm ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-xs sm:text-sm shrink-0 ${
                   activeTab === tab.id
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-purple-50 border border-gray-200'
+                    ? 'bg-white text-purple-700 shadow-md font-semibold'
+                    : 'text-gray-500 hover:bg-white/70 hover:text-purple-700 hover:shadow-sm'
                 }`}
               >
                 <Icon size={15} />
-                {tab.label}{tab.count !== undefined ? ` (${tab.count})` : ''}
+                {tab.label}
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
+                    activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
               </button>
             )
           })}
@@ -1048,7 +1059,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
-            className="bg-white rounded-xl shadow p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 border-transparent hover:border-green-300"
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 border-green-400"
             title="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1072,7 +1083,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
           <div
             onClick={() => { setFilterPayment(overduePayments.length > 0 ? 'overdue' : 'upcoming'); setShowStudentListModal(true) }}
-            className={`bg-white rounded-xl shadow p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-2 ${overduePayments.length > 0 ? 'animate-pulse-urgent border-red-300 hover:border-red-400' : 'border-transparent hover:border-yellow-300'}`}
+            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${overduePayments.length > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'}`}
             title={overduePayments.length > 0 ? 'Ver alumnos por renovar' : 'Ver próximos cobros'}
           >
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1136,7 +1147,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 border-transparent hover:border-purple-300"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-purple-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1152,16 +1163,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
-                  upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'border-transparent hover:border-yellow-300' : 'border-transparent'
-                }`}
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-amber-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-yellow-100' : 'bg-gray-100'}`}>
-                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'} size={18} />
+                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
+                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'} size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                    <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
                       {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                     </p>
                     <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Próximos</p>
@@ -1172,9 +1181,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
-                  studentsWithBalance.length > 0 ? 'border-transparent hover:border-orange-300' : 'border-transparent'
-                }`}
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-orange-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
@@ -1192,16 +1199,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className={`bg-white rounded-xl shadow p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-2 ${
-                  inactiveStudents.length > 0 ? 'border-transparent hover:border-gray-400' : 'border-transparent'
-                }`}
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-slate-300"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-gray-200' : 'bg-gray-100'}`}>
-                    <Pause className={inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'} size={18} />
+                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
+                    <Pause className={inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'} size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-gray-600' : 'text-gray-400'}`}>
+                    <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'}`}>
                       {inactiveStudents.length}
                     </p>
                     <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Inactivas</p>
@@ -2302,8 +2307,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       const paymentStatus = getPaymentStatus(student, course, autoInactiveDays)
                       const isCamp = student.course_id?.startsWith('camp-')
 
+                      const rowBg = isCamp
+                        ? 'border-l-4 border-pink-400 hover:bg-pink-50/40'
+                        : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
+                          ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
+                          : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
+                            ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
+                            : 'hover:bg-gray-50'
+
                       return (
-                        <div key={student.id} className={`p-3 sm:p-4 hover:bg-gray-50 transition-colors ${isCamp ? 'border-l-4 border-pink-400' : ''}`}>
+                        <div key={student.id} className={`p-3 sm:p-4 transition-colors ${rowBg}`}>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                               <StudentAvatar student={student} isCamp={isCamp} />
@@ -2333,9 +2346,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             </div>
 
                             <div className="flex items-center gap-1 sm:gap-3 shrink-0">
-                              <div className="text-right hidden sm:block">
-                                <p className="font-semibold text-gray-800 text-sm">${student.monthly_fee}</p>
-                                <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${paymentStatus.color}`}>
+                              <div className="text-right">
+                                <p className="font-semibold text-gray-800 text-sm hidden sm:block">${student.monthly_fee}</p>
+                                <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${paymentStatus.color}`}>
                                   {paymentStatus.label}
                                 </span>
                               </div>
