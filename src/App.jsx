@@ -2206,28 +2206,39 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+                    <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
                       <Users size={20} />
                     </div>
                     <div>
-                      <h2 className="text-base sm:text-xl font-semibold">Alumnos ({filteredStudents.length})</h2>
-                      <p className="text-xs sm:text-sm text-white/80 hidden sm:block">Gestiona tu lista de alumnos</p>
+                      <h2 className="text-base sm:text-lg font-bold">
+                        {filteredStudents.length === students.length
+                          ? `${students.length} alumnas`
+                          : `${filteredStudents.length} de ${students.length} alumnas`}
+                      </h2>
+                      <p className="text-xs text-white/70">
+                        {filterPayment === 'overdue' ? 'Filtro: Por renovar' :
+                         filterPayment === 'upcoming' ? 'Filtro: Próximas a vencer' :
+                         filterPayment === 'inactive' ? 'Filtro: Inactivas' :
+                         filterCourse !== 'all' ? 'Filtro: Por curso' :
+                         'Gestiona tu lista de alumnas'}
+                      </p>
                     </div>
                   </div>
-                  <button onClick={() => setShowStudentListModal(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                  <button onClick={() => setShowStudentListModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
                     <X size={20} />
                   </button>
                 </div>
               </div>
 
               {/* Search and Filters */}
-              <div className="p-3 sm:p-4 border-b bg-gray-50">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <div className="flex-1 flex items-center gap-2 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 px-3 py-2 bg-white">
-                    <Search className="text-gray-400 shrink-0" size={18} />
+              <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
+                {/* Fila 1: Búsqueda + Curso */}
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2 bg-white transition-all">
+                    <Search className="text-gray-400 shrink-0" size={16} />
                     <input
                       type="text"
                       placeholder="Buscar por nombre o cédula..."
@@ -2235,20 +2246,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full text-sm outline-none bg-transparent"
                     />
-                    {(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
+                    {searchTerm && (
                       <button
-                        onClick={() => { setSearchTerm(''); setFilterCourse('all'); setFilterPayment('all') }}
-                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
-                        title="Limpiar filtros"
+                        onClick={() => setSearchTerm('')}
+                        className="p-0.5 text-gray-400 hover:text-red-500 rounded-full transition-colors shrink-0"
                       >
-                        <X size={16} />
+                        <X size={14} />
                       </button>
                     )}
                   </div>
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -2274,31 +2284,72 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       )
                     })()}
                   </select>
-                  <select
-                    value={filterPayment}
-                    onChange={(e) => setFilterPayment(e.target.value)}
-                    className="px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="all">Todos</option>
-                    <option value="overdue">Por renovar</option>
-                    <option value="inactive">Inactivas</option>
-                    <option value="upcoming">Próximos</option>
-                  </select>
+                </div>
+
+                {/* Fila 2: Chips de estado de pago */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    { value: 'all',      label: 'Todas',         active: 'bg-purple-600 text-white shadow-sm',        inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-purple-300 hover:text-purple-600' },
+                    { value: 'overdue',  label: 'Por renovar',   active: 'bg-red-600 text-white shadow-sm',           inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600' },
+                    { value: 'upcoming', label: 'Próximas',      active: 'bg-amber-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300 hover:text-amber-600' },
+                    { value: 'inactive', label: 'Inactivas',     active: 'bg-slate-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-slate-300 hover:text-slate-600' },
+                  ].map(chip => (
+                    <button
+                      key={chip.value}
+                      onClick={() => setFilterPayment(chip.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                        filterPayment === chip.value ? chip.active : chip.inactive
+                      }`}
+                    >
+                      {chip.label}
+                      {chip.value === 'overdue' && overduePayments.length > 0 && (
+                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
+                          {overduePayments.length}
+                        </span>
+                      )}
+                      {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
+                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
+                          {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                  {(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
+                    <button
+                      onClick={() => { setSearchTerm(''); setFilterCourse('all'); setFilterPayment('all') }}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-200"
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Student List */}
               <div className="flex-1 overflow-y-auto">
                 {filteredStudents.length === 0 ? (
-                  <div className="p-12 text-center text-gray-500">
-                    <Users size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>No hay alumnos registrados</p>
-                    <button
-                      onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
-                      className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
-                    >
-                      Agregar primer alumno
-                    </button>
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Users size={28} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 font-medium mb-1">
+                      {searchTerm || filterCourse !== 'all' || filterPayment !== 'all'
+                        ? 'Sin resultados para este filtro'
+                        : 'No hay alumnos registrados'}
+                    </p>
+                    <p className="text-xs text-gray-400 mb-4">
+                      {searchTerm || filterCourse !== 'all' || filterPayment !== 'all'
+                        ? 'Intenta ajustar los filtros'
+                        : 'Agrega tu primera alumna para comenzar'}
+                    </p>
+                    {!(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
+                      <button
+                        onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors"
+                      >
+                        Agregar alumna
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="divide-y">
@@ -2409,10 +2460,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               {/* Footer */}
-              <div className="p-2 sm:p-4 border-t bg-gray-50">
+              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-3">
+                <p className="text-xs text-gray-400 hidden sm:block">
+                  {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
+                </p>
                 <button
                   onClick={() => setShowStudentListModal(false)}
-                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+                  className="flex-1 sm:flex-none sm:w-32 px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
                 >
                   Cerrar
                 </button>
