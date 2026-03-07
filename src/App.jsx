@@ -276,6 +276,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [cartItems, setCartItems] = useState([])
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
+  const [salesDateFilter, setSalesDateFilter] = useState('today')
 
   // Días de gracia antes de marcar como inactiva
   const autoInactiveDays = settings.auto_inactive_days || 10
@@ -1485,12 +1486,53 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         )}
 
         {/* Sales Tab */}
-        {activeTab === 'sales' && (
+        {activeTab === 'sales' && (() => {
+          const todayStr = getTodayEC()
+          const todayDate = new Date(todayStr + 'T12:00:00')
+          const filteredSales = sales.filter(s => {
+            if (salesDateFilter === 'today') return s.sale_date === todayStr
+            if (salesDateFilter === 'week') {
+              const d = new Date(s.sale_date + 'T12:00:00')
+              return (todayDate - d) / 86400000 <= 6
+            }
+            if (salesDateFilter === 'month') {
+              return s.sale_date.startsWith(todayStr.slice(0, 7))
+            }
+            return true
+          })
+          const filteredTotal = filteredSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
+          const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
+          return (
           <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-              <div>
-                <h2 className="font-semibold text-gray-800">Ventas de Artículos</h2>
-                <p className="text-sm text-gray-500">Total vendido: ${totalSalesIncome}</p>
+            <div className="p-4 border-b bg-gray-50">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-semibold text-gray-800">Ventas de Artículos</h2>
+                  <p className="text-sm text-gray-500">
+                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
+                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[
+                  { value: 'today', label: 'Hoy' },
+                  { value: 'week', label: '7 días' },
+                  { value: 'month', label: 'Este mes' },
+                  { value: 'all', label: 'Todo' },
+                ].map(f => (
+                  <button
+                    key={f.value}
+                    onClick={() => setSalesDateFilter(f.value)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      salesDateFilter === f.value
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1537,10 +1579,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             </div>
 
-            {sales.length === 0 ? (
+            {filteredSales.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
                 <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
-                <p>No hay ventas registradas</p>
+                <p>{salesDateFilter === 'today' ? 'Sin ventas hoy' : salesDateFilter === 'week' ? 'Sin ventas esta semana' : salesDateFilter === 'month' ? 'Sin ventas este mes' : 'No hay ventas registradas'}</p>
                 <button
                   onClick={() => setShowSaleForm(true)}
                   className="mt-4 text-green-600 hover:text-green-700 font-medium"
@@ -1554,11 +1596,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   // Agrupar ventas: agrupadas por sale_group_id, o individuales (null)
                   const groups = []
                   const seen = new Set()
-                  for (const sale of sales) {
+                  for (const sale of filteredSales) {
                     if (sale.sale_group_id) {
                       if (seen.has(sale.sale_group_id)) continue
                       seen.add(sale.sale_group_id)
-                      const items = sales.filter(s => s.sale_group_id === sale.sale_group_id)
+                      const items = filteredSales.filter(s => s.sale_group_id === sale.sale_group_id)
                       groups.push({ isGroup: true, id: sale.sale_group_id, items, sale })
                     } else {
                       groups.push({ isGroup: false, id: sale.id, items: [sale], sale })
@@ -1623,7 +1665,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             )}
           </div>
-        )}
+          )
+        })()}
 
         {/* Courses Tab */}
         {activeTab === 'courses' && (
