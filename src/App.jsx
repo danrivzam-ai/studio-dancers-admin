@@ -46,18 +46,26 @@ import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
-// Mini-component: shows avatar photo from Supabase storage, falls back to initials
+// Mini-component: shows initials by default, swaps to avatar photo if one exists in storage
 function StudentAvatar({ student, isCamp }) {
+  const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
   const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student.id}.jpg`).data?.publicUrl
   const initials = student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'
+  const showInitials = !imgLoaded || imgError
   return (
-    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${imgError ? bgClass : ''}`}>
-      {!imgError
-        ? <img src={avatarUrl} alt={student.name} onError={() => setImgError(true)} className="w-full h-full object-cover" />
-        : <span className="font-bold text-sm">{initials}</span>
-      }
+    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${bgClass}`}>
+      {!imgError && (
+        <img
+          src={avatarUrl}
+          alt={student.name}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgError(true)}
+          className={`w-full h-full object-cover ${imgLoaded ? '' : 'hidden'}`}
+        />
+      )}
+      {showInitials && <span className="font-bold text-sm">{initials}</span>}
     </div>
   )
 }
