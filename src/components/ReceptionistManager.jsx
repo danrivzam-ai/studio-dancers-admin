@@ -173,8 +173,8 @@ export default function ReceptionistManager() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-xl">
                   <Shield size={18} />
@@ -188,18 +188,18 @@ export default function ReceptionistManager() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="px-6 pt-5 pb-6 space-y-4">
+            <form onSubmit={handleSave} className="px-6 pt-6 pb-7 space-y-5">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre completo</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-sm"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-sm"
                   placeholder="Ej: Gabriela Suárez"
                   required
                   autoFocus
@@ -207,12 +207,12 @@ export default function ReceptionistManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Usuario (para login)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Usuario (para login)</label>
                 <input
                   type="text"
                   value={form.username}
                   onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-sm"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-sm"
                   placeholder="ej: gabriela.suarez"
                   autoCapitalize="none"
                   required
@@ -220,7 +220,7 @@ export default function ReceptionistManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {editingId ? 'Contraseña (editar para cambiar)' : 'Contraseña'}
                 </label>
                 <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
@@ -228,42 +228,42 @@ export default function ReceptionistManager() {
                     type={showPw ? 'text' : 'password'}
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    className="flex-1 px-4 py-2.5 bg-transparent outline-none text-sm min-w-0"
+                    className="flex-1 px-4 py-3 bg-transparent outline-none text-sm min-w-0"
                     placeholder="Contraseña de acceso"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="px-3 py-2.5 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
+                    className="px-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
 
-              <label className="flex items-center gap-2.5 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer py-1">
                 <div
                   onClick={() => setForm(f => ({ ...f, active: !f.active }))}
-                  className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
+                  className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 shrink-0 ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.active ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
                 <span className="text-sm text-gray-700">Cuenta activa</span>
               </label>
 
-              <div className="flex gap-3 pt-3">
+              <div className="flex gap-3 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all outline-none"
+                  className="flex-1 py-3 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all"
                   style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}
