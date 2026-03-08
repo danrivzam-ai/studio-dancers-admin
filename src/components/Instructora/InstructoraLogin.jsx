@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { supabase } from '../../lib/supabase'
 
 export default function InstructoraLogin({ onLogin }) {
-  const [email, setEmail]       = useState('')
+  const [cedula, setCedula]     = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw]     = useState(false)
   const [remember, setRemember] = useState(false)
@@ -19,12 +19,12 @@ export default function InstructoraLogin({ onLogin }) {
     try {
       const { data, error: dbError } = await supabase
         .from('instructors')
-        .select('id, name, email, password, active, must_change_password')
-        .eq('email', email.trim().toLowerCase())
+        .select('id, name, email, cedula, password, active, must_change_password')
+        .eq('cedula', cedula.trim())
         .maybeSingle()
 
       if (dbError || !data) {
-        setError('Correo o contraseña incorrectos')
+        setError('Cédula o contraseña incorrectos')
         return
       }
 
@@ -35,7 +35,7 @@ export default function InstructoraLogin({ onLogin }) {
 
       const match = await bcrypt.compare(password, data.password)
       if (!match) {
-        setError('Correo o contraseña incorrectos')
+        setError('Cédula o contraseña incorrectos')
         return
       }
 
@@ -90,16 +90,17 @@ export default function InstructoraLogin({ onLogin }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Correo electrónico
+                Cédula
               </label>
               <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setError('') }}
-                placeholder="tu@email.com"
-                autoComplete="email"
+                type="text"
+                name="cedula"
+                value={cedula}
+                onChange={e => { setCedula(e.target.value); setError('') }}
+                placeholder="Número de cédula"
+                autoComplete="username"
                 autoFocus
+                inputMode="numeric"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                 required
               />
