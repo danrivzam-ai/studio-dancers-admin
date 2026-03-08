@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera } from 'lucide-react'
+import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2 } from 'lucide-react'
 import { formatDate } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 
@@ -215,6 +215,8 @@ export default function TransferVerification({
   onReject,
   onClose,
   onRegisterPayment,
+  onPaymentRegistered,
+  onDeleteRejected,
   getCourseById,
   enrichCourse,
   students
@@ -244,6 +246,10 @@ export default function TransferVerification({
         if (!result?.success) {
           throw new Error(result?.error || 'Error registrando el pago del estudiante')
         }
+        // Notify parent to show receipt before closing
+        if (onPaymentRegistered && result.data) {
+          onPaymentRegistered(result.data, student)
+        }
       }
       await onApprove(request.id)
     } catch (err) {
@@ -270,12 +276,15 @@ export default function TransferVerification({
 
   const statusBadge = (status) => {
     switch (status) {
-      case 'pending': return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium flex items-center gap-1"><Clock size={10} />Pendiente</span>
+      case 'pending':  return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium flex items-center gap-1"><Clock size={10} />Pendiente</span>
       case 'approved': return <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium flex items-center gap-1"><CheckCircle size={10} />Aprobada</span>
       case 'rejected': return <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-[10px] font-medium flex items-center gap-1"><XCircle size={10} />Rechazada</span>
+      case 'expired':  return <span className="px-2 py-0.5 bg-gray-200 text-gray-500 rounded-full text-[10px] font-medium flex items-center gap-1"><Clock size={10} />Expirada</span>
       default: return null
     }
   }
+
+  const cleanableCount = requests.filter(r => r.status === 'rejected' || r.status === 'expired').length
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
@@ -293,6 +302,19 @@ export default function TransferVerification({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {cleanableCount > 0 && onDeleteRejected && (
+                <button
+                  onClick={async () => {
+                    if (!confirm(`¿Eliminar ${cleanableCount} transferencia(s) rechazada(s)/expirada(s)? Esta acción no se puede deshacer.`)) return
+                    await onDeleteRejected()
+                  }}
+                  className="flex items-center gap-1 text-xs bg-white/15 hover:bg-white/30 px-2.5 py-1.5 rounded-xl transition-all"
+                  title="Eliminar rechazadas y expiradas"
+                >
+                  <Trash2 size={13} />
+                  Limpiar ({cleanableCount})
+                </button>
+              )}
               <button
                 onClick={() => setShowManualForm(!showManualForm)}
                 className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
@@ -322,10 +344,11 @@ export default function TransferVerification({
         {/* Filters */}
         <div className="p-3 border-b flex gap-2 overflow-x-auto">
           {[
-            { key: 'pending', label: 'Pendientes', count: requests.filter(r => r.status === 'pending').length },
-            { key: 'approved', label: 'Aprobadas', count: requests.filter(r => r.status === 'approved').length },
+            { key: 'pending',  label: 'Pendientes', count: requests.filter(r => r.status === 'pending').length },
+            { key: 'approved', label: 'Aprobadas',  count: requests.filter(r => r.status === 'approved').length },
             { key: 'rejected', label: 'Rechazadas', count: requests.filter(r => r.status === 'rejected').length },
-            { key: 'all', label: 'Todas', count: requests.length }
+            { key: 'expired',  label: 'Expiradas',  count: requests.filter(r => r.status === 'expired').length },
+            { key: 'all',      label: 'Todas',      count: requests.length }
           ].map(f => (
             <button
               key={f.key}

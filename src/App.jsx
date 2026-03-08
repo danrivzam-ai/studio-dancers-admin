@@ -80,7 +80,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
-  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
+  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, deleteRejectedAndExpired, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -575,6 +575,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     } else {
       alert('Error: ' + result.error)
     }
+  }
+
+  // Al aprobar transferencia: cierra modal transferencias y abre comprobante
+  const handleTransferPaymentRegistered = (paymentData, studentData) => {
+    setShowTransferVerification(false)
+    const fullStudent = students.find(s => s.id === studentData?.id) || studentData
+    setSelectedStudent(fullStudent)
+    setLastPayment(paymentData)
+    setShowReceipt(true)
+    refreshIncome()
   }
 
   // ── Tablón de anuncios CRUD ──
@@ -2651,6 +2661,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onReject={rejectRequest}
             onClose={() => { setShowTransferVerification(false); fetchTransferRequests() }}
             onRegisterPayment={registerPayment}
+            onPaymentRegistered={handleTransferPaymentRegistered}
+            onDeleteRejected={deleteRejectedAndExpired}
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             students={students}

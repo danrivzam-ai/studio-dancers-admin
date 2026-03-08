@@ -67,6 +67,14 @@ export function useTransferRequests() {
   const fetchRequests = useCallback(async () => {
     try {
       setLoading(true)
+
+      // Silently expire pending transfers older than 7 days before fetching
+      await supabase
+        .from('transfer_requests')
+        .update({ status: 'expired' })
+        .eq('status', 'pending')
+        .lt('expires_at', new Date().toISOString())
+
       const { data, error } = await supabase
         .from('transfer_requests')
         .select('*, students(name, course_id, monthly_fee, payer_name, payer_cedula)')
@@ -226,6 +234,22 @@ export function useTransferRequests() {
     }
   }
 
+  // Delete all rejected and expired transfers in bulk
+  const deleteRejectedAndExpired = async () => {
+    try {
+      const { error } = await supabase
+        .from('transfer_requests')
+        .delete()
+        .in('status', ['rejected', 'expired'])
+      if (error) throw error
+      await fetchRequests()
+      return { success: true }
+    } catch (err) {
+      console.error('Error deleting rejected/expired transfers:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
   return {
     requests,
     loading,
@@ -235,6 +259,7 @@ export function useTransferRequests() {
     onNewTransferRef,
     fetchRequests,
     approveRequest,
-    rejectRequest
+    rejectRequest,
+    deleteRejectedAndExpired
   }
 }
