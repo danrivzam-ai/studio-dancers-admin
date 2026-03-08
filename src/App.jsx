@@ -1020,7 +1020,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
-            { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
+            { id: 'sales', icon: ShoppingBag, label: 'Ventas' },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'instructoras', icon: GraduationCap, label: 'Instructoras' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
@@ -1097,12 +1097,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {overduePayments.length > 0 ? (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-red-600">{overduePayments.length}</p>
-                    <p className="text-xs sm:text-sm text-red-500 font-medium">Por renovar</p>
+                    <p className="text-xs sm:text-sm text-red-500 font-medium mt-0.5">Por renovar</p>
                   </>
                 ) : (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Próximos</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Próximos</p>
                   </>
                 )}
               </div>
@@ -1176,7 +1176,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
                       {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Próximos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Próximos</p>
                   </div>
                 </div>
               </button>
@@ -1194,7 +1194,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
                       {studentsWithBalance.length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Saldos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Saldos</p>
                   </div>
                 </div>
               </button>
@@ -1212,7 +1212,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'}`}>
                       {inactiveStudents.length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Inactivas</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Inactivas</p>
                   </div>
                 </div>
               </button>
@@ -1321,7 +1321,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const course = enrichCourse(getCourseById(s.course_id))
                     const days = getDaysUntilDue(s.next_payment_date)
                     return (
-                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
+                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-4 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
@@ -1365,7 +1365,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
                 <div className="space-y-1.5">
                   {studentsWithBalance.slice(0, 3).map(s => (
-                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-3 pr-3 py-2.5">
+                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-4 pr-3 py-2.5">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                         <p className="text-xs text-gray-500 truncate">{s.courseName}</p>
@@ -2059,13 +2059,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
                     <div className="relative">
-                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-green-500 pointer-events-none" />
                       <input
                         type="text"
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       />
                     </div>
                     {/* Fila 1: selector ancho completo, filtrado por búsqueda */}
@@ -2453,15 +2453,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       const isCamp = student.course_id?.startsWith('camp-')
 
                       const rowBg = isCamp
-                        ? 'border-l-4 border-pink-400 hover:bg-pink-50/40'
+                        ? 'border-l-4 border-pink-300 hover:bg-pink-50/40'
                         : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
-                          ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
+                          ? 'border-l-4 border-red-300 bg-red-50/20 hover:bg-red-50/40'
                           : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
-                            ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
+                            ? 'border-l-4 border-amber-300 bg-amber-50/20 hover:bg-amber-50/40'
                             : 'hover:bg-gray-50'
 
                       return (
-                        <div key={student.id} className={`p-3 sm:p-4 transition-colors ${rowBg}`}>
+                        <div key={student.id} className={`py-3 sm:py-4 pl-4 sm:pl-5 pr-3 sm:pr-4 transition-colors ${rowBg}`}>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                               <StudentAvatar student={student} isCamp={isCamp} />

@@ -173,8 +173,8 @@ export default function ReceptionistManager() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-xl">
                   <Shield size={18} />
@@ -188,7 +188,7 @@ export default function ReceptionistManager() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
+            <form onSubmit={handleSave} className="px-6 pt-5 pb-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>
               )}
@@ -235,7 +235,7 @@ export default function ReceptionistManager() {
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg bg-white text-gray-400 hover:text-purple-600 transition-colors"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -252,7 +252,7 @@ export default function ReceptionistManager() {
                 <span className="text-sm text-gray-700">Cuenta activa</span>
               </label>
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}

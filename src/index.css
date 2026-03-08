@@ -279,13 +279,16 @@ input:focus, select:focus, textarea:focus {
 .border-purple-400 { border-color: var(--primary-400); }
 .border-purple-500 { border-color: var(--primary-500); }
 .border-pink-400  { border-color: var(--accent-400); }
+.border-pink-300  { border-color: #f9a8d4; }
 .border-green-200 { border-color: var(--success-100); }
 .border-green-400 { border-color: #34d399; }
 .border-green-500 { border-color: var(--success-500); }
 .border-emerald-400 { border-color: #34d399; }
 .border-red-400   { border-color: #f87171; }
+.border-red-300   { border-color: #fca5a5; }
 .border-red-500   { border-color: var(--danger-500); }
 .border-amber-400 { border-color: #fbbf24; }
+.border-amber-300 { border-color: #fcd34d; }
 .border-orange-400 { border-color: #fb923c; }
 .border-slate-300 { border-color: #cbd5e1; }
 .border-yellow-200 { border-color: var(--warning-100); }
