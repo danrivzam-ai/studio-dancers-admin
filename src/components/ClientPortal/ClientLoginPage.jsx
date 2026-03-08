@@ -115,7 +115,7 @@ export default function ClientLoginPage({ onLogin }) {
               <button
                 type="button"
                 onClick={() => setShowPhone(!showPhone)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-1 active:scale-95 transition-all"
               >
                 {showPhone ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -128,7 +128,7 @@ export default function ClientLoginPage({ onLogin }) {
           <button
             type="submit"
             disabled={loading || cedula.length < 6 || phone4.length !== 4}
-            className="w-full py-3.5 rounded-xl font-semibold text-white text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl font-semibold text-white text-base active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: 'linear-gradient(135deg, #7B2D8E 0%, #5a1a6e 100%)',
               boxShadow: '0 4px 15px rgba(123,45,142,0.35)'

@@ -71,7 +71,7 @@ export default function GalleryManager() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-3 py-1.5 rounded-xl text-xs font-medium active:scale-95 transition-all"
         >
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
           {uploading ? 'Subiendo...' : 'Subir fotos'}
@@ -81,7 +81,7 @@ export default function GalleryManager() {
 
       {/* Toast */}
       {toast && (
-        <div className={`text-xs px-3 py-2 rounded-lg font-medium ${
+        <div className={`text-xs px-3 py-2 rounded-xl font-medium ${
           toast.type === 'err' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
         }`}>
           {toast.msg}
@@ -92,7 +92,7 @@ export default function GalleryManager() {
       {loading && (
         <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse" />
+            <div key={i} className="aspect-square bg-gray-200 rounded-xl animate-pulse" />
           ))}
         </div>
       )}
@@ -105,7 +105,7 @@ export default function GalleryManager() {
           <p className="text-xs text-gray-400">Sube las primeras imágenes del estudio</p>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors"
+            className="mt-2 flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-purple-700 active:scale-95 transition-all"
           >
             <Upload size={13} />
             Subir fotos
@@ -119,7 +119,7 @@ export default function GalleryManager() {
           {photos.map(photo => {
             const url = getPhotoUrl(photo.storage_path)
             return (
-              <div key={photo.id} className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+              <div key={photo.id} className="group relative aspect-square bg-gray-100 rounded-xl overflow-hidden shadow-sm">
                 <img
                   src={url}
                   alt={photo.caption || 'Foto del estudio'}
@@ -132,7 +132,7 @@ export default function GalleryManager() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => setDeleteTarget(photo)}
-                      className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                      className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-xl active:scale-95 transition-all"
                       title="Eliminar foto"
                     >
                       <Trash2 size={11} />
@@ -141,7 +141,7 @@ export default function GalleryManager() {
                   {/* Caption edit — bottom */}
                   <button
                     onClick={() => setEditTarget({ id: photo.id, value: photo.caption || '', url })}
-                    className="flex items-center gap-1 bg-black/50 hover:bg-black/70 rounded-md px-1.5 py-1 text-left w-full transition-colors"
+                    className="flex items-center gap-1 bg-black/50 hover:bg-black/70 rounded-xl px-1.5 py-1 text-left w-full transition-all"
                     title="Editar pie de foto"
                   >
                     <Edit2 size={9} className="text-white/80 shrink-0" />
@@ -189,19 +189,19 @@ export default function GalleryManager() {
                 placeholder="Ej: Clase de técnica clásica"
                 autoFocus
                 maxLength={80}
-                className="w-full text-sm border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                className="w-full text-sm border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditTarget(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={saveCaption}
                   disabled={savingCaption}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm font-medium flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                 >
                   {savingCaption ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                   Guardar
@@ -241,14 +241,14 @@ export default function GalleryManager() {
             <div className="flex gap-2 p-4 pt-0">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-medium flex items-center justify-center gap-1.5 active:scale-95 transition-all"
               >
                 {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                 Eliminar

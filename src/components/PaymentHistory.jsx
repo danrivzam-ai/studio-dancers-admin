@@ -338,7 +338,7 @@ export default function PaymentHistory({
         <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg">
+              <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
                 <Calendar size={20} />
               </div>
               <div>
@@ -348,7 +348,7 @@ export default function PaymentHistory({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={20} />
             </button>
@@ -379,7 +379,7 @@ export default function PaymentHistory({
                   <button
                     key={p.key}
                     onClick={() => setDatePreset(p.key)}
-                    className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
+                    className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 active:scale-95 transition-all"
                   >
                     {p.label}
                   </button>
@@ -394,7 +394,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   />
                 </div>
                 <div>
@@ -403,7 +403,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   />
                 </div>
                 <div>
@@ -411,7 +411,7 @@ export default function PaymentHistory({
                   <select
                     value={viewType}
                     onChange={(e) => setViewType(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   >
                     <option value="all">Todos</option>
                     <option value="students">Alumnos</option>
@@ -420,8 +420,8 @@ export default function PaymentHistory({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
-                  <div className="flex items-center gap-1.5 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 px-2 py-1.5 bg-white">
-                    <Search className="text-gray-400 shrink-0" size={14} />
+                  <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-2 py-1.5 bg-white transition-all">
+                    <Search className="text-purple-400 shrink-0" size={14} />
                     <input
                       type="text"
                       placeholder="Nombre, cédula..."
@@ -446,17 +446,17 @@ export default function PaymentHistory({
 
           {/* Summary - always visible */}
           <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-4">
-            <div className="bg-white rounded-lg p-2 sm:p-3 text-center border">
+            <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
               <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredPayments.filter(p => !p.voided).length} pagos</p>
             </div>
-            <div className="bg-white rounded-lg p-2 sm:p-3 text-center border">
+            <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Rápidos</p>
               <p className="text-sm sm:text-lg font-bold text-yellow-600">${totalQuickPayments.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-2 sm:p-3 text-center border border-green-200">
+            <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200">
               <p className="text-[10px] sm:text-xs text-green-600 font-medium">TOTAL</p>
               <p className="text-sm sm:text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
@@ -519,7 +519,7 @@ export default function PaymentHistory({
                         <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintStudent(payment)}
-                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors"
+                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl active:scale-95 transition-all"
                             title="Reimprimir"
                           >
                             <Printer size={16} />
@@ -527,7 +527,7 @@ export default function PaymentHistory({
                           {!isRecepcion && (
                             <button
                               onClick={() => openVoidModal('student', payment)}
-                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl active:scale-95 transition-all"
                               title="Anular"
                             >
                               <Ban size={14} />
@@ -586,7 +586,7 @@ export default function PaymentHistory({
                         <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintQuick(payment)}
-                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition-colors"
+                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl active:scale-95 transition-all"
                             title="Reimprimir"
                           >
                             <Printer size={16} />
@@ -594,7 +594,7 @@ export default function PaymentHistory({
                           {!isRecepcion && (
                             <button
                               onClick={() => openVoidModal('quick', payment)}
-                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                              className="p-1.5 sm:p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-xl active:scale-95 transition-all"
                               title="Anular"
                             >
                               <Ban size={14} />
@@ -623,7 +623,7 @@ export default function PaymentHistory({
         <div className="p-2 sm:p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+            className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
           >
             Cerrar
           </button>
@@ -633,13 +633,13 @@ export default function PaymentHistory({
       {/* Modal de Anulación */}
       {voidModal.show && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-xl shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
-            <div className="px-4 py-3 border-b bg-red-50 rounded-t-xl flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="text-red-500" size={18} />
                 <span className="font-medium text-red-700 text-sm">Anular Comprobante</span>
               </div>
-              <button onClick={closeVoidModal} className="p-1 hover:bg-red-100 rounded">
+              <button onClick={closeVoidModal} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
                 <X size={16} className="text-red-500" />
               </button>
             </div>
@@ -662,7 +662,7 @@ export default function PaymentHistory({
                   type="text"
                   value={voidReason}
                   onChange={(e) => setVoidReason(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   placeholder="Motivo de anulación..."
                 />
               </div>
@@ -681,7 +681,7 @@ export default function PaymentHistory({
                     setVoidPin(e.target.value.replace(/\D/g, ''))
                     setVoidError('')
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg text-center text-lg tracking-widest ${
+                  className={`w-full px-3 py-2 border-2 rounded-xl text-center text-lg tracking-widest transition-all ${
                     voidError ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="••••"
@@ -695,14 +695,14 @@ export default function PaymentHistory({
                 <button
                   type="button"
                   onClick={closeVoidModal}
-                  className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-semibold"
+                  className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={voidLoading || voidPin.length < 4}
-                  className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
+                  className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
                     voidLoading || voidPin.length < 4
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-red-600 hover:bg-red-700 text-white'

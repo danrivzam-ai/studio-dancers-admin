@@ -60,7 +60,7 @@ export default function TabCalendario({ student }) {
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={prevMonth}
-            className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-gray-100 active:bg-gray-200 active:scale-95 transition-all"
           >
             <ChevronLeft size={18} className="text-gray-600" />
           </button>
@@ -69,7 +69,7 @@ export default function TabCalendario({ student }) {
           </span>
           <button
             onClick={nextMonth}
-            className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            className="p-1.5 rounded-xl hover:bg-gray-100 active:bg-gray-200 active:scale-95 transition-all"
           >
             <ChevronRight size={18} className="text-gray-600" />
           </button>
@@ -124,7 +124,7 @@ export default function TabCalendario({ student }) {
 
       {/* Info del curso */}
       {course && (
-        <div className="mt-4 rounded-xl bg-purple-50 border border-purple-100 p-4">
+        <div className="mt-4 rounded-2xl bg-purple-50 border border-purple-100 p-4">
           <p className="text-xs font-semibold text-purple-700 mb-0.5">{course.name}</p>
           <p className="text-xs text-purple-600">{course.schedule}</p>
         </div>

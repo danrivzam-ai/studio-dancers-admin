@@ -146,7 +146,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={24} />
             </button>
@@ -156,14 +156,14 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2">
               <AlertCircle size={18} />
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm flex items-center gap-2">
               <Check size={18} />
               {success}
             </div>
@@ -173,7 +173,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
           {!showAddForm && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="mb-6 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-medium transition-colors"
+              className="mb-6 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-medium active:scale-95 transition-all"
             >
               <UserPlus size={20} />
               Agregar Usuario
@@ -226,7 +226,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all"
                 >
                   <Check size={18} />
                   Agregar
@@ -234,7 +234,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
@@ -293,7 +293,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                         value={user.role}
                         onChange={(e) => handleChangeRole(user.id, e.target.value)}
                         disabled={isCurrentUser}
-                        className={`text-sm px-3 py-2 rounded-lg border ${roleInfo.color} ${
+                        className={`text-sm px-3 py-2 rounded-xl border ${roleInfo.color} ${
                           isCurrentUser ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                         }`}
                       >
@@ -305,7 +305,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                       {!isCurrentUser && (
                         <button
                           onClick={() => handleDeleteUser(user.id, user.email)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                           title="Eliminar acceso"
                         >
                           <Trash2 size={18} />

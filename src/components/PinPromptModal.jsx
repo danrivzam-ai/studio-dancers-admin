@@ -50,19 +50,19 @@ export default function PinPromptModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs">
         {/* Header */}
-        <div className="px-4 py-3 border-b bg-purple-50 rounded-t-2xl">
+        <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="bg-purple-100 p-1.5 rounded-full">
-                <Shield className="text-purple-600" size={18} />
+              <div className="bg-white/20 p-1.5 rounded-xl">
+                <Shield size={18} />
               </div>
-              <h2 className="text-sm font-semibold text-purple-800">{title}</h2>
+              <h2 className="text-sm font-semibold">{title}</h2>
             </div>
             <button
               onClick={handleClose}
-              className="p-1.5 hover:bg-purple-100 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-white/20 rounded-xl transition-colors"
             >
-              <X size={16} className="text-purple-600" />
+              <X size={16} />
             </button>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function PinPromptModal({
                 setPin(e.target.value.replace(/\D/g, ''))
                 setError('')
               }}
-              className="w-full px-4 py-3 border-2 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
               placeholder="••••"
               autoFocus
               disabled={attempts >= 3}
@@ -99,14 +99,14 @@ export default function PinPromptModal({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={pin.length < 4 || attempts >= 3}
-              className="flex-1 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all"
             >
               Verificar
             </button>

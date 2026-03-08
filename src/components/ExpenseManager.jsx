@@ -121,7 +121,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
+              <div className="bg-white/20 p-2 rounded-xl">
                 <TrendingDown size={24} />
               </div>
               <div>
@@ -136,7 +136,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
               >
                 <X size={20} />
               </button>
@@ -170,7 +170,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
 
         {/* Messages */}
         {errorMessage && (
-          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700">
             <AlertTriangle size={18} />
             <span className="text-sm flex-1">{errorMessage}</span>
             <button onClick={() => setErrorMessage(null)}>
@@ -179,7 +179,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
           </div>
         )}
         {successMessage && (
-          <div className="mx-4 mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+          <div className="mx-4 mt-4 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700">
             <Check size={18} />
             <span className="text-sm">{successMessage}</span>
           </div>
@@ -199,7 +199,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                     key={cat.id}
                     type="button"
                     onClick={() => setFormData({ ...formData, categoryId: cat.id, subcategoryId: '' })}
-                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-left ${
+                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
                       formData.categoryId === cat.id
                         ? 'border-purple-500 bg-purple-50 text-purple-700'
                         : 'border-gray-200 hover:border-gray-300'
@@ -226,7 +226,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 <select
                   value={formData.subcategoryId}
                   onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 >
                   <option value="">Seleccionar...</option>
                   {subcategories.map(sub => (
@@ -249,7 +249,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
+                  className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-lg"
                   placeholder="0.00"
                   required
                 />
@@ -291,7 +291,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="Describe el gasto..."
                 rows={2}
                 required
@@ -307,7 +307,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="Nombre del proveedor (opcional)"
               />
             </div>
@@ -321,7 +321,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.receiptNumber}
                 onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="Número de comprobante (opcional)"
               />
             </div>
@@ -335,7 +335,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="Observaciones adicionales (opcional)"
               />
             </div>
@@ -344,7 +344,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-medium transition-colors"
+              className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-xl font-medium active:scale-95 transition-all"
             >
               {submitting ? 'Registrando...' : 'Registrar Egreso'}
             </button>
@@ -409,7 +409,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                         </span>
                         <button
                           onClick={() => setDeleteConfirm(expense.id)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                           title="Eliminar"
                         >
                           <Trash2 size={16} />
@@ -424,13 +424,13 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setDeleteConfirm(null)}
-                            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg"
+                            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-xl active:scale-95 transition-all"
                           >
                             No
                           </button>
                           <button
                             onClick={() => handleDelete(expense.id)}
-                            className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                            className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-xl active:scale-95 transition-all"
                           >
                             Sí, eliminar
                           </button>
@@ -459,7 +459,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
           >
             Cerrar
           </button>

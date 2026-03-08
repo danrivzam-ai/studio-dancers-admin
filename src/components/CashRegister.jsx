@@ -298,7 +298,7 @@ export default function CashRegister({ onClose, settings }) {
         <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
+              <div className="bg-white/20 p-2 rounded-xl">
                 <DollarSign size={24} />
               </div>
               <div>
@@ -308,7 +308,7 @@ export default function CashRegister({ onClose, settings }) {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={20} />
             </button>
@@ -323,11 +323,11 @@ export default function CashRegister({ onClose, settings }) {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
             />
             <button
               onClick={() => fetchDayData(selectedDate)}
-              className="p-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+              className="p-2 bg-gray-200 hover:bg-gray-300 rounded-xl active:scale-95 transition-all"
               title="Actualizar"
             >
               <RefreshCw size={18} />
@@ -497,7 +497,7 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={openingAmount}
                         onChange={(e) => setOpeningAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500"
+                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -510,13 +510,13 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
                       placeholder="Observaciones..."
                     />
                   </div>
                   <button
                     onClick={handleOpenRegister}
-                    className="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-medium transition-colors"
+                    className="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl font-medium active:scale-95 transition-all"
                   >
                     Abrir Caja
                   </button>
@@ -537,13 +537,13 @@ export default function CashRegister({ onClose, settings }) {
                       step="0.01"
                       value={openingAmount}
                       onChange={(e) => setOpeningAmount(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 text-sm"
+                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-sm"
                     />
                   </div>
                   {parseFloat(openingAmount) !== parseFloat(cashRegister.opening_amount) && (
                     <button
                       onClick={handleUpdateOpening}
-                      className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-medium active:scale-95 transition-all"
                     >
                       Actualizar
                     </button>
@@ -558,7 +558,7 @@ export default function CashRegister({ onClose, settings }) {
                 <h3 className="font-semibold text-green-800 mb-3">Cerrar Caja</h3>
                 <div className="space-y-3">
                   {/* Desglose del cuadre */}
-                  <div className="bg-white rounded-lg p-3 space-y-1">
+                  <div className="bg-white rounded-xl p-3 space-y-1">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Apertura:</span>
                       <span className="font-medium">${parseFloat(cashRegister.opening_amount).toFixed(2)}</span>
@@ -610,14 +610,14 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={closingAmount}
                         onChange={(e) => setClosingAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                         placeholder="0.00"
                       />
                     </div>
                   </div>
 
                   {closingAmount && (
-                    <div className={`p-3 rounded-lg ${
+                    <div className={`p-3 rounded-xl ${
                       parseFloat(closingAmount) === expectedClosing
                         ? 'bg-green-100 text-green-800'
                         : parseFloat(closingAmount) > expectedClosing
@@ -652,14 +652,14 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                       placeholder="Observaciones del cierre..."
                     />
                   </div>
 
                   <button
                     onClick={handleCloseRegister}
-                    className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
+                    className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium active:scale-95 transition-all"
                   >
                     Cerrar Caja
                   </button>
@@ -675,7 +675,7 @@ export default function CashRegister({ onClose, settings }) {
                   {isToday && (
                     <button
                       onClick={handleReopenRegister}
-                      className="text-xs px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                      className="text-xs px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium active:scale-95 transition-all"
                     >
                       Reabrir Caja
                     </button>
@@ -736,14 +736,14 @@ export default function CashRegister({ onClose, settings }) {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => setShowCloseReport(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all text-sm font-medium"
                     >
                       <Download size={16} />
                       Descargar Reporte
                     </button>
                     <button
                       onClick={() => setShowCloseReport(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all text-sm font-medium"
                     >
                       <Send size={16} />
                       WhatsApp

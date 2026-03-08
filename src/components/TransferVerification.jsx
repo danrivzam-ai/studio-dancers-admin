@@ -117,7 +117,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <select
         value={studentId}
         onChange={(e) => setStudentId(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
       >
         <option value="">Seleccionar alumna...</option>
         {students.map(s => (
@@ -135,14 +135,14 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
             placeholder="Monto"
           />
         </div>
         <select
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
         >
           <option value="">Banco...</option>
           {BANKS.map(b => (
@@ -158,7 +158,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
           type="text"
           value={receiptNumber}
           onChange={(e) => setReceiptNumber(e.target.value)}
-          className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="w-full pl-8 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
           placeholder="N° Comprobante"
         />
       </div>
@@ -166,7 +166,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       {/* Image upload */}
       {preview ? (
         <div className="relative">
-          <img src={preview} alt="Comprobante" className="w-full rounded-lg border max-h-32 object-contain bg-gray-50" />
+          <img src={preview} alt="Comprobante" className="w-full rounded-xl border max-h-32 object-contain bg-gray-50" />
           <button
             type="button"
             onClick={() => { setImage(null); setPreview(null) }}
@@ -176,7 +176,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
           </button>
         </div>
       ) : (
-        <label className="flex items-center justify-center gap-2 w-full py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors">
+        <label className="flex items-center justify-center gap-2 w-full py-2 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all">
           <Camera size={16} className="text-gray-400" />
           <span className="text-xs text-gray-500">Subir foto (opcional)</span>
           <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -188,16 +188,16 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
         type="text"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
         placeholder="Nota (opcional)"
       />
 
-      {error && <p className="text-red-600 text-xs bg-red-50 rounded-lg p-2">{error}</p>}
+      {error && <p className="text-red-600 text-xs bg-red-50 rounded-xl p-2">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+        className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
       >
         {loading ? 'Registrando...' : (
           <><Upload size={14} /> Registrar transferencia</>
@@ -284,7 +284,7 @@ export default function TransferVerification({
         <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
+              <div className="bg-white/20 p-2 rounded-xl">
                 <DollarSign size={22} />
               </div>
               <div>
@@ -295,12 +295,12 @@ export default function TransferVerification({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowManualForm(!showManualForm)}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
                 title="Registrar transferencia manual (WhatsApp)"
               >
                 <Plus size={20} />
               </button>
-              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -330,7 +330,7 @@ export default function TransferVerification({
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
                 filter === f.key ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
@@ -368,7 +368,7 @@ export default function TransferVerification({
 
                   {/* Receipt Number */}
                   {req.receipt_number && (
-                    <div className="flex items-center gap-1.5 mb-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
+                    <div className="flex items-center gap-1.5 mb-2 bg-gray-50 rounded-xl px-2.5 py-1.5">
                       <Hash size={12} className="text-gray-400" />
                       <span className="text-xs text-gray-600">N° Comprobante:</span>
                       <span className="text-xs font-semibold text-gray-800 font-mono">{req.receipt_number}</span>
@@ -387,7 +387,7 @@ export default function TransferVerification({
                     </button>
                   )}
                   {expandedImage === req.id && req.receipt_image_url && (
-                    <div className="mb-2 rounded-lg overflow-hidden border">
+                    <div className="mb-2 rounded-xl overflow-hidden border">
                       <img
                         src={req.receipt_image_url}
                         alt="Comprobante"
@@ -416,13 +416,13 @@ export default function TransferVerification({
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder="Motivo de rechazo..."
-                            className="flex-1 px-3 py-1.5 border rounded-lg text-xs"
+                            className="flex-1 px-3 py-1.5 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
                             autoFocus
                           />
                           <button
                             onClick={() => handleReject(req.id)}
                             disabled={processing === req.id}
-                            className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium disabled:opacity-50"
+                            className="px-3 py-1.5 bg-red-600 text-white rounded-xl text-xs font-medium disabled:opacity-50 active:scale-95 transition-all"
                           >
                             Rechazar
                           </button>
@@ -438,7 +438,7 @@ export default function TransferVerification({
                           <button
                             onClick={() => handleApprove(req)}
                             disabled={processing === req.id}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
                           >
                             <CheckCircle size={14} />
                             {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
@@ -446,7 +446,7 @@ export default function TransferVerification({
                           <button
                             onClick={() => setRejectingId(req.id)}
                             disabled={processing === req.id}
-                            className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 disabled:opacity-50"
+                            className="px-3 py-2 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
                           >
                             <XCircle size={14} />
                           </button>
@@ -464,7 +464,7 @@ export default function TransferVerification({
         <div className="p-3 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
+            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
           >
             Cerrar
           </button>

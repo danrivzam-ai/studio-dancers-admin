@@ -13,6 +13,7 @@ export function useSchoolSettings() {
     auto_inactive_days: 10,
     mailerlite_api_key: '',
     mailerlite_group_id: '',
+    mailerlite_instructors_group_id: '',
     bank_name: '',
     bank_account_number: '',
     bank_account_holder: '',

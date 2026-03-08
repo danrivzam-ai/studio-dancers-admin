@@ -513,7 +513,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           {isRecurring && onReactivate && (
             <button
               onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
-              className="w-full py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
+              className="w-full py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
             >
               <RefreshCw size={15} /> Reactivar ciclo (gracia)
             </button>
@@ -521,14 +521,14 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
+              className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
             >
               Cerrar
             </button>
             {(student.phone || student.parent_phone || student.payer_phone) && (
               <button
                 onClick={handleWhatsApp}
-                className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 transition-colors"
+                className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 active:scale-95 transition-all"
                 title="Enviar recordatorio WhatsApp"
               >
                 <MessageCircle size={18} />
@@ -536,7 +536,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             )}
             <button
               onClick={() => { onClose(); if (onPayment) onPayment(student) }}
-              className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2 text-sm"
+              className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
             >
               <CreditCard size={16} /> Registrar Pago
             </button>
@@ -584,20 +584,20 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   </div>
                 </div>
                 {reactivateError && (
-                  <p className="text-sm text-red-600 text-center mb-3 bg-red-50 rounded-lg px-3 py-2">{reactivateError}</p>
+                  <p className="text-sm text-red-600 text-center mb-3 bg-red-50 rounded-xl px-3 py-2">{reactivateError}</p>
                 )}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowReactivateDialog(false)}
                     disabled={reactivating}
-                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium disabled:opacity-50 active:scale-95 transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleReactivate}
                     disabled={reactivating}
-                    className="flex-1 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium disabled:opacity-70 flex items-center justify-center gap-2 active:scale-95 transition-all"
                   >
                     {reactivating ? <><RefreshCw size={15} className="animate-spin" /> Activando...</> : 'Reactivar'}
                   </button>

@@ -274,6 +274,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     notes: ''
   })
   const [cartItems, setCartItems] = useState([])
+  const [productSearch, setProductSearch] = useState('')
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
@@ -521,6 +522,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setShowSaleReceipt(true)
       // Reset
       setCartItems([])
+      setProductSearch('')
       setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
@@ -899,7 +901,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       setShowSettings(true)
                     }
                   }}
-                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                   title="Configuración"
                 >
                   <Settings size={20} />
@@ -918,7 +920,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     }
                   }
                 }}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                 title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
               >
                 <LogOut size={20} />
@@ -979,7 +981,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {!isRecepcion && can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
                 >
                   <Download size={16} />
                   Exportar
@@ -1004,7 +1006,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {!isRecepcion && isAdmin && (
                 <button
                   onClick={() => setShowAuditLog(true)}
-                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-lg transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
                 >
                   <ScrollText size={16} />
                   Auditoría
@@ -1064,7 +1066,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             title="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-green-100 p-2 sm:p-3 rounded-lg shrink-0">
+              <div className="bg-green-100 p-2 sm:p-3 rounded-xl shrink-0">
                 <DollarSign className="text-green-600" size={20} />
               </div>
               <div className="min-w-0 flex-1">
@@ -1088,7 +1090,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             title={overduePayments.length > 0 ? 'Ver alumnos por renovar' : 'Ver próximos cobros'}
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className={`p-2 sm:p-3 rounded-lg shrink-0 ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
+              <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
                 <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-yellow-600'} size={20} />
               </div>
               <div className="min-w-0">
@@ -1244,7 +1246,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
                           onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
-                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-lg transition-colors"
+                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
@@ -1329,7 +1331,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </span>
                         <button
                           onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
-                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-lg transition-colors"
+                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
@@ -1464,7 +1466,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 if (!phone) { alert('Sin teléfono registrado'); return }
                                 openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name))
                               }}
-                              className="p-1.5 text-green-600 hover:bg-green-100 rounded-lg transition-colors shrink-0"
+                              className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
                               title="Enviar recordatorio"
                             >
                               <MessageCircle size={15} />
@@ -1573,7 +1575,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   const lowStock = hasStock && product.stock <= 3 && product.stock > 0
                   const outOfStock = hasStock && product.stock === 0
                   return (
-                    <div key={product.id} className={`bg-white rounded-lg p-3 shadow-sm border ${outOfStock ? 'border-red-200 opacity-60' : lowStock ? 'border-yellow-200' : 'border-transparent'}`}>
+                    <div key={product.id} className={`bg-white rounded-xl p-3 shadow-sm border ${outOfStock ? 'border-red-200 opacity-60' : lowStock ? 'border-yellow-200' : 'border-transparent'}`}>
                       <p className="font-medium text-gray-800">{product.name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-green-600 font-bold">${product.price}</p>
@@ -1656,7 +1658,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   })
                                   setShowSaleReceipt(true)
                                 }}
-                                className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+                                className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                 title="Ver comprobante"
                               >
                                 <ScrollText size={16} />
@@ -1665,7 +1667,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             {!isRecepcion && (
                               <button
                                 onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -1831,7 +1833,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Instructoras Tab */}
         {activeTab === 'instructoras' && (
-          <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} />
+          <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
         )}
 
         {/* Tablón Tab */}
@@ -1870,14 +1872,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
@@ -1913,7 +1915,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={announcementForm.expires_at}
                         onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
-                        className="px-2 py-1 border rounded-lg text-xs focus:ring-2 focus:ring-purple-400"
+                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-400 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -1958,13 +1960,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
-                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-purple-600 transition-colors">
+                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-lg transition-colors ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
                           {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
-                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
+                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -2019,7 +2021,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]) }}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-5 border-b flex items-center justify-between shrink-0">
@@ -2027,7 +2029,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <ShoppingBag size={20} className="text-green-600" />
                   <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
                 </div>
-                <button onClick={() => { setShowSaleForm(false); setCartItems([]) }} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }} className="p-2 hover:bg-gray-100 rounded-xl active:scale-95 transition-all">
                   <X size={20} />
                 </button>
               </div>
@@ -2043,7 +2045,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       required
                       value={saleForm.customerName}
                       onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
                       placeholder="Nombre del cliente"
                       list="students-list-sale"
                     />
@@ -2055,26 +2057,40 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {/* Selector de artículo + cantidad + botón agregar */}
                   <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
-                    {/* Fila 1: selector ancho completo */}
+                    {/* Buscador de producto */}
+                    <div className="relative">
+                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Buscar artículo..."
+                        className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                      />
+                    </div>
+                    {/* Fila 1: selector ancho completo, filtrado por búsqueda */}
                     <select
                       value={saleForm.productId}
                       onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                     >
-                      <option value="">Seleccionar artículo</option>
-                      {allProducts.map(product => {
-                        const hasStock = product.stock !== null && product.stock !== undefined
-                        const outOfStock = hasStock && product.stock === 0
-                        return (
-                          <option key={product.id} value={product.id} disabled={outOfStock}>
-                            {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
-                          </option>
-                        )
-                      })}
+                      <option value="">— Seleccionar —</option>
+                      {allProducts
+                        .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                        .map(product => {
+                          const hasStock = product.stock !== null && product.stock !== undefined
+                          const outOfStock = hasStock && product.stock === 0
+                          return (
+                            <option key={product.id} value={product.id} disabled={outOfStock}>
+                              {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
+                            </option>
+                          )
+                        })
+                      }
                     </select>
                     {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
-                      <div className="flex items-center border rounded-lg bg-white overflow-hidden">
+                      <div className="flex items-center border rounded-xl bg-white overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setSaleForm(prev => ({ ...prev, quantity: Math.max(1, (prev.quantity || 1) - 1) }))}
@@ -2093,7 +2109,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="button"
                         onClick={handleAddToCart}
                         disabled={!saleForm.productId}
-                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
                         <Plus size={15} />
                         Agregar al carrito
@@ -2152,7 +2168,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={saleForm.date}
                         onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -2160,7 +2176,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.paymentMethod}
                         onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       >
                         <option value="cash">Efectivo</option>
                         <option value="transfer">Transferencia</option>
@@ -2175,7 +2191,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <div className="p-5 border-t flex gap-3 shrink-0">
                   <button
                     type="button"
-                    onClick={() => { setShowSaleForm(false); setCartItems([]) }}
+                    onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}
                     className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
@@ -2485,14 +2501,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <div className="flex gap-0.5 sm:gap-1">
                                 <button
                                   onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                   title="Ver detalle"
                                 >
                                   <Eye size={16} />
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                   title="Registrar pago"
                                 >
                                   <CreditCard size={16} />
@@ -2506,14 +2522,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     const msg = buildReminderMessage(student, course?.name || 'N/A', days, settings.name)
                                     openWhatsApp(phone, msg)
                                   }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                   title="Recordatorio WhatsApp"
                                 >
                                   <MessageCircle size={16} />
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
@@ -2521,7 +2537,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                                     title="Eliminar"
                                   >
                                     <Trash2 size={16} />
@@ -2640,7 +2656,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white/20 rounded-lg">
+                    <div className="p-2 bg-white/20 rounded-xl">
                       <Wallet className="text-white" size={22} />
                     </div>
                     <div>
@@ -2648,7 +2664,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-white/80 text-sm">{studentsWithBalance.length} alumno{studentsWithBalance.length !== 1 ? 's' : ''} con abonos parciales</p>
                     </div>
                   </div>
-                  <button onClick={() => setShowBalanceAlerts(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white">
+                  <button onClick={() => setShowBalanceAlerts(false)} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all text-white">
                     <X size={20} />
                   </button>
                 </div>

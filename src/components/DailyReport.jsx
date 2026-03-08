@@ -61,11 +61,11 @@ export default function DailyReport({ cashRegister }) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => changeDate(-1)}
-            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all"
           >
             <ChevronLeft size={18} />
           </button>
-          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-xl px-3 py-2">
             <Calendar size={16} className="text-gray-500" />
             <input
               type="date"
@@ -78,21 +78,21 @@ export default function DailyReport({ cashRegister }) {
           <button
             onClick={() => changeDate(1)}
             disabled={isToday}
-            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-30"
+            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all disabled:opacity-30"
           >
             <ChevronRight size={18} />
           </button>
           {!isToday && (
             <button
               onClick={() => setDate(today)}
-              className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-3 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 active:scale-95 transition-all font-medium"
             >
               Hoy
             </button>
           )}
           <button
             onClick={() => fetchReport(date)}
-            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+            className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all"
             title="Actualizar"
           >
             <RefreshCw size={18} className={loading ? 'animate-spin text-blue-500' : 'text-gray-500'} />
@@ -104,7 +104,7 @@ export default function DailyReport({ cashRegister }) {
 
       {/* Estado de caja */}
       {r.cashRegister ? (
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
           r.cashRegister.status === 'open'
             ? 'bg-green-50 text-green-700 border border-green-200'
             : 'bg-gray-100 text-gray-600 border border-gray-200'
@@ -114,7 +114,7 @@ export default function DailyReport({ cashRegister }) {
           {r.totals.openingAmount > 0 && ` · Apertura: ${fmt(r.totals.openingAmount)}`}
         </div>
       ) : (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
           <span className="w-2 h-2 rounded-full bg-yellow-500" />
           No se abrio caja este dia
         </div>
@@ -124,7 +124,7 @@ export default function DailyReport({ cashRegister }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-2 bg-green-100 rounded-lg">
+            <div className="p-2 bg-green-100 rounded-xl">
               <TrendingUp size={20} className="text-green-600" />
             </div>
             <span className="text-sm font-medium text-gray-500">Ingresos</span>
@@ -135,7 +135,7 @@ export default function DailyReport({ cashRegister }) {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-2 bg-red-100 rounded-lg">
+            <div className="p-2 bg-red-100 rounded-xl">
               <TrendingDown size={20} className="text-red-600" />
             </div>
             <span className="text-sm font-medium text-gray-500">Egresos</span>
@@ -146,7 +146,7 @@ export default function DailyReport({ cashRegister }) {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className={`p-2 rounded-lg ${r.totals.netBalance >= 0 ? 'bg-blue-100' : 'bg-orange-100'}`}>
+            <div className={`p-2 rounded-xl ${r.totals.netBalance >= 0 ? 'bg-blue-100' : 'bg-orange-100'}`}>
               <DollarSign size={20} className={r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'} />
             </div>
             <span className="text-sm font-medium text-gray-500">Balance</span>

@@ -102,10 +102,10 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between">
-          <h3 className="font-semibold text-gray-800">Reporte de Cierre</h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-            <X size={18} className="text-gray-500" />
+        <div className="p-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
+          <h3 className="font-semibold">Reporte de Cierre</h3>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+            <X size={18} />
           </button>
         </div>
 
@@ -247,7 +247,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
           <button
             onClick={downloadReport}
             disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 text-sm font-medium disabled:opacity-50 active:scale-95 transition-all"
           >
             <Download size={16} />
             {downloading ? 'Generando...' : 'Descargar PNG'}
@@ -255,7 +255,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
           <button
             onClick={sendWhatsApp}
             disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 text-sm font-medium disabled:opacity-50 active:scale-95 transition-all"
           >
             <Send size={16} />
             WhatsApp

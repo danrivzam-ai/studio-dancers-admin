@@ -107,7 +107,7 @@ function PartnerPlata({ p }) {
           href={`https://wa.me/${p.whatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full py-1.5 rounded-lg text-xs font-semibold text-center text-white"
+          className="block w-full py-1.5 rounded-xl text-xs font-semibold text-center text-white active:scale-95 transition-all"
           style={{ background: '#22c55e' }}
         >
           WhatsApp
@@ -123,7 +123,7 @@ function PartnerBronce({ p }) {
       href={`https://wa.me/${p.whatsapp}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5 border border-gray-100 shadow-sm hover:border-amber-200 transition-colors"
+      className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5 border border-gray-100 shadow-sm hover:border-amber-200 active:scale-95 transition-all"
     >
       <span className="text-lg">{p.emoji}</span>
       <div className="flex-1 min-w-0">

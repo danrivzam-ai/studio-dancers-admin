@@ -18,6 +18,7 @@ export default function SettingsModal({
     auto_inactive_days: 10,
     mailerlite_api_key: '',
     mailerlite_group_id: '',
+    mailerlite_instructors_group_id: '',
     bank_name: '',
     bank_account_number: '',
     bank_account_holder: '',
@@ -45,6 +46,7 @@ export default function SettingsModal({
         auto_inactive_days: settings.auto_inactive_days ?? 10,
         mailerlite_api_key: settings.mailerlite_api_key || '',
         mailerlite_group_id: settings.mailerlite_group_id || '',
+        mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || '',
         bank_name: settings.bank_name || '',
         bank_account_number: settings.bank_account_number || '',
         bank_account_holder: settings.bank_account_holder || '',
@@ -113,16 +115,16 @@ export default function SettingsModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="p-6 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between sticky top-0 z-10 rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <Building2 className="text-purple-600" size={24} />
+            <div className="bg-white/20 p-2 rounded-xl">
+              <Building2 size={24} />
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">Configuración</h2>
+            <h2 className="text-xl font-semibold">Configuración</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
           >
             <X size={20} />
           </button>
@@ -139,7 +141,7 @@ export default function SettingsModal({
               required
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
               placeholder="Escuela de Danza"
             />
           </div>
@@ -152,7 +154,7 @@ export default function SettingsModal({
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({...formData, address: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
               placeholder="Alborada - Guayaquil"
             />
           </div>
@@ -166,7 +168,7 @@ export default function SettingsModal({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="0999..."
               />
             </div>
@@ -178,7 +180,7 @@ export default function SettingsModal({
                 type="text"
                 value={formData.ruc}
                 onChange={(e) => setFormData({...formData, ruc: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                 placeholder="0912345678001"
               />
             </div>
@@ -192,7 +194,7 @@ export default function SettingsModal({
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
               placeholder="escuela@email.com"
             />
           </div>
@@ -208,7 +210,7 @@ export default function SettingsModal({
               max={90}
               value={formData.auto_inactive_days}
               onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 10})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
             />
             <p className="text-xs text-gray-400 mt-1">
               Después de este número de días sin pagar, la alumna se marca como "Inactiva" automáticamente.
@@ -223,7 +225,7 @@ export default function SettingsModal({
               <button
                 type="button"
                 onClick={() => setFormData({...formData, logo_url: '/logo.png'})}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.logo_url === '/logo.png'
                     ? 'border-purple-500 bg-purple-50 text-purple-700'
                     : 'border-gray-200 hover:border-gray-300'
@@ -234,7 +236,7 @@ export default function SettingsModal({
               <button
                 type="button"
                 onClick={() => setFormData({...formData, logo_url: ''})}
-                className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                className={`flex-1 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
                   !formData.logo_url || formData.logo_url === ''
                     ? 'border-purple-500 bg-purple-50 text-purple-700'
                     : 'border-gray-200 hover:border-gray-300'
@@ -244,7 +246,7 @@ export default function SettingsModal({
               </button>
             </div>
             {formData.logo_url && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg border">
+              <div className="mt-2 p-3 bg-gray-50 rounded-xl border">
                 <p className="text-xs text-gray-500 text-center mb-2">Vista previa:</p>
                 <img
                   src={formData.logo_url}
@@ -288,14 +290,14 @@ export default function SettingsModal({
                 <button
                   type="button"
                   onClick={() => setChangingPin(true)}
-                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                   <Lock size={16} />
                   {formData.security_pin ? 'Cambiar PIN' : 'Configurar PIN'}
                 </button>
               </div>
             ) : (
-              <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+              <div className="space-y-3 bg-gray-50 p-4 rounded-xl">
                 {/* PIN actual (solo si ya existe) */}
                 {formData.security_pin && (
                   <div>
@@ -311,7 +313,7 @@ export default function SettingsModal({
                         setCurrentPinInput(e.target.value.replace(/\D/g, ''))
                         setPinError('')
                       }}
-                      className="w-full px-3 py-2 border rounded-lg text-center tracking-widest"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
                       placeholder="••••"
                     />
                   </div>
@@ -331,7 +333,7 @@ export default function SettingsModal({
                       setNewPin(e.target.value.replace(/\D/g, ''))
                       setPinError('')
                     }}
-                    className="w-full px-3 py-2 border rounded-lg text-center tracking-widest"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
                     placeholder="••••"
                   />
                 </div>
@@ -350,7 +352,7 @@ export default function SettingsModal({
                       setConfirmPin(e.target.value.replace(/\D/g, ''))
                       setPinError('')
                     }}
-                    className="w-full px-3 py-2 border rounded-lg text-center tracking-widest"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
                     placeholder="••••"
                   />
                 </div>
@@ -369,7 +371,7 @@ export default function SettingsModal({
                       setConfirmPin('')
                       setPinError('')
                     }}
-                    className="flex-1 px-3 py-2 border text-gray-600 rounded-lg text-sm"
+                    className="flex-1 px-3 py-2 border text-gray-600 rounded-xl text-sm active:scale-95 transition-all"
                   >
                     Cancelar
                   </button>
@@ -377,7 +379,7 @@ export default function SettingsModal({
                     <button
                       type="button"
                       onClick={handleRemovePin}
-                      className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm"
+                      className="px-3 py-2 bg-red-100 text-red-700 rounded-xl text-sm active:scale-95 transition-all"
                     >
                       Quitar PIN
                     </button>
@@ -385,7 +387,7 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handlePinChange}
-                    className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm"
+                    className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-xl text-sm active:scale-95 transition-all"
                   >
                     Guardar PIN
                   </button>
@@ -411,7 +413,7 @@ export default function SettingsModal({
                     type={showApiKey ? 'text' : 'password'}
                     value={formData.mailerlite_api_key}
                     onChange={(e) => setFormData({...formData, mailerlite_api_key: e.target.value})}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 pr-10 text-sm"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 pr-10 text-sm outline-none transition-all"
                     placeholder="eyJ0eXAiOiJKV1QiLCJhbGciOi..."
                   />
                   <button
@@ -424,15 +426,26 @@ export default function SettingsModal({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Group ID (opcional)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Group ID — Alumnos (opcional)</label>
                 <input
                   type="text"
                   value={formData.mailerlite_group_id}
                   onChange={(e) => setFormData({...formData, mailerlite_group_id: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                   placeholder="123456789"
                 />
-                <p className="text-xs text-gray-400 mt-1">Grupo donde se agregan los suscriptores.</p>
+                <p className="text-xs text-gray-400 mt-1">Grupo MailerLite donde se agregan padres y alumnas.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Group ID — Instructoras (opcional)</label>
+                <input
+                  type="text"
+                  value={formData.mailerlite_instructors_group_id}
+                  onChange={(e) => setFormData({...formData, mailerlite_instructors_group_id: e.target.value})}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
+                  placeholder="987654321"
+                />
+                <p className="text-xs text-gray-400 mt-1">Grupo MailerLite para la automatización de Bienvenida Instructoras.</p>
               </div>
             </div>
           </div>
@@ -453,7 +466,7 @@ export default function SettingsModal({
                   <select
                     value={formData.bank_name}
                     onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                   >
                     <option value="">Seleccionar...</option>
                     <option value="Banco Pichincha">Banco Pichincha</option>
@@ -475,7 +488,7 @@ export default function SettingsModal({
                   <select
                     value={formData.bank_account_type}
                     onChange={(e) => setFormData({...formData, bank_account_type: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                   >
                     <option value="Ahorros">Ahorros</option>
                     <option value="Corriente">Corriente</option>
@@ -488,7 +501,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.bank_account_number}
                   onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                   placeholder="2200123456"
                 />
               </div>
@@ -498,7 +511,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.bank_account_holder}
                   onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                   placeholder="Nombre del titular"
                 />
               </div>
@@ -513,14 +526,14 @@ export default function SettingsModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
             >
               <Check size={20} />
               {loading ? 'Guardando...' : 'Guardar'}

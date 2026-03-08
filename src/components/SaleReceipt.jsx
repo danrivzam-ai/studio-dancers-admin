@@ -34,19 +34,19 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <span className="font-semibold text-gray-800">Comprobante de Venta</span>
+        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+          <span className="font-semibold">Comprobante de Venta</span>
           <div className="flex items-center gap-1">
             <button
               onClick={handleDownload}
-              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
               title="Descargar imagen"
             >
               <Download size={18} />
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={18} />
             </button>

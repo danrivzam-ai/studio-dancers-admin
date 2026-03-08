@@ -194,14 +194,14 @@ export default function ReportesManager() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setShowNota(n => ({ ...n, [r.id]: false }))}
-                            className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 font-medium"
+                            className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 font-medium hover:bg-gray-50 active:scale-95 transition-all"
                           >
                             Cancelar
                           </button>
                           <button
                             onClick={() => handleDevolver(r.id)}
                             disabled={saving[r.id] || !notaInput[r.id]?.trim()}
-                            className="flex-1 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50"
+                            className="flex-1 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all"
                           >
                             {saving[r.id] ? 'Enviando…' : 'Enviar devolución'}
                           </button>
@@ -214,7 +214,7 @@ export default function ReportesManager() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setShowNota(n => ({ ...n, [r.id]: true }))}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 active:scale-95 transition-all"
                         >
                           <RotateCcw size={14} />
                           Devolver
@@ -222,7 +222,7 @@ export default function ReportesManager() {
                         <button
                           onClick={() => handleAprobar(r.id)}
                           disabled={saving[r.id]}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold disabled:opacity-50 hover:bg-green-600 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold disabled:opacity-50 hover:bg-green-600 active:scale-95 transition-all"
                         >
                           <Check size={14} />
                           {saving[r.id] ? 'Aprobando…' : 'Aprobar'}

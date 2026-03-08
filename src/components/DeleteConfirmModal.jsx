@@ -45,14 +45,14 @@ export default function DeleteConfirmModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-72">
+      <div className="bg-white rounded-2xl shadow-xl w-72">
         {/* Header pequeño */}
-        <div className="px-4 py-3 border-b bg-red-50 rounded-t-xl flex items-center justify-between">
+        <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="text-red-500" size={18} />
             <span className="font-medium text-red-700 text-sm">Eliminar</span>
           </div>
-          <button onClick={handleClose} className="p-1 hover:bg-red-100 rounded">
+          <button onClick={handleClose} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
             <X size={16} className="text-red-500" />
           </button>
         </div>
@@ -81,7 +81,7 @@ export default function DeleteConfirmModal({
                   setPin(e.target.value.replace(/\D/g, ''))
                   setError('')
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-center text-lg tracking-widest ${
+                className={`w-full px-3 py-2 border-2 rounded-xl text-center text-lg tracking-widest transition-all ${
                   error ? 'border-red-300' : 'border-gray-200'
                 }`}
                 placeholder="••••"
@@ -96,14 +96,14 @@ export default function DeleteConfirmModal({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-semibold"
+              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || (requiredPin && pin.length < 4)}
-              className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all ${
+              className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
                 loading || (requiredPin && pin.length < 4)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-red-600 hover:bg-red-700 text-white'

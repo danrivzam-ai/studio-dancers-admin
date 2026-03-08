@@ -169,11 +169,11 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 className="text-lg font-semibold text-gray-800">Comprobante de Pago</h2>
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
+          <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             title="Cerrar (Esc)"
           >
             <X size={20} />
@@ -184,7 +184,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
         <div className="p-4">
           <div
             ref={receiptRef}
-            className="bg-white border-2 border-gray-200 rounded-lg p-6 shadow-inner"
+            className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-inner"
             style={{ fontFamily: 'Arial, sans-serif' }}
           >
             {/* School Header */}
@@ -226,7 +226,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
             </div>
 
             {/* Student/Customer Info */}
-            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="bg-gray-50 rounded-xl p-3 mb-4">
               <p className="text-sm">
                 <span className="font-semibold">{isQuickPayment ? 'Cliente:' : 'Alumno:'}</span> {student.name}
               </p>
@@ -290,7 +290,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
 
             {/* Balance Info for Programs and Recurring with partial payments */}
             {(isProgram || (isRecurring && isPartialPayment)) && (
-              <div className={`rounded-lg p-3 mb-4 ${hasBalance ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
+              <div className={`rounded-xl p-3 mb-4 ${hasBalance ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
                 <p className="text-sm font-semibold text-center mb-2">
                   {hasBalance ? '📊 Estado de Cuenta del Ciclo' : (isProgram ? '✅ Programa Pagado' : '✅ Ciclo Pagado')}
                 </p>
@@ -324,7 +324,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''
 
               return (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4">
                   {cycleInfo && (
                     <div className="text-center mb-3 pb-2 border-b border-purple-200">
                       <p className="text-xs font-bold text-purple-700 mb-1">CICLO PAGADO</p>
@@ -369,7 +369,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
           <div className="flex gap-3 mb-3">
             <button
               onClick={downloadReceipt}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all"
             >
               <Download size={20} />
               Descargar
@@ -377,7 +377,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
             {student.phone && (
               <button
                 onClick={sendWhatsApp}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all"
               >
                 <Send size={20} />
                 WhatsApp
@@ -386,7 +386,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
           </div>
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl transition-colors text-sm"
+            className="w-full px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl active:scale-95 transition-all text-sm"
           >
             Cerrar (Esc)
           </button>

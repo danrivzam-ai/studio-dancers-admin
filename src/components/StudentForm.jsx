@@ -131,30 +131,30 @@ export default function StudentForm({
     setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
-  const inputClass = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-  const inputClassBlue = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-  const inputClassGreen = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
+  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+  const inputClassBlue = "w-full px-3 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+  const inputClassGreen = "w-full px-3 py-2 text-sm border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 className="font-semibold text-gray-800">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
+          <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-xl">
+          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Toggle Menor / Adulto */}
-          <div className="flex rounded-lg overflow-hidden border-2 border-purple-200">
+          <div className="flex rounded-xl overflow-hidden border-2 border-purple-200">
             <button
               type="button"
               onClick={() => setFormData({...formData, isMinor: true})}
-              className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 text-sm font-medium active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
                 formData.isMinor
                   ? 'bg-purple-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -166,7 +166,7 @@ export default function StudentForm({
             <button
               type="button"
               onClick={() => setFormData({...formData, isMinor: false, age: ''})}
-              className={`flex-1 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 text-sm font-medium active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
                 !formData.isMinor
                   ? 'bg-purple-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -178,7 +178,7 @@ export default function StudentForm({
           </div>
 
           {/* DATOS DEL ALUMNO */}
-          <div className="bg-purple-50 rounded-lg p-3">
+          <div className="bg-purple-50 rounded-xl p-3">
             <h3 className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-1.5">
               <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
@@ -283,7 +283,7 @@ export default function StudentForm({
 
           {/* REPRESENTANTE (solo menores) */}
           {formData.isMinor && (
-            <div className="bg-blue-50 rounded-lg p-3">
+            <div className="bg-blue-50 rounded-xl p-3">
               <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-1.5">
                 <Users size={14} /> Representante
               </h3>
@@ -291,7 +291,7 @@ export default function StudentForm({
               {/* ── Buscador de representante existente ── */}
               {!isEditing && knownParents.length > 0 && (
                 <div className="relative mb-3" ref={searchRef}>
-                  <div className="flex items-center gap-1.5 w-full border border-blue-200 rounded-lg bg-white px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-400">
+                  <div className="flex items-center gap-1.5 w-full border border-blue-200 rounded-xl bg-white px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-blue-400">
                     <Search size={13} className="text-blue-400 shrink-0" />
                     <input
                       type="text"
@@ -304,13 +304,13 @@ export default function StudentForm({
                     />
                   </div>
                   {parentDropdown && filteredParents.length > 0 && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-200 rounded-lg shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
                       {filteredParents.map((p, i) => (
                         <button
                           key={i}
                           type="button"
                           onMouseDown={() => applyParent(p)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 active:scale-95 transition-all border-b border-gray-50 last:border-0"
                         >
                           <UserCheck size={14} className="text-blue-500 shrink-0" />
                           <div className="min-w-0">
@@ -322,7 +322,7 @@ export default function StudentForm({
                     </div>
                   )}
                   {parentDropdown && parentSearch.trim().length >= 2 && filteredParents.length === 0 && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-100 rounded-lg shadow px-3 py-2">
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-blue-100 rounded-xl shadow px-3 py-2">
                       <p className="text-xs text-gray-400">Sin coincidencias — ingresa los datos manualmente</p>
                     </div>
                   )}
@@ -386,7 +386,7 @@ export default function StudentForm({
           )}
 
           {/* PAGADOR DIFERENTE */}
-          <div className="border rounded-lg p-3">
+          <div className="border-2 border-gray-100 rounded-xl p-3">
             <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
               <input
                 type="checkbox"
@@ -399,7 +399,7 @@ export default function StudentForm({
             </label>
 
             {formData.hasDifferentPayer && (
-              <div className="mt-3 space-y-2 bg-green-50 rounded-lg p-2">
+              <div className="mt-3 space-y-2 bg-green-50 rounded-xl p-2">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Nombre" required>
                     <input
@@ -447,7 +447,7 @@ export default function StudentForm({
           </div>
 
           {/* CURSO y REGISTRO */}
-          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+          <div className="bg-gray-50 rounded-xl p-3 space-y-2">
             <h3 className="text-sm font-semibold text-gray-800">Curso y Registro</h3>
             <LabeledInput label="Curso" required>
               <select
@@ -531,14 +531,14 @@ export default function StudentForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm"
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <>

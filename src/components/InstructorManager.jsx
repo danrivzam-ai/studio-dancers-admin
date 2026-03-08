@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
+import { syncToMailerLite } from '../lib/mailerlite'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
 const COURSE_COLORS = [
@@ -21,9 +22,9 @@ const COURSE_COLORS = [
 
 const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyrical', 'Ritmos Tropicales']
 
-const emptyForm = { name: '', cedula: '', password: '', active: true, rhythms: [] }
+const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [] }
 
-export default function InstructorManager({ allCourses = [], securityPin }) {
+export default function InstructorManager({ allCourses = [], securityPin, settings = {} }) {
   const [instructors, setInstructors] = useState([])
   const [assignments, setAssignments] = useState({}) // { instructorId: [courseId, ...] }
   const [instructorRhythms, setInstructorRhythms] = useState({}) // { instructorId: [ritmo, ...] }
@@ -108,7 +109,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
   // ── Abrir modal editar ─────────────────────────────────────────────
   const openEdit = (inst) => {
     setEditing(inst)
-    setForm({ name: inst.name, cedula: inst.cedula, password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [] })
+    setForm({ name: inst.name, cedula: inst.cedula, email: inst.email || '', password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [] })
     setFormError('')
     setResetPass(false)
     setShowPass(false)
@@ -150,6 +151,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
         const updates = {
           name: form.name.trim(),
           cedula: form.cedula.trim(),
+          email: form.email.trim() || null,
           active: form.active,
         }
         if (resetPass && form.password) {
@@ -172,6 +174,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
         const { data: newInst, error } = await supabase.from('instructors').insert({
           name: form.name.trim(),
           cedula: form.cedula.trim(),
+          email: form.email.trim() || null,
           password: hashedPassword,
           active: form.active,
           must_change_password: true,
@@ -179,6 +182,20 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
         if (error) throw error
         instructorId = newInst.id
         setSuccess('Instructora creada correctamente')
+
+        // Sincronizar con MailerLite si hay email + API key + grupo configurado
+        if (form.email.trim() && settings.mailerlite_api_key && settings.mailerlite_instructors_group_id) {
+          syncToMailerLite({
+            email: form.email.trim(),
+            name: form.name.trim(),
+            apiKey: settings.mailerlite_api_key,
+            groupId: settings.mailerlite_instructors_group_id,
+            fields: {
+              tipo: 'instructora',
+              ritmos: form.rhythms.join(', '),
+            },
+          })
+        }
       }
 
       // Guardar ritmos: eliminar todos los anteriores y reemplazar
@@ -299,7 +316,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors text-sm"
+          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all text-sm"
         >
           <Plus size={16} />
           Nueva Instructora
@@ -327,7 +344,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
           <button
             key={val}
             onClick={() => setFilterActive(val)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium active:scale-95 transition-all ${
               filterActive === val
                 ? 'bg-purple-600 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-purple-50'
@@ -409,7 +426,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                 <div className="flex gap-2 pt-1 border-t border-gray-100">
                   <button
                     onClick={() => isCoursePanelOpen ? closeCoursePanel() : openCoursePanel(inst.id)}
-                    className="flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 active:scale-95 transition-all"
                   >
                     <BookOpen size={13} />
                     Cursos
@@ -417,14 +434,14 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                   </button>
                   <button
                     onClick={() => openEdit(inst)}
-                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors"
+                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
                   >
                     <Edit2 size={13} />
                     Editar
                   </button>
                   <button
                     onClick={() => toggleActive(inst)}
-                    className={`flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg transition-colors ${
+                    className={`flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
                       inst.active
                         ? 'bg-amber-50 hover:bg-amber-100 text-amber-600'
                         : 'bg-green-50 hover:bg-green-100 text-green-600'
@@ -435,7 +452,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                   </button>
                   <button
                     onClick={() => openDelete(inst)}
-                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 active:scale-95 transition-all"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -458,7 +475,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                           return (
                             <label
                               key={cid}
-                              className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-colors ${checked ? 'bg-purple-50 border border-purple-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                              className={`flex items-start gap-2 p-2 rounded-xl cursor-pointer transition-all ${checked ? 'bg-purple-50 border border-purple-200' : 'hover:bg-gray-50 border border-transparent'}`}
                             >
                               <input
                                 type="checkbox"
@@ -481,13 +498,13 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                       <button
                         onClick={saveCourses}
                         disabled={savingCourses}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-lg transition-colors"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-xl active:scale-95 transition-all"
                       >
                         {savingCourses ? 'Guardando…' : 'Guardar cursos'}
                       </button>
                       <button
                         onClick={closeCoursePanel}
-                        className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
                       >
                         Cancelar
                       </button>
@@ -505,12 +522,12 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
             {/* Header modal */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <GraduationCap size={18} className="text-purple-600" />
+            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+              <h3 className="font-bold flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-xl"><GraduationCap size={18} /></div>
                 {editing ? 'Editar Instructora' : 'Nueva Instructora'}
               </h3>
-              <button onClick={closeForm} className="text-gray-400 hover:text-gray-600">
+              <button onClick={closeForm} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -526,7 +543,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="Ej: María García"
                   autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 />
               </div>
 
@@ -539,9 +556,26 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                   onChange={e => setForm({ ...form, cedula: e.target.value })}
                   placeholder="Ej: 0912345678"
                   autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">La instructora usa su cédula para iniciar sesión</p>
+              </div>
+
+              {/* Email — para MailerLite */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Email
+                  <span className="ml-1.5 text-green-600 font-normal">(para MailerLite)</span>
+                </label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  placeholder="instructora@email.com"
+                  autoComplete="off"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                />
+                <p className="text-xs text-gray-400 mt-1">Opcional — se agrega al segmento de bienvenida automáticamente</p>
               </div>
 
               {/* Contraseña (crear) o reset (editar) */}
@@ -555,7 +589,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                       onChange={e => setForm({ ...form, password: e.target.value })}
                       placeholder="Mínimo 6 caracteres"
                       autoComplete="new-password"
-                      className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                      className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                     />
                     <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -586,7 +620,7 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                           value={form.password}
                           onChange={e => setForm({ ...form, password: e.target.value })}
                           placeholder="Nueva contraseña"
-                          className="w-full px-3 py-2 pr-10 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                         />
                         <button type="button" onClick={() => setShowNewPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                           {showNewPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -667,14 +701,14 @@ export default function InstructorManager({ allCourses = [], securityPin }) {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl active:scale-95 transition-all"
                 >
                   {saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear instructora'}
                 </button>

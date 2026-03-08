@@ -53,7 +53,7 @@ export default function TabRetos({ auth, student }) {
       {activo ? (() => {
         const cfg = CATEGORIA_CFG[activo.categoria] || CATEGORIA_CFG.fuerza
         return (
-          <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, #7B2D8E15, #4c1d9515)', border: '1.5px solid #7B2D8E30' }}>
+          <div className="rounded-2xl p-5 bg-purple-50 border border-purple-100">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">Reto de esta semana</span>
               <span className="text-[10px] text-gray-400">{formatSemana(activo.semana_inicio)}</span>
@@ -89,7 +89,7 @@ export default function TabRetos({ auth, student }) {
               const cfg = CATEGORIA_CFG[r.categoria] || CATEGORIA_CFG.fuerza
               const open = expanded === r.pub_reto_id
               return (
-                <div key={r.pub_reto_id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div key={r.pub_reto_id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                   <button
                     onClick={() => setExpanded(prev => prev === r.pub_reto_id ? null : r.pub_reto_id)}
                     className="w-full flex items-center gap-3 p-3 text-left"
@@ -105,7 +105,7 @@ export default function TabRetos({ auth, student }) {
                     <div className="px-4 pb-3 border-t border-gray-50 pt-2 text-sm text-gray-600 leading-relaxed">
                       {r.descripcion}
                       {r.tip_extra && (
-                        <p className="mt-2 text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-1.5">
+                        <p className="mt-2 text-xs text-purple-600 bg-purple-50 rounded-xl px-3 py-1.5">
                           💡 {r.tip_extra}
                         </p>
                       )}

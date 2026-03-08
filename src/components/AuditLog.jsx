@@ -134,7 +134,7 @@ export default function AuditLog({ onClose }) {
               <h2 className="text-xl font-bold">Log de Auditoria</h2>
               <p className="text-white/80 text-sm">{logs.length} eventos{hasMore ? '+' : ''}</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
               <X size={22} />
             </button>
           </div>
@@ -155,7 +155,7 @@ export default function AuditLog({ onClose }) {
                   ? (() => { setDateFrom(today); setDateTo(today); fetchLogs({ dateFrom: today, dateTo: today, tableName: filterTable || undefined }) })()
                   : setPreset(p.days)
                 }
-                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl active:scale-95 transition-all font-medium"
               >
                 {p.label}
               </button>
@@ -171,7 +171,7 @@ export default function AuditLog({ onClose }) {
                 value={dateFrom}
                 max={dateTo}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all"
               />
             </div>
             <div>
@@ -181,7 +181,7 @@ export default function AuditLog({ onClose }) {
                 value={dateTo}
                 max={today}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
+                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all"
               />
             </div>
             <div>
@@ -189,7 +189,7 @@ export default function AuditLog({ onClose }) {
               <select
                 value={filterTable}
                 onChange={(e) => setFilterTable(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
+                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm bg-white outline-none transition-all"
               >
                 <option value="">Todos</option>
                 {Object.entries(TABLE_LABELS).map(([key, label]) => (
@@ -200,7 +200,7 @@ export default function AuditLog({ onClose }) {
             <button
               onClick={handleFilter}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
             >
               <Search size={14} />
               Buscar
@@ -238,7 +238,7 @@ export default function AuditLog({ onClose }) {
                     className="flex items-start gap-3 p-4 cursor-pointer"
                     onClick={() => setExpandedLog(isExpanded ? null : log.id)}
                   >
-                    <div className={`p-2 rounded-lg flex-shrink-0 ${config.bg}`}>
+                    <div className={`p-2 rounded-xl flex-shrink-0 ${config.bg}`}>
                       <Icon size={16} className={config.color} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -264,7 +264,7 @@ export default function AuditLog({ onClose }) {
                   {/* Expanded detail */}
                   {isExpanded && (
                     <div className="px-4 pb-4 ml-11">
-                      <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-xs">
+                      <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
                         <div className="flex gap-4">
                           <span className="text-gray-400">Fecha:</span>
                           <span className="text-gray-600">
@@ -321,7 +321,7 @@ export default function AuditLog({ onClose }) {
               <button
                 onClick={() => loadMore(filters)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
               >
                 {loading ? 'Cargando...' : 'Cargar mas'}
               </button>

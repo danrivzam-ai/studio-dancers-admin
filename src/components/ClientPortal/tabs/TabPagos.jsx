@@ -13,27 +13,24 @@ function formatFecha(dateStr) {
 const ESTADO_CFG = {
   al_dia: {
     Icon: CheckCircle,
-    color: 'text-green-500',
-    bg: 'bg-green-50',
-    border: 'border-green-100',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-400',
     label: 'Pago al día',
-    emoji: '✅',
   },
   por_vencer: {
     Icon: Clock,
-    color: 'text-amber-500',
+    color: 'text-amber-600',
     bg: 'bg-amber-50',
-    border: 'border-amber-100',
+    border: 'border-amber-400',
     label: 'Pago próximo a vencer',
-    emoji: '⏰',
   },
   vencido: {
     Icon: AlertCircle,
-    color: 'text-red-500',
+    color: 'text-red-600',
     bg: 'bg-red-50',
-    border: 'border-red-100',
+    border: 'border-red-400',
     label: 'Pago vencido',
-    emoji: '❗',
   },
 }
 
@@ -49,30 +46,28 @@ export default function TabPagos({ auth, student, onLogout }) {
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-800">Estado de pago</h2>
-          <p className="text-xs text-gray-500 mt-0.5">{name}</p>
+          <p className="text-xs text-gray-400 mt-0.5">Tu información de cobro</p>
         </div>
         <span className="text-3xl">🩰</span>
       </div>
 
-      {/* Curso */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
-          Curso inscrito
-        </p>
-        <p className="font-semibold text-gray-800">{course_name || 'Ballet Niñas'}</p>
-      </div>
-
-      {/* Estado */}
-      <div className={`rounded-2xl border ${sc.border} ${sc.bg} p-4`}>
-        <div className="flex items-center gap-3">
-          <Icon size={26} className={sc.color} />
-          <div>
-            <p className={`font-bold ${sc.color} text-base`}>{sc.label}</p>
-            {next_payment_date && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                Próximo pago: {formatFecha(next_payment_date)}
-              </p>
-            )}
+      {/* Curso + Estado en una tarjeta */}
+      <div className={`rounded-2xl border-t-4 ${sc.border} bg-white shadow-sm overflow-hidden`}>
+        <div className="p-4 border-b border-gray-50">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Curso inscrito</p>
+          <p className="font-semibold text-gray-800">{course_name || 'Ballet Niñas'}</p>
+        </div>
+        <div className={`p-4 ${sc.bg}`}>
+          <div className="flex items-center gap-3">
+            <Icon size={24} className={sc.color} />
+            <div>
+              <p className={`font-bold ${sc.color}`}>{sc.label}</p>
+              {next_payment_date && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Próximo pago: {formatFecha(next_payment_date)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -82,7 +77,7 @@ export default function TabPagos({ auth, student, onLogout }) {
 
       {/* Contacto */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
           ¿Tienes preguntas?
         </p>
         <a
@@ -103,10 +98,10 @@ export default function TabPagos({ auth, student, onLogout }) {
       {/* Cerrar sesión */}
       <button
         onClick={onLogout}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 active:scale-95 transition-all"
       >
         <LogOut size={15} />
-        <span className="text-sm">Cerrar sesión</span>
+        <span className="text-sm font-medium">Cerrar sesión</span>
       </button>
     </div>
   )

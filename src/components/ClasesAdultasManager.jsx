@@ -77,7 +77,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
 
       {activeCiclo ? (
         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-          <div className="flex-1 bg-purple-50 rounded-lg p-3">
+          <div className="flex-1 bg-purple-50 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold text-white px-2 py-0.5 rounded-full" style={{ background: PURPLE }}>
                 Ciclo {activeCiclo.numero_ciclo}
@@ -95,23 +95,23 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
             <div className="flex gap-2 items-center">
               <span className="text-sm text-gray-600">¿Cerrar ciclo {activeCiclo.numero_ciclo}?</span>
               <button onClick={handleClose} disabled={saving}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50">
+                className="px-3 py-1.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 active:scale-95 transition-all">
                 {saving ? '...' : 'Confirmar'}
               </button>
               <button onClick={() => setConfirmClose(false)}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200">
+                className="px-3 py-1.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
                 Cancelar
               </button>
             </div>
           ) : (
             <button onClick={() => setConfirmClose(true)}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 whitespace-nowrap">
+              className="px-3 py-1.5 rounded-xl text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 whitespace-nowrap active:scale-95 transition-all">
               Cerrar ciclo
             </button>
           )}
         </div>
       ) : (
-        <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mb-3">
+        <div className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3 mb-3">
           Sin ciclo activo.{' '}
           {ciclos.length > 0 ? `${ciclos.length} ciclo(s) cerrado(s).` : 'Crea el primer ciclo para comenzar.'}
         </div>
@@ -119,27 +119,27 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
 
       {!activeCiclo && !showForm && (
         <button onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg text-white mt-2"
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl text-white mt-2 active:scale-95 transition-all"
           style={{ background: PURPLE }}>
           <Plus size={14} /> Nuevo ciclo
         </button>
       )}
 
       {showForm && (
-        <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-lg p-3 bg-purple-50 space-y-3">
+        <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-xl p-3 bg-purple-50 space-y-3">
           <p className="text-sm font-medium" style={{ color: PURPLE }}>Ciclo {nextNum} — {course.name}</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-gray-600 block mb-1">Fecha de inicio *</label>
               <input type="date" required value={form.fechaInicio}
                 onChange={e => setForm({ ...form, fechaInicio: e.target.value })}
-                className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
               <input type="number" required min={1} max={20} value={form.totalClases}
                 onChange={e => setForm({ ...form, totalClases: e.target.value })}
-                className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
             </div>
           </div>
           <div>
@@ -147,16 +147,16 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
             <input type="text" value={form.objetivoCiclo}
               onChange={e => setForm({ ...form, objetivoCiclo: e.target.value })}
               placeholder="ej. Perfeccionar port de bras"
-              className="w-full border rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400" />
+              className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+              className="px-4 py-1.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 active:scale-95 transition-all"
               style={{ background: PURPLE }}>
               {saving ? 'Creando...' : 'Crear ciclo'}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-1.5 rounded-lg text-sm font-medium text-gray-600 bg-white border">
+              className="px-4 py-1.5 rounded-xl text-sm font-medium text-gray-600 bg-white border active:scale-95 transition-all">
               Cancelar
             </button>
           </div>
@@ -171,7 +171,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
           </p>
           <div className="space-y-1.5">
             {closedCiclos.map(c => (
-              <div key={c.id} className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+              <div key={c.id} className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded-xl px-3 py-2">
                 <span className="font-medium text-gray-700">Ciclo {c.numero_ciclo}</span>
                 <span className="text-gray-400">·</span>
                 <span>{formatDateShort(c.fecha_inicio)} · {c.total_clases} clases</span>
@@ -227,7 +227,7 @@ export default function ClasesAdultasManager() {
           <div className="text-sm text-gray-400">Cargando cursos...</div>
         ) : (
           <select value={selectedCourseCode} onChange={e => setSelectedCourseCode(e.target.value)}
-            className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400">
+            className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all">
             <option value="">— Elige un curso —</option>
             {courses.map(c => (
               <option key={c.code} value={c.code}>{c.name}</option>

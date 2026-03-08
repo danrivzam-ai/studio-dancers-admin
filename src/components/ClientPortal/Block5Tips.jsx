@@ -50,7 +50,7 @@ export default function Block5Tips({ tips, loading }) {
         <div>
           <button
             onClick={() => setShowAll(s => !s)}
-            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl active:scale-95 transition-all"
             style={{ color: '#7B2D8E', background: '#f3e5f5' }}
           >
             {showAll ? <ChevronUp size={12} /> : <ChevronDown size={12} />}

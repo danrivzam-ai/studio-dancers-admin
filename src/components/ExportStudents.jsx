@@ -159,16 +159,14 @@ export default function ExportStudents({ students, settings, onClose }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800">Exportar Listado</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
+        <div className="p-6 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
+          <h2 className="text-xl font-semibold">Exportar Listado</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="p-6 space-y-4">
@@ -180,7 +178,7 @@ export default function ExportStudents({ students, settings, onClose }) {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
             >
               <option value="all">Todos los cursos ({students.length} alumnos)</option>
 
@@ -284,14 +282,14 @@ export default function ExportStudents({ students, settings, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               onClick={handleExport}
               disabled={filteredStudents.length === 0}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Download size={20} />
               Exportar

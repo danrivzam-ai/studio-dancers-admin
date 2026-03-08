@@ -70,7 +70,7 @@ function BloqueCard({ bloque, defaultOpen }) {
             return (
               <div
                 key={item.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm"
                 style={{ background: cfg.bg }}
               >
                 <span

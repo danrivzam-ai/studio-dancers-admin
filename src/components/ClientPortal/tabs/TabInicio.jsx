@@ -48,7 +48,7 @@ export default function TabInicio({ auth, student, onNavigate }) {
         return (
           <button
             onClick={() => onNavigate('bienestar')}
-            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md transition-shadow"
+            className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md active:scale-[0.99] transition-all"
           >
             <div className="flex items-center gap-2 mb-2">
               <Sparkles size={15} className="text-purple-500" />
@@ -75,8 +75,7 @@ export default function TabInicio({ auth, student, onNavigate }) {
       {reto && (
         <button
           onClick={() => onNavigate('retos')}
-          className="w-full rounded-2xl p-4 text-left hover:shadow-md transition-shadow"
-          style={{ background: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%)', border: '1px solid #e1bee7' }}
+          className="w-full bg-purple-50 border border-purple-100 rounded-2xl p-4 text-left hover:shadow-md active:scale-[0.99] transition-all"
         >
           <div className="flex items-center gap-2 mb-2">
             <Target size={15} className="text-purple-600" />
@@ -95,7 +94,7 @@ export default function TabInicio({ auth, student, onNavigate }) {
       {/* Tarjeta: Mi diario */}
       <button
         onClick={() => onNavigate('diario')}
-        className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md transition-shadow"
+        className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md active:scale-[0.99] transition-all"
       >
         <div className="flex items-center gap-2 mb-2">
           <BookHeart size={15} className="text-rose-400" />

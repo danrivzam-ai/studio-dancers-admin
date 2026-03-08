@@ -97,7 +97,7 @@ export default function ReceptionistManager() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all shadow-sm"
         >
           <Plus size={18} />
           Nueva
@@ -118,7 +118,7 @@ export default function ReceptionistManager() {
       ) : (
         <div className="space-y-2">
           {receptionists.map(r => (
-            <div key={r.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
+            <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
               {/* Avatar */}
               <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
                 <span className="text-purple-700 font-bold">{r.name.charAt(0).toUpperCase()}</span>
@@ -141,14 +141,14 @@ export default function ReceptionistManager() {
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => openEdit(r)}
-                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                   title="Editar / cambiar contraseña"
                 >
                   <Edit2 size={16} />
                 </button>
                 <button
                   onClick={() => toggleActive(r)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-xl active:scale-95 transition-all ${
                     r.active
                       ? 'text-gray-400 hover:text-orange-500 hover:bg-orange-50'
                       : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
@@ -159,7 +159,7 @@ export default function ReceptionistManager() {
                 </button>
                 <button
                   onClick={() => setDeleteConfirm(r.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                   title="Eliminar"
                 >
                   <Trash2 size={16} />
@@ -174,11 +174,16 @@ export default function ReceptionistManager() {
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="px-6 pt-5 pb-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-gray-800">
-                {editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}
-              </h3>
-              <button onClick={() => setShowForm(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-1.5 rounded-xl">
+                  <Shield size={18} />
+                </div>
+                <h3 className="font-semibold text-base">
+                  {editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}
+                </h3>
+              </div>
+              <button onClick={() => setShowForm(false)} className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -251,14 +256,14 @@ export default function ReceptionistManager() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50"
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all"
                   style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}
@@ -281,13 +286,13 @@ export default function ReceptionistManager() {
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50"
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all"
               >
                 Eliminar
               </button>

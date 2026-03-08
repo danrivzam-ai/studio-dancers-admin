@@ -70,9 +70,12 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="font-bold text-gray-800">Nueva alumna</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 p-1.5 rounded-xl"><Plus size={16} /></div>
+            <h3 className="font-semibold text-base">Nueva alumna</h3>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -83,7 +86,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Nombre completo *</label>
             <input required value={form.name} onChange={e => set('name', e.target.value)}
               placeholder="Nombre de la alumna"
-              className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
           </div>
 
           {/* Cédula + Edad */}
@@ -92,13 +95,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
               <label className="text-xs font-medium text-gray-600 block mb-1">Cédula</label>
               <input value={form.cedula} onChange={e => set('cedula', e.target.value)}
                 placeholder="0000000000"
-                className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Edad</label>
               <input type="number" min={1} max={99} value={form.age} onChange={e => set('age', e.target.value)}
                 placeholder="Años"
-                className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
             </div>
           </div>
 
@@ -107,7 +110,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono</label>
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               placeholder="09xxxxxxxx"
-              className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
           </div>
 
           {/* Es menor */}
@@ -123,13 +126,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
                 <label className="text-xs font-medium text-gray-600 block mb-1">Nombre del representante *</label>
                 <input value={form.parent_name} onChange={e => set('parent_name', e.target.value)}
                   placeholder="Nombre completo"
-                  className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono del representante</label>
                 <input value={form.parent_phone} onChange={e => set('parent_phone', e.target.value)}
                   placeholder="09xxxxxxxx"
-                  className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
               </div>
             </div>
           )}
@@ -138,7 +141,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Curso *</label>
             <select required value={form.course_id} onChange={e => set('course_id', e.target.value)}
-              className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none">
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all">
               <option value="">— Selecciona un curso —</option>
               {ACTIVE_COURSES.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -151,7 +154,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Notas (opcional)</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
               placeholder="Observaciones adicionales..."
-              className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none resize-none" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none resize-none transition-all" />
           </div>
 
           {error && (
@@ -162,12 +165,12 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
 
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving || !form.name.trim() || !form.course_id}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 active:scale-95 transition-all"
               style={{ background: PURPLE }}>
               {saving ? 'Registrando...' : 'Registrar alumna'}
             </button>
             <button type="button" onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200">
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
               Cancelar
             </button>
           </div>
@@ -184,7 +187,7 @@ function StudentRow({ student, onPago, onDetail }) {
   const initials = student.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-purple-200 transition-colors">
+    <div className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-purple-200 transition-colors">
       {/* Avatar */}
       <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
         style={{ background: PURPLE }}>
@@ -210,7 +213,7 @@ function StudentRow({ student, onPago, onDetail }) {
 
       {/* Botón pago */}
       <button onClick={onPago} title="Registrar pago"
-        className="shrink-0 flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+        className="shrink-0 flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl text-white active:scale-95 transition-all hover:opacity-90"
         style={{ background: PURPLE }}>
         <CreditCard size={13} /> Pago
       </button>
@@ -226,9 +229,12 @@ function StudentDetailModal({ student, onClose, onPago }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="font-bold text-gray-800">Detalle alumna</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 p-1.5 rounded-xl"><User size={16} /></div>
+            <h3 className="font-semibold text-base">Detalle alumna</h3>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -362,7 +368,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
               </span>
             )}
             <button onClick={onLogout} title="Cerrar sesión"
-              className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600">
+              className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 active:scale-95 transition-all">
               <LogOut size={16} />
             </button>
           </div>
@@ -375,12 +381,12 @@ export default function RecepcionDashboard({ onLogout, userName }) {
         {/* Búsqueda + nueva */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nombre, cédula o representante..."
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:outline-none bg-white"
+              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}
@@ -404,7 +410,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
               { label: 'Atrasadas',     value: atrasadas,       icon: AlertCircle, color: '#e53935', bg: '#ffebee' },
               { label: 'Por vencer',    value: proximas,        icon: Clock, color: '#F4A261', bg: '#fff3e0' },
             ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="bg-white rounded-xl border border-gray-100 px-3 py-2.5 text-center">
+              <div key={label} className="bg-white rounded-2xl border border-gray-100 px-3 py-2.5 text-center">
                 <Icon size={16} className="mx-auto mb-1" style={{ color }} />
                 <p className="text-lg font-bold" style={{ color }}>{value}</p>
                 <p className="text-[10px] text-gray-400 leading-tight">{label}</p>

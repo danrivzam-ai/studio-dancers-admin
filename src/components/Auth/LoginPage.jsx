@@ -100,7 +100,7 @@ export default function LoginPage({ onLogin }) {
                   </div>
                   <button
                     onClick={() => { setIsResetting(false); setResetSent(false) }}
-                    className="w-full py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="w-full py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
                   >
                     Volver al login
                   </button>
@@ -125,7 +125,7 @@ export default function LoginPage({ onLogin }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 rounded-xl font-semibold text-white transition-all disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
                   >
                     {loading ? 'Enviando...' : 'Enviar enlace'}
@@ -194,7 +194,7 @@ export default function LoginPage({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-4 py-3.5 rounded-xl font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-4 py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
                 boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'

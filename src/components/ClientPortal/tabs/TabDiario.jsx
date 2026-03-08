@@ -83,7 +83,7 @@ export default function TabDiario({ auth, student }) {
         </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-1.5 bg-purple-600 text-white text-sm font-medium px-3 py-2 rounded-xl hover:bg-purple-700 transition-colors"
+          className="flex items-center gap-1.5 bg-purple-600 text-white text-sm font-medium px-3 py-2 rounded-xl hover:bg-purple-700 active:scale-95 transition-all"
         >
           <Plus size={15} />
           Nueva entrada
@@ -111,7 +111,7 @@ export default function TabDiario({ auth, student }) {
                 value={form.fecha}
                 onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
                 max={todayEC()}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
               />
             </div>
           )}
@@ -142,13 +142,13 @@ export default function TabDiario({ auth, student }) {
             onChange={e => setForm(f => ({ ...f, contenido: e.target.value }))}
             rows={5}
             placeholder="¿Cómo estuvo tu clase? ¿Qué sentiste? ¿Qué te gustó? ¿Qué te costó?"
-            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+            className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all resize-none"
           />
 
           <button
             onClick={handleSave}
             disabled={saving || !form.contenido.trim()}
-            className="w-full mt-3 py-2.5 bg-purple-600 text-white font-semibold text-sm rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full mt-3 py-2.5 bg-purple-600 text-white font-semibold text-sm rounded-xl hover:bg-purple-700 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -184,14 +184,14 @@ export default function TabDiario({ auth, student }) {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => openEdit(e)}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-purple-600 transition-colors"
+                    className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-purple-600 active:scale-95 transition-all"
                   >
                     <Edit2 size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(e.entrada_id)}
                     disabled={deleting === e.entrada_id}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded-xl hover:bg-red-50 text-gray-400 hover:text-red-500 active:scale-95 transition-all"
                   >
                     {deleting === e.entrada_id
                       ? <div className="w-3 h-3 border border-red-300 border-t-red-500 rounded-full animate-spin" />

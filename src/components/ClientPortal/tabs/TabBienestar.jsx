@@ -38,7 +38,7 @@ function BienestarCard({ item, expanded, onToggle }) {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full p-4 text-left"
+        className="w-full p-4 text-left hover:bg-gray-50 active:bg-gray-50 transition-colors"
       >
         <div className="flex items-start gap-3">
           <span className="text-2xl shrink-0">{cfg.emoji}</span>
@@ -114,10 +114,10 @@ export default function TabBienestar({ auth, student }) {
           <button
             key={String(f.id)}
             onClick={() => setFiltro(f.id)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 ${
               filtro === f.id
-                ? 'bg-purple-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-200'
             }`}
           >
             {f.label}
@@ -153,7 +153,7 @@ export default function TabBienestar({ auth, student }) {
                 load(next * PAGE)
               }}
               disabled={loading}
-              className="w-full py-3 text-sm text-purple-600 font-medium disabled:opacity-50"
+              className="w-full py-3 text-sm text-purple-600 font-medium disabled:opacity-50 bg-white border-2 border-purple-100 rounded-2xl hover:bg-purple-50 active:scale-95 transition-all"
             >
               {loading ? 'Cargando…' : 'Ver más'}
             </button>

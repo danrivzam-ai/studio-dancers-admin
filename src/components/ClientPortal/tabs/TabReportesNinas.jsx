@@ -33,9 +33,9 @@ function formatFecha(dateStr) {
 }
 
 const ESTADO_PAGO = {
-  al_dia:     { label: 'Al día ✓',    bg: 'bg-green-100', text: 'text-green-700' },
-  por_vencer: { label: 'Por renovar', bg: 'bg-amber-100', text: 'text-amber-700' },
-  vencido:    { label: 'Vencido',     bg: 'bg-red-100',   text: 'text-red-700'   },
+  al_dia:     { label: 'Al día ✓',    bg: 'bg-emerald-100', text: 'text-emerald-700', bar: 'border-t-4 border-emerald-400' },
+  por_vencer: { label: 'Por renovar', bg: 'bg-amber-100',   text: 'text-amber-700',   bar: 'border-t-4 border-amber-400'   },
+  vencido:    { label: 'Vencido',     bg: 'bg-red-100',     text: 'text-red-700',     bar: 'border-t-4 border-red-400'     },
 }
 
 export default function TabReportesNinas({ auth, student, onLogout }) {
@@ -96,7 +96,7 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
       </div>
 
       {/* Perfil */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 overflow-hidden ${ps.bar}`}>
         <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-50">
           {/* Avatar con upload */}
           <div
@@ -206,10 +206,10 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
       {/* Cerrar sesión */}
       <button
         onClick={onLogout}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-100 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 active:scale-95 transition-all"
       >
         <LogOut size={15} />
-        <span className="text-sm">Cerrar sesión</span>
+        <span className="text-sm font-medium">Cerrar sesión</span>
       </button>
     </div>
   )

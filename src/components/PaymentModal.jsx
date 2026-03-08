@@ -287,17 +287,22 @@ export default function PaymentModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-6 border-b">
+        <div className="p-4 sm:p-6 flex flex-col bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800">Registrar Pago</h2>
+            <div className="flex items-center gap-2">
+              <div className="bg-white/20 p-1.5 rounded-xl">
+                <CreditCard size={20} />
+              </div>
+              <h2 className="text-xl font-semibold">Registrar Pago</h2>
+            </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={20} />
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-white/70 mt-1 ml-1">
             Comprobante N° {receiptNumber}
           </p>
         </div>
@@ -305,48 +310,66 @@ export default function PaymentModal({
         {/* Student Info */}
         <div className="px-6 py-4 bg-purple-50 border-b">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-100 text-purple-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
-              {student.name.charAt(0).toUpperCase()}
+            <div className="bg-purple-100 text-purple-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0">
+              {(student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-gray-800">{student.name}</p>
-              <p className="text-sm text-gray-600">{course?.name || 'Sin curso'}</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-800 truncate">{student.name}</p>
+              <p className="text-sm text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
             </div>
+            {(() => {
+              const ps = student.payment_status
+              const chip = ps === 'overdue' || ps === 'due_today'
+                ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
+                : ps === 'urgent' || ps === 'upcoming'
+                ? { label: 'Por renovar', cls: 'bg-amber-100 text-amber-700' }
+                : ps === 'ok' || ps === 'paid' || ps === 'active_package'
+                ? { label: 'Al día', cls: 'bg-emerald-100 text-emerald-700' }
+                : null
+              return chip && (
+                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${chip.cls}`}>
+                  {chip.label}
+                </span>
+              )
+            })()}
           </div>
         </div>
 
         {/* Loyalty Banner — solo si tiene tier activo en curso recurrente */}
-        {hasLoyaltyDiscount && (
-          <div className="px-6 py-3 border-b flex items-center justify-between"
-            style={{ background: loyaltyTier.tier === 'oro' ? '#fffbeb' : loyaltyTier.tier === 'plata' ? '#f8fafc' : '#fff7ed',
-                     borderColor: loyaltyTier.tier === 'oro' ? '#fcd34d' : loyaltyTier.tier === 'plata' ? '#cbd5e1' : '#fdba74' }}>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{loyaltyTier.emoji}</span>
-              <div>
-                <p className="text-sm font-bold" style={{ color: loyaltyTier.tier === 'oro' ? '#92400e' : loyaltyTier.tier === 'plata' ? '#334155' : '#9a3412' }}>
-                  Fidelidad {loyaltyTier.label} · {loyaltyTier.months} {loyaltyTier.months === 1 ? 'mes' : 'meses'} consecutivos
-                </p>
-                <p className="text-xs" style={{ color: loyaltyTier.tier === 'oro' ? '#b45309' : loyaltyTier.tier === 'plata' ? '#475569' : '#c2410c' }}>
-                  Descuento disponible: {loyaltyTier.discount}% off
-                </p>
+        {hasLoyaltyDiscount && (() => {
+          const lc = loyaltyTier.tier === 'oro'
+            ? { banner: 'bg-amber-50 border-amber-200', title: 'text-amber-900', sub: 'text-amber-700', btn: 'bg-amber-200 text-amber-900 hover:bg-amber-300' }
+            : loyaltyTier.tier === 'plata'
+            ? { banner: 'bg-slate-50 border-slate-200', title: 'text-slate-800', sub: 'text-slate-600', btn: 'bg-slate-200 text-slate-800 hover:bg-slate-300' }
+            : { banner: 'bg-orange-50 border-orange-200', title: 'text-orange-900', sub: 'text-orange-700', btn: 'bg-orange-200 text-orange-900 hover:bg-orange-300' }
+          return (
+            <div className={`px-6 py-3 border-b flex items-center justify-between ${lc.banner}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{loyaltyTier.emoji}</span>
+                <div>
+                  <p className={`text-sm font-bold ${lc.title}`}>
+                    Fidelidad {loyaltyTier.label} · {loyaltyTier.months} {loyaltyTier.months === 1 ? 'mes' : 'meses'} consecutivos
+                  </p>
+                  <p className={`text-xs ${lc.sub}`}>
+                    Descuento disponible: {loyaltyTier.discount}% off
+                  </p>
+                </div>
               </div>
+              {!discountEnabled && (
+                <button
+                  type="button"
+                  onClick={applyLoyaltyDiscount}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl active:scale-95 transition-all ${lc.btn}`}
+                >
+                  Aplicar
+                </button>
+              )}
+              {discountEnabled && (
+                <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">✓ Aplicado</span>
+              )}
             </div>
-            {!discountEnabled && (
-              <button
-                type="button"
-                onClick={applyLoyaltyDiscount}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                style={{ background: loyaltyTier.tier === 'oro' ? '#fde68a' : loyaltyTier.tier === 'plata' ? '#e2e8f0' : '#fed7aa',
-                         color: loyaltyTier.tier === 'oro' ? '#78350f' : loyaltyTier.tier === 'plata' ? '#1e293b' : '#7c2d12' }}
-              >
-                Aplicar
-              </button>
-            )}
-            {discountEnabled && (
-              <span className="text-xs font-semibold text-green-600 flex items-center gap-1">✓ Aplicado</span>
-            )}
-          </div>
-        )}
+          )
+        })()}
 
         {/* Course Price Info */}
         <div className="px-6 py-4 bg-gray-50 border-b">
@@ -369,7 +392,7 @@ export default function PaymentModal({
           )}
 
           {hasBalance && (
-            <div className="mt-2 p-3 bg-orange-100 border border-orange-200 rounded-lg">
+            <div className="mt-2 p-3 bg-orange-100 border border-orange-200 rounded-xl">
               <div className="flex items-center gap-2 text-orange-700">
                 <AlertCircle size={18} />
                 <span className="font-medium">Tiene saldo pendiente</span>
@@ -410,7 +433,7 @@ export default function PaymentModal({
               <button
                 type="button"
                 onClick={() => handlePaymentTypeChange('full')}
-                className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.paymentType === 'full'
                     ? 'border-green-500 bg-green-50 text-green-700'
                     : 'border-gray-200 hover:border-gray-300'
@@ -427,7 +450,7 @@ export default function PaymentModal({
                 <button
                   type="button"
                   onClick={() => handlePaymentTypeChange('installment')}
-                  className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     formData.paymentType === 'installment'
                       ? 'border-orange-500 bg-orange-50 text-orange-700'
                       : 'border-gray-200 hover:border-gray-300'
@@ -445,7 +468,7 @@ export default function PaymentModal({
                 <button
                   type="button"
                   onClick={() => handlePaymentTypeChange('balance')}
-                  className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                     formData.paymentType === 'balance'
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 hover:border-gray-300'
@@ -462,7 +485,7 @@ export default function PaymentModal({
               <button
                 type="button"
                 onClick={() => setFormData({...formData, paymentType: 'custom', amount: ''})}
-                className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.paymentType === 'custom'
                     ? 'border-purple-500 bg-purple-50 text-purple-700'
                     : 'border-gray-200 hover:border-gray-300'
@@ -501,7 +524,7 @@ export default function PaymentModal({
             {discountEnabled && (
               <div className="p-3 space-y-3">
                 {/* Precio original bloqueado */}
-                <div className="flex items-center justify-between bg-white rounded-lg p-2 border border-gray-200">
+                <div className="flex items-center justify-between bg-white rounded-xl p-2 border border-gray-200">
                   <span className="text-sm text-gray-500">Precio regular:</span>
                   <span className="text-lg font-bold text-gray-400 line-through">${baseAmount.toFixed(2)}</span>
                 </div>
@@ -511,7 +534,7 @@ export default function PaymentModal({
                   <button
                     type="button"
                     onClick={() => handleDiscountTypeChange('fixed')}
-                    className={`p-2 rounded-lg border text-sm font-medium transition-all text-center ${
+                    className={`p-2 rounded-xl border text-sm font-medium active:scale-95 transition-all text-center ${
                       discountType === 'fixed' && customFinalPrice === ''
                         ? 'border-green-500 bg-green-100 text-green-700'
                         : 'border-gray-200 hover:border-gray-300 text-gray-600'
@@ -523,7 +546,7 @@ export default function PaymentModal({
                   <button
                     type="button"
                     onClick={() => handleDiscountTypeChange('percent')}
-                    className={`p-2 rounded-lg border text-sm font-medium transition-all text-center ${
+                    className={`p-2 rounded-xl border text-sm font-medium active:scale-95 transition-all text-center ${
                       discountType === 'percent' && customFinalPrice === ''
                         ? 'border-green-500 bg-green-100 text-green-700'
                         : 'border-gray-200 hover:border-gray-300 text-gray-600'
@@ -550,7 +573,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={discountValue}
                       onChange={(e) => handleDiscountValueChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-sm"
                       placeholder={discountType === 'percent' ? 'Ej: 10' : 'Ej: 5.00'}
                     />
                   </div>
@@ -576,7 +599,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={customFinalPrice}
                       onChange={(e) => handleCustomFinalPriceChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-sm"
                       placeholder="Ej: 30.00"
                     />
                   </div>
@@ -584,7 +607,7 @@ export default function PaymentModal({
 
                 {/* Resumen del descuento */}
                 {showDiscountSummary && (
-                  <div className="bg-white rounded-lg p-2 border border-green-200 text-center">
+                  <div className="bg-white rounded-xl p-2 border border-green-200 text-center">
                     <span className="text-xs text-gray-500">Ahorro: </span>
                     <span className="text-sm font-bold text-green-600">
                       -${(baseAmount - finalAmount).toFixed(2)}
@@ -620,7 +643,7 @@ export default function PaymentModal({
                       setCustomFinalPrice('')
                     }
                   }}
-                  className={`w-full pl-8 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg font-semibold ${
+                  className={`w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-lg font-semibold ${
                     discountEnabled ? 'bg-green-50 border-green-300 text-green-700' : ''
                   }`}
                   readOnly={discountEnabled}
@@ -638,7 +661,7 @@ export default function PaymentModal({
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
-                className="w-full px-3 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
               />
             </div>
           </div>
@@ -657,7 +680,7 @@ export default function PaymentModal({
                 <button
                   type="button"
                   onClick={() => setCycleStartOption('original')}
-                  className={`p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center ${
+                  className={`p-2.5 rounded-xl border-2 text-xs font-medium active:scale-95 transition-all text-center ${
                     cycleStartOption === 'original'
                       ? 'border-amber-500 bg-amber-100 text-amber-800'
                       : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
@@ -669,7 +692,7 @@ export default function PaymentModal({
                 <button
                   type="button"
                   onClick={() => setCycleStartOption('today')}
-                  className={`p-2.5 rounded-lg border-2 text-xs font-medium transition-all text-center ${
+                  className={`p-2.5 rounded-xl border-2 text-xs font-medium active:scale-95 transition-all text-center ${
                     cycleStartOption === 'today'
                       ? 'border-amber-500 bg-amber-100 text-amber-800'
                       : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
@@ -721,7 +744,7 @@ export default function PaymentModal({
                   required
                   value={formData.bankId}
                   onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 >
                   <option value="">Seleccionar banco</option>
                   {BANKS.map(bank => (
@@ -739,7 +762,7 @@ export default function PaymentModal({
                   required
                   value={formData.transferReceipt}
                   onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                   placeholder="Ingrese número de comprobante"
                 />
               </div>
@@ -754,14 +777,14 @@ export default function PaymentModal({
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
               rows={2}
               placeholder="Observaciones del pago..."
             />
           </div>
 
           {/* Summary */}
-          <div className={`rounded-xl p-4 ${showDiscountSummary ? 'bg-green-50 border border-green-200' : 'bg-green-50 border border-green-200'}`}>
+          <div className="rounded-2xl p-4 bg-green-50 border border-green-200">
             {showDiscountSummary && (
               <div className="flex justify-between items-center mb-2 pb-2 border-b border-green-200">
                 <span className="text-sm text-gray-500">Precio regular:</span>
@@ -787,7 +810,7 @@ export default function PaymentModal({
                   <p className="text-xs text-green-600">Pago de saldo pendiente</p>
                 )}
               </div>
-              <span className="text-2xl font-bold text-green-700">
+              <span className="text-3xl font-extrabold text-green-700">
                 ${finalAmount.toFixed(2)}
               </span>
             </div>
@@ -803,14 +826,14 @@ export default function PaymentModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !formData.amount || parseFloat(formData.amount) <= 0 || (formData.paymentMethod === 'transferencia' && (!formData.bankId || !formData.transferReceipt))}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Check size={20} />
               {loading ? 'Procesando...' : 'Confirmar Pago'}

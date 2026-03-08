@@ -296,7 +296,7 @@ export default function ManageItems({
         <div className="p-4 md:p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
+              <div className="p-2 bg-white/20 rounded-xl">
                 <Package className="text-white" size={24} />
               </div>
               <div>
@@ -306,7 +306,7 @@ export default function ManageItems({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all text-white"
             >
               <X size={20} />
             </button>
@@ -315,7 +315,7 @@ export default function ManageItems({
 
         {/* Error Message */}
         {errorMessage && (
-          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+          <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-700">
             <AlertTriangle size={18} />
             <span className="text-sm">{errorMessage}</span>
             <button onClick={() => setErrorMessage(null)} className="ml-auto">
@@ -420,7 +420,7 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-xl active:scale-95 transition-all"
                 >
                   <X size={18} />
                 </button>
@@ -434,7 +434,7 @@ export default function ManageItems({
                     <button
                       type="button"
                       onClick={() => handleTypeChange('course')}
-                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.type === 'course'
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -446,7 +446,7 @@ export default function ManageItems({
                     <button
                       type="button"
                       onClick={() => handleTypeChange('program')}
-                      className={`p-3 rounded-lg border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                         formData.type === 'program'
                           ? 'border-orange-500 bg-orange-50 text-orange-700'
                           : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -467,7 +467,7 @@ export default function ManageItems({
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                   placeholder={formData.type === 'product' ? 'Ej: Zapatillas Ballet' : 'Ej: Ballet Kids'}
                 />
               </div>
@@ -508,7 +508,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMin}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMin: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 bg-white"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                         />
                       </div>
                       <div className="flex-1">
@@ -519,7 +519,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMax}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMax: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-500 bg-white"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -532,7 +532,7 @@ export default function ManageItems({
                       type="text"
                       value={formData.schedule}
                       onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                       placeholder="Ej: Lunes y Miércoles 17:00 - 18:00"
                     />
                   </div>
@@ -557,7 +557,7 @@ export default function ManageItems({
                                   : [...formData.classDays, day.id].sort((a, b) => a - b)
                                 setFormData({ ...formData, classDays: newDays })
                               }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border-2 ${
+                              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border-2 ${
                                 isSelected
                                   ? 'border-purple-500 bg-purple-100 text-purple-700'
                                   : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
@@ -586,7 +586,7 @@ export default function ManageItems({
                         max="50"
                         value={formData.classesPerCycle}
                         onChange={(e) => setFormData({...formData, classesPerCycle: e.target.value})}
-                        className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                         placeholder={`Ej: ${formData.classDays.length * 4}`}
                       />
                       <p className="text-xs text-gray-400 mt-1">
@@ -608,7 +608,7 @@ export default function ManageItems({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                   />
                 </div>
                 {formData.type !== 'product' && (
@@ -617,7 +617,7 @@ export default function ManageItems({
                     <select
                       value={formData.priceType}
                       onChange={(e) => setFormData({...formData, priceType: e.target.value})}
-                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                     >
                       {PRICE_TYPES.map(pt => (
                         <option key={pt.id} value={pt.id}>{pt.name}</option>
@@ -633,7 +633,7 @@ export default function ManageItems({
                       min="0"
                       value={formData.stock}
                       onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
                       placeholder="Opcional"
                     />
                   </div>
@@ -642,7 +642,7 @@ export default function ManageItems({
 
               {/* Abonos (solo para programas) */}
               {formData.type === 'program' && (
-                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="p-3 bg-orange-50 rounded-xl border border-orange-200">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -661,7 +661,7 @@ export default function ManageItems({
                         max="12"
                         value={formData.installmentCount}
                         onChange={(e) => setFormData({...formData, installmentCount: parseInt(e.target.value)})}
-                        className="w-16 px-2 py-1 border border-orange-300 rounded text-center bg-white"
+                        className="w-16 px-2 py-1 border border-orange-300 rounded-xl text-center bg-white outline-none transition-all"
                       />
                     </div>
                   )}
@@ -679,7 +679,7 @@ export default function ManageItems({
                     </label>
                     {formData.imageUrl && (
                       <div className="mb-2 relative">
-                        <img src={formData.imageUrl} alt="Curso" className="w-full h-32 object-cover rounded-lg" />
+                        <img src={formData.imageUrl} alt="Curso" className="w-full h-32 object-cover rounded-xl" />
                         <button
                           type="button"
                           onClick={() => setFormData({...formData, imageUrl: ''})}
@@ -720,7 +720,7 @@ export default function ManageItems({
                         }
                         e.target.value = ''
                       }}
-                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                     />
                   </div>
 
@@ -730,7 +730,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.benefits}
                       onChange={(e) => setFormData({...formData, benefits: e.target.value})}
-                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white text-sm"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white text-sm outline-none transition-all"
                       placeholder="Un beneficio por línea&#10;Ej: Mejora la postura&#10;Aumenta la flexibilidad"
                       rows={3}
                     />
@@ -742,7 +742,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.requirements}
                       onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                      className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 bg-white text-sm"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white text-sm outline-none transition-all"
                       placeholder="Un requisito por línea&#10;Ej: Zapatillas de media punta&#10;Ropa ajustada"
                       rows={3}
                     />
@@ -755,13 +755,13 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-4 py-2.5 text-white rounded-xl flex items-center justify-center gap-2 font-medium ${
+                  className={`flex-1 px-4 py-2.5 text-white rounded-xl flex items-center justify-center gap-2 font-medium active:scale-95 transition-all ${
                     formData.type === 'product'
                       ? 'bg-green-600 hover:bg-green-700'
                       : formData.type === 'program'
@@ -848,7 +848,7 @@ export default function ManageItems({
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
           >
             Cerrar
           </button>
@@ -888,7 +888,7 @@ export default function ManageItems({
                   min="1"
                   value={restockQty}
                   onChange={(e) => setRestockQty(e.target.value)}
-                  className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   placeholder="0"
                   autoFocus
                 />
@@ -903,7 +903,7 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={() => setRestockModal(null)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
@@ -911,7 +911,7 @@ export default function ManageItems({
                   type="button"
                   onClick={handleRestock}
                   disabled={!restockQty || parseInt(restockQty) <= 0 || restockLoading}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                   <PackagePlus size={18} />
                   {restockLoading ? 'Guardando...' : 'Agregar'}
@@ -942,7 +942,7 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
     <div className={`p-4 rounded-xl border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-all`}>
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className={`p-2 rounded-lg ${colors.badge}`}>
+        <div className={`p-2 rounded-xl ${colors.badge}`}>
           <Icon size={20} className={colors.icon} />
         </div>
 
@@ -994,7 +994,7 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
           {isProduct && onRestock && (
             <button
               onClick={onRestock}
-              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+              className="p-2 text-blue-600 hover:bg-blue-100 rounded-xl active:scale-95 transition-all"
               title="Reabastecer stock"
             >
               <PackagePlus size={18} />
@@ -1002,7 +1002,7 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
           )}
           <button
             onClick={onEdit}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-xl active:scale-95 transition-all ${
               isProduct
                 ? 'text-green-600 hover:bg-green-100'
                 : isProgram
@@ -1015,7 +1015,7 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
           </button>
           <button
             onClick={onDelete}
-            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-xl active:scale-95 transition-all"
             title="Eliminar"
           >
             <Trash2 size={18} />
@@ -1083,13 +1083,13 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium"
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium"
+              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium active:scale-95 transition-all"
             >
               Eliminar
             </button>

@@ -141,7 +141,7 @@ export default function QuickPayment({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={20} />
             </button>
@@ -158,8 +158,8 @@ export default function QuickPayment({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Buscar alumno registrado (opcional)
               </label>
-              <div className="flex items-center gap-2 border rounded-lg focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 px-3 py-2">
-                <Search className="text-gray-400 shrink-0" size={16} />
+              <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2 transition-all">
+                <Search className="text-purple-400 shrink-0" size={16} />
                 <input
                   type="text"
                   value={studentSearch}
@@ -180,7 +180,7 @@ export default function QuickPayment({
                 )}
               </div>
               {showStudentDropdown && studentSearch && filteredStudents.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                   {filteredStudents.map(s => (
                     <button
                       key={s.id}
@@ -200,7 +200,7 @@ export default function QuickPayment({
                 </div>
               )}
               {showStudentDropdown && studentSearch && filteredStudents.length === 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-center text-sm text-gray-500">
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-3 text-center text-sm text-gray-500">
                   No se encontraron alumnos
                 </div>
               )}
@@ -217,7 +217,7 @@ export default function QuickPayment({
               required
               value={formData.customerName}
               onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
               placeholder="Nombre completo"
             />
           </div>
@@ -231,7 +231,7 @@ export default function QuickPayment({
                 type="text"
                 value={formData.customerCedula}
                 onChange={(e) => setFormData({...formData, customerCedula: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 placeholder="0912345678"
               />
             </div>
@@ -243,7 +243,7 @@ export default function QuickPayment({
                 type="tel"
                 value={formData.customerPhone}
                 onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 placeholder="0999..."
               />
             </div>
@@ -260,10 +260,10 @@ export default function QuickPayment({
                   key={cls.id}
                   type="button"
                   onClick={() => handleClassChange(cls.id)}
-                  className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
+                  className={`p-3 rounded-xl border-2 text-sm font-medium transition-all active:scale-95 ${
                     formData.classType === cls.id
                       ? 'border-purple-500 bg-purple-50 text-purple-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-gray-200 hover:border-purple-200'
                   }`}
                 >
                   <div className="text-center">
@@ -290,7 +290,7 @@ export default function QuickPayment({
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full pl-8 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg font-semibold"
+                  className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-lg font-semibold"
                 />
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function QuickPayment({
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
-                className="w-full px-3 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
               />
             </div>
           </div>
@@ -346,7 +346,7 @@ export default function QuickPayment({
                   required
                   value={formData.bankId}
                   onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                 >
                   <option value="">Seleccionar banco</option>
                   {BANKS.map(bank => (
@@ -363,7 +363,7 @@ export default function QuickPayment({
                   required
                   value={formData.transferReceipt}
                   onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                   placeholder="Número de comprobante"
                 />
               </div>
@@ -379,16 +379,16 @@ export default function QuickPayment({
               type="text"
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
               placeholder="Observaciones..."
             />
           </div>
 
           {/* Total */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
             <div className="flex justify-between items-center">
               <span className="text-green-700 font-medium">Total a cobrar:</span>
-              <span className="text-2xl font-bold text-green-700">
+              <span className="text-3xl font-extrabold text-green-700">
                 ${parseFloat(formData.amount || 0).toFixed(2)}
               </span>
             </div>
@@ -399,14 +399,14 @@ export default function QuickPayment({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !formData.customerName || !formData.amount}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-2xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Check size={20} />
               {loading ? 'Procesando...' : 'Cobrar'}

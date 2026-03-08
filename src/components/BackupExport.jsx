@@ -224,7 +224,7 @@ export default function BackupExport({ settings }) {
         type="button"
         onClick={exportBackup}
         disabled={loading}
-        className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+        className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
       >
         {loading ? (
           <>
@@ -241,7 +241,7 @@ export default function BackupExport({ settings }) {
 
       {/* Result feedback */}
       {result && (
-        <div className={`mt-3 p-3 rounded-lg text-sm ${
+        <div className={`mt-3 p-3 rounded-xl text-sm ${
           result.success
             ? 'bg-green-50 border border-green-200 text-green-700'
             : 'bg-red-50 border border-red-200 text-red-700'
