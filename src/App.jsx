@@ -283,6 +283,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   })
   const [cartItems, setCartItems] = useState([])
   const [productSearch, setProductSearch] = useState('')
+  const [showProductDropdown, setShowProductDropdown] = useState(false)
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
@@ -2075,37 +2076,78 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {/* Selector de artículo + cantidad + botón agregar */}
                   <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
-                    {/* Buscador de producto */}
-                    <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:border-green-500 bg-white px-3 transition-all">
-                      <Search size={15} className="text-green-500 shrink-0 pointer-events-none" />
-                      <input
-                        type="text"
-                        value={productSearch}
-                        onChange={(e) => setProductSearch(e.target.value)}
-                        placeholder="Buscar artículo..."
-                        className="flex-1 py-2.5 bg-transparent text-sm outline-none min-w-0"
-                      />
+                    {/* Buscador de producto con autocomplete */}
+                    <div className="relative">
+                      <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:border-green-500 bg-white px-3 transition-all">
+                        <Search size={15} className="text-green-500 shrink-0 pointer-events-none" />
+                        <input
+                          type="text"
+                          value={productSearch}
+                          onChange={(e) => {
+                            setProductSearch(e.target.value)
+                            setShowProductDropdown(true)
+                            if (saleForm.productId) setSaleForm(prev => ({ ...prev, productId: '' }))
+                          }}
+                          onFocus={() => setShowProductDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowProductDropdown(false), 150)}
+                          placeholder="Buscar artículo..."
+                          className="flex-1 py-2.5 bg-transparent text-sm outline-none min-w-0"
+                        />
+                        {productSearch && (
+                          <button
+                            type="button"
+                            onMouseDown={(e) => { e.preventDefault(); setProductSearch(''); setSaleForm(prev => ({ ...prev, productId: '' })) }}
+                            className="text-gray-400 hover:text-gray-600 shrink-0"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Dropdown de resultados */}
+                      {showProductDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-20 max-h-44 overflow-y-auto">
+                          {allProducts
+                            .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                            .length === 0 ? (
+                              <p className="px-3 py-3 text-sm text-gray-400 text-center">Sin resultados</p>
+                            ) : (
+                              allProducts
+                                .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                                .map(p => {
+                                  const hasStock = p.stock !== null && p.stock !== undefined
+                                  const outOfStock = hasStock && p.stock === 0
+                                  return (
+                                    <button
+                                      key={p.id}
+                                      type="button"
+                                      disabled={outOfStock}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault()
+                                        setProductSearch(p.name)
+                                        setSaleForm(prev => ({ ...prev, productId: p.id }))
+                                        setShowProductDropdown(false)
+                                      }}
+                                      className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between transition-colors border-b border-gray-100 last:border-0 ${
+                                        outOfStock
+                                          ? 'opacity-40 cursor-not-allowed text-gray-400'
+                                          : saleForm.productId === p.id
+                                            ? 'bg-green-50 text-green-700 font-medium'
+                                            : 'hover:bg-green-50 text-gray-700 cursor-pointer'
+                                      }`}
+                                    >
+                                      <span className="truncate">{p.name}</span>
+                                      <span className="ml-3 text-xs shrink-0 text-gray-400">
+                                        ${p.price}{hasStock ? ` · ${outOfStock ? 'Agotado' : p.stock + ' disp.'}` : ''}
+                                      </span>
+                                    </button>
+                                  )
+                                })
+                            )
+                          }
+                        </div>
+                      )}
                     </div>
-                    {/* Fila 1: selector ancho completo, filtrado por búsqueda */}
-                    <select
-                      value={saleForm.productId}
-                      onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
-                    >
-                      <option value="">— Seleccionar —</option>
-                      {allProducts
-                        .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                        .map(product => {
-                          const hasStock = product.stock !== null && product.stock !== undefined
-                          const outOfStock = hasStock && product.stock === 0
-                          return (
-                            <option key={product.id} value={product.id} disabled={outOfStock}>
-                              {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
-                            </option>
-                          )
-                        })
-                      }
-                    </select>
                     {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
                       <div className="flex items-center border rounded-xl bg-white overflow-hidden">
