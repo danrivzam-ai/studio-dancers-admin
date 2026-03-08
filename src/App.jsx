@@ -2076,14 +2076,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
-                    <div className="relative">
-                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-green-500 pointer-events-none" />
+                    <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:border-green-500 bg-white px-3 transition-all">
+                      <Search size={15} className="text-green-500 shrink-0 pointer-events-none" />
                       <input
                         type="text"
                         value={productSearch}
                         onChange={(e) => setProductSearch(e.target.value)}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="flex-1 py-2.5 bg-transparent text-sm outline-none min-w-0"
                       />
                     </div>
                     {/* Fila 1: selector ancho completo, filtrado por búsqueda */}

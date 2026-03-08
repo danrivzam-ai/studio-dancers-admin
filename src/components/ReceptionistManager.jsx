@@ -223,19 +223,19 @@ export default function ReceptionistManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   {editingId ? 'Contraseña (editar para cambiar)' : 'Contraseña'}
                 </label>
-                <div className="relative">
+                <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
                   <input
                     type={showPw ? 'text' : 'password'}
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    className="w-full px-4 pr-12 py-2.5 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-sm"
+                    className="flex-1 px-4 py-2.5 bg-transparent outline-none text-sm min-w-0"
                     placeholder="Contraseña de acceso"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                    className="px-3 py-2.5 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
