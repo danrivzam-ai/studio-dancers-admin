@@ -183,7 +183,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         instructorId = newInst.id
         setSuccess('Instructora creada correctamente')
 
-        // Sincronizar con MailerLite si hay email + API key + grupo configurado
+        // Sincronizar con MailerLite — dispara automatización de bienvenida
         if (form.email.trim() && settings.mailerlite_api_key && settings.mailerlite_instructors_group_id) {
           syncToMailerLite({
             email: form.email.trim(),
@@ -193,6 +193,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             fields: {
               tipo: 'instructora',
               ritmos: form.rhythms.join(', '),
+              estado: form.active ? 'activa' : 'inactiva',
+              fecha_alta: new Date().toISOString().split('T')[0], // YYYY-MM-DD
             },
           })
         }
