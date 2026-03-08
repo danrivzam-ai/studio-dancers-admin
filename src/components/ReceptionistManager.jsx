@@ -235,7 +235,7 @@ export default function ReceptionistManager() {
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg bg-white text-gray-400 hover:text-purple-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-purple-600 transition-colors"
                   >
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -263,7 +263,7 @@ export default function ReceptionistManager() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all"
+                  className="flex-1 py-2.5 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all outline-none"
                   style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}

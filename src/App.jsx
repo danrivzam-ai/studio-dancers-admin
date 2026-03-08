@@ -2409,18 +2409,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <button
                       key={chip.value}
                       onClick={() => setFilterPayment(chip.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5 ${
                         filterPayment === chip.value ? chip.active : chip.inactive
                       }`}
                     >
                       {chip.label}
                       {chip.value === 'overdue' && overduePayments.length > 0 && (
-                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
                           {overduePayments.length}
                         </span>
                       )}
                       {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
-                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
                           {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                         </span>
                       )}
@@ -2547,7 +2547,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                                  className="hidden sm:flex p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all items-center justify-center"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
@@ -2555,7 +2555,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                                    className="hidden sm:flex p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all items-center justify-center"
                                     title="Eliminar"
                                   >
                                     <Trash2 size={16} />
