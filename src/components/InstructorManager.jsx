@@ -60,6 +60,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   const [showSlotForm, setShowSlotForm] = useState(false)
   const [slotForm, setSlotForm] = useState(emptySlotForm)
   const [savingSlot, setSavingSlot] = useState(false)
+  const [editingSlotId, setEditingSlotId] = useState(null) // null = modo agregar; uuid = modo editar
 
   // Filtros
   const [filterActive, setFilterActive] = useState('all') // 'all' | 'active' | 'inactive'
@@ -306,34 +307,70 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
     setScheduleSlots([])
     setShowSlotForm(false)
     setSlotForm(emptySlotForm)
+    setEditingSlotId(null)
   }
 
-  const addSlot = async () => {
+  /** Abre el form pre-cargado con los datos de un slot existente para editarlo. */
+  const startEditSlot = (slot) => {
+    setSlotForm({
+      day_of_week: String(slot.day_of_week),
+      time_start: slot.time_start.substring(0, 5),
+      time_end: slot.time_end.substring(0, 5),
+      group_name: slot.group_name,
+      course_id: slot.course_id || '',
+      notes: slot.notes || '',
+    })
+    setEditingSlotId(slot.id)
+    setShowSlotForm(true)
+  }
+
+  /** Guarda el slot: INSERT si modo agregar, UPDATE si modo editar. */
+  const saveSlot = async () => {
     if (!slotForm.group_name.trim()) { setError('El nombre del grupo/nivel es requerido'); return }
     setSavingSlot(true)
     try {
-      const { data, error } = await supabase
-        .from('instructor_schedule')
-        .insert({
-          instructor_id: schedulePanel,
-          day_of_week: parseInt(slotForm.day_of_week),
-          time_start: slotForm.time_start,
-          time_end: slotForm.time_end,
-          group_name: slotForm.group_name.trim(),
-          course_id: slotForm.course_id || null,
-          notes: slotForm.notes.trim() || null,
-        })
-        .select('*')
-        .single()
-      if (error) throw error
-      setScheduleSlots(prev =>
-        [...prev, data].sort((a, b) =>
-          a.day_of_week - b.day_of_week || a.time_start.localeCompare(b.time_start)
+      const payload = {
+        day_of_week: parseInt(slotForm.day_of_week),
+        time_start: slotForm.time_start,
+        time_end: slotForm.time_end,
+        group_name: slotForm.group_name.trim(),
+        course_id: slotForm.course_id || null,
+        notes: slotForm.notes.trim() || null,
+      }
+
+      if (editingSlotId) {
+        // ── UPDATE ──────────────────────────────────────────────────────────
+        const { data, error } = await supabase
+          .from('instructor_schedule')
+          .update(payload)
+          .eq('id', editingSlotId)
+          .select('*')
+          .single()
+        if (error) throw error
+        setScheduleSlots(prev =>
+          prev.map(s => s.id === editingSlotId ? data : s)
+            .sort((a, b) => a.day_of_week - b.day_of_week || a.time_start.localeCompare(b.time_start))
         )
-      )
+        setSuccess('Clase actualizada')
+      } else {
+        // ── INSERT ──────────────────────────────────────────────────────────
+        const { data, error } = await supabase
+          .from('instructor_schedule')
+          .insert({ instructor_id: schedulePanel, ...payload })
+          .select('*')
+          .single()
+        if (error) throw error
+        setScheduleSlots(prev =>
+          [...prev, data].sort((a, b) =>
+            a.day_of_week - b.day_of_week || a.time_start.localeCompare(b.time_start)
+          )
+        )
+        setSuccess('Clase agregada al horario')
+      }
+
       setShowSlotForm(false)
       setSlotForm(emptySlotForm)
-      setSuccess('Clase agregada al horario')
+      setEditingSlotId(null)
     } catch (err) {
       setError('Error: ' + err.message)
     } finally {
@@ -342,6 +379,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   }
 
   const deleteSlot = async (slotId) => {
+    // Si se estaba editando este slot, cerrar el form
+    if (editingSlotId === slotId) { setShowSlotForm(false); setSlotForm(emptySlotForm); setEditingSlotId(null) }
     const { error } = await supabase.from('instructor_schedule').delete().eq('id', slotId)
     if (error) { setError('Error al eliminar: ' + error.message); return }
     setScheduleSlots(prev => prev.filter(s => s.id !== slotId))
@@ -634,14 +673,23 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                           <p className="text-xs text-gray-400 italic text-center py-2">Sin horario configurado aún</p>
                         ) : (
                           <div className="space-y-1.5 mb-2">
-                            {scheduleSlots.map(slot => (
-                              <div key={slot.id} className="flex items-start justify-between gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                            {scheduleSlots.map(slot => {
+                              const isEditing = editingSlotId === slot.id
+                              return (
+                              <div key={slot.id} className={`flex items-start justify-between gap-2 rounded-xl px-3 py-2 border transition-all ${
+                                isEditing
+                                  ? 'bg-blue-100 border-blue-400 ring-1 ring-blue-300'
+                                  : 'bg-blue-50 border-blue-100'
+                              }`}>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-xs font-bold text-blue-700">{DAY_NAMES[slot.day_of_week]}</span>
                                     <span className="text-xs text-gray-500 font-mono">
                                       {slot.time_start.substring(0, 5)} – {slot.time_end.substring(0, 5)}
                                     </span>
+                                    {isEditing && (
+                                      <span className="text-xs text-blue-600 font-medium bg-blue-200 px-1.5 py-0.5 rounded">editando</span>
+                                    )}
                                   </div>
                                   <p className="text-xs font-semibold text-gray-800 mt-0.5">{slot.group_name}</p>
                                   {slot.course_id && getCourseInfo(slot.course_id) && (
@@ -651,28 +699,73 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                     <p className="text-xs text-gray-400 italic">{slot.notes}</p>
                                   )}
                                 </div>
-                                <button
-                                  onClick={() => deleteSlot(slot.id)}
-                                  className="shrink-0 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={() => isEditing
+                                      ? (setShowSlotForm(false), setSlotForm(emptySlotForm), setEditingSlotId(null))
+                                      : startEditSlot(slot)
+                                    }
+                                    className={`p-1 rounded-lg transition-all ${
+                                      isEditing
+                                        ? 'text-blue-600 bg-blue-200 hover:bg-blue-300'
+                                        : 'text-gray-400 hover:text-blue-600 hover:bg-blue-100'
+                                    }`}
+                                    title={isEditing ? 'Cancelar edición' : 'Editar'}
+                                  >
+                                    <Edit2 size={12} />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteSlot(slot.id)}
+                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                    title="Eliminar"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
                               </div>
-                            ))}
+                            )})}
                           </div>
                         )}
 
-                        {/* Formulario agregar slot */}
+                        {/* Formulario agregar / editar slot */}
                         {!showSlotForm ? (
                           <button
-                            onClick={() => setShowSlotForm(true)}
+                            onClick={() => { setEditingSlotId(null); setSlotForm(emptySlotForm); setShowSlotForm(true) }}
                             className="w-full flex items-center justify-center gap-1 text-xs font-medium py-1.5 rounded-xl border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 transition-all"
                           >
                             <Plus size={12} />
                             Agregar clase
                           </button>
                         ) : (
-                          <div className="space-y-2 border border-blue-100 rounded-xl p-3 bg-blue-50/40">
+                          <div className="space-y-2 border border-blue-200 rounded-xl p-3 bg-blue-50/60">
+                            <p className="text-xs font-semibold text-blue-700">
+                              {editingSlotId ? '✏️ Editar clase' : '➕ Nueva clase'}
+                            </p>
+
+                            {/* Curso primero — auto-rellena el nombre del grupo */}
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Curso</label>
+                              <select
+                                value={slotForm.course_id}
+                                onChange={e => {
+                                  const courseId = e.target.value
+                                  const courseName = allCourses.find(c => (c.id || c.code) === courseId)?.name || ''
+                                  setSlotForm(f => ({
+                                    ...f,
+                                    course_id: courseId,
+                                    // Auto-rellena nombre solo si está vacío
+                                    group_name: f.group_name ? f.group_name : courseName,
+                                  }))
+                                }}
+                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                              >
+                                <option value="">— Sin vincular —</option>
+                                {allCourses.map(c => (
+                                  <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Día</label>
@@ -697,6 +790,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 />
                               </div>
                             </div>
+
                             <div className="grid grid-cols-2 gap-2">
                               <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">Inicio</label>
@@ -717,19 +811,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 />
                               </div>
                             </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Curso (opcional)</label>
-                              <select
-                                value={slotForm.course_id}
-                                onChange={e => setSlotForm(f => ({ ...f, course_id: e.target.value }))}
-                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
-                              >
-                                <option value="">— Sin vincular —</option>
-                                {allCourses.map(c => (
-                                  <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
-                                ))}
-                              </select>
-                            </div>
+
                             <div>
                               <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
                               <input
@@ -740,16 +822,17 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                               />
                             </div>
+
                             <div className="flex gap-2">
                               <button
-                                onClick={addSlot}
+                                onClick={saveSlot}
                                 disabled={savingSlot}
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-lg active:scale-95 transition-all"
                               >
-                                {savingSlot ? 'Guardando…' : 'Guardar clase'}
+                                {savingSlot ? 'Guardando…' : editingSlotId ? 'Actualizar' : 'Guardar clase'}
                               </button>
                               <button
-                                onClick={() => { setShowSlotForm(false); setSlotForm(emptySlotForm) }}
+                                onClick={() => { setShowSlotForm(false); setSlotForm(emptySlotForm); setEditingSlotId(null) }}
                                 className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
                               >
                                 Cancelar
