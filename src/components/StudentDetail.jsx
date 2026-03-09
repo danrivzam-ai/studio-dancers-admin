@@ -23,6 +23,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const [photoError, setPhotoError] = useState(false)
   const [photoTimestamp, setPhotoTimestamp] = useState(null)
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [briefMsg, setBriefMsg] = useState('')
   const avatarInputRef = useRef(null)
 
   // Supabase Storage avatar URL (bucket: avatars, path: {studentId}.jpg)
@@ -63,7 +64,9 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       setPhotoError(false)
       setPhotoTimestamp(Date.now())
     } catch (err) {
-      alert('No se pudo subir la foto')
+      setPhotoError(true)
+      setBriefMsg('No se pudo subir la foto')
+      setTimeout(() => setBriefMsg(''), 4000)
     } finally {
       setPhotoUploading(false)
     }
@@ -166,7 +169,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
   const handleWhatsApp = () => {
     const phone = student.payer_phone || student.parent_phone || student.phone
-    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
+    if (!phone) {
+      setBriefMsg('Sin teléfono registrado')
+      setTimeout(() => setBriefMsg(''), 3000)
+      return
+    }
     openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers'))
   }
 
@@ -257,6 +264,13 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             )}
           </div>
         </div>
+
+        {/* Toast de mensajes breves */}
+        {briefMsg && (
+          <div className="mx-4 mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs text-center">
+            {briefMsg}
+          </div>
+        )}
 
         {/* ── Scrollable content ── */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100svh - 270px)' }}>

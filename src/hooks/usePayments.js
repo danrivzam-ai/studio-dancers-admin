@@ -35,20 +35,28 @@ export function usePayments() {
     fetchPayments()
   }, [])
 
-  // Generar número de recibo
+  // Generar número de recibo — usa el último receipt_number para evitar
+  // duplicados cuando dos pagos se registran simultáneamente o hay pagos eliminados.
   const generateReceiptNumber = async () => {
     try {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('payments')
-        .select('*', { count: 'exact', head: true })
+        .select('receipt_number')
+        .not('receipt_number', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
       if (error) throw error
 
-      const nextNumber = (count || 0) + 1
-      return `REC-${String(nextNumber).padStart(6, '0')}`
+      const lastNum = data?.receipt_number
+        ? parseInt(String(data.receipt_number).replace(/\D/g, ''), 10)
+        : 0
+      const nextNumber = (isNaN(lastNum) ? 0 : lastNum) + 1
+      return nextNumber
     } catch (err) {
       console.error('Error generating receipt number:', err)
-      return `REC-${Date.now()}`
+      return Date.now() % 100000
     }
   }
 

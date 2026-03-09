@@ -45,7 +45,7 @@ export default function DeleteConfirmModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-72">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
         {/* Header pequeño */}
         <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-2">

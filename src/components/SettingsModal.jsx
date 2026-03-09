@@ -34,6 +34,7 @@ export default function SettingsModal({ settings, onClose, onSave }) {
     whatsapp_enabled:   false,
   })
   const [loading, setLoading] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [showApiKey, setShowApiKey] = useState(false)
   const [showWaToken, setShowWaToken] = useState(false)
   const [showTgToken, setShowTgToken] = useState(false)
@@ -73,12 +74,13 @@ export default function SettingsModal({ settings, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setSaveError('')
     try {
       await onSave(formData)
       onClose()
     } catch (err) {
       console.error('Error saving settings:', err)
-      alert('Error al guardar la configuración')
+      setSaveError('Error al guardar. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
@@ -466,16 +468,21 @@ export default function SettingsModal({ settings, onClose, onSave }) {
           </div>
 
           {/* Footer — fijo al fondo */}
-          <div className="flex gap-3 p-4 border-t bg-gray-50 rounded-b-2xl shrink-0">
-            <button type="button" onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-sm font-medium">
-              Cancelar
-            </button>
-            <button type="submit" disabled={loading}
-              className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all text-sm font-medium">
-              <Check size={18} />
-              {loading ? 'Guardando...' : 'Guardar'}
-            </button>
+          <div className="p-4 border-t bg-gray-50 rounded-b-2xl shrink-0">
+            {saveError && (
+              <p className="text-red-600 text-xs mb-2 text-center">{saveError}</p>
+            )}
+            <div className="flex gap-3">
+              <button type="button" onClick={onClose}
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-sm font-medium">
+                Cancelar
+              </button>
+              <button type="submit" disabled={loading}
+                className="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all text-sm font-medium">
+                <Check size={18} />
+                {loading ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
           </div>
         </form>
 
