@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Plus, X, Edit2, Check, AlertCircle, Eye, EyeOff,
   UserCheck, UserX, BookOpen, ChevronDown, ChevronUp,
-  RotateCcw, GraduationCap, Calendar, Trash2
+  RotateCcw, GraduationCap, Calendar, Trash2, Clock
 } from 'lucide-react'
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
@@ -21,6 +21,9 @@ const COURSE_COLORS = [
 ]
 
 const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyrical', 'Ritmos Tropicales']
+
+const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const emptySlotForm = { day_of_week: '1', time_start: '08:00', time_end: '09:30', group_name: '', course_id: '', notes: '' }
 
 const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [] }
 
@@ -49,6 +52,14 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
 
   // Eliminar con PIN
   const [deleteTarget, setDeleteTarget] = useState(null) // instructor a eliminar
+
+  // Panel de horario
+  const [schedulePanel, setSchedulePanel] = useState(null) // instructorId
+  const [scheduleSlots, setScheduleSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [showSlotForm, setShowSlotForm] = useState(false)
+  const [slotForm, setSlotForm] = useState(emptySlotForm)
+  const [savingSlot, setSavingSlot] = useState(false)
 
   // Filtros
   const [filterActive, setFilterActive] = useState('all') // 'all' | 'active' | 'inactive'
@@ -241,9 +252,10 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
     const id = deleteTarget.id
     // Nullificar referencias en attendance (marked_by FK)
     await supabase.from('attendance').update({ marked_by: null }).eq('marked_by', id)
-    // Eliminar asignaciones
+    // Eliminar asignaciones y horario
     await supabase.from('instructor_courses').delete().eq('instructor_id', id)
     await supabase.from('instructor_rhythms').delete().eq('instructor_id', id)
+    await supabase.from('instructor_schedule').delete().eq('instructor_id', id)
     const { error } = await supabase.from('instructors').delete().eq('id', id)
     if (error) throw error
     const name = deleteTarget.name
@@ -254,6 +266,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
 
   // ── Abrir panel de cursos ──────────────────────────────────────────
   const openCoursePanel = (instId) => {
+    // Cierra horario si estaba abierto para la misma instructora
+    if (schedulePanel === instId) closeSchedulePanel()
     setCoursePanel(instId)
     setSelectedCourses(assignments[instId] ? [...assignments[instId]] : [])
   }
@@ -261,6 +275,76 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   const closeCoursePanel = () => {
     setCoursePanel(null)
     setSelectedCourses([])
+  }
+
+  // ── Panel de horario ───────────────────────────────────────────────
+  const openSchedulePanel = async (instId) => {
+    // Cierra cursos si estaba abierto
+    if (coursePanel) closeCoursePanel()
+    setSchedulePanel(instId)
+    setShowSlotForm(false)
+    setSlotForm(emptySlotForm)
+    setLoadingSlots(true)
+    try {
+      const { data, error } = await supabase
+        .from('instructor_schedule')
+        .select('*')
+        .eq('instructor_id', instId)
+        .order('day_of_week')
+        .order('time_start')
+      if (error && error.code !== '42P01') throw error
+      setScheduleSlots(data || [])
+    } catch (err) {
+      setError('Error al cargar horario: ' + err.message)
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const closeSchedulePanel = () => {
+    setSchedulePanel(null)
+    setScheduleSlots([])
+    setShowSlotForm(false)
+    setSlotForm(emptySlotForm)
+  }
+
+  const addSlot = async () => {
+    if (!slotForm.group_name.trim()) { setError('El nombre del grupo/nivel es requerido'); return }
+    setSavingSlot(true)
+    try {
+      const { data, error } = await supabase
+        .from('instructor_schedule')
+        .insert({
+          instructor_id: schedulePanel,
+          day_of_week: parseInt(slotForm.day_of_week),
+          time_start: slotForm.time_start,
+          time_end: slotForm.time_end,
+          group_name: slotForm.group_name.trim(),
+          course_id: slotForm.course_id || null,
+          notes: slotForm.notes.trim() || null,
+        })
+        .select('*')
+        .single()
+      if (error) throw error
+      setScheduleSlots(prev =>
+        [...prev, data].sort((a, b) =>
+          a.day_of_week - b.day_of_week || a.time_start.localeCompare(b.time_start)
+        )
+      )
+      setShowSlotForm(false)
+      setSlotForm(emptySlotForm)
+      setSuccess('Clase agregada al horario')
+    } catch (err) {
+      setError('Error: ' + err.message)
+    } finally {
+      setSavingSlot(false)
+    }
+  }
+
+  const deleteSlot = async (slotId) => {
+    const { error } = await supabase.from('instructor_schedule').delete().eq('id', slotId)
+    if (error) { setError('Error al eliminar: ' + error.message); return }
+    setScheduleSlots(prev => prev.filter(s => s.id !== slotId))
   }
 
   const toggleCourse = (courseId) => {
@@ -374,6 +458,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             const courseIds = assignments[inst.id] || []
             const courseObjs = courseIds.map(getCourseInfo).filter(Boolean)
             const isCoursePanelOpen = coursePanel === inst.id
+            const isSchedulePanelOpen = schedulePanel === inst.id
 
             return (
               <div
@@ -424,26 +509,42 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   )}
                 </div>
 
-                {/* Acciones */}
+                {/* Acciones — fila 1: paneles */}
                 <div className="flex gap-2 pt-1 border-t border-gray-100">
                   <button
                     onClick={() => isCoursePanelOpen ? closeCoursePanel() : openCoursePanel(inst.id)}
-                    className="flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 active:scale-95 transition-all"
+                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                      isCoursePanelOpen ? 'bg-purple-600 text-white' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+                    }`}
                   >
                     <BookOpen size={13} />
                     Cursos
                     {isCoursePanelOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                   </button>
                   <button
+                    onClick={() => isSchedulePanelOpen ? closeSchedulePanel() : openSchedulePanel(inst.id)}
+                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                      isSchedulePanelOpen ? 'bg-blue-600 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    <Clock size={13} />
+                    Horario
+                    {isSchedulePanelOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  </button>
+                </div>
+
+                {/* Acciones — fila 2: gestión */}
+                <div className="flex gap-2">
+                  <button
                     onClick={() => openEdit(inst)}
-                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
                   >
                     <Edit2 size={13} />
                     Editar
                   </button>
                   <button
                     onClick={() => toggleActive(inst)}
-                    className={`flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
                       inst.active
                         ? 'bg-amber-50 hover:bg-amber-100 text-amber-600'
                         : 'bg-green-50 hover:bg-green-100 text-green-600'
@@ -511,6 +612,160 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                         Cancelar
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {/* Panel de horario inline */}
+                {isSchedulePanelOpen && (
+                  <div className="border-t border-blue-100 pt-3">
+                    <p className="text-xs font-semibold text-blue-700 mb-2 flex items-center gap-1">
+                      <Clock size={12} />
+                      Horario de {inst.name.split(' ')[0]}
+                    </p>
+
+                    {loadingSlots ? (
+                      <div className="flex justify-center py-3">
+                        <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                      </div>
+                    ) : (
+                      <>
+                        {/* Slots existentes */}
+                        {scheduleSlots.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic text-center py-2">Sin horario configurado aún</p>
+                        ) : (
+                          <div className="space-y-1.5 mb-2">
+                            {scheduleSlots.map(slot => (
+                              <div key={slot.id} className="flex items-start justify-between gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-bold text-blue-700">{DAY_NAMES[slot.day_of_week]}</span>
+                                    <span className="text-xs text-gray-500 font-mono">
+                                      {slot.time_start.substring(0, 5)} – {slot.time_end.substring(0, 5)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs font-semibold text-gray-800 mt-0.5">{slot.group_name}</p>
+                                  {slot.course_id && getCourseInfo(slot.course_id) && (
+                                    <p className="text-xs text-gray-400">{getCourseInfo(slot.course_id).name}</p>
+                                  )}
+                                  {slot.notes && (
+                                    <p className="text-xs text-gray-400 italic">{slot.notes}</p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => deleteSlot(slot.id)}
+                                  className="shrink-0 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Formulario agregar slot */}
+                        {!showSlotForm ? (
+                          <button
+                            onClick={() => setShowSlotForm(true)}
+                            className="w-full flex items-center justify-center gap-1 text-xs font-medium py-1.5 rounded-xl border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 transition-all"
+                          >
+                            <Plus size={12} />
+                            Agregar clase
+                          </button>
+                        ) : (
+                          <div className="space-y-2 border border-blue-100 rounded-xl p-3 bg-blue-50/40">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Día</label>
+                                <select
+                                  value={slotForm.day_of_week}
+                                  onChange={e => setSlotForm(f => ({ ...f, day_of_week: e.target.value }))}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                >
+                                  {[1,2,3,4,5,6,7].map(d => (
+                                    <option key={d} value={d}>{DAY_NAMES[d]}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Grupo/Nivel *</label>
+                                <input
+                                  type="text"
+                                  value={slotForm.group_name}
+                                  onChange={e => setSlotForm(f => ({ ...f, group_name: e.target.value }))}
+                                  placeholder="ej: Dance Kids"
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Inicio</label>
+                                <input
+                                  type="time"
+                                  value={slotForm.time_start}
+                                  onChange={e => setSlotForm(f => ({ ...f, time_start: e.target.value }))}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Fin</label>
+                                <input
+                                  type="time"
+                                  value={slotForm.time_end}
+                                  onChange={e => setSlotForm(f => ({ ...f, time_end: e.target.value }))}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Curso (opcional)</label>
+                              <select
+                                value={slotForm.course_id}
+                                onChange={e => setSlotForm(f => ({ ...f, course_id: e.target.value }))}
+                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                              >
+                                <option value="">— Sin vincular —</option>
+                                {allCourses.map(c => (
+                                  <option key={c.id || c.code} value={c.id || c.code}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
+                              <input
+                                type="text"
+                                value={slotForm.notes}
+                                onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
+                                placeholder="ej: Sala principal"
+                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={addSlot}
+                                disabled={savingSlot}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-lg active:scale-95 transition-all"
+                              >
+                                {savingSlot ? 'Guardando…' : 'Guardar clase'}
+                              </button>
+                              <button
+                                onClick={() => { setShowSlotForm(false); setSlotForm(emptySlotForm) }}
+                                className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={closeSchedulePanel}
+                          className="w-full mt-2 text-xs text-gray-400 hover:text-gray-600 py-1 transition-all"
+                        >
+                          Cerrar
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
