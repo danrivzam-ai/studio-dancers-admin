@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, ClipboardList
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -39,6 +39,7 @@ import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
+import AsistenciaAdmin from './components/AsistenciaAdmin'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import ReceptionistManager from './components/ReceptionistManager'
@@ -1079,6 +1080,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'sales', icon: ShoppingBag, label: 'Ventas' },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'instructoras', icon: GraduationCap, label: 'Instructoras' },
+            { id: 'asistencia_admin', icon: ClipboardList, label: 'Asistencia' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
@@ -1941,6 +1943,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Instructoras Tab */}
         {activeTab === 'instructoras' && (
           <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
+        )}
+
+        {/* Asistencia Admin Tab */}
+        {activeTab === 'asistencia_admin' && (
+          <AsistenciaAdmin allCourses={allCourses} students={students} />
         )}
 
         {/* Tablón Tab */}
