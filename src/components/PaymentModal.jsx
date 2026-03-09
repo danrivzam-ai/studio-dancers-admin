@@ -308,7 +308,7 @@ export default function PaymentModal({
         </div>
 
         {/* Student Info */}
-        <div className="px-6 py-4 bg-purple-50 border-b">
+        <div className="px-4 sm:px-6 py-4 bg-purple-50 border-b">
           <div className="flex items-center gap-3">
             <div className="bg-purple-100 text-purple-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0">
               {(student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
@@ -343,7 +343,7 @@ export default function PaymentModal({
             ? { banner: 'bg-slate-50 border-slate-200', title: 'text-slate-800', sub: 'text-slate-600', btn: 'bg-slate-200 text-slate-800 hover:bg-slate-300' }
             : { banner: 'bg-orange-50 border-orange-200', title: 'text-orange-900', sub: 'text-orange-700', btn: 'bg-orange-200 text-orange-900 hover:bg-orange-300' }
           return (
-            <div className={`px-6 py-3 border-b flex items-center justify-between ${lc.banner}`}>
+            <div className={`px-4 sm:px-6 py-3 border-b flex items-center justify-between ${lc.banner}`}>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{loyaltyTier.emoji}</span>
                 <div>
@@ -372,7 +372,7 @@ export default function PaymentModal({
         })()}
 
         {/* Course Price Info */}
-        <div className="px-6 py-4 bg-gray-50 border-b">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Precio del curso:</span>
             <span className={`text-xl font-bold ${discountEnabled ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
@@ -422,7 +422,7 @@ export default function PaymentModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {/* Payment Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -406,14 +406,14 @@ export default function RecepcionDashboard({ onLogout, userName }) {
         {!search && (
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: 'Total alumnas', value: students.length, icon: Users, color: PURPLE, bg: '#F3E5F5' },
-              { label: 'Atrasadas',     value: atrasadas,       icon: AlertCircle, color: '#e53935', bg: '#ffebee' },
-              { label: 'Por vencer',    value: proximas,        icon: Clock, color: '#F4A261', bg: '#fff3e0' },
+              { label: 'Total',     value: students.length, icon: Users,        color: PURPLE,    bg: '#F3E5F5' },
+              { label: 'Atrasadas', value: atrasadas,       icon: AlertCircle,  color: '#e53935', bg: '#ffebee' },
+              { label: 'Por vencer',value: proximas,        icon: Clock,        color: '#F4A261', bg: '#fff3e0' },
             ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className="bg-white rounded-2xl border border-gray-100 px-3 py-2.5 text-center">
-                <Icon size={16} className="mx-auto mb-1" style={{ color }} />
-                <p className="text-lg font-bold" style={{ color }}>{value}</p>
-                <p className="text-[10px] text-gray-400 leading-tight">{label}</p>
+              <div key={label} className="bg-white rounded-2xl border border-gray-100 px-2 py-2 text-center">
+                <Icon size={14} className="mx-auto mb-0.5" style={{ color }} />
+                <p className="text-base font-bold leading-tight" style={{ color }}>{value}</p>
+                <p className="text-[9px] text-gray-400 leading-tight">{label}</p>
               </div>
             ))}
           </div>

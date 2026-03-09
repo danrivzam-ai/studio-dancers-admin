@@ -56,23 +56,23 @@ export default function DailyReport({ cashRegister }) {
   return (
     <div className="space-y-4">
       {/* Header con fecha */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Reporte del Dia</h2>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 justify-between">
+        <h2 className="text-lg font-bold text-gray-800">Reporte del Día</h2>
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => changeDate(-1)}
             className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} />
           </button>
-          <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-xl px-3 py-2">
-            <Calendar size={16} className="text-gray-500" />
+          <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded-xl px-2 py-2">
+            <Calendar size={14} className="text-gray-500 shrink-0" />
             <input
               type="date"
               value={date}
               max={today}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-transparent text-sm font-medium text-gray-700 outline-none"
+              className="bg-transparent text-sm font-medium text-gray-700 outline-none w-32"
             />
           </div>
           <button
@@ -80,12 +80,12 @@ export default function DailyReport({ cashRegister }) {
             disabled={isToday}
             className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all disabled:opacity-30"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} />
           </button>
           {!isToday && (
             <button
               onClick={() => setDate(today)}
-              className="px-3 py-2 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 active:scale-95 transition-all font-medium"
+              className="px-2.5 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 active:scale-95 transition-all font-medium"
             >
               Hoy
             </button>
@@ -95,7 +95,7 @@ export default function DailyReport({ cashRegister }) {
             className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all"
             title="Actualizar"
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin text-blue-500' : 'text-gray-500'} />
+            <RefreshCw size={16} className={loading ? 'animate-spin text-blue-500' : 'text-gray-500'} />
           </button>
         </div>
       </div>
@@ -121,40 +121,49 @@ export default function DailyReport({ cashRegister }) {
       )}
 
       {/* Fila 1: Resumen principal */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+          <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className="p-2 bg-green-100 rounded-xl">
-              <TrendingUp size={20} className="text-green-600" />
+              <TrendingUp size={18} className="text-green-600" />
             </div>
-            <span className="text-sm font-medium text-gray-500">Ingresos</span>
+            <span className="text-sm font-medium text-gray-500 sm:hidden">Ingresos</span>
           </div>
-          <p className="text-2xl font-bold text-green-600">{fmt(r.totalIncome)}</p>
-          <p className="text-xs text-gray-400 mt-1">{r.incomeCount} transaccion{r.incomeCount !== 1 ? 'es' : ''}</p>
+          <div className="flex-1">
+            <span className="hidden sm:block text-sm font-medium text-gray-500 mb-1">Ingresos</span>
+            <p className="text-xl sm:text-2xl font-bold text-green-600">{fmt(r.totalIncome)}</p>
+            <p className="text-xs text-gray-400">{r.incomeCount} transaccion{r.incomeCount !== 1 ? 'es' : ''}</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+          <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className="p-2 bg-red-100 rounded-xl">
-              <TrendingDown size={20} className="text-red-600" />
+              <TrendingDown size={18} className="text-red-600" />
             </div>
-            <span className="text-sm font-medium text-gray-500">Egresos</span>
+            <span className="text-sm font-medium text-gray-500 sm:hidden">Egresos</span>
           </div>
-          <p className="text-2xl font-bold text-red-600">{fmt(r.expensesTotal)}</p>
-          <p className="text-xs text-gray-400 mt-1">{r.expensesCount} egreso{r.expensesCount !== 1 ? 's' : ''}</p>
+          <div className="flex-1">
+            <span className="hidden sm:block text-sm font-medium text-gray-500 mb-1">Egresos</span>
+            <p className="text-xl sm:text-2xl font-bold text-red-600">{fmt(r.expensesTotal)}</p>
+            <p className="text-xs text-gray-400">{r.expensesCount} egreso{r.expensesCount !== 1 ? 's' : ''}</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+          <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className={`p-2 rounded-xl ${r.totals.netBalance >= 0 ? 'bg-blue-100' : 'bg-orange-100'}`}>
-              <DollarSign size={20} className={r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'} />
+              <DollarSign size={18} className={r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'} />
             </div>
-            <span className="text-sm font-medium text-gray-500">Balance</span>
+            <span className="text-sm font-medium text-gray-500 sm:hidden">Balance</span>
           </div>
-          <p className={`text-2xl font-bold ${r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-            {fmt(r.totals.netBalance)}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">Ingresos - Egresos</p>
+          <div className="flex-1">
+            <span className="hidden sm:block text-sm font-medium text-gray-500 mb-1">Balance</span>
+            <p className={`text-xl sm:text-2xl font-bold ${r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+              {fmt(r.totals.netBalance)}
+            </p>
+            <p className="text-xs text-gray-400">Ingresos - Egresos</p>
+          </div>
         </div>
       </div>
 
