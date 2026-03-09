@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { LogOut, CreditCard, CalendarCheck, Phone, Camera } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useToast } from '../../Toast'
 
 const STUDIO_WHATSAPP = '593963741884'  // TODO: reemplazar con número real
 
@@ -39,6 +40,7 @@ const ESTADO_PAGO = {
 }
 
 export default function TabReportesNinas({ auth, student, onLogout }) {
+  const toast = useToast()
   const [photoError, setPhotoError] = useState(false)
   const [photoTimestamp, setPhotoTimestamp] = useState(null)
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -81,7 +83,7 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
       setPhotoError(false)
       setPhotoTimestamp(Date.now())
     } catch {
-      alert('No se pudo subir la foto')
+      toast.error('No se pudo subir la foto')
     } finally {
       setPhotoUploading(false)
     }

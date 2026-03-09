@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { useToast } from './Toast'
 
 // Tipos de items
 const ITEM_TYPES = [
@@ -45,6 +46,7 @@ export default function ManageItems({
   onClose,
   onRequestPin
 }) {
+  const toast = useToast()
   const [activeTab, setActiveTab] = useState('courses')
   const [showForm, setShowForm] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
@@ -716,7 +718,7 @@ export default function ManageItems({
                           setFormData(prev => ({...prev, imageUrl: urlData.publicUrl}))
                         } catch (err) {
                           console.error('Error uploading image:', err)
-                          alert('Error al subir imagen')
+                          toast.error('Error al subir imagen')
                         }
                         e.target.value = ''
                       }}

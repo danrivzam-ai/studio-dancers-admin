@@ -3,6 +3,7 @@ import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search } fr
 import { BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
 import { getTodayEC } from '../lib/dateUtils'
+import { useToast } from './Toast'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -23,6 +24,7 @@ export default function QuickPayment({
   students = []
 }) {
   const { generateReceiptNumber } = usePayments()
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [studentSearch, setStudentSearch] = useState('')
   const [showStudentDropdown, setShowStudentDropdown] = useState(false)
@@ -123,7 +125,7 @@ export default function QuickPayment({
       await onPaymentComplete(paymentData)
     } catch (err) {
       console.error('Error processing quick payment:', err)
-      alert('Error al procesar el pago')
+      toast.error('Error al procesar el pago')
     } finally {
       setLoading(false)
     }

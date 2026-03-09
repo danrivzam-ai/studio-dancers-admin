@@ -44,6 +44,7 @@ import ClasesAdultasManager from './components/ClasesAdultasManager'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import { useWhatsappApi } from './hooks/useWhatsappApi'
+import { useToast } from './components/Toast'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -83,6 +84,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, deleteRejectedAndExpired, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
   const { hasCredentials: hasWaCredentials, sendComprobante, sendDailyReminders } = useWhatsappApi(settings)
+  const toast = useToast()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -479,7 +481,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       resetForm()
     } else {
-      alert('Error: ' + result.error)
+      toast.error('Error: ' + result.error)
     }
   }
 
@@ -496,7 +498,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const totalRequested = alreadyInCart + qty
 
     if (product.stock !== null && product.stock !== undefined && product.stock < totalRequested) {
-      alert(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
+      toast.error(`Stock insuficiente. Disponible: ${product.stock}, en carrito: ${alreadyInCart}`)
       return
     }
 
@@ -513,7 +515,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const handleSaleSubmit = async (e) => {
     e.preventDefault()
     if (cartItems.length === 0) {
-      alert('Agrega al menos un artículo al carrito')
+      toast.info('Agrega al menos un artículo al carrito')
       return
     }
 
@@ -550,7 +552,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
-      alert('Error: ' + result.error)
+      toast.error('Error: ' + result.error)
     }
   }
 
@@ -589,7 +591,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         }
       }
     } else {
-      alert('Error: ' + result.error)
+      toast.error('Error al registrar pago: ' + result.error)
     }
   }
 
@@ -717,7 +719,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       refreshIncome()
     } catch (err) {
       console.error('Error en pago rápido:', err)
-      alert('Error: ' + err.message)
+      toast.error('Error: ' + err.message)
     }
   }
 
@@ -735,7 +737,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setShowForm(false)
       setEditingStudent(null)
     } else {
-      alert('Error: ' + result.error)
+      toast.error('Error: ' + result.error)
     }
   }
 
@@ -794,20 +796,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     if (student.is_paused) {
       const result = await unpauseStudent(student.id)
       if (!result.success) {
-        alert('Error: ' + result.error)
+        toast.error('Error: ' + result.error)
       }
     } else {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
-        alert('Solo se pueden pausar alumnos con clases mensuales o por paquete')
+        toast.info('Solo se pueden pausar alumnos con clases mensuales o por paquete')
         return
       }
       if (confirm(`¿Pausar 1 clase para ${student.name}?\nSe extenderá la fecha de pago.`)) {
         const result = await pauseStudent(student.id)
         if (result.success) {
-          alert(`Pausa activada para ${student.name}.\nSe agregaron ${result.daysAdded} días al ciclo.`)
+          toast.success(`Pausa activada para ${student.name}. Se agregaron ${result.daysAdded} días al ciclo.`)
         } else {
-          alert('Error: ' + result.error)
+          toast.error('Error: ' + result.error)
         }
       }
     }
@@ -1279,7 +1281,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { toast.info('Sin teléfono registrado'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1364,7 +1366,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { toast.info('Sin teléfono registrado'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1453,7 +1455,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
-                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                if (!phone) { toast.info('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
                                 openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings.name))
@@ -1497,7 +1499,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = s.payer_phone || s.parent_phone || s.phone
-                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                if (!phone) { toast.info('Sin teléfono registrado'); return }
                                 openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
@@ -2592,7 +2594,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
-                                    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
+                                    if (!phone) { toast.info('Sin teléfono registrado'); return }
                                     const course = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
                                     const msg = buildReminderMessage(student, course?.name || 'N/A', days, settings.name)

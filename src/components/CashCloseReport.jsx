@@ -3,9 +3,11 @@ import { toPng } from 'html-to-image'
 import { X, Download, Send } from 'lucide-react'
 import { formatDate } from '../lib/dateUtils'
 import { openWhatsAppNoRecipient, buildCloseReportMessage } from '../lib/whatsapp'
+import { useToast } from './Toast'
 
 export default function CashCloseReport({ cashRegister, todayData, settings, onClose }) {
   const reportRef = useRef(null)
+  const toast = useToast()
   const [logoBase64, setLogoBase64] = useState(null)
   const [downloading, setDownloading] = useState(false)
 
@@ -86,7 +88,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
       link.click()
     } catch (err) {
       console.error('Error generating report:', err)
-      alert('Error al generar reporte. Intenta de nuevo.')
+      toast.error('Error al generar reporte. Intenta de nuevo.')
     } finally {
       setDownloading(false)
     }

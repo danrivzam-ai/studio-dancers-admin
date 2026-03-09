@@ -4,6 +4,7 @@ import {
   getCursos, getCiclos, createCiclo, closeCiclo
 } from '../lib/adultas-admin'
 import { getTodayEC } from '../lib/adultas'
+import { useToast } from './Toast'
 
 const PURPLE = '#7B2D8E'
 
@@ -28,6 +29,7 @@ function formatDateShort(dateStr) {
 function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
   const activeCiclo = ciclos.find(c => c.estado === 'activo')
   const closedCiclos = ciclos.filter(c => c.estado !== 'activo')
+  const toast = useToast()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
@@ -56,7 +58,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
       setShowForm(false)
       onCicloCreated()
     } else {
-      alert('Error al crear ciclo: ' + error.message)
+      toast.error('Error al crear ciclo: ' + error.message)
     }
   }
 
@@ -66,7 +68,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
     setSaving(false)
     setConfirmClose(false)
     if (!error) onCicloClosed()
-    else alert('Error al cerrar ciclo: ' + error.message)
+    else toast.error('Error al cerrar ciclo: ' + error.message)
   }
 
   return (

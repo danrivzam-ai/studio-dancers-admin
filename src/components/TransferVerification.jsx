@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2 } from 'lucide-react'
 import { formatDate } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
+import { useToast } from './Toast'
 
 // ═══════ MANUAL TRANSFER FORM (WhatsApp) ═══════
 function ManualTransferForm({ students, onSubmitted, onCancel }) {
@@ -221,6 +222,7 @@ export default function TransferVerification({
   enrichCourse,
   students
 }) {
+  const toast = useToast()
   const [filter, setFilter] = useState('pending')
   const [expandedImage, setExpandedImage] = useState(null)
   const [rejectingId, setRejectingId] = useState(null)
@@ -254,21 +256,21 @@ export default function TransferVerification({
       await onApprove(request.id)
     } catch (err) {
       console.error('Error approving:', err)
-      alert('Error al aprobar: ' + err.message)
+      toast.error('Error al aprobar: ' + err.message)
     } finally {
       setProcessing(null)
     }
   }
 
   const handleReject = async (requestId) => {
-    if (!rejectReason.trim()) { alert('Ingresa un motivo de rechazo'); return }
+    if (!rejectReason.trim()) { toast.info('Ingresa un motivo de rechazo'); return }
     setProcessing(requestId)
     try {
       await onReject(requestId, rejectReason.trim())
       setRejectingId(null)
       setRejectReason('')
     } catch (err) {
-      alert('Error al rechazar: ' + err.message)
+      toast.error('Error al rechazar: ' + err.message)
     } finally {
       setProcessing(null)
     }

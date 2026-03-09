@@ -3,6 +3,7 @@ import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Per
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
 import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier } from '../lib/dateUtils'
+import { useToast } from './Toast'
 
 const PAYMENT_METHODS = [
   { id: 'efectivo', name: 'Efectivo', icon: Banknote },
@@ -17,6 +18,7 @@ export default function PaymentModal({
   onPaymentComplete
 }) {
   const { generateReceiptNumber } = usePayments()
+  const toast = useToast()
   const [receiptNumber, setReceiptNumber] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -257,7 +259,7 @@ export default function PaymentModal({
       await onPaymentComplete(student.id, paymentData)
     } catch (err) {
       console.error('Error processing payment:', err)
-      alert('Error al procesar el pago')
+      toast.error('Error al procesar el pago')
     } finally {
       setLoading(false)
     }

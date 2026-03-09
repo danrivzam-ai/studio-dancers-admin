@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { LogOut, Phone, MapPin, Calendar, BookOpen, Camera } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
+import { useToast } from '../../Toast'
 
 const STUDIO_WHATSAPP = '593963741884' // TODO: reemplazar con número real
 const STUDIO_DIRECCION = 'La Alborada, Guayaquil'
@@ -48,6 +49,7 @@ async function compressAvatar(file) {
 }
 
 export default function TabMiCuenta({ auth, student, onLogout }) {
+  const toast = useToast()
   const [photoError, setPhotoError] = useState(false)
   const [photoTimestamp, setPhotoTimestamp] = useState(null)
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -72,7 +74,7 @@ export default function TabMiCuenta({ auth, student, onLogout }) {
       setPhotoError(false)
       setPhotoTimestamp(Date.now())
     } catch {
-      alert('No se pudo subir la foto')
+      toast.error('No se pudo subir la foto')
     } finally {
       setPhotoUploading(false)
     }

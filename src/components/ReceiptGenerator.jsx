@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image'
 import { X, Download, Send } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
+import { useToast } from './Toast'
 
 export default function ReceiptGenerator({
   payment,
@@ -12,6 +13,7 @@ export default function ReceiptGenerator({
   onSendApiComprobante,   // (payment, student, course, receiptNumber) => Promise<{success, error}>
 }) {
   const receiptRef = useRef(null)
+  const toast = useToast()
   const [logoBase64, setLogoBase64] = useState(null)
   const [waStatus, setWaStatus] = useState(null) // null | 'sending' | 'sent' | 'manual'
   const isQuickPayment = payment?.isQuickPayment
@@ -114,7 +116,7 @@ export default function ReceiptGenerator({
       link.click()
     } catch (err) {
       console.error('Error generating receipt:', err)
-      alert('Error al generar. Intenta de nuevo o usa captura de pantalla.')
+      toast.error('Error al generar. Intenta de nuevo o usa captura de pantalla.')
     }
   }
 

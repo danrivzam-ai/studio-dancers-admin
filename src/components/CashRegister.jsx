@@ -3,9 +3,11 @@ import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircl
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { useToast } from './Toast'
 import CashCloseReport from './CashCloseReport'
 
 export default function CashRegister({ onClose, settings }) {
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
   const [cashRegister, setCashRegister] = useState(null)
   const [todayData, setTodayData] = useState({
@@ -148,7 +150,7 @@ export default function CashRegister({ onClose, settings }) {
   // Abrir caja
   const handleOpenRegister = async () => {
     if (!openingAmount || parseFloat(openingAmount) < 0) {
-      alert('Ingrese un monto de apertura válido')
+      toast.error('Ingrese un monto de apertura válido')
       return
     }
 
@@ -169,10 +171,10 @@ export default function CashRegister({ onClose, settings }) {
 
       setCashRegister(data)
       logAudit({ action: 'cash_register_opened', tableName: 'cash_registers', recordId: data.id, newData: { opening_amount: data.opening_amount, register_date: data.register_date } })
-      alert('Caja abierta correctamente')
+      toast.success('Caja abierta correctamente')
     } catch (err) {
       console.error('Error opening register:', err)
-      alert('Error: ' + err.message)
+      toast.error('Error: ' + err.message)
     }
   }
 
@@ -203,17 +205,17 @@ export default function CashRegister({ onClose, settings }) {
       setCashRegister(data)
       setClosingAmount('')
       logAudit({ action: 'cash_register_reopened', tableName: 'cash_registers', recordId: data.id, newData: { register_date: data.register_date } })
-      alert('Caja reabierta. Puedes ajustar el monto de apertura y volver a cerrar.')
+      toast.success('Caja reabierta. Puedes ajustar el monto de apertura y volver a cerrar.')
     } catch (err) {
       console.error('Error reopening register:', err)
-      alert('Error: ' + err.message)
+      toast.error('Error: ' + err.message)
     }
   }
 
   // Actualizar monto de apertura (caja abierta)
   const handleUpdateOpening = async () => {
     if (!openingAmount || parseFloat(openingAmount) < 0) {
-      alert('Ingrese un monto válido')
+      toast.error('Ingrese un monto válido')
       return
     }
     try {
@@ -227,17 +229,17 @@ export default function CashRegister({ onClose, settings }) {
       if (error) throw error
       setCashRegister(data)
       logAudit({ action: 'cash_register_updated', tableName: 'cash_registers', recordId: data.id, newData: { opening_amount: data.opening_amount } })
-      alert('Monto de apertura actualizado')
+      toast.success('Monto de apertura actualizado')
     } catch (err) {
       console.error('Error updating opening:', err)
-      alert('Error: ' + err.message)
+      toast.error('Error: ' + err.message)
     }
   }
 
   // Cerrar caja
   const handleCloseRegister = async () => {
     if (!closingAmount || parseFloat(closingAmount) < 0) {
-      alert('Ingrese el monto de cierre (efectivo en caja)')
+      toast.error('Ingrese el monto de cierre (efectivo en caja)')
       return
     }
 
@@ -265,10 +267,10 @@ export default function CashRegister({ onClose, settings }) {
 
       setCashRegister(data)
       logAudit({ action: 'cash_register_closed', tableName: 'cash_registers', recordId: data.id, newData: { closing_amount: data.closing_amount, expected_amount: data.expected_amount, difference: data.difference } })
-      alert('Caja cerrada correctamente')
+      toast.success('Caja cerrada correctamente')
     } catch (err) {
       console.error('Error closing register:', err)
-      alert('Error: ' + err.message)
+      toast.error('Error: ' + err.message)
     }
   }
 
