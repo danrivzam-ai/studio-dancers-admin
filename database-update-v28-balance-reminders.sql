@@ -1,0 +1,51 @@
+-- ============================================================
+-- v28 — Recordatorios de saldo pendiente (abonos)
+-- ============================================================
+-- No requiere cambios de esquema: usa whatsapp_messages_log existente.
+--
+-- ACCIÓN MANUAL REQUERIDA EN META BUSINESS MANAGER:
+-- ─────────────────────────────────────────────────
+-- Crear y aprobar el template de WhatsApp:
+--
+--   Nombre:    saldo_pendiente_representante
+--   Categoría: UTILITY
+--   Idioma:    es (Español)
+--   Cuerpo:
+--
+--   Hola 😊
+--   Le escribimos de {{4}}.
+--
+--   *{{1}}* tiene un saldo pendiente con nosotros:
+--
+--   📚 Curso: {{3}}
+--   💳 Saldo pendiente: ${{2}}
+--
+--   Si ya realizó el pago completo, puede ignorar este mensaje.
+--   Si necesita coordinar el pago, con gusto le ayudamos 🪷
+--
+--   {{4}}
+--
+-- Variables (en orden):
+--   {{1}} = nombre alumna
+--   {{2}} = saldo pendiente (ej: "45.00")
+--   {{3}} = nombre del curso
+--   {{4}} = nombre del estudio (footer/header)
+--
+-- LÓGICA DE ENVÍO (en código):
+-- ─────────────────────────────
+-- • Criterios:  payment_status = 'partial'
+--               balance > 0
+--               last_payment_date (o enrollment_date) <= hoy - 15 días
+--               teléfono registrado
+-- • Dedup:      No se envía si ya se envió en los últimos 7 días
+--               (campo sent_date en whatsapp_messages_log)
+-- • Cobertura:  CUALQUIER tipo de curso — mensual, ciclo, programa,
+--               campamento, sábados, etc. Sin importar priceType.
+-- • Trigger:    Auto al abrir el portal admin (1 vez/día),
+--               junto a sendDailyReminders()
+-- ============================================================
+
+-- Índice opcional para acelerar el query de deduplicación
+-- (si whatsapp_messages_log ya tiene muchos registros):
+CREATE INDEX IF NOT EXISTS idx_wa_log_student_template_date
+  ON whatsapp_messages_log (student_id, template_name, sent_date);

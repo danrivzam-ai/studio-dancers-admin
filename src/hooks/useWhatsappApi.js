@@ -78,6 +78,27 @@ async function alreadySentToday(studentId, templateName) {
   }
 }
 
+/** Verifica si ya se envió el template en los últimos N días (para recordatorios que no deben ser diarios). */
+async function alreadySentWithinDays(studentId, templateName, days = 7) {
+  if (!studentId) return false
+  try {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - days)
+    const cutoffStr = cutoff.toISOString().substring(0, 10)
+    const { data } = await supabase
+      .from('whatsapp_messages_log')
+      .select('id')
+      .eq('student_id', studentId)
+      .eq('template_name', templateName)
+      .eq('status', 'sent')
+      .gte('sent_date', cutoffStr)
+      .maybeSingle()
+    return !!data
+  } catch {
+    return false
+  }
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────
 
 export function useWhatsappApi(settings) {
@@ -237,6 +258,77 @@ export function useWhatsappApi(settings) {
     return result
   }, [hasCredentials, creds.phoneId, creds.token, telegram.botToken, telegram.chatId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Recordatorios de saldo pendiente (abonos) ───────────────────────────
+  /**
+   * Envía recordatorios a alumnas con saldo pendiente (abono parcial) de +15 días.
+   * Aplica a CUALQUIER tipo de curso — mensual, ciclo, programa, campamento, etc.
+   * Dedup: 7 días (no enviar más de una vez por semana por alumna).
+   *
+   * Template Meta requerido: saldo_pendiente_representante
+   *   {{1}} nombre alumna  {{2}} saldo ($X.XX)  {{3}} nombre curso
+   */
+  const sendBalanceReminders = useCallback(async (students) => {
+    const result = { sent: 0, skipped: 0, failed: 0 }
+    if (!hasCredentials || !students?.length) return result
+
+    const templateName = 'saldo_pendiente_representante'
+
+    // Corte: saldo con más de 15 días de antigüedad (last_payment_date o enrollment_date)
+    const cutoff15 = new Date()
+    cutoff15.setDate(cutoff15.getDate() - 15)
+    const cutoff15Str = cutoff15.toISOString().substring(0, 10)
+
+    const targets = students.filter(s => {
+      if (s.payment_status !== 'partial') return false
+      if (parseFloat(s.balance || 0) <= 0)  return false
+      if (!s.phone)                          return false
+      const refDate = s.last_payment_date || s.enrollment_date
+      return !refDate || refDate <= cutoff15Str
+    })
+
+    for (const student of targets) {
+      // Dedup 7 días: no enviar más de una vez por semana por alumna
+      const alreadySent = await alreadySentWithinDays(student.id, templateName, 7)
+      if (alreadySent) { result.skipped++; continue }
+
+      const course     = getCourseById(student.course_id)
+      const courseName = course?.name || 'N/A'
+      const balance    = parseFloat(student.balance || 0).toFixed(2)
+      const variables  = [student.name, balance, courseName]
+
+      const res = await sendTemplate({ ...creds, to: student.phone, templateName, variables })
+
+      await logMessage({
+        studentId:    student.id,
+        phone:        student.phone,
+        templateName,
+        variables,
+        status:       res.success ? 'sent' : 'failed',
+        messageId:    res.messageId,
+        errorMessage: res.error,
+      })
+
+      if (res.success) result.sent++
+      else result.failed++
+
+      await new Promise(r => setTimeout(r, 100))
+    }
+
+    if (telegram.botToken && telegram.chatId && (result.sent > 0 || result.failed > 0)) {
+      await notifyTelegram({
+        botToken: telegram.botToken,
+        chatId:   telegram.chatId,
+        text: `💳 *Recordatorios saldo pendiente enviados*\n` +
+              `📅 ${new Date().toLocaleDateString('es-EC')}\n` +
+              `✅ Enviados: ${result.sent}\n` +
+              `⏭ Omitidos (últimos 7d): ${result.skipped}\n` +
+              (result.failed > 0 ? `❌ Fallidos: ${result.failed}` : ''),
+      })
+    }
+
+    return result
+  }, [hasCredentials, creds.phoneId, creds.token, telegram.botToken, telegram.chatId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Log del d\u00eda ──────────────────────────────────────────────────────────
   /**
    * Obtiene los mensajes enviados hoy para mostrar en el dashboard.
@@ -263,6 +355,7 @@ export function useWhatsappApi(settings) {
     hasCredentials,
     sendComprobante,
     sendDailyReminders,
+    sendBalanceReminders,
     getTodayLog,
   }
 }

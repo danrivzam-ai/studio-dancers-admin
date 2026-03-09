@@ -17,7 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
-import { openWhatsApp, buildReminderMessage } from './lib/whatsapp'
+import { openWhatsApp, buildReminderMessage, buildBalanceReminderMessage } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -83,7 +83,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, deleteRejectedAndExpired, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
-  const { hasCredentials: hasWaCredentials, sendComprobante, sendDailyReminders } = useWhatsappApi(settings)
+  const { hasCredentials: hasWaCredentials, sendComprobante, sendDailyReminders, sendBalanceReminders } = useWhatsappApi(settings)
   const toast = useToast()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
@@ -145,6 +145,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Recordatorios: sequential WhatsApp mode (index into reminderStudents array, or null)
   const [reminderQueueIdx, setReminderQueueIdx] = useState(null)
   const [showReminders, setShowReminders] = useState(false)
+  const [showBalanceReminders, setShowBalanceReminders] = useState(false)
 
   // Connect notification click to open transfer verification modal
   useEffect(() => {
@@ -167,8 +168,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const today = new Date().toDateString()
     const storageKey = `wa_reminders_date_${user.id}`
     if (localStorage.getItem(storageKey) === today) return
-    sendDailyReminders(students).then((result) => {
-      if (result && (result.sent > 0 || result.skipped > 0)) {
+    // Recordatorios mensuales (niñas) + saldos pendientes (+15d, cualquier curso)
+    Promise.all([
+      sendDailyReminders(students),
+      sendBalanceReminders(students),
+    ]).then(([dailyResult]) => {
+      if (dailyResult && (dailyResult.sent > 0 || dailyResult.skipped > 0)) {
         localStorage.setItem(storageKey, today)
       }
     })
@@ -371,6 +376,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const effectivePrice = parseFloat(s.total_program_price || course?.price || 0)
     return { ...s, courseName: course?.name, amountPaid, coursePrice: effectivePrice, balance: parseFloat(s.balance || 0) }
   }), [students, allCourses])
+
+  // Saldos con más de 15 días de antigüedad — aplica a cualquier tipo de curso
+  const overdueBalances = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - 15)
+    const cutoffStr = cutoff.toISOString().substring(0, 10)
+    return studentsWithBalance.filter(s => {
+      const refDate = s.last_payment_date || s.enrollment_date
+      return !refDate || refDate <= cutoffStr
+    })
+  }, [studentsWithBalance])
 
   // Manejar cambio de curso
   const handleCourseChange = (courseId) => {
@@ -1529,6 +1545,57 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
               )
             })()}
+
+            {/* Recordatorios de saldo pendiente — abonos con +15 días */}
+            {overdueBalances.length > 0 && (
+              <div className="bg-white border border-orange-200 rounded-xl overflow-hidden mb-4">
+                <button
+                  onClick={() => setShowBalanceReminders(v => !v)}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-orange-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={17} className="text-orange-500" />
+                    <span className="font-semibold text-gray-800 text-sm">Saldos pendientes +15 días</span>
+                    <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">{overdueBalances.length}</span>
+                  </div>
+                  {showBalanceReminders ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                </button>
+
+                {showBalanceReminders && (
+                  <div className="border-t border-orange-100 p-3 space-y-2">
+                    {overdueBalances.map(s => {
+                      const course = enrichCourse(getCourseById(s.course_id))
+                      const daysSince = s.last_payment_date
+                        ? Math.floor((new Date() - new Date(s.last_payment_date + 'T12:00:00')) / 86400000)
+                        : null
+                      return (
+                        <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-50">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-orange-600">${parseFloat(s.balance || 0).toFixed(2)}</p>
+                            {daysSince !== null && <p className="text-xs text-gray-400">{daysSince}d sin pagar</p>}
+                          </div>
+                          <button
+                            onClick={() => {
+                              const phone = s.payer_phone || s.parent_phone || s.phone
+                              if (!phone) { toast.info('Sin teléfono registrado'); return }
+                              openWhatsApp(phone, buildBalanceReminderMessage(s, course?.name || 'N/A', s.balance, settings.name))
+                            }}
+                            className="p-1.5 text-orange-500 hover:bg-orange-100 rounded-xl active:scale-95 transition-all shrink-0"
+                            title="Enviar recordatorio de saldo"
+                          >
+                            <MessageCircle size={15} />
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Empty state when no alerts */}
             {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (

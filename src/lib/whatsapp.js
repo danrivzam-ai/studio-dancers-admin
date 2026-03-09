@@ -79,6 +79,31 @@ ${schoolName}`
 }
 
 /**
+ * Construye mensaje de recordatorio para saldo pendiente (abono parcial).
+ * Aplica a cualquier tipo de curso — no depende de priceType ni ciclos.
+ */
+export const buildBalanceReminderMessage = (student, courseName, balance, schoolName) => {
+  const isRepresentante = student.is_minor !== false
+  const intro = isRepresentante
+    ? `*${student.name}* tiene un saldo pendiente con nosotros:`
+    : 'Tiene un saldo pendiente con nosotros:'
+  const balanceFmt = parseFloat(balance || 0).toFixed(2)
+
+  return `Hola 😊
+Le escribimos de ${schoolName}.
+
+${intro}
+
+📚 Curso: ${courseName}
+💳 Saldo pendiente: $${balanceFmt}
+
+Si ya realizó el pago completo, puede ignorar este mensaje.
+Si necesita coordinar el pago, con gusto le ayudamos 🪷
+
+${schoolName}`
+}
+
+/**
  * Construye mensaje de texto del reporte de cierre de caja.
  */
 export const buildCloseReportMessage = (cashRegister, todayData, settings) => {
