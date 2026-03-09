@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
   Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor
@@ -309,7 +309,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const autoInactiveDays = settings.auto_inactive_days || 10
 
   // Filtrar estudiantes (incluye búsqueda por cédula)
-  const filteredStudents = students.filter(student => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const filteredStudents = useMemo(() => students.filter(student => {
     const course = getCourseById(student.course_id)
     const searchLower = searchTerm.toLowerCase()
     const matchesSearch = student.name.toLowerCase().includes(searchLower) ||
@@ -325,39 +326,42 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           (filterPayment === 'inactive' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
                           (filterPayment === 'upcoming' && daysUntil >= 0 && daysUntil <= 5)
     return matchesSearch && matchesCourse && matchesPayment
-  })
+  }), [students, searchTerm, filterCourse, filterPayment, autoInactiveDays, allCourses])
 
   // Estadísticas
-  const recurringStudents = students.filter(s => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const recurringStudents = useMemo(() => students.filter(s => {
     const course = getCourseById(s.course_id)
     return course?.priceType === 'mes' || course?.priceType === 'paquete'
-  })
+  }), [students, allCourses])
 
-  const upcomingPayments = recurringStudents
+  const upcomingPayments = useMemo(() => recurringStudents
     .filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) <= 5)
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
+  , [recurringStudents])
 
   // Alumnos con pago vencido pero dentro del periodo de gracia
-  const overduePayments = recurringStudents.filter(s => {
+  const overduePayments = useMemo(() => recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) <= autoInactiveDays
-  })
+  }), [recurringStudents, autoInactiveDays])
 
   // Alumnos inactivos (pasaron el periodo de gracia)
-  const inactiveStudents = recurringStudents.filter(s => {
+  const inactiveStudents = useMemo(() => recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) > autoInactiveDays
-  })
+  }), [recurringStudents, autoInactiveDays])
 
-  const totalMonthlyIncome = recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0)
-  const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
-  const sabadosStudents = students.filter(s => s.course_id?.startsWith('sabados-'))
-  const regularStudents = students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-'))
+  const totalMonthlyIncome = useMemo(() => recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0), [recurringStudents])
+  const campStudents = useMemo(() => students.filter(s => s.course_id?.startsWith('camp-')), [students])
+  const sabadosStudents = useMemo(() => students.filter(s => s.course_id?.startsWith('sabados-')), [students])
+  const regularStudents = useMemo(() => students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-')), [students])
 
   // Alumnos con saldos pendientes (abonos parciales)
-  const studentsWithBalance = students.filter(s => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const studentsWithBalance = useMemo(() => students.filter(s => {
     if (s.payment_status !== 'partial') return false
     const amountPaid = parseFloat(s.amount_paid || 0)
     return amountPaid > 0 && parseFloat(s.balance || 0) > 0
@@ -366,7 +370,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const amountPaid = parseFloat(s.amount_paid || 0)
     const effectivePrice = parseFloat(s.total_program_price || course?.price || 0)
     return { ...s, courseName: course?.name, amountPaid, coursePrice: effectivePrice, balance: parseFloat(s.balance || 0) }
-  })
+  }), [students, allCourses])
 
   // Manejar cambio de curso
   const handleCourseChange = (courseId) => {
