@@ -34,34 +34,56 @@ export const openWhatsAppNoRecipient = (message) => {
 
 /**
  * Construye mensaje de recordatorio de cobro para WhatsApp.
+ * - Menores (is_minor !== false): lenguaje dirigido al representante.
+ * - Adultas (is_minor === false): lenguaje de ciclo, sin usar "vencido".
  */
 export const buildReminderMessage = (student, courseName, daysUntilDue, schoolName) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
   const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
   const isRepresentante = student.is_minor !== false  // true para menores (o si no hay dato)
+  const isAdulta = student.is_minor === false
 
   let intro = ''
   let dateLabel = ''
   let closing = ''
 
   if (daysUntilDue < 0) {
-    dateLabel = 'Venci\u00f3'
-    closing = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi necesita coordinar el pago, con gusto le ayudamos \uD83E\uDE70'
-    intro = isRepresentante
-      ? `El pago de *${student.name}* se encuentra vencido:`
-      : 'Su pago se encuentra vencido:'
+    if (isAdulta) {
+      // Adultas: ciclo terminado → invitar a renovar, sin lenguaje de "vencido"
+      dateLabel = '\u00daltimo ciclo finaliz\u00f3'
+      intro     = 'Su ciclo de clases ha finalizado y est\u00e1 lista para renovar.'
+      closing   = 'Para seguir asistiendo a sus clases, puede realizar la renovaci\u00f3n cuando guste.\n\nSi ya realiz\u00f3 el pago, puede ignorar este mensaje.'
+    } else {
+      dateLabel = 'Venci\u00f3'
+      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi necesita coordinar el pago, con gusto le ayudamos \uD83E\uDE70'
+      intro     = isRepresentante
+        ? `El pago de *${student.name}* se encuentra vencido:`
+        : 'Su pago se encuentra vencido:'
+    }
   } else if (daysUntilDue === 0) {
-    dateLabel = 'Vence hoy'
-    closing = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
-    intro = isRepresentante
-      ? `El pago de *${student.name}* vence hoy:`
-      : 'Su pago vence hoy:'
+    if (isAdulta) {
+      dateLabel = 'Ciclo finaliza hoy'
+      intro     = 'Su ciclo de clases finaliza hoy.'
+      closing   = 'Puede renovar cuando guste para continuar con sus clases.\n\nSi ya realiz\u00f3 el pago, puede ignorar este mensaje.'
+    } else {
+      dateLabel = 'Vence hoy'
+      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
+      intro     = isRepresentante
+        ? `El pago de *${student.name}* vence hoy:`
+        : 'Su pago vence hoy:'
+    }
   } else {
-    dateLabel = 'Vencimiento'
-    closing = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
-    intro = isRepresentante
-      ? `El pago de *${student.name}* est\u00e1 pr\u00f3ximo a vencer:`
-      : 'Su pago est\u00e1 pr\u00f3ximo a vencer:'
+    if (isAdulta) {
+      dateLabel = 'Fin de ciclo'
+      intro     = 'Su ciclo de clases est\u00e1 pr\u00f3ximo a finalizar.'
+      closing   = 'Puede renovar cuando guste para continuar con sus clases.\n\nSi ya realiz\u00f3 el pago, puede ignorar este mensaje.'
+    } else {
+      dateLabel = 'Vencimiento'
+      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
+      intro     = isRepresentante
+        ? `El pago de *${student.name}* est\u00e1 pr\u00f3ximo a vencer:`
+        : 'Su pago est\u00e1 pr\u00f3ximo a vencer:'
+    }
   }
 
   return `Hola \uD83D\uDE0A
