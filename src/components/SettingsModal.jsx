@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle } from 'lucide-react'
 import BackupExport from './BackupExport'
 
 export default function SettingsModal({
@@ -22,11 +22,18 @@ export default function SettingsModal({
     bank_name: '',
     bank_account_number: '',
     bank_account_holder: '',
-    bank_account_type: 'Ahorros'
+    bank_account_type: 'Ahorros',
+    whatsapp_phone_id:  '',
+    whatsapp_token:     '',
+    telegram_bot_token: '',
+    telegram_chat_id:   '',
+    whatsapp_enabled:   false,
   })
   const [loading, setLoading] = useState(false)
   const [showPin, setShowPin] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
+  const [showWaToken, setShowWaToken] = useState(false)
+  const [showTgToken, setShowTgToken] = useState(false)
   const [changingPin, setChangingPin] = useState(false)
   const [currentPinInput, setCurrentPinInput] = useState('')
   const [newPin, setNewPin] = useState('')
@@ -50,7 +57,12 @@ export default function SettingsModal({
         bank_name: settings.bank_name || '',
         bank_account_number: settings.bank_account_number || '',
         bank_account_holder: settings.bank_account_holder || '',
-        bank_account_type: settings.bank_account_type || 'Ahorros'
+        bank_account_type: settings.bank_account_type || 'Ahorros',
+        whatsapp_phone_id:  settings.whatsapp_phone_id  || '',
+        whatsapp_token:     settings.whatsapp_token     || '',
+        telegram_bot_token: settings.telegram_bot_token || '',
+        telegram_chat_id:   settings.telegram_chat_id   || '',
+        whatsapp_enabled:   settings.whatsapp_enabled   ?? false,
       })
     }
   }, [settings])
@@ -447,6 +459,96 @@ export default function SettingsModal({
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo MailerLite para la automatización de Bienvenida Instructoras.</p>
               </div>
+            </div>
+          </div>
+
+          {/* WhatsApp API Automático */}
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <MessageCircle size={16} className="text-green-500" />
+                <label className="text-sm font-medium text-gray-700">WhatsApp API Autom\u00e1tico</label>
+              </div>
+              {/* Toggle maestro */}
+              <button
+                type="button"
+                onClick={() => setFormData(f => ({...f, whatsapp_enabled: !f.whatsapp_enabled}))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  formData.whatsapp_enabled ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  formData.whatsapp_enabled ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+            <p className={`text-xs mb-3 ${formData.whatsapp_enabled ? 'text-green-600 font-medium' : 'text-gray-400'}`}>
+              {formData.whatsapp_enabled
+                ? '\u2705 Activo \u2014 se enviar\u00e1n comprobantes y recordatorios autom\u00e1ticamente.'
+                : '\u23f8\uFE0F En pausa \u2014 activa cuando est\u00e9s listo para producción.'}
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Phone Number ID</label>
+                <input
+                  type="text"
+                  value={formData.whatsapp_phone_id}
+                  onChange={(e) => setFormData({...formData, whatsapp_phone_id: e.target.value.trim()})}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm outline-none transition-all font-mono"
+                  placeholder="123456789012345"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Access Token (Meta)</label>
+                <div className="relative">
+                  <input
+                    type={showWaToken ? 'text' : 'password'}
+                    value={formData.whatsapp_token}
+                    onChange={(e) => setFormData({...formData, whatsapp_token: e.target.value.trim()})}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-10 text-sm outline-none transition-all font-mono"
+                    placeholder="EAAxxxxx..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowWaToken(!showWaToken)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showWaToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Telegram Bot Token (notificaciones)</label>
+                <div className="relative">
+                  <input
+                    type={showTgToken ? 'text' : 'password'}
+                    value={formData.telegram_bot_token}
+                    onChange={(e) => setFormData({...formData, telegram_bot_token: e.target.value.trim()})}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-10 text-sm outline-none transition-all font-mono"
+                    placeholder="123456:ABCxxx..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTgToken(!showTgToken)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showTgToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Telegram Chat ID</label>
+                <input
+                  type="text"
+                  value={formData.telegram_chat_id}
+                  onChange={(e) => setFormData({...formData, telegram_chat_id: e.target.value.trim()})}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm outline-none transition-all font-mono"
+                  placeholder="-100123456789"
+                />
+              </div>
+              <p className="text-xs text-gray-400">
+                Las credenciales se guardan en la base de datos cifrada. Si no configuras estos campos, el env\u00edo de mensajes seguir\u00e1 siendo manual v\u00eda wa.me.
+              </p>
             </div>
           </div>
 

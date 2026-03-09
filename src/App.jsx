@@ -43,6 +43,7 @@ import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
+import { useWhatsappApi } from './hooks/useWhatsappApi'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -81,6 +82,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, deleteRejectedAndExpired, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
+  const { hasCredentials: hasWaCredentials, sendComprobante, sendDailyReminders } = useWhatsappApi(settings)
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -156,6 +158,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setAnnouncements(data) })
   }, [])
+
+  // Auto-envío de recordatorios WhatsApp — una sola vez por día al abrir el portal
+  useEffect(() => {
+    if (!user || !students.length || !hasWaCredentials) return
+    const today = new Date().toDateString()
+    const storageKey = `wa_reminders_date_${user.id}`
+    if (localStorage.getItem(storageKey) === today) return
+    sendDailyReminders(students).then((result) => {
+      if (result && (result.sent > 0 || result.skipped > 0)) {
+        localStorage.setItem(storageKey, today)
+      }
+    })
+  }, [user, students, hasWaCredentials]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -2303,6 +2318,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setLastPayment(null)
               setSelectedStudent(null)
             }}
+            onSendApiComprobante={hasWaCredentials ? sendComprobante : undefined}
           />
         )}
 

@@ -8,10 +8,12 @@ export default function ReceiptGenerator({
   payment,
   student,
   settings,
-  onClose
+  onClose,
+  onSendApiComprobante,   // (payment, student, course, receiptNumber) => Promise<{success, error}>
 }) {
   const receiptRef = useRef(null)
   const [logoBase64, setLogoBase64] = useState(null)
+  const [waStatus, setWaStatus] = useState(null) // null | 'sending' | 'sent' | 'manual'
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
@@ -128,31 +130,57 @@ export default function ReceiptGenerator({
     if (isProgram || (isRecurring && isPartialPayment)) {
       if (balance > 0) {
         balanceInfo = `
-💳 *Saldo pendiente: $${balance.toFixed(2)}*`
+💳 Saldo pendiente: $${balance.toFixed(2)}`
       } else {
         balanceInfo = isProgram ? `
-✅ *Programa PAGADO en su totalidad*` : `
-✅ *Ciclo PAGADO*`
+✅ Programa completamente pagado` : `
+✅ Ciclo completamente pagado`
       }
     }
 
-    const message = `Hola ${student.name}, adjunto su comprobante de pago.
+    const nextPaymentLine = !isQuickPayment &&
+      (course?.priceType === 'mes' || course?.priceType === 'paquete') &&
+      student.next_payment_date
+        ? `\n\uD83D\uDCC6 Pr\u00f3ximo cobro: ${formatDate(student.next_payment_date)}`
+        : ''
 
-📋 *Comprobante N° ${receiptNumber}*
-💰 Monto pagado: $${parseFloat(payment.amount).toFixed(2)}
-📅 Fecha: ${formatDate(payment.payment_date)}
-📚 ${isQuickPayment ? 'Clase' : 'Curso'}: ${courseName}${balanceInfo}
-${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date ? `
-📆 Próximo cobro: *${formatDate(student.next_payment_date)}*` : ''}
+    const isRepresentante = student.is_minor !== false
+    const paymentHeader = isRepresentante
+      ? `El pago de ${student.name} qued\u00f3 registrado.`
+      : 'Su pago qued\u00f3 registrado.'
 
-¡Gracias por su preferencia!
-🩰 ${settings.name}`
+    const message = `Hola \uD83D\uDE0A
+${paymentHeader}
+Aqu\u00ed est\u00e1 su comprobante:
 
-    // Limpiar número de teléfono
+\uD83D\uDCCB Comprobante N\u00b0 ${receiptNumber}
+\uD83D\uDCB0 Monto: $${parseFloat(payment.amount).toFixed(2)}
+\uD83D\uDCC5 Fecha: ${formatDate(payment.payment_date)}
+\uD83D\uDCDA ${isQuickPayment ? 'Clase' : 'Curso'}: ${courseName}${balanceInfo}${nextPaymentLine}
+
+Gracias por confiar en nosotros \uD83E\uDE70
+
+${settings.name}`
+
+    // ── Intentar envío automático via Meta API ──────────────────────────────
+    if (onSendApiComprobante && student?.phone) {
+      setWaStatus('sending')
+      const apiResult = await onSendApiComprobante(payment, student, course, receiptNumber)
+      if (apiResult?.success) {
+        setWaStatus('sent')
+        // Template enviado automáticamente → no abrir wa.me (evitar duplicado)
+        setTimeout(() => setWaStatus(null), 5000)
+        return
+      }
+      // Si la API falla, caer en el flujo manual (wa.me)
+      setWaStatus('manual')
+      setTimeout(() => setWaStatus(null), 4000)
+    }
+
+    // ── Fallback: abrir WhatsApp web con mensaje pre-llenado ────────────────
     const phone = student.phone?.replace(/\D/g, '') || ''
     const phoneWithCode = phone.startsWith('0') ? `593${phone.slice(1)}` : phone
 
-    // Abrir WhatsApp
     const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
   }
@@ -377,13 +405,29 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
             {student.phone && (
               <button
                 onClick={sendWhatsApp}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all"
+                disabled={waStatus === 'sending'}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-60"
               >
                 <Send size={20} />
-                WhatsApp
+                {waStatus === 'sending' ? 'Enviando...' : 'WhatsApp'}
               </button>
             )}
           </div>
+
+          {/* Toast de estado de envío API */}
+          {waStatus === 'sent' && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+              <span>✅</span>
+              <span>Comprobante enviado autom\u00e1ticamente por WhatsApp</span>
+            </div>
+          )}
+          {waStatus === 'manual' && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+              <span>⚠️</span>
+              <span>API no disponible \u2014 enviado por WhatsApp Web</span>
+            </div>
+          )}
+
           <button
             onClick={onClose}
             className="w-full px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl active:scale-95 transition-all text-sm"
