@@ -139,7 +139,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed }) {
             </div>
             <div>
               <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
-              <input type="number" required min={1} max={20} value={form.totalClases}
+              <input type="number" required min={1} max={999} value={form.totalClases}
                 onChange={e => setForm({ ...form, totalClases: e.target.value })}
                 className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
             </div>
