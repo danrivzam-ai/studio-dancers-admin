@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../Toast'
 import UploadComprobante from '../UploadComprobante'
 
-const STUDIO_WHATSAPP = '593963741884'  // TODO: reemplazar con número real
+const STUDIO_WHATSAPP = '593963741884'
 
 function formatFecha(dateStr) {
   if (!dateStr) return 'Por definir'

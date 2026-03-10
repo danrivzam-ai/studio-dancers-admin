@@ -3,7 +3,7 @@ import { LogOut, CreditCard, CalendarCheck, Phone, Camera } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../Toast'
 
-const STUDIO_WHATSAPP = '593963741884'  // TODO: reemplazar con número real
+const STUDIO_WHATSAPP = '593963741884'
 
 async function compressAvatar(file) {
   return new Promise((resolve) => {
