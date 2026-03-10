@@ -1028,7 +1028,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
-            { id: 'clases_adultas', icon: Calendar, label: 'Clases' },
+            { id: 'clases_adultas', icon: History, label: 'Ciclos' },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
            .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))

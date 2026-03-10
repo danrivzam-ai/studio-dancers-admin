@@ -15,6 +15,16 @@ export async function getCursos() {
 }
 
 // ── Ciclos ────────────────────────────────────────────────────────
+// Ciclo activo de TODOS los cursos — para vista resumen en admin
+export async function getAllActiveCiclos() {
+  const { data, error } = await supabase
+    .from('cycles')
+    .select('id, course_id, numero_ciclo, total_clases, fecha_inicio, fecha_fin, objetivo_ciclo, estado')
+    .eq('estado', 'activo')
+    .order('course_id')
+  return { data: data || [], error }
+}
+
 // Usa la tabla 'cycles' (app Instructoras) para que la instructora
 // vea el mismo ciclo que el admin activó.
 export async function getCiclos(cursoCode) {
@@ -26,7 +36,7 @@ export async function getCiclos(cursoCode) {
   return { data: data || [], error }
 }
 
-export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, objetivoCiclo }) {
+export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaInicio, fechaFin, objetivoCiclo }) {
   const { data, error } = await supabase
     .from('cycles')
     .insert({
@@ -34,9 +44,23 @@ export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaIn
       numero_ciclo:   numeroCiclo,
       total_clases:   totalClases,
       fecha_inicio:   fechaInicio,
+      fecha_fin:      fechaFin || null,
       objetivo_ciclo: objetivoCiclo || null,
       estado:         'activo'
     })
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function updateCiclo(cicloId, { objetivoCiclo, totalClases }) {
+  const updates = {}
+  if (objetivoCiclo !== undefined) updates.objetivo_ciclo = objetivoCiclo || null
+  if (totalClases   !== undefined) updates.total_clases   = totalClases
+  const { data, error } = await supabase
+    .from('cycles')
+    .update(updates)
+    .eq('id', cicloId)
     .select()
     .single()
   return { data, error }
@@ -46,7 +70,7 @@ export async function closeCiclo(cicloId) {
   const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
     .from('cycles')
-    .update({ estado: 'cerrado', fecha_fin_estimada: today })
+    .update({ estado: 'cerrado', fecha_fin: today })
     .eq('id', cicloId)
     .select()
     .single()
