@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, ClipboardList
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -17,7 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
-import { openWhatsApp, buildReminderMessage, buildBalanceReminderMessage } from './lib/whatsapp'
+import { openWhatsApp, buildReminderMessage } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -39,36 +39,25 @@ import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
-import AsistenciaAdmin from './components/AsistenciaAdmin'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
-import { useWhatsappApi } from './hooks/useWhatsappApi'
-import { useToast } from './components/Toast'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
-// Mini-component: shows initials by default, swaps to avatar photo if one exists in storage
+// Mini-component: shows avatar photo from Supabase storage, falls back to initials
 function StudentAvatar({ student, isCamp }) {
-  const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
   const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student.id}.jpg`).data?.publicUrl
   const initials = student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'
-  const showInitials = !imgLoaded || imgError
   return (
-    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${bgClass}`}>
-      {!imgError && (
-        <img
-          src={avatarUrl}
-          alt={student.name}
-          onLoad={() => setImgLoaded(true)}
-          onError={() => setImgError(true)}
-          className={`w-full h-full object-cover ${imgLoaded ? '' : 'hidden'}`}
-        />
-      )}
-      {showInitials && <span className="font-bold text-sm">{initials}</span>}
+    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${imgError ? bgClass : ''}`}>
+      {!imgError
+        ? <img src={avatarUrl} alt={student.name} onError={() => setImgError(true)} className="w-full h-full object-cover" />
+        : <span className="font-bold text-sm">{initials}</span>
+      }
     </div>
   )
 }
@@ -83,9 +72,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
-  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, deleteRejectedAndExpired, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
-  const { hasCredentials: hasWaCredentials, sendComprobante, sendDailyReminders, sendBalanceReminders } = useWhatsappApi(settings)
-  const toast = useToast()
+  const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -107,6 +94,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   const [activeTab, setActiveTab] = useState('students')
+  const [activeAcademicTab, setActiveAcademicTab] = useState('instructoras')
   const [hideIncome, setHideIncome] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showSaleForm, setShowSaleForm] = useState(false)
@@ -146,7 +134,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Recordatorios: sequential WhatsApp mode (index into reminderStudents array, or null)
   const [reminderQueueIdx, setReminderQueueIdx] = useState(null)
   const [showReminders, setShowReminders] = useState(false)
-  const [showBalanceReminders, setShowBalanceReminders] = useState(false)
 
   // Connect notification click to open transfer verification modal
   useEffect(() => {
@@ -162,23 +149,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       .order('created_at', { ascending: false })
       .then(({ data }) => { if (data) setAnnouncements(data) })
   }, [])
-
-  // Auto-envío de recordatorios WhatsApp — una sola vez por día al abrir el portal
-  useEffect(() => {
-    if (!user || !students.length || !hasWaCredentials) return
-    const today = new Date().toDateString()
-    const storageKey = `wa_reminders_date_${user.id}`
-    if (localStorage.getItem(storageKey) === today) return
-    // Recordatorios mensuales (niñas) + saldos pendientes (+15d, cualquier curso)
-    Promise.all([
-      sendDailyReminders(students),
-      sendBalanceReminders(students),
-    ]).then(([dailyResult]) => {
-      if (dailyResult && (dailyResult.sent > 0 || dailyResult.skipped > 0)) {
-        localStorage.setItem(storageKey, today)
-      }
-    })
-  }, [user, students, hasWaCredentials]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Browser back button closes modals instead of leaving the app
   useEffect(() => {
@@ -306,7 +276,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   })
   const [cartItems, setCartItems] = useState([])
   const [productSearch, setProductSearch] = useState('')
-  const [showProductDropdown, setShowProductDropdown] = useState(false)
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
@@ -315,8 +284,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const autoInactiveDays = settings.auto_inactive_days || 10
 
   // Filtrar estudiantes (incluye búsqueda por cédula)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const filteredStudents = useMemo(() => students.filter(student => {
+  const filteredStudents = students.filter(student => {
     const course = getCourseById(student.course_id)
     const searchLower = searchTerm.toLowerCase()
     const matchesSearch = student.name.toLowerCase().includes(searchLower) ||
@@ -332,42 +300,39 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           (filterPayment === 'inactive' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
                           (filterPayment === 'upcoming' && daysUntil >= 0 && daysUntil <= 5)
     return matchesSearch && matchesCourse && matchesPayment
-  }), [students, searchTerm, filterCourse, filterPayment, autoInactiveDays, allCourses])
+  })
 
   // Estadísticas
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const recurringStudents = useMemo(() => students.filter(s => {
+  const recurringStudents = students.filter(s => {
     const course = getCourseById(s.course_id)
     return course?.priceType === 'mes' || course?.priceType === 'paquete'
-  }), [students, allCourses])
+  })
 
-  const upcomingPayments = useMemo(() => recurringStudents
+  const upcomingPayments = recurringStudents
     .filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) <= 5)
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
-  , [recurringStudents])
 
   // Alumnos con pago vencido pero dentro del periodo de gracia
-  const overduePayments = useMemo(() => recurringStudents.filter(s => {
+  const overduePayments = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) <= autoInactiveDays
-  }), [recurringStudents, autoInactiveDays])
+  })
 
   // Alumnos inactivos (pasaron el periodo de gracia)
-  const inactiveStudents = useMemo(() => recurringStudents.filter(s => {
+  const inactiveStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) > autoInactiveDays
-  }), [recurringStudents, autoInactiveDays])
+  })
 
-  const totalMonthlyIncome = useMemo(() => recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0), [recurringStudents])
-  const campStudents = useMemo(() => students.filter(s => s.course_id?.startsWith('camp-')), [students])
-  const sabadosStudents = useMemo(() => students.filter(s => s.course_id?.startsWith('sabados-')), [students])
-  const regularStudents = useMemo(() => students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-')), [students])
+  const totalMonthlyIncome = recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0)
+  const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
+  const sabadosStudents = students.filter(s => s.course_id?.startsWith('sabados-'))
+  const regularStudents = students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-'))
 
   // Alumnos con saldos pendientes (abonos parciales)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const studentsWithBalance = useMemo(() => students.filter(s => {
+  const studentsWithBalance = students.filter(s => {
     if (s.payment_status !== 'partial') return false
     const amountPaid = parseFloat(s.amount_paid || 0)
     return amountPaid > 0 && parseFloat(s.balance || 0) > 0
@@ -376,18 +341,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const amountPaid = parseFloat(s.amount_paid || 0)
     const effectivePrice = parseFloat(s.total_program_price || course?.price || 0)
     return { ...s, courseName: course?.name, amountPaid, coursePrice: effectivePrice, balance: parseFloat(s.balance || 0) }
-  }), [students, allCourses])
-
-  // Saldos con más de 15 días de antigüedad — aplica a cualquier tipo de curso
-  const overdueBalances = useMemo(() => {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 15)
-    const cutoffStr = cutoff.toISOString().substring(0, 10)
-    return studentsWithBalance.filter(s => {
-      const refDate = s.last_payment_date || s.enrollment_date
-      return !refDate || refDate <= cutoffStr
-    })
-  }, [studentsWithBalance])
+  })
 
   // Manejar cambio de curso
   const handleCourseChange = (courseId) => {
@@ -502,7 +456,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       resetForm()
     } else {
-      toast.error('Error: ' + result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -519,7 +473,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const totalRequested = alreadyInCart + qty
 
     if (product.stock !== null && product.stock !== undefined && product.stock < totalRequested) {
-      toast.error(`Stock insuficiente. Disponible: ${product.stock}, en carrito: ${alreadyInCart}`)
+      alert(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
       return
     }
 
@@ -536,7 +490,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const handleSaleSubmit = async (e) => {
     e.preventDefault()
     if (cartItems.length === 0) {
-      toast.info('Agrega al menos un artículo al carrito')
+      alert('Agrega al menos un artículo al carrito')
       return
     }
 
@@ -573,7 +527,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
-      toast.error('Error: ' + result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -612,18 +566,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         }
       }
     } else {
-      toast.error('Error al registrar pago: ' + result.error)
+      alert('Error: ' + result.error)
     }
-  }
-
-  // Al aprobar transferencia: cierra modal transferencias y abre comprobante
-  const handleTransferPaymentRegistered = (paymentData, studentData) => {
-    setShowTransferVerification(false)
-    const fullStudent = students.find(s => s.id === studentData?.id) || studentData
-    setSelectedStudent(fullStudent)
-    setLastPayment(paymentData)
-    setShowReceipt(true)
-    refreshIncome()
   }
 
   // ── Tablón de anuncios CRUD ──
@@ -740,7 +684,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       refreshIncome()
     } catch (err) {
       console.error('Error en pago rápido:', err)
-      toast.error('Error: ' + err.message)
+      alert('Error: ' + err.message)
     }
   }
 
@@ -758,7 +702,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setShowForm(false)
       setEditingStudent(null)
     } else {
-      toast.error('Error: ' + result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -817,20 +761,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     if (student.is_paused) {
       const result = await unpauseStudent(student.id)
       if (!result.success) {
-        toast.error('Error: ' + result.error)
+        alert('Error: ' + result.error)
       }
     } else {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
-        toast.info('Solo se pueden pausar alumnos con clases mensuales o por paquete')
+        alert('Solo se pueden pausar alumnos con clases mensuales o por paquete')
         return
       }
       if (confirm(`¿Pausar 1 clase para ${student.name}?\nSe extenderá la fecha de pago.`)) {
         const result = await pauseStudent(student.id)
         if (result.success) {
-          toast.success(`Pausa activada para ${student.name}. Se agregaron ${result.daysAdded} días al ciclo.`)
+          alert(`Pausa activada para ${student.name}.\nSe agregaron ${result.daysAdded} días al ciclo.`)
         } else {
-          toast.error('Error: ' + result.error)
+          alert('Error: ' + result.error)
         }
       }
     }
@@ -1077,16 +1021,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
-            { id: 'sales', icon: ShoppingBag, label: 'Ventas' },
+            { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
-            { id: 'instructoras', icon: GraduationCap, label: 'Instructoras' },
-            { id: 'asistencia_admin', icon: ClipboardList, label: 'Asistencia' },
+            { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
-            { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
-            { id: 'clases_adultas', icon: History, label: 'Ciclos' },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
            .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
@@ -1155,12 +1096,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {overduePayments.length > 0 ? (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-red-600">{overduePayments.length}</p>
-                    <p className="text-xs sm:text-sm text-red-500 font-medium mt-0.5">Por renovar</p>
+                    <p className="text-xs sm:text-sm text-red-500 font-medium">Por renovar</p>
                   </>
                 ) : (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Próximos</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Próximos</p>
                   </>
                 )}
               </div>
@@ -1234,7 +1175,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
                       {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Próximos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Próximos</p>
                   </div>
                 </div>
               </button>
@@ -1252,7 +1193,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
                       {studentsWithBalance.length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Saldos</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Saldos</p>
                   </div>
                 </div>
               </button>
@@ -1270,7 +1211,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'}`}>
                       {inactiveStudents.length}
                     </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate mt-0.5">Inactivas</p>
+                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Inactivas</p>
                   </div>
                 </div>
               </button>
@@ -1303,7 +1244,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { toast.info('Sin teléfono registrado'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1379,7 +1320,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const course = enrichCourse(getCourseById(s.course_id))
                     const days = getDaysUntilDue(s.next_payment_date)
                     return (
-                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-4 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
+                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
@@ -1388,7 +1329,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { toast.info('Sin teléfono registrado'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1423,7 +1364,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
                 <div className="space-y-1.5">
                   {studentsWithBalance.slice(0, 3).map(s => (
-                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-4 pr-3 py-2.5">
+                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-3 pr-3 py-2.5">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                         <p className="text-xs text-gray-500 truncate">{s.courseName}</p>
@@ -1477,7 +1418,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
-                                if (!phone) { toast.info('Sin teléfono registrado'); return }
+                                if (!phone) { alert('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
                                 openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings.name))
@@ -1521,7 +1462,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = s.payer_phone || s.parent_phone || s.phone
-                                if (!phone) { toast.info('Sin teléfono registrado'); return }
+                                if (!phone) { alert('Sin teléfono registrado'); return }
                                 openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
@@ -1547,57 +1488,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
               )
             })()}
-
-            {/* Recordatorios de saldo pendiente — abonos con +15 días */}
-            {overdueBalances.length > 0 && (
-              <div className="bg-white border border-orange-200 rounded-xl overflow-hidden mb-4">
-                <button
-                  onClick={() => setShowBalanceReminders(v => !v)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-orange-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <CreditCard size={17} className="text-orange-500" />
-                    <span className="font-semibold text-gray-800 text-sm">Saldos pendientes +15 días</span>
-                    <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">{overdueBalances.length}</span>
-                  </div>
-                  {showBalanceReminders ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
-                </button>
-
-                {showBalanceReminders && (
-                  <div className="border-t border-orange-100 p-3 space-y-2">
-                    {overdueBalances.map(s => {
-                      const course = enrichCourse(getCourseById(s.course_id))
-                      const daysSince = s.last_payment_date
-                        ? Math.floor((new Date() - new Date(s.last_payment_date + 'T12:00:00')) / 86400000)
-                        : null
-                      return (
-                        <div key={s.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-50">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
-                            <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-bold text-orange-600">${parseFloat(s.balance || 0).toFixed(2)}</p>
-                            {daysSince !== null && <p className="text-xs text-gray-400">{daysSince}d sin pagar</p>}
-                          </div>
-                          <button
-                            onClick={() => {
-                              const phone = s.payer_phone || s.parent_phone || s.phone
-                              if (!phone) { toast.info('Sin teléfono registrado'); return }
-                              openWhatsApp(phone, buildBalanceReminderMessage(s, course?.name || 'N/A', s.balance, settings.name))
-                            }}
-                            className="p-1.5 text-orange-500 hover:bg-orange-100 rounded-xl active:scale-95 transition-all shrink-0"
-                            title="Enviar recordatorio de saldo"
-                          >
-                            <MessageCircle size={15} />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Empty state when no alerts */}
             {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
@@ -1940,14 +1830,45 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
         )}
 
-        {/* Instructoras Tab */}
-        {activeTab === 'instructoras' && (
-          <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
-        )}
+        {/* ── Área Académica ── */}
+        {activeTab === 'academico' && (
+          <div>
+            {/* Sub-barra académica */}
+            <div className="flex gap-1 mb-5 bg-purple-50 rounded-xl p-1 border border-purple-100 overflow-x-auto">
+              {[
+                { id: 'instructoras',  icon: GraduationCap, label: 'Instructoras' },
+                { id: 'ciclos',        icon: History,       label: 'Ciclos' },
+                { id: 'reportes',      icon: FileText,      label: 'Reportes de ciclo' },
+              ].map(sub => {
+                const Icon = sub.icon
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setActiveAcademicTab(sub.id)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                      activeAcademicTab === sub.id
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-600 hover:bg-purple-100'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {sub.label}
+                  </button>
+                )
+              })}
+            </div>
 
-        {/* Asistencia Admin Tab */}
-        {activeTab === 'asistencia_admin' && (
-          <AsistenciaAdmin allCourses={allCourses} students={students} />
+            {/* Contenido según sub-tab */}
+            {activeAcademicTab === 'instructoras' && (
+              <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
+            )}
+            {activeAcademicTab === 'ciclos' && (
+              <ClasesAdultasManager />
+            )}
+            {activeAcademicTab === 'reportes' && (
+              <ReportesManager />
+            )}
+          </div>
         )}
 
         {/* Tablón Tab */}
@@ -2093,15 +2014,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
 
-        {/* Reportes de Ciclo Tab */}
-        {activeTab === 'reportes_ciclo' && (
-          <ReportesManager />
-        )}
-
-        {/* Clases Adultas Tab */}
-        {activeTab === 'clases_adultas' && (
-          <ClasesAdultasManager />
-        )}
 
         {/* Recepcionistas Tab */}
         {activeTab === 'recepcionistas' && (
@@ -2171,78 +2083,37 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {/* Selector de artículo + cantidad + botón agregar */}
                   <div className="bg-gray-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
-                    {/* Buscador de producto con autocomplete */}
+                    {/* Buscador de producto */}
                     <div className="relative">
-                      <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:border-green-500 bg-white px-3 transition-all">
-                        <Search size={15} className="text-green-500 shrink-0 pointer-events-none" />
-                        <input
-                          type="text"
-                          value={productSearch}
-                          onChange={(e) => {
-                            setProductSearch(e.target.value)
-                            setShowProductDropdown(true)
-                            if (saleForm.productId) setSaleForm(prev => ({ ...prev, productId: '' }))
-                          }}
-                          onFocus={() => setShowProductDropdown(true)}
-                          onBlur={() => setTimeout(() => setShowProductDropdown(false), 150)}
-                          placeholder="Buscar artículo..."
-                          className="flex-1 py-2.5 bg-transparent text-sm outline-none min-w-0"
-                        />
-                        {productSearch && (
-                          <button
-                            type="button"
-                            onMouseDown={(e) => { e.preventDefault(); setProductSearch(''); setSaleForm(prev => ({ ...prev, productId: '' })) }}
-                            className="text-gray-400 hover:text-gray-600 shrink-0"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Dropdown de resultados */}
-                      {showProductDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-lg z-20 max-h-44 overflow-y-auto">
-                          {allProducts
-                            .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                            .length === 0 ? (
-                              <p className="px-3 py-3 text-sm text-gray-400 text-center">Sin resultados</p>
-                            ) : (
-                              allProducts
-                                .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                                .map(p => {
-                                  const hasStock = p.stock !== null && p.stock !== undefined
-                                  const outOfStock = hasStock && p.stock === 0
-                                  return (
-                                    <button
-                                      key={p.id}
-                                      type="button"
-                                      disabled={outOfStock}
-                                      onMouseDown={(e) => {
-                                        e.preventDefault()
-                                        setProductSearch(p.name)
-                                        setSaleForm(prev => ({ ...prev, productId: p.id }))
-                                        setShowProductDropdown(false)
-                                      }}
-                                      className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between transition-colors border-b border-gray-100 last:border-0 ${
-                                        outOfStock
-                                          ? 'opacity-40 cursor-not-allowed text-gray-400'
-                                          : saleForm.productId === p.id
-                                            ? 'bg-green-50 text-green-700 font-medium'
-                                            : 'hover:bg-green-50 text-gray-700 cursor-pointer'
-                                      }`}
-                                    >
-                                      <span className="truncate">{p.name}</span>
-                                      <span className="ml-3 text-xs shrink-0 text-gray-400">
-                                        ${p.price}{hasStock ? ` · ${outOfStock ? 'Agotado' : p.stock + ' disp.'}` : ''}
-                                      </span>
-                                    </button>
-                                  )
-                                })
-                            )
-                          }
-                        </div>
-                      )}
+                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Buscar artículo..."
+                        className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                      />
                     </div>
+                    {/* Fila 1: selector ancho completo, filtrado por búsqueda */}
+                    <select
+                      value={saleForm.productId}
+                      onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                    >
+                      <option value="">— Seleccionar —</option>
+                      {allProducts
+                        .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                        .map(product => {
+                          const hasStock = product.stock !== null && product.stock !== undefined
+                          const outOfStock = hasStock && product.stock === 0
+                          return (
+                            <option key={product.id} value={product.id} disabled={outOfStock}>
+                              {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
+                            </option>
+                          )
+                        })
+                      }
+                    </select>
                     {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
                       <div className="flex items-center border rounded-xl bg-white overflow-hidden">
@@ -2398,7 +2269,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setLastPayment(null)
               setSelectedStudent(null)
             }}
-            onSendApiComprobante={hasWaCredentials ? sendComprobante : undefined}
           />
         )}
 
@@ -2547,18 +2417,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <button
                       key={chip.value}
                       onClick={() => setFilterPayment(chip.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                         filterPayment === chip.value ? chip.active : chip.inactive
                       }`}
                     >
                       {chip.label}
                       {chip.value === 'overdue' && overduePayments.length > 0 && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
                           {overduePayments.length}
                         </span>
                       )}
                       {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
+                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
                           {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                         </span>
                       )}
@@ -2609,15 +2479,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       const isCamp = student.course_id?.startsWith('camp-')
 
                       const rowBg = isCamp
-                        ? 'border-l-4 border-pink-300 hover:bg-pink-50/40'
+                        ? 'border-l-4 border-pink-400 hover:bg-pink-50/40'
                         : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
-                          ? 'border-l-4 border-red-300 bg-red-50/20 hover:bg-red-50/40'
+                          ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
                           : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
-                            ? 'border-l-4 border-amber-300 bg-amber-50/20 hover:bg-amber-50/40'
+                            ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
                             : 'hover:bg-gray-50'
 
                       return (
-                        <div key={student.id} className={`py-3 sm:py-4 pl-4 sm:pl-5 pr-3 sm:pr-4 transition-colors ${rowBg}`}>
+                        <div key={student.id} className={`p-3 sm:p-4 transition-colors ${rowBg}`}>
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                               <StudentAvatar student={student} isCamp={isCamp} />
@@ -2672,7 +2542,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
-                                    if (!phone) { toast.info('Sin teléfono registrado'); return }
+                                    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
                                     const course = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
                                     const msg = buildReminderMessage(student, course?.name || 'N/A', days, settings.name)
@@ -2685,7 +2555,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="hidden sm:flex p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all items-center justify-center"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
@@ -2693,7 +2563,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="hidden sm:flex p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all items-center justify-center"
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                                     title="Eliminar"
                                   >
                                     <Trash2 size={16} />
@@ -2799,8 +2669,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onReject={rejectRequest}
             onClose={() => { setShowTransferVerification(false); fetchTransferRequests() }}
             onRegisterPayment={registerPayment}
-            onPaymentRegistered={handleTransferPaymentRegistered}
-            onDeleteRejected={deleteRejectedAndExpired}
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             students={students}
