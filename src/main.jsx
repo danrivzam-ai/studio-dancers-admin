@@ -4,8 +4,8 @@ import './index.css'
 import App from './App.jsx'
 import ClientPortalApp from './components/ClientPortal/ClientPortalApp'
 import RecepcionApp from './components/Recepcion/RecepcionApp'
-import LandingPage from './components/LandingPage'
 import InstructoraApp from './components/Instructora/InstructoraApp'
+import LandingPage from './components/LandingPage'
 import { ToastProvider } from './components/Toast'
 
 const params = window.location.search
