@@ -18,11 +18,12 @@ export default function NinasDashboard({ auth, student, onLogout }) {
 
   const initials = (student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const ps = student.payment_status
-  const chip = ps === 'ok' || ps === 'paid' || ps === 'active_package'
+  // DB values: 'paid' | 'pending' | 'partial' | 'overdue'
+  const chip = ps === 'paid'
     ? { label: 'Al día', cls: 'bg-emerald-100 text-emerald-700' }
-    : ps === 'overdue' || ps === 'due_today'
+    : ps === 'overdue'
     ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
-    : ps === 'urgent' || ps === 'upcoming'
+    : (ps === 'pending' || ps === 'partial')
     ? { label: 'Por renovar', cls: 'bg-amber-100 text-amber-700' }
     : null
 

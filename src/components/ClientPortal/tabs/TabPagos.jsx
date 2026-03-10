@@ -10,6 +10,13 @@ function formatFecha(dateStr) {
   })
 }
 
+// DB values: 'paid' | 'pending' | 'partial' | 'overdue'
+function normPS(ps) {
+  if (ps === 'paid')    return 'al_dia'
+  if (ps === 'overdue') return 'vencido'
+  return 'por_vencer'
+}
+
 const ESTADO_CFG = {
   al_dia: {
     Icon: CheckCircle,
@@ -37,7 +44,7 @@ const ESTADO_CFG = {
 export default function TabPagos({ auth, student, onLogout }) {
   const { name, course_name, payment_status, next_payment_date } = student
 
-  const sc  = ESTADO_CFG[payment_status] || ESTADO_CFG.por_vencer
+  const sc  = ESTADO_CFG[normPS(payment_status)]
   const Icon = sc.Icon
 
   return (

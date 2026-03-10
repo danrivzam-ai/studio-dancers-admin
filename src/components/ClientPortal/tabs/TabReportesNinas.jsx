@@ -33,6 +33,13 @@ function formatFecha(dateStr) {
   })
 }
 
+// DB values: 'paid' | 'pending' | 'partial' | 'overdue'
+function normPS(ps) {
+  if (ps === 'paid')    return 'al_dia'
+  if (ps === 'overdue') return 'vencido'
+  return 'por_vencer'
+}
+
 const ESTADO_PAGO = {
   al_dia:     { label: 'Al día ✓',    bg: 'bg-emerald-100', text: 'text-emerald-700', bar: 'border-t-4 border-emerald-400' },
   por_vencer: { label: 'Por renovar', bg: 'bg-amber-100',   text: 'text-amber-700',   bar: 'border-t-4 border-amber-400'   },
@@ -57,7 +64,7 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
     enrollment_date,
   } = student
 
-  const ps = ESTADO_PAGO[payment_status] || ESTADO_PAGO.por_vencer
+  const ps = ESTADO_PAGO[normPS(payment_status)]
 
   const initials = (name || '')
     .split(' ')

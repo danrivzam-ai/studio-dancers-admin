@@ -18,6 +18,12 @@ const ESTADO_PAGO = {
   por_vencer: { label: 'Por renovar',    bg: 'bg-amber-100',   text: 'text-amber-700',   bar: 'border-t-4 border-amber-400'   },
   vencido:    { label: 'Pago vencido',   bg: 'bg-red-100',     text: 'text-red-700',     bar: 'border-t-4 border-red-400'     },
 }
+// DB values: 'paid' | 'pending' | 'partial' | 'overdue'
+function normPS(ps) {
+  if (ps === 'paid')    return 'al_dia'
+  if (ps === 'overdue') return 'vencido'
+  return 'por_vencer'
+}
 
 async function compressAvatar(file) {
   return new Promise((resolve) => {
@@ -57,7 +63,7 @@ export default function TabReportes({ auth, student, onLogout }) {
     classes_per_cycle,
   } = student
 
-  const ps = ESTADO_PAGO[payment_status] || ESTADO_PAGO.por_vencer
+  const ps = ESTADO_PAGO[normPS(payment_status)]
 
   const initials = (name || '')
     .split(' ')
