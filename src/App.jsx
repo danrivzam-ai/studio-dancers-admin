@@ -94,6 +94,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   const [activeTab, setActiveTab] = useState('students')
+  const [activeAcademicTab, setActiveAcademicTab] = useState('instructoras')
   const [hideIncome, setHideIncome] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [showSaleForm, setShowSaleForm] = useState(false)
@@ -1022,13 +1023,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
             { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
-            { id: 'instructoras', icon: GraduationCap, label: 'Instructoras' },
+            { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
-            { id: 'reportes_ciclo', icon: FileText, label: 'Reportes' },
-            { id: 'clases_adultas', icon: History, label: 'Ciclos' },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
            .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
@@ -1831,9 +1830,45 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
         )}
 
-        {/* Instructoras Tab */}
-        {activeTab === 'instructoras' && (
-          <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
+        {/* ── Área Académica ── */}
+        {activeTab === 'academico' && (
+          <div>
+            {/* Sub-barra académica */}
+            <div className="flex gap-1 mb-5 bg-purple-50 rounded-xl p-1 border border-purple-100 overflow-x-auto">
+              {[
+                { id: 'instructoras',  icon: GraduationCap, label: 'Instructoras' },
+                { id: 'ciclos',        icon: History,       label: 'Ciclos' },
+                { id: 'reportes',      icon: FileText,      label: 'Reportes de ciclo' },
+              ].map(sub => {
+                const Icon = sub.icon
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setActiveAcademicTab(sub.id)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                      activeAcademicTab === sub.id
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'text-purple-600 hover:bg-purple-100'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    {sub.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Contenido según sub-tab */}
+            {activeAcademicTab === 'instructoras' && (
+              <InstructorManager allCourses={allCourses} securityPin={settings.security_pin} settings={settings} />
+            )}
+            {activeAcademicTab === 'ciclos' && (
+              <ClasesAdultasManager />
+            )}
+            {activeAcademicTab === 'reportes' && (
+              <ReportesManager />
+            )}
+          </div>
         )}
 
         {/* Tablón Tab */}
@@ -1979,15 +2014,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
 
-        {/* Reportes de Ciclo Tab */}
-        {activeTab === 'reportes_ciclo' && (
-          <ReportesManager />
-        )}
-
-        {/* Clases Adultas Tab */}
-        {activeTab === 'clases_adultas' && (
-          <ClasesAdultasManager />
-        )}
 
         {/* Recepcionistas Tab */}
         {activeTab === 'recepcionistas' && (
