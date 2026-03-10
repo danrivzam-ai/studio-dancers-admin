@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Calendar, Plus, Pencil, Check, X } from 'lucide-react'
 import {
-  getCursos, getCiclos, createCiclo, closeCiclo, updateCiclo, getAsistencias
+  getCursos, getCiclos, createCiclo, closeCiclo, updateCiclo, getAllActiveCiclos
 } from '../lib/adultas-admin'
 import { getTodayEC } from '../lib/adultas'
 import { useToast } from './Toast'
 
 const PURPLE = '#7B2D8E'
 
-// Normaliza class_days de Supabase (puede venir como [{1},{6}] o [1,6] o "{1,6}" etc.)
 function normalizeClassDays(raw) {
   if (!raw) return []
   if (Array.isArray(raw)) return raw.map(d => typeof d === 'string' ? parseInt(d, 10) : d).filter(d => !isNaN(d))
@@ -25,46 +24,85 @@ function formatDateShort(dateStr) {
   return d.toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-// ── Sección de ciclo ──────────────────────────────────────────────
+// ── Vista resumen: tarjetas de todos los cursos ────────────────────
+function CursoOverview({ courses, activeCicloMap, selectedCode, onSelect }) {
+  if (!courses.length) return null
+  return (
+    <div className="mb-5">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
+        Estado de ciclos — todos los cursos
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {courses.map(c => {
+          const ciclo = activeCicloMap[c.code]
+          const isSelected = selectedCode === c.code
+          return (
+            <button
+              key={c.code}
+              onClick={() => onSelect(c.code)}
+              className={`text-left rounded-xl p-3 border-2 transition-all active:scale-95 ${
+                isSelected
+                  ? 'border-purple-400 bg-purple-50 shadow-md'
+                  : ciclo
+                  ? 'border-green-200 bg-green-50 hover:border-purple-300 hover:bg-purple-50'
+                  : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+              }`}
+            >
+              <p className="text-xs font-semibold text-gray-700 leading-tight mb-1.5 line-clamp-2">{c.name}</p>
+              {ciclo ? (
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: PURPLE }}>
+                      Ciclo {ciclo.numero_ciclo}
+                    </span>
+                    <span className="text-xs text-green-600 font-medium">● Activo</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {ciclo.total_clases} clases · desde {formatDateShort(ciclo.fecha_inicio)}
+                  </p>
+                </div>
+              ) : (
+                <span className="text-xs text-gray-400 italic">Sin ciclo activo</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Sección de detalle de un ciclo ────────────────────────────────
 function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUpdated }) {
   const activeCiclo = ciclos.find(c => c.estado === 'activo')
   const closedCiclos = ciclos.filter(c => c.estado !== 'activo')
   const toast = useToast()
-  const [showForm, setShowForm]       = useState(false)
-  const [saving, setSaving]           = useState(false)
+  const [showForm, setShowForm]         = useState(false)
+  const [saving, setSaving]             = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const [editObjetivo, setEditObjetivo] = useState(false)
   const [objetivoEdit, setObjetivoEdit] = useState('')
-  const [clasesCount, setClasesCount]   = useState(null)
 
-  const classDays  = normalizeClassDays(course.class_days)
+  const classDays     = normalizeClassDays(course.class_days)
   const defaultClases = classDays.includes(6) && !classDays.includes(2) && !classDays.includes(4) ? 4 : 8
-  const nextNum = ciclos.length > 0 ? Math.max(...ciclos.map(c => c.numero_ciclo)) + 1 : 1
+  const nextNum       = ciclos.length > 0 ? Math.max(...ciclos.map(c => c.numero_ciclo)) + 1 : 1
 
   const [form, setForm] = useState({
-    fechaInicio: getTodayEC(),
-    totalClases: defaultClases,
+    fechaInicio:   getTodayEC(),
+    fechaFin:      '',
+    totalClases:   defaultClases,
     objetivoCiclo: ''
   })
-
-  // Contar clases impartidas en el ciclo activo
-  useEffect(() => {
-    if (!activeCiclo) { setClasesCount(null); return }
-    getAsistencias(course.code, activeCiclo.fecha_inicio).then(({ data }) => {
-      if (!data) return
-      const fechasUnicas = new Set(data.map(a => a.class_date))
-      setClasesCount(fechasUnicas.size)
-    })
-  }, [activeCiclo, course.code])
 
   const handleCreate = async (e) => {
     e.preventDefault()
     setSaving(true)
     const { error } = await createCiclo({
-      cursoCode: course.code,
-      numeroCiclo: nextNum,
-      totalClases: parseInt(form.totalClases, 10),
-      fechaInicio: form.fechaInicio,
+      cursoCode:     course.code,
+      numeroCiclo:   nextNum,
+      totalClases:   parseInt(form.totalClases, 10),
+      fechaInicio:   form.fechaInicio,
+      fechaFin:      form.fechaFin || null,
       objetivoCiclo: form.objetivoCiclo
     })
     setSaving(false)
@@ -89,44 +127,34 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
     else toast.error('Error al guardar: ' + error.message)
   }
 
-  const pct = (activeCiclo && clasesCount !== null && activeCiclo.total_clases > 0)
-    ? Math.min(100, Math.round((clasesCount / activeCiclo.total_clases) * 100))
-    : null
-
   return (
     <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
       <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-        <Calendar size={16} style={{ color: PURPLE }} /> Ciclo actual
+        <Calendar size={16} style={{ color: PURPLE }} />
+        {course.name} — Ciclo actual
       </h3>
 
       {activeCiclo ? (
         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
           <div className="flex-1 bg-purple-50 rounded-xl p-3 space-y-2">
+
             {/* Encabezado */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-white px-2 py-0.5 rounded-full" style={{ background: PURPLE }}>
                 Ciclo {activeCiclo.numero_ciclo}
               </span>
               <span className="text-xs text-green-600 font-medium">● Activo</span>
-              {clasesCount !== null && (
-                <span className="text-xs text-purple-700 font-medium ml-auto">
-                  {clasesCount} / {activeCiclo.total_clases} clases impartidas
-                </span>
-              )}
+              <span className="text-xs text-purple-700 font-medium ml-auto">
+                {activeCiclo.total_clases} clases
+              </span>
             </div>
-
-            {/* Barra de progreso */}
-            {pct !== null && (
-              <div className="w-full bg-purple-200 rounded-full h-1.5">
-                <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, background: PURPLE }} />
-              </div>
-            )}
 
             {/* Fechas */}
             <p className="text-sm text-gray-600">
               Inicio: <strong>{formatDateShort(activeCiclo.fecha_inicio)}</strong>
-              {activeCiclo.fecha_fin && <> · Fin: <strong>{formatDateShort(activeCiclo.fecha_fin)}</strong></>}
-              · {activeCiclo.total_clases} clases totales
+              {activeCiclo.fecha_fin && (
+                <> · Fin est.: <strong>{formatDateShort(activeCiclo.fecha_fin)}</strong></>
+              )}
             </p>
 
             {/* Objetivo editable */}
@@ -162,7 +190,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
           {/* Acciones */}
           <div className="flex flex-col gap-2 shrink-0">
             {confirmClose ? (
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center flex-wrap">
                 <span className="text-sm text-gray-600">¿Cerrar ciclo {activeCiclo.numero_ciclo}?</span>
                 <button onClick={handleClose} disabled={saving}
                   className="px-3 py-1.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 active:scale-95 transition-all">
@@ -199,11 +227,17 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
       {showForm && (
         <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-xl p-3 bg-purple-50 space-y-3">
           <p className="text-sm font-medium" style={{ color: PURPLE }}>Ciclo {nextNum} — {course.name}</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs text-gray-600 block mb-1">Fecha de inicio *</label>
               <input type="date" required value={form.fechaInicio}
                 onChange={e => setForm({ ...form, fechaInicio: e.target.value })}
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 block mb-1">Fecha fin est.</label>
+              <input type="date" value={form.fechaFin}
+                onChange={e => setForm({ ...form, fechaFin: e.target.value })}
                 className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
             </div>
             <div>
@@ -234,7 +268,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
         </form>
       )}
 
-      {/* Historial de ciclos cerrados */}
+      {/* Historial */}
       {closedCiclos.length > 0 && (
         <div className="mt-4 border-t pt-3">
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
@@ -245,7 +279,11 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
               <div key={c.id} className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded-xl px-3 py-2">
                 <span className="font-medium text-gray-700">Ciclo {c.numero_ciclo}</span>
                 <span className="text-gray-400">·</span>
-                <span>{formatDateShort(c.fecha_inicio)}{c.fecha_fin ? ` – ${formatDateShort(c.fecha_fin)}` : ''} · {c.total_clases} clases</span>
+                <span>
+                  {formatDateShort(c.fecha_inicio)}
+                  {c.fecha_fin ? ` – ${formatDateShort(c.fecha_fin)}` : ''}
+                  {' '}· {c.total_clases} clases
+                </span>
                 {c.objetivo_ciclo && (
                   <span className="text-gray-400 text-xs italic ml-auto truncate max-w-[160px]">"{c.objetivo_ciclo}"</span>
                 )}
@@ -258,26 +296,32 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
   )
 }
 
-// ── Componente principal ──────────────────────────────────────────
+// ── Componente principal ───────────────────────────────────────────
 export default function ClasesAdultasManager() {
-  const [courses, setCourses] = useState([])
-  const [loadingCourses, setLoadingCourses] = useState(true)
+  const [courses, setCourses]               = useState([])
+  const [activeCicloMap, setActiveCicloMap] = useState({})
+  const [loading, setLoading]               = useState(true)
   const [selectedCourseCode, setSelectedCourseCode] = useState('')
-  const [ciclos, setCiclos] = useState([])
+  const [ciclos, setCiclos]                 = useState([])
 
-  useEffect(() => {
-    getCursos().then(({ data }) => {
-      setCourses(data || [])
-      setLoadingCourses(false)
-    })
+  const loadAll = useCallback(async () => {
+    const [cursosRes, ciclosRes] = await Promise.all([getCursos(), getAllActiveCiclos()])
+    setCourses(cursosRes.data || [])
+    const map = {}
+    for (const c of (ciclosRes.data || [])) map[c.course_id] = c
+    setActiveCicloMap(map)
+    setLoading(false)
   }, [])
+
+  useEffect(() => { loadAll() }, [loadAll])
 
   const selectedCourse = courses.find(c => c.code === selectedCourseCode) || null
 
   const fetchCiclos = useCallback(async (code) => {
     const { data } = await getCiclos(code)
     setCiclos(data || [])
-  }, [])
+    loadAll()
+  }, [loadAll])
 
   useEffect(() => {
     if (!selectedCourseCode) { setCiclos([]); return }
@@ -286,17 +330,31 @@ export default function ClasesAdultasManager() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Gestión de Clases Niñas</h2>
-        <p className="text-sm text-gray-500">Crea y administra los ciclos por curso</p>
+      <div className="mb-5">
+        <h2 className="text-xl font-bold text-gray-800">Gestión de Ciclos</h2>
+        <p className="text-sm text-gray-500">Ciclos académicos por curso — sin relación con pagos</p>
       </div>
 
-      {/* Course selector */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <label className="text-sm font-medium text-gray-600 block mb-2">Selecciona un curso</label>
-        {loadingCourses ? (
-          <div className="text-sm text-gray-400">Cargando cursos...</div>
-        ) : (
+      {/* Vista resumen de todos los cursos */}
+      {!loading && (
+        <CursoOverview
+          courses={courses}
+          activeCicloMap={activeCicloMap}
+          selectedCode={selectedCourseCode}
+          onSelect={setSelectedCourseCode}
+        />
+      )}
+
+      {loading && (
+        <div className="text-sm text-gray-400 py-4 text-center">Cargando cursos...</div>
+      )}
+
+      {/* Selector de respaldo (dropdown) */}
+      {!loading && (
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+          <label className="text-sm font-medium text-gray-600 block mb-2">
+            Selecciona un curso para gestionar su ciclo
+          </label>
           <select value={selectedCourseCode} onChange={e => setSelectedCourseCode(e.target.value)}
             className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all">
             <option value="">— Elige un curso —</option>
@@ -304,11 +362,13 @@ export default function ClasesAdultasManager() {
               <option key={c.code} value={c.code}>{c.name}</option>
             ))}
           </select>
-        )}
-      </div>
+        </div>
+      )}
 
+      {/* Detalle del ciclo del curso seleccionado */}
       {selectedCourse && (
         <CicloSection
+          key={selectedCourseCode}
           course={selectedCourse}
           ciclos={ciclos}
           onCicloCreated={() => fetchCiclos(selectedCourseCode)}
