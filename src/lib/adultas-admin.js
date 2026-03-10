@@ -42,6 +42,19 @@ export async function createCiclo({ cursoCode, numeroCiclo, totalClases, fechaIn
   return { data, error }
 }
 
+export async function updateCiclo(cicloId, { objetivoCiclo, totalClases }) {
+  const updates = {}
+  if (objetivoCiclo !== undefined) updates.objetivo_ciclo = objetivoCiclo || null
+  if (totalClases   !== undefined) updates.total_clases   = totalClases
+  const { data, error } = await supabase
+    .from('cycles')
+    .update(updates)
+    .eq('id', cicloId)
+    .select()
+    .single()
+  return { data, error }
+}
+
 export async function closeCiclo(cicloId) {
   const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
