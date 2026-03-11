@@ -287,6 +287,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
   const [newPlanPreselect, setNewPlanPreselect] = useState(null)
+  const [collapsedCats, setCollapsedCats] = useState(new Set())
   const [showNewPlan, setShowNewPlan] = useState(false)
 
   // Días de gracia antes de marcar como inactiva
@@ -1577,9 +1578,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               const otros = allProducts.filter(p => !catKeys.includes(p.category))
               if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
 
+              const toggleCat = (key) => setCollapsedCats(prev => {
+                const next = new Set(prev)
+                if (next.has(key)) next.delete(key); else next.add(key)
+                return next
+              })
+
               return (
-                <div className="p-4 border-b space-y-5">
-                  <div className="flex items-center justify-between">
+                <div className="p-4 border-b space-y-2">
+                  <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
                       <Tag size={15} /> Catálogo
                     </h3>
@@ -1590,11 +1597,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       </button>
                     )}
                   </div>
-                  {categorized.map(cat => (
-                    <div key={cat.key}>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                        {cat.emoji} {cat.label}
-                      </p>
+                  {categorized.map(cat => {
+                    const collapsed = collapsedCats.has(cat.key)
+                    return (
+                    <div key={cat.key} className="border border-gray-100 rounded-2xl overflow-hidden">
+                      <button type="button" onClick={() => toggleCat(cat.key)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors">
+                        <span className="text-sm font-semibold text-gray-700">
+                          {cat.emoji} {cat.label}
+                          <span className="ml-2 text-xs font-normal text-gray-400">{cat.products.length} {cat.products.length === 1 ? 'artículo' : 'artículos'}</span>
+                        </span>
+                        <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} />
+                      </button>
+                      {!collapsed && (
+                      <div className="p-3">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {cat.products.map(product => {
                           const hasStock = product.stock !== null && product.stock !== undefined
@@ -1638,8 +1654,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           )
                         })}
                       </div>
+                      </div>
+                      )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )
             })()}
