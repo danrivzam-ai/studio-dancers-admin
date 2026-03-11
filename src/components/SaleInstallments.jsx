@@ -226,18 +226,34 @@ function PaymentModal({ plan, onConfirm, onClose, loading }) {
 }
 
 // ─── Modal: Nuevo plan ─────────────────────────────────────────────────────────
-function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
-  const [customerName,   setCustomerName]   = useState('')
-  const [customerCedula, setCustomerCedula] = useState('')
-  const [customerEmail,  setCustomerEmail]  = useState('')
-  const [notes,          setNotes]          = useState('')
-  const [productSearch,  setProductSearch]  = useState('')
-  const [cart,           setCart]           = useState([])
-  const [customTotal,    setCustomTotal]    = useState('')
-  const [error,          setError]          = useState('')
+function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading, preselect = null }) {
+  const [customerName,    setCustomerName]    = useState('')
+  const [customerCedula,  setCustomerCedula]  = useState('')
+  const [customerEmail,   setCustomerEmail]   = useState('')
+  const [notes,           setNotes]           = useState('')
+  const [studentSearch,   setStudentSearch]   = useState('')
+  const [productSearch,   setProductSearch]   = useState('')
+  const [cart,            setCart]            = useState(preselect ? [{ product: preselect, quantity: 1 }] : [])
+  const [customTotal,     setCustomTotal]     = useState('')
+  const [error,           setError]           = useState('')
+  const [showStudents,    setShowStudents]     = useState(false)
 
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0)
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
+
+  // Autocompletar desde estudiante
+  const fillFromStudent = (student) => {
+    setCustomerName(student.name)
+    setCustomerCedula(student.cedula || '')
+    setCustomerEmail(student.email || '')
+    setStudentSearch('')
+    setShowStudents(false)
+  }
+
+  const filteredStudents = studentSearch.length >= 2
+    ? students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                           (s.cedula || '').includes(studentSearch)).slice(0, 6)
+    : []
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -254,51 +270,80 @@ function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
     setCart(prev => prev.map(i => i.product.id === productId ? { ...i, quantity: qty } : i))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     setError('')
     if (!customerName.trim()) { setError('Ingresa el nombre del cliente'); return }
     if (cart.length === 0)    { setError('Agrega al menos un artículo'); return }
     if (!total || total <= 0) { setError('El total debe ser mayor a 0'); return }
-
-    const items = cart.map(i => ({
-      product_code: i.product.code || i.product.id,
-      name:         i.product.name,
-      quantity:     i.quantity,
-      unit_price:   i.product.price
-    }))
-
     onConfirm({
-      customerName:  customerName.trim(),
+      customerName:   customerName.trim(),
       customerCedula: customerCedula.trim() || null,
       customerEmail:  customerEmail.trim() || null,
-      items,
+      items: cart.map(i => ({
+        product_code: i.product.code || i.product.id,
+        name:         i.product.name,
+        quantity:     i.quantity,
+        unit_price:   i.product.price
+      })),
       totalAmount: total,
       notes: notes.trim() || null
     })
   }
 
-  const filtered = allProducts.filter(p =>
-    productSearch && p.name.toLowerCase().includes(productSearch.toLowerCase())
-  )
+  const filteredProducts = productSearch
+    ? allProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
+    : []
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
           <p className="font-semibold text-gray-800">Nuevo plan de abonos</p>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-5 space-y-4">
+        <div className="overflow-y-auto flex-1 p-5 space-y-4">
 
-          {/* Cliente */}
+          {/* Buscar alumno (autocompletar) */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre del cliente *</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Cliente</label>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={studentSearch}
+                onChange={e => { setStudentSearch(e.target.value); setShowStudents(true) }}
+                onFocus={() => setShowStudents(true)}
+                placeholder="Buscar alumna o cliente..."
+                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+              />
+              {studentSearch && (
+                <button type="button" onClick={() => { setStudentSearch(''); setShowStudents(false) }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {showStudents && filteredStudents.length > 0 && (
+              <div className="mt-1 border-2 border-purple-200 rounded-xl overflow-hidden bg-white shadow-lg z-10">
+                {filteredStudents.map(s => (
+                  <button key={s.id} type="button"
+                    onMouseDown={() => fillFromStudent(s)}
+                    className="w-full px-3 py-2.5 text-left flex justify-between items-center hover:bg-purple-50 border-b last:border-0">
+                    <span className="text-sm font-medium text-gray-800">{s.name}</span>
+                    {s.cedula && <span className="text-xs text-gray-400 ml-2">{s.cedula}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Nombre del cliente (editable) */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-              placeholder="Nombre completo" required />
+              placeholder="Nombre completo" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -312,28 +357,38 @@ function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
               <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Correo</label>
               <input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)}
                 className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-                placeholder="cliente@email.com" />
+                placeholder="email@..." />
             </div>
           </div>
 
-          {/* Buscador de artículos */}
-          <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Artículos</p>
+          {/* Artículos */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Artículos *</label>
+
+            {/* Buscador */}
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input type="text" value={productSearch} onChange={e => setProductSearch(e.target.value)}
-                placeholder="Buscar artículo..."
-                className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:border-purple-400" />
+                placeholder="Buscar y agregar artículo..."
+                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400" />
+              {productSearch && (
+                <button type="button" onClick={() => setProductSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  <X size={14} />
+                </button>
+              )}
             </div>
-            {/* Resultados */}
-            {filtered.length > 0 && (
-              <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden max-h-36 overflow-y-auto">
-                {filtered.map(p => {
+
+            {/* Dropdown resultados — siempre en el flujo, no absolute */}
+            {filteredProducts.length > 0 && (
+              <div className="mt-1 border-2 border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                {filteredProducts.map(p => {
                   const outOfStock = p.stock !== null && p.stock !== undefined && p.stock === 0
                   return (
-                    <button key={p.id} type="button" disabled={outOfStock}
-                      onClick={() => addToCart(p)}
-                      className="w-full px-3 py-2.5 text-left text-sm flex justify-between items-center hover:bg-gray-50 border-b last:border-0 disabled:opacity-40 disabled:cursor-not-allowed">
+                    <button key={p.id} type="button"
+                      onMouseDown={() => { addToCart(p); setProductSearch('') }}
+                      disabled={outOfStock}
+                      className="w-full px-3 py-2.5 text-left text-sm flex justify-between items-center hover:bg-gray-50 border-b last:border-0 disabled:opacity-40">
                       <span className="font-medium">{p.name}</span>
                       <span className="text-xs text-gray-500 shrink-0 ml-2">${p.price}</span>
                     </button>
@@ -341,30 +396,30 @@ function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
                 })}
               </div>
             )}
-            {productSearch && filtered.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-2">Sin resultados</p>
+            {productSearch && filteredProducts.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-2 mt-1">Sin resultados</p>
             )}
 
             {/* Carrito */}
             {cart.length > 0 && (
-              <div className="space-y-2 mt-1">
+              <div className="space-y-2 mt-2">
                 {cart.map(({ product, quantity }) => (
-                  <div key={product.id} className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2">
-                    <span className="flex-1 text-sm font-medium text-gray-800">{product.name}</span>
-                    <span className="text-xs text-gray-500">${product.price}</span>
-                    <div className="flex items-center gap-1">
-                      <button type="button" onClick={() => updateQty(product.id, quantity - 1)}
-                        className="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600">
+                  <div key={product.id} className="flex items-center gap-2 bg-gray-50 rounded-xl border border-gray-100 px-3 py-2">
+                    <span className="flex-1 text-sm font-medium text-gray-800 truncate">{product.name}</span>
+                    <span className="text-xs text-gray-500 shrink-0">${product.price}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button type="button" onMouseDown={() => updateQty(product.id, quantity - 1)}
+                        className="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full">
                         <Minus size={11} />
                       </button>
-                      <span className="w-6 text-center text-xs font-bold">{quantity}</span>
-                      <button type="button" onClick={() => updateQty(product.id, quantity + 1)}
-                        className="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600">
+                      <span className="w-5 text-center text-xs font-bold">{quantity}</span>
+                      <button type="button" onMouseDown={() => updateQty(product.id, quantity + 1)}
+                        className="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full">
                         <Plus size={11} />
                       </button>
                     </div>
-                    <button type="button" onClick={() => removeFromCart(product.id)}
-                      className="text-red-400 hover:text-red-600 p-0.5">
+                    <button type="button" onMouseDown={() => removeFromCart(product.id)}
+                      className="text-red-400 hover:text-red-600">
                       <X size={14} />
                     </button>
                   </div>
@@ -376,11 +431,9 @@ function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
           {/* Total */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-              Precio total acordado *
+              Total acordado *
               {cart.length > 0 && cartTotal > 0 && (
-                <span className="ml-2 text-purple-500 font-normal normal-case">
-                  (catálogo: ${cartTotal.toFixed(2)})
-                </span>
+                <span className="ml-2 text-purple-500 font-normal normal-case">(catálogo: ${cartTotal.toFixed(2)})</span>
               )}
             </label>
             <div className="relative">
@@ -390,21 +443,20 @@ function NewPlanModal({ allProducts, onConfirm, onClose, loading }) {
                 className="w-full pl-7 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
                 placeholder={cart.length > 0 ? cartTotal.toFixed(2) : '0.00'} />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Puedes ajustar el precio si hubo descuento o acuerdo especial.</p>
+            <p className="text-xs text-gray-400 mt-1">Ajusta si hay descuento o acuerdo especial.</p>
           </div>
 
           {/* Notas */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Notas (opcional)</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nota (opcional)</label>
             <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
               placeholder="Ej: Uniforme show de mayo, talla M..." />
           </div>
 
           {error && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
-        </form>
+        </div>
 
-        {/* Botón fijo abajo */}
         <div className="px-5 py-4 border-t bg-white shrink-0">
           <button type="button" onClick={handleSubmit} disabled={loading}
             className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 disabled:opacity-50 transition-all">
@@ -517,16 +569,20 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
 
 // ─── Componente principal exportado ──────────────────────────────────────────
 export default function SaleInstallments({
-  allProducts    = [],
-  schoolName     = 'Studio Dancers',
-  activePlans    = [],
-  paidPlans      = [],
-  totalDebt      = 0,
-  loading        = false,
+  allProducts      = [],
+  students         = [],
+  schoolName       = 'Studio Dancers',
+  activePlans      = [],
+  paidPlans        = [],
+  totalDebt        = 0,
+  loading          = false,
   onCreatePlan,
   onRegisterPayment,
   onCancelPlan,
   onMarkDelivered,
+  externalShowNew  = false,
+  externalPreselect = null,
+  onExternalClose,
 }) {
   const [showNew,       setShowNew]       = useState(false)
   const [payingPlan,    setPayingPlan]    = useState(null)
@@ -535,13 +591,17 @@ export default function SaleInstallments({
   const [tab,           setTab]           = useState('active')
   const [confirmCancel, setConfirmCancel] = useState(null)
 
+  const isNewOpen    = showNew || externalShowNew
+  const preselect    = externalShowNew ? externalPreselect : null
+  const closeNew     = () => { setShowNew(false); if (onExternalClose) onExternalClose() }
+
   const visiblePlans = tab === 'active' ? activePlans : paidPlans
 
   const handleCreatePlan = async (formData) => {
     setSaving(true)
     const res = await onCreatePlan(formData)
     setSaving(false)
-    if (res.success) setShowNew(false)
+    if (res.success) closeNew()
   }
 
   const handlePayment = async (paymentData) => {
@@ -597,7 +657,7 @@ export default function SaleInstallments({
         </div>
         <button onClick={() => setShowNew(true)}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm">
-          <Plus size={16} /> Nuevo plan
+          <Plus size={16} /> Nuevo
         </button>
       </div>
 
@@ -626,11 +686,13 @@ export default function SaleInstallments({
       )}
 
       {/* Modales */}
-      {showNew && (
+      {isNewOpen && (
         <NewPlanModal
           allProducts={allProducts}
+          students={students}
+          preselect={preselect}
           onConfirm={handleCreatePlan}
-          onClose={() => setShowNew(false)}
+          onClose={closeNew}
           loading={saving}
         />
       )}
