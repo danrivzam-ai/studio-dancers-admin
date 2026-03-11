@@ -242,6 +242,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
   const [method, setMethod] = useState('Efectivo')
   const [notes,  setNotes]  = useState('')
   const [error,  setError]  = useState('')
+  const [confirmStep, setConfirmStep] = useState(false)
 
   const balance = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
 
@@ -251,12 +252,16 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
     const val = parseFloat(amount)
     if (!val || val <= 0)     { setError('Ingresa un monto válido'); return }
     if (val > balance + 0.01) { setError(`El abono supera el saldo pendiente (${fmt(balance)})`); return }
-    onConfirm({ amount: val, paymentMethod: method, notes })
+    setConfirmStep(true)
+  }
+
+  const handleConfirm = () => {
+    onConfirm({ amount: parseFloat(amount), paymentMethod: method, notes })
   }
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <p className="font-semibold text-gray-800">Registrar abono</p>
@@ -323,9 +328,57 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
           <button type="submit" disabled={loading}
             className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 active:bg-purple-800 disabled:opacity-50 transition-all">
-            {loading ? 'Registrando...' : 'Confirmar abono'}
+            Revisar abono
           </button>
         </form>
+
+        {/* ── Paso de confirmación ──────────────────────────────────── */}
+        {confirmStep && (
+          <div className="absolute inset-0 bg-white rounded-t-3xl sm:rounded-2xl flex flex-col p-5 gap-4 z-10">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Check size={22} className="text-purple-600" />
+              </div>
+              <h3 className="font-bold text-gray-800">¿Confirmar este abono?</h3>
+              <p className="text-xs text-gray-500 mt-1">Revisa los datos antes de registrar</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Cliente</span>
+                <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{plan.customer_name}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-3 bg-purple-50">
+                <span className="text-sm text-gray-600 font-medium">Abono</span>
+                <span className="text-2xl font-extrabold text-purple-700">{fmt(parseFloat(amount))}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Saldo restante</span>
+                <span className="text-sm font-semibold text-amber-700">{fmt(Math.max(0, balance - parseFloat(amount)))}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Método</span>
+                <span className="text-sm font-semibold text-gray-800">{method}</span>
+              </div>
+              {notes && (
+                <div className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-500">Notas</span>
+                  <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%]">{notes}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 mt-auto">
+              <button type="button" onClick={() => setConfirmStep(false)}
+                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm">
+                ← Editar
+              </button>
+              <button type="button" onClick={handleConfirm} disabled={loading}
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-semibold">
+                <Check size={18} />
+                {loading ? 'Registrando...' : 'Sí, registrar'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

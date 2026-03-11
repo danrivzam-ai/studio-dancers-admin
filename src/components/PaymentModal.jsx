@@ -21,6 +21,8 @@ export default function PaymentModal({
   const toast = useToast()
   const [receiptNumber, setReceiptNumber] = useState('')
   const [loading, setLoading] = useState(false)
+  const [confirmStep, setConfirmStep] = useState(false)
+  const [pendingPayment, setPendingPayment] = useState(null)
 
   const course = getCourseById(student?.course_id)
   const coursePrice = course?.price || 0
@@ -213,50 +215,41 @@ export default function PaymentModal({
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
+    const selectedBank = BANKS.find(b => b.id === formData.bankId)
+    let dbPaymentType = formData.paymentType === 'custom' ? 'full' : formData.paymentType
+    const discountInfo = discountEnabled ? {
+      hasDiscount: true,
+      originalPrice: getBaseAmount(),
+      discountType: customFinalPrice !== '' ? 'custom' : discountType,
+      discountValue: customFinalPrice !== '' ? (getBaseAmount() - parseFloat(formData.amount)).toFixed(2) : discountValue,
+      discountAmount: getDiscountAmount().toFixed(2)
+    } : null
+    const cycleStartDate = isOverdue
+      ? (cycleStartOption === 'original' ? student.next_payment_date : getTodayEC())
+      : null
+    setPendingPayment({
+      amount: parseFloat(formData.amount),
+      receiptNumber,
+      paymentMethod: PAYMENT_METHODS.find(m => m.id === formData.paymentMethod)?.name || 'Efectivo',
+      paymentType: dbPaymentType,
+      paymentDate: formData.paymentDate,
+      bankName: selectedBank?.name || null,
+      transferReceipt: formData.transferReceipt || null,
+      notes: formData.notes,
+      coursePrice,
+      courseName: course?.name || 'Sin curso',
+      discount: discountInfo,
+      cycleStartDate
+    })
+    setConfirmStep(true)
+  }
+
+  const handleConfirm = async () => {
     setLoading(true)
-
     try {
-      const selectedBank = BANKS.find(b => b.id === formData.bankId)
-
-      // Convertir 'custom' a 'full' para la base de datos
-      let dbPaymentType = formData.paymentType
-      if (dbPaymentType === 'custom') {
-        dbPaymentType = 'full'
-      }
-
-      const discountInfo = discountEnabled ? {
-        hasDiscount: true,
-        originalPrice: getBaseAmount(),
-        discountType: customFinalPrice !== '' ? 'custom' : discountType,
-        discountValue: customFinalPrice !== '' ? (getBaseAmount() - parseFloat(formData.amount)).toFixed(2) : discountValue,
-        discountAmount: getDiscountAmount().toFixed(2)
-      } : null
-
-      // Determinar fecha de inicio de ciclo (solo si alumno atrasado y curso recurrente)
-      const cycleStartDate = isOverdue
-        ? (cycleStartOption === 'original' ? student.next_payment_date : getTodayEC())
-        : null  // null = usa payment_date (retro-compatible)
-
-      const paymentData = {
-        amount: parseFloat(formData.amount),
-        receiptNumber,
-        paymentMethod: PAYMENT_METHODS.find(m => m.id === formData.paymentMethod)?.name || 'Efectivo',
-        paymentType: dbPaymentType,
-        paymentDate: formData.paymentDate,
-        bankName: selectedBank?.name || null,
-        transferReceipt: formData.transferReceipt || null,
-        notes: formData.notes,
-        coursePrice: coursePrice,
-        courseName: course?.name || 'Sin curso',
-        // Datos de descuento
-        discount: discountInfo,
-        // Fecha de inicio de ciclo (separada de fecha de pago)
-        cycleStartDate
-      }
-
-      await onPaymentComplete(student.id, paymentData)
+      await onPaymentComplete(student.id, pendingPayment)
     } catch (err) {
       console.error('Error processing payment:', err)
       toast.error('Error al procesar el pago')
@@ -287,7 +280,7 @@ export default function PaymentModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="p-4 sm:p-6 flex flex-col bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
@@ -842,6 +835,70 @@ export default function PaymentModal({
             </button>
           </div>
         </form>
+
+        {/* ── Paso de confirmación ──────────────────────────────────── */}
+        {confirmStep && pendingPayment && (
+          <div className="absolute inset-0 bg-white rounded-2xl flex flex-col p-6 gap-4 z-10 overflow-y-auto">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Check size={28} className="text-green-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">¿Confirmar este pago?</h3>
+              <p className="text-sm text-gray-500 mt-1">Revisa los datos antes de registrar</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Alumna</span>
+                <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{student.name}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Curso</span>
+                <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{pendingPayment.courseName}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-3 bg-green-50">
+                <span className="text-sm text-gray-600 font-medium">Monto</span>
+                <span className="text-2xl font-extrabold text-green-700">${pendingPayment.amount.toFixed(2)}</span>
+              </div>
+              {pendingPayment.discount?.hasDiscount && (
+                <div className="flex justify-between items-center px-4 py-2.5 bg-green-50/50">
+                  <span className="text-sm text-gray-500">Descuento</span>
+                  <span className="text-sm font-semibold text-green-700">-${pendingPayment.discount.discountAmount}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Método</span>
+                <span className="text-sm font-semibold text-gray-800">{pendingPayment.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between items-center px-4 py-2.5">
+                <span className="text-sm text-gray-500">Fecha</span>
+                <span className="text-sm font-semibold text-gray-800">{pendingPayment.paymentDate}</span>
+              </div>
+              {pendingPayment.bankName && (
+                <div className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-500">Banco</span>
+                  <span className="text-sm font-semibold text-gray-800">{pendingPayment.bankName}</span>
+                </div>
+              )}
+              {pendingPayment.notes && (
+                <div className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-500">Notas</span>
+                  <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%]">{pendingPayment.notes}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-3 mt-auto pt-2">
+              <button type="button" onClick={() => setConfirmStep(false)}
+                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all">
+                ← Editar
+              </button>
+              <button type="button" onClick={handleConfirm} disabled={loading}
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
+                <Check size={20} />
+                {loading ? 'Procesando...' : 'Sí, registrar'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
