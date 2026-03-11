@@ -67,6 +67,12 @@ export default function CashRegister({ onClose, settings }) {
         .select('total, payment_method')
         .eq('sale_date', date)
 
+      // Abonos de planes de venta
+      const { data: planPaymentsData } = await supabase
+        .from('sale_plan_payments')
+        .select('amount, payment_method')
+        .eq('payment_date', date)
+
       // Egresos (solo si hay caja)
       let expensesData = []
       if (registerData?.id) {
@@ -94,12 +100,14 @@ export default function CashRegister({ onClose, settings }) {
       const studentTotal = studentPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const quickTotal = quickPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const salesTotal = salesData?.reduce((sum, s) => sum + parseFloat(s.total || 0), 0) || 0
+      const planTotal = planPaymentsData?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
 
       // Ingresos en efectivo
       const studentCash = studentPayments?.filter(p => p.payment_method === 'Efectivo').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const quickCash = quickPayments?.filter(p => p.payment_method === 'Efectivo').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const salesCash = salesData?.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + parseFloat(s.total || 0), 0) || 0
-      const incomeCash = studentCash + quickCash + salesCash
+      const planCash = planPaymentsData?.filter(p => p.payment_method === 'Efectivo').reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
+      const incomeCash = studentCash + quickCash + salesCash + planCash
 
       // Calcular egresos
       const expensesTotal = expensesData.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0)
@@ -115,8 +123,9 @@ export default function CashRegister({ onClose, settings }) {
         studentPayments: studentTotal,
         quickPayments: quickTotal,
         sales: salesTotal,
-        totalIncome: studentTotal + quickTotal + salesTotal,
-        paymentsCount: (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0),
+        planPayments: planTotal,
+        totalIncome: studentTotal + quickTotal + salesTotal + planTotal,
+        paymentsCount: (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0) + (planPaymentsData?.length || 0),
         incomeCash,
         expensesTotal,
         expensesCash,
@@ -401,6 +410,12 @@ export default function CashRegister({ onClose, settings }) {
                   <span className="text-gray-600">Ventas:</span>
                   <span className="font-medium">${todayData.sales.toFixed(2)}</span>
                 </div>
+                {(todayData.planPayments || 0) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Abonos (planes):</span>
+                    <span className="font-medium">${(todayData.planPayments || 0).toFixed(2)}</span>
+                  </div>
+                )}
                 <hr className="my-2" />
                 <div className="flex justify-between font-semibold">
                   <span className="text-gray-800">Total ingresos:</span>
