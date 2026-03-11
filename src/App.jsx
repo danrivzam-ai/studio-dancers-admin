@@ -2556,12 +2556,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     >
                       {chip.label}
                       {chip.value === 'overdue' && overduePayments.length > 0 && (
-                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
                           {overduePayments.length}
                         </span>
                       )}
                       {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
-                        <span className={`ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
+                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
                           {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
                         </span>
                       )}
