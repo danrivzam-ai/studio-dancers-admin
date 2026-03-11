@@ -365,16 +365,32 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const addToCart = (product) => {
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id)
-      if (existing) return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
-      return [...prev, { product, quantity: 1 }]
+      const next = existing
+        ? prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
+        : [...prev, { product, quantity: 1 }]
+      const newCartTotal = next.reduce((s, i) => s + i.product.price * i.quantity, 0)
+      setCustomTotal(newCartTotal.toFixed(2))
+      return next
     })
     setProductSearch('')
   }
 
-  const removeFromCart = (productId) => setCart(prev => prev.filter(i => i.product.id !== productId))
+  const removeFromCart = (productId) => {
+    setCart(prev => {
+      const next = prev.filter(i => i.product.id !== productId)
+      const newCartTotal = next.reduce((s, i) => s + i.product.price * i.quantity, 0)
+      setCustomTotal(newCartTotal > 0 ? newCartTotal.toFixed(2) : '')
+      return next
+    })
+  }
   const updateQty = (productId, qty) => {
     if (qty <= 0) { removeFromCart(productId); return }
-    setCart(prev => prev.map(i => i.product.id === productId ? { ...i, quantity: qty } : i))
+    setCart(prev => {
+      const next = prev.map(i => i.product.id === productId ? { ...i, quantity: qty } : i)
+      const newCartTotal = next.reduce((s, i) => s + i.product.price * i.quantity, 0)
+      setCustomTotal(newCartTotal.toFixed(2))
+      return next
+    })
   }
 
   const handleSubmit = () => {
@@ -536,18 +552,15 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
               Precio total del producto *
-              {cart.length > 0 && cartTotal > 0 && (
-                <span className="ml-2 text-purple-500 font-normal normal-case">(catálogo: ${cartTotal.toFixed(2)})</span>
-              )}
             </label>
             <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-purple-400 bg-white">
               <span className="text-gray-400 font-medium text-sm shrink-0">$</span>
               <input type="number" step="0.01" min="0.01" value={customTotal}
                 onChange={e => setCustomTotal(e.target.value)}
                 className="flex-1 text-sm outline-none bg-transparent"
-                placeholder={cart.length > 0 ? cartTotal.toFixed(2) : '0.00'} />
+                placeholder="0.00" />
             </div>
-            <p className="text-xs text-amber-600 mt-1 font-medium">⚠ Es el precio TOTAL del artículo, no el primer abono.</p>
+            <p className="text-xs text-gray-400 mt-1">Se llena automáticamente al seleccionar el artículo. Puedes ajustarlo si hay descuento.</p>
           </div>
 
           {/* Notas */}
