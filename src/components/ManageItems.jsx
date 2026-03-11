@@ -88,6 +88,7 @@ export default function ManageItems({
     allowsInstallments: false,
     installmentCount: 2,
     stock: '',
+    category: '',
     classDays: [],
     classesPerCycle: '',
     imageUrl: '',
@@ -108,6 +109,7 @@ export default function ManageItems({
       allowsInstallments: false,
       installmentCount: 2,
       stock: '',
+      category: '',
       classDays: [],
       classesPerCycle: '',
       imageUrl: '',
@@ -151,7 +153,8 @@ export default function ManageItems({
         priceType: 'programa',
         allowsInstallments: false,
         installmentCount: 2,
-        stock: item.stock?.toString() || ''
+        stock: item.stock?.toString() || '',
+        category: item.category || ''
       })
     } else {
       const ageGroup = AGE_GROUPS.find(g => g.ageMin === (item.ageMin || item.age_min) && g.ageMax === (item.ageMax || item.age_max))?.id || 'custom'
@@ -188,7 +191,8 @@ export default function ManageItems({
         supabase_id: editingItem?.supabase_id || null,
         name: formData.name,
         price: parseFloat(formData.price),
-        stock: formData.stock ? parseInt(formData.stock) : null
+        stock: formData.stock ? parseInt(formData.stock) : null,
+        category: formData.category || null
       }
       const result = await onSaveProduct(productData, !!editingItem)
       if (!result.success) {
@@ -639,6 +643,24 @@ export default function ManageItems({
                   </div>
                 )}
               </div>
+
+              {/* Categoría (solo productos) */}
+              {formData.type === 'product' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                  >
+                    <option value="">Sin categoría</option>
+                    <option value="entradas">🎟️ Entradas</option>
+                    <option value="vestuario">👗 Vestuario</option>
+                    <option value="uniformes">📦 Uniformes</option>
+                    <option value="bar">🥤 Bar</option>
+                  </select>
+                </div>
+              )}
 
               {/* Abonos (solo para programas) */}
               {formData.type === 'program' && (

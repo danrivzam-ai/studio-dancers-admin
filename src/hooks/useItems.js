@@ -347,7 +347,7 @@ export function useItems() {
           code,
           name: productData.name,
           description: productData.description || null,
-          category: productData.category || 'accesorios',
+          category: productData.category || null,
           price: parseFloat(productData.price),
           stock: productData.stock != null ? parseInt(productData.stock) : 0,
           active: true,
