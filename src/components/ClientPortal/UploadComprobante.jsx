@@ -6,7 +6,7 @@ const BANKS = [
   'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
   'Banco Bolivariano', 'Banco del Austro', 'Banco Internacional',
   'Banco Solidario', 'Produbanco', 'BanEcuador',
-  'Cooperativa JEP', 'Cooperativa Jardín Azuayo', 'PayPhone (Tarjeta)', 'Otro'
+  'Cooperativa JEP', 'Cooperativa Jardín Azuayo', 'PayPhone', 'Otro'
 ]
 
 function compressImage(file) {
@@ -129,7 +129,7 @@ export default function UploadComprobante({ auth, student }) {
           </div>
           <div className="text-left">
             <p className="text-sm font-semibold text-purple-800">Subir comprobante de pago</p>
-            <p className="text-xs text-purple-500">Transferencia, depósito o PayPhone</p>
+            <p className="text-xs text-purple-500">Transferencia o depósito bancario</p>
           </div>
         </div>
         <ChevronDown size={18} className="text-purple-400" />
@@ -163,6 +163,7 @@ export default function UploadComprobante({ auth, student }) {
           >
             <option value="">Seleccionar...</option>
             {BANKS.map(b => <option key={b} value={b}>{b}</option>)}
+            <option value="" disabled style={{ color: '#9CA3AF' }}>💳 Pago con tarjeta — Próximamente</option>
           </select>
         </div>
 

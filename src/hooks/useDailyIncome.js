@@ -12,19 +12,21 @@ export function useDailyIncome() {
       setLoading(true)
       const today = getTodayEC()
 
-      // Pagos de estudiantes de hoy
+      // Pagos de estudiantes de hoy (excluir anulados)
       const { data: studentPayments, error: studentError } = await supabase
         .from('payments')
         .select('amount')
         .eq('payment_date', today)
+        .eq('voided', false)
 
       if (studentError) throw studentError
 
-      // Pagos rápidos de hoy
+      // Pagos rápidos de hoy (excluir anulados)
       const { data: quickPayments, error: quickError } = await supabase
         .from('quick_payments')
         .select('amount')
         .eq('payment_date', today)
+        .eq('voided', false)
 
       if (quickError) throw quickError
 
