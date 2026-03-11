@@ -130,6 +130,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showTransferVerification, setShowTransferVerification] = useState(false)
   const [showStudentDetail, setShowStudentDetail] = useState(null)
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
+  const [detailBalanceStudent, setDetailBalanceStudent] = useState(null)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const globalSearchRef = useRef(null)
 
@@ -2828,7 +2829,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {studentsWithBalance.map(s => (
+                {studentsWithBalance.map(s => {
+                  const isMinor = s.is_minor !== false
+                  const waPhone = isMinor ? (s.payer_phone || s.parent_phone || s.phone) : s.phone
+                  const waContact = isMinor ? (s.payer_name || s.parent_name || s.name) : s.name
+                  const waLink = waPhone ? (() => {
+                    let msg = `Hola *${waContact}*, le contactamos de *Studio Dancers*.`
+                    if (isMinor) msg += `\nSu representada *${s.name}* tiene un saldo pendiente.`
+                    msg += `\n\n🎓 *Programa:* ${s.courseName}`
+                    msg += `\n💰 *Abono realizado:* $${s.amountPaid.toFixed(2)}`
+                    msg += `\n⚠️ *Saldo pendiente:* $${s.balance.toFixed(2)}`
+                    msg += `\n\nPor favor coordine el pago del saldo restante. ¡Gracias! 🙏`
+                    const raw = waPhone.replace(/\D/g, '')
+                    const phone = raw.startsWith('593') ? raw : raw.startsWith('0') ? '593' + raw.slice(1) : '593' + raw
+                    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+                  })() : null
+                  return (
                   <div
                     key={s.id}
                     className="p-4 rounded-xl border-2 border-orange-200 bg-orange-50 hover:shadow-md transition-all cursor-pointer"
@@ -2838,21 +2854,39 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-800">{s.name}</p>
-                        <p className="text-sm text-gray-500">{s.courseName}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-800 truncate">{s.name}</p>
+                        <p className="text-sm text-gray-500 truncate">{s.courseName}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0 ml-2">
                         <p className="text-lg font-bold text-orange-600">${s.balance.toFixed(2)}</p>
                         <p className="text-xs text-gray-500">pendiente</p>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                      <span>Pagado: <strong className="text-green-600">${s.amountPaid.toFixed(2)}</strong></span>
-                      <span>Total: <strong>${s.coursePrice.toFixed(2)}</strong></span>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>Pagado: <strong className="text-green-600">${s.amountPaid.toFixed(2)}</strong></span>
+                        <span>Total: <strong>${s.coursePrice.toFixed(2)}</strong></span>
+                      </div>
+                      <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => setDetailBalanceStudent(s)}
+                          className="p-1.5 rounded-lg bg-white border border-orange-200 text-orange-500 hover:bg-orange-100 transition-all"
+                          title="Ver detalle">
+                          <Eye size={14} />
+                        </button>
+                        {waLink && (
+                          <a href={waLink} target="_blank" rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-white border border-green-200 text-green-600 hover:bg-green-50 transition-all"
+                            title="Enviar recordatorio por WhatsApp">
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
                 {studentsWithBalance.length === 0 && (
                   <div className="text-center py-12 text-gray-500">
                     <Check size={48} className="mx-auto mb-3 text-green-400" />
@@ -2871,6 +2905,108 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
           </div>
         )}
+
+        {/* Student Balance Detail Modal */}
+        {detailBalanceStudent && (() => {
+          const s = detailBalanceStudent
+          const isMinor = s.is_minor !== false
+          const waPhone = isMinor ? (s.payer_phone || s.parent_phone || s.phone) : s.phone
+          const waContact = isMinor ? (s.payer_name || s.parent_name || s.name) : s.name
+          const waLink = waPhone ? (() => {
+            let msg = `Hola *${waContact}*, le contactamos de *Studio Dancers*.`
+            if (isMinor) msg += `\nSu representada *${s.name}* tiene un saldo pendiente.`
+            msg += `\n\n🎓 *Programa:* ${s.courseName}`
+            msg += `\n💰 *Abono realizado:* $${s.amountPaid.toFixed(2)}`
+            msg += `\n⚠️ *Saldo pendiente:* $${s.balance.toFixed(2)}`
+            msg += `\n\nPor favor coordine el pago del saldo restante. ¡Gracias! 🙏`
+            const raw = waPhone.replace(/\D/g, '')
+            const phone = raw.startsWith('593') ? raw : raw.startsWith('0') ? '593' + raw.slice(1) : '593' + raw
+            return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+          })() : null
+          return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]"
+              onClick={() => setDetailBalanceStudent(null)}>
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                onClick={e => e.stopPropagation()}>
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                  <p className="font-semibold text-sm">Detalle del alumno</p>
+                  <button onClick={() => setDetailBalanceStudent(null)}
+                    className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-4">
+                  {/* Datos alumno */}
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Alumno/a</p>
+                    <p className="font-bold text-gray-800">{s.name}</p>
+                    {s.cedula && <p className="text-sm text-gray-500 mt-0.5">CI: {s.cedula}</p>}
+                    {s.phone && <p className="text-sm text-gray-500 mt-0.5">📱 {s.phone}</p>}
+                  </div>
+
+                  {/* Representante (si menor) */}
+                  {isMinor && (s.parent_name || s.payer_name) && (
+                    <div className="border-t pt-3">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Representante</p>
+                      <p className="font-semibold text-gray-800">{s.payer_name || s.parent_name}</p>
+                      {(s.payer_cedula || s.parent_cedula) && (
+                        <p className="text-sm text-gray-500 mt-0.5">CI: {s.payer_cedula || s.parent_cedula}</p>
+                      )}
+                      {waPhone && <p className="text-sm text-gray-500 mt-0.5">📱 {waPhone}</p>}
+                    </div>
+                  )}
+
+                  {/* Programa */}
+                  <div className="border-t pt-3">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Programa</p>
+                    <p className="font-semibold text-gray-700">{s.courseName}</p>
+                  </div>
+
+                  {/* Saldos */}
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total del programa</span>
+                      <span className="font-semibold">${s.coursePrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total abonado</span>
+                      <span className="font-semibold text-green-600">${s.amountPaid.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm bg-orange-50 rounded-xl px-3 py-2">
+                      <span className="text-orange-700 font-semibold">Saldo pendiente</span>
+                      <span className="font-bold text-orange-700">${s.balance.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t bg-gray-50 space-y-2">
+                  {waLink ? (
+                    <a href={waLink} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                      <MessageCircle size={16} />
+                      Enviar recordatorio por WhatsApp
+                    </a>
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center">Sin teléfono registrado</p>
+                  )}
+                  <button
+                    onClick={() => { setDetailBalanceStudent(null); setShowBalanceAlerts(false); openPaymentModal(s) }}
+                    className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                    + Registrar abono
+                  </button>
+                  <button onClick={() => setDetailBalanceStudent(null)}
+                    className="w-full py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-all">
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmModal
