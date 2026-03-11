@@ -24,11 +24,13 @@ export function useDailyReport() {
         supabase
           .from('payments')
           .select('amount, payment_method')
-          .eq('payment_date', d),
+          .eq('payment_date', d)
+          .eq('voided', false),
         supabase
           .from('quick_payments')
           .select('amount, payment_method')
-          .eq('payment_date', d),
+          .eq('payment_date', d)
+          .eq('voided', false),
         supabase
           .from('sales')
           .select('total, payment_method')
