@@ -286,6 +286,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
+  const [newPlanPreselect, setNewPlanPreselect] = useState(null)
+  const [showNewPlan, setShowNewPlan] = useState(false)
 
   // Días de gracia antes de marcar como inactiva
   const autoInactiveDays = settings.auto_inactive_days || 10
@@ -1028,7 +1030,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
-            { id: 'sales', icon: ShoppingBag, label: 'Ventas', count: sales.length },
+            { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
@@ -1559,48 +1561,88 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             </div>
 
-            {/* Products Available */}
-            <div className="p-4 border-b bg-green-50">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-green-800 flex items-center gap-2">
-                  <Tag size={18} />
-                  Artículos Disponibles
-                </h3>
-                {isAdmin && (
-                  <button
-                    onClick={() => setShowManageItems(true)}
-                    className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
-                  >
-                    <Package size={14} />
-                    Gestionar
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-3 flex-wrap">
-                {allProducts.map(product => {
-                  const hasStock = product.stock !== null && product.stock !== undefined
-                  const lowStock = hasStock && product.stock <= 3 && product.stock > 0
-                  const outOfStock = hasStock && product.stock === 0
-                  return (
-                    <div key={product.id} className={`bg-white rounded-xl p-3 shadow-sm border ${outOfStock ? 'border-red-200 opacity-60' : lowStock ? 'border-yellow-200' : 'border-transparent'}`}>
-                      <p className="font-medium text-gray-800">{product.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-green-600 font-bold">${product.price}</p>
-                        {hasStock && (
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                            outOfStock ? 'bg-red-100 text-red-700' :
-                            lowStock ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {outOfStock ? 'Agotado' : `${product.stock} ud`}
-                          </span>
-                        )}
+            {/* Catálogo por categoría */}
+            {(() => {
+              const CATS = [
+                { key: 'entradas',  label: 'Entradas',  emoji: '🎟️' },
+                { key: 'vestuario', label: 'Vestuario', emoji: '👗' },
+                { key: 'uniformes', label: 'Uniformes', emoji: '📦' },
+                { key: 'bar',       label: 'Bar',       emoji: '🥤' },
+              ]
+              const catKeys = CATS.map(c => c.key)
+              const categorized = CATS.map(cat => ({
+                ...cat,
+                products: allProducts.filter(p => p.category === cat.key)
+              })).filter(c => c.products.length > 0)
+              const otros = allProducts.filter(p => !catKeys.includes(p.category))
+              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
+
+              return (
+                <div className="p-4 border-b space-y-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
+                      <Tag size={15} /> Catálogo
+                    </h3>
+                    {isAdmin && (
+                      <button onClick={() => setShowManageItems(true)}
+                        className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
+                        <Package size={13} /> Gestionar
+                      </button>
+                    )}
+                  </div>
+                  {categorized.map(cat => (
+                    <div key={cat.key}>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                        {cat.emoji} {cat.label}
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {cat.products.map(product => {
+                          const hasStock = product.stock !== null && product.stock !== undefined
+                          const outOfStock = hasStock && product.stock === 0
+                          const lowStock = hasStock && product.stock > 0 && product.stock <= 3
+                          return (
+                            <div key={product.id}
+                              className={`bg-white rounded-2xl border p-3 shadow-sm flex flex-col gap-2 ${outOfStock ? 'opacity-50' : 'hover:shadow-md transition-shadow'}`}>
+                              <div>
+                                <p className="text-sm font-semibold text-gray-800 leading-tight">{product.name}</p>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <span className="text-green-600 font-bold text-sm">${product.price}</span>
+                                  {hasStock && (
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                      outOfStock ? 'bg-red-100 text-red-600' :
+                                      lowStock   ? 'bg-amber-100 text-amber-700' :
+                                                   'bg-blue-50 text-blue-600'
+                                    }`}>
+                                      {outOfStock ? 'Agotado' : `${product.stock} ud`}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-1 mt-auto">
+                                <button
+                                  disabled={outOfStock}
+                                  onClick={() => { setSaleForm(f => ({ ...f, productId: product.id })); setShowSaleForm(true) }}
+                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                                  Vender
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setNewPlanPreselect(product)
+                                    setShowNewPlan(true)
+                                  }}
+                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
+                                  Abonar
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
+                  ))}
+                </div>
+              )
+            })()}
 
             {filteredSales.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
@@ -1698,6 +1740,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="p-4">
               <SaleInstallments
                 allProducts={allProducts}
+                students={students}
                 schoolName={settings?.school_name || 'Studio Dancers'}
                 activePlans={activePlans}
                 paidPlans={paidPlans}
@@ -1707,6 +1750,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onRegisterPayment={registerPlanPayment}
                 onCancelPlan={cancelPlan}
                 onMarkDelivered={markDelivered}
+                externalShowNew={showNewPlan}
+                externalPreselect={newPlanPreselect}
+                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
               />
             </div>
           </div>
