@@ -50,16 +50,20 @@ import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
 function StudentAvatar({ student, isCamp }) {
-  const [imgError, setImgError] = useState(false)
+  const [imgLoaded, setImgLoaded] = useState(false)
   const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student.id}.jpg`).data?.publicUrl
   const initials = student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'
   return (
-    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center ${imgError ? bgClass : ''}`}>
-      {!imgError
-        ? <img src={avatarUrl} alt={student.name} onError={() => setImgError(true)} className="w-full h-full object-cover" />
-        : <span className="font-bold text-sm">{initials}</span>
-      }
+    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center relative ${bgClass}`}>
+      <span className="font-bold text-sm absolute select-none">{initials}</span>
+      <img
+        src={avatarUrl}
+        alt=""
+        onLoad={() => setImgLoaded(true)}
+        onError={() => setImgLoaded(false)}
+        className={`w-full h-full object-cover absolute inset-0 transition-opacity ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+      />
     </div>
   )
 }

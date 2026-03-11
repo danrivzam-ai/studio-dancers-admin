@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Camera } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
@@ -21,56 +21,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const [reactivateError, setReactivateError] = useState(null)
   const [reactivateSuccess, setReactivateSuccess] = useState(false)
   const [photoError, setPhotoError] = useState(false)
-  const [photoTimestamp, setPhotoTimestamp] = useState(null)
-  const [photoUploading, setPhotoUploading] = useState(false)
-  const [briefMsg, setBriefMsg] = useState('')
-  const avatarInputRef = useRef(null)
+  const [photoPreview, setPhotoPreview] = useState(false)
 
   // Supabase Storage avatar URL (bucket: avatars, path: {studentId}.jpg)
   const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student?.id}.jpg`).data?.publicUrl
-    + (photoTimestamp ? `?t=${photoTimestamp}` : '')
-
-  async function compressAvatar(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const img = new Image()
-        img.onload = () => {
-          const MAX = 400
-          let w = img.width, h = img.height
-          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX } }
-          else { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX } }
-          const canvas = document.createElement('canvas')
-          canvas.width = w; canvas.height = h
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h)
-          canvas.toBlob(resolve, 'image/jpeg', 0.75)
-        }
-        img.src = e.target.result
-      }
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file || !student?.id) return
-    e.target.value = ''
-    setPhotoUploading(true)
-    try {
-      const blob = await compressAvatar(file)
-      const { error } = await supabase.storage.from('avatars')
-        .upload(`${student.id}.jpg`, blob, { upsert: true, contentType: 'image/jpeg' })
-      if (error) throw error
-      setPhotoError(false)
-      setPhotoTimestamp(Date.now())
-    } catch (err) {
-      setPhotoError(true)
-      setBriefMsg('No se pudo subir la foto')
-      setTimeout(() => setBriefMsg(''), 4000)
-    } finally {
-      setPhotoUploading(false)
-    }
-  }
 
   // Enriquecer curso
   const rawCourse = courseProp || getCourseById(student?.course_id)
@@ -169,11 +123,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
   const handleWhatsApp = () => {
     const phone = student.payer_phone || student.parent_phone || student.phone
-    if (!phone) {
-      setBriefMsg('Sin teléfono registrado')
-      setTimeout(() => setBriefMsg(''), 3000)
-      return
-    }
+    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
     openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers'))
   }
 
@@ -189,45 +139,26 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">
-              <div
-                className="relative shrink-0 cursor-pointer group"
-                onClick={() => avatarInputRef.current?.click()}
-                title="Tocar para cambiar foto"
-              >
-                {!photoError && (
-                  <img
-                    src={avatarUrl}
-                    alt={student.name}
-                    onError={() => setPhotoError(true)}
-                    onLoad={() => setPhotoError(false)}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-                  />
-                )}
-                {photoError && (
-                  <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center font-bold text-2xl text-white">
+              <div className="relative shrink-0">
+                {!photoError ? (
+                  <button
+                    type="button"
+                    onClick={() => setPhotoPreview(true)}
+                    title="Ver foto"
+                    className="block w-16 h-16 rounded-full overflow-hidden border-2 border-white/30 hover:border-white/60 transition-colors"
+                  >
+                    <img
+                      src={avatarUrl}
+                      alt=""
+                      onError={() => setPhotoError(true)}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center font-bold text-2xl text-white select-none">
                     {student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                   </div>
                 )}
-                {/* Upload overlay */}
-                {photoUploading ? (
-                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
-                    <svg className="animate-spin w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-colors">
-                    <Camera size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                )}
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarUpload}
-                />
               </div>
               <div>
                 <h2 className="text-lg font-bold leading-tight">{student.name}</h2>
@@ -264,13 +195,6 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             )}
           </div>
         </div>
-
-        {/* Toast de mensajes breves */}
-        {briefMsg && (
-          <div className="mx-4 mt-3 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs text-center">
-            {briefMsg}
-          </div>
-        )}
 
         {/* ── Scrollable content ── */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100svh - 270px)' }}>
@@ -557,6 +481,29 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           </div>
         </div>
       </div>
+
+      {/* Modal: Ver foto ampliada */}
+      {photoPreview && !photoError && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-4"
+          onClick={() => setPhotoPreview(false)}
+        >
+          <div className="relative max-w-xs w-full" onClick={e => e.stopPropagation()}>
+            <img
+              src={avatarUrl}
+              alt={student.name}
+              className="w-full rounded-2xl object-cover shadow-2xl"
+            />
+            <button
+              onClick={() => setPhotoPreview(false)}
+              className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white hover:bg-black/70"
+            >
+              <X size={16} />
+            </button>
+            <p className="text-center text-white text-sm font-semibold mt-3">{student.name}</p>
+          </div>
+        </div>
+      )}
 
       {/* Diálogo: Reactivar ciclo */}
       {showReactivateDialog && (
