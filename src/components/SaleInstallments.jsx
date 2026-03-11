@@ -573,7 +573,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 }
 
 // ─── Tarjeta de plan ──────────────────────────────────────────────────────────
-function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
+function PlanCard({ plan, onPay, onCancel, onDelete, onMarkDelivered }) {
   const [expanded, setExpanded] = useState(false)
   const balance    = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
   const paidPct    = Math.min(100, (parseFloat(plan.amount_paid) / parseFloat(plan.total_amount)) * 100)
@@ -663,6 +663,12 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
               <Trash2 size={12} /> Cancelar plan
             </button>
           )}
+          {parseFloat(plan.amount_paid) === 0 && (
+            <button onClick={() => onDelete(plan.id)}
+              className="mt-1 flex items-center gap-1.5 text-xs text-red-700 hover:text-red-900 font-semibold">
+              <Trash2 size={12} /> Eliminar plan (sin abonos)
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -682,6 +688,7 @@ export default function SaleInstallments({
   onCreatePlan,
   onRegisterPayment,
   onCancelPlan,
+  onDeletePlan,
   onMarkDelivered,
   onRefresh,
   externalShowNew   = false,
@@ -695,6 +702,7 @@ export default function SaleInstallments({
   const [saving,        setSaving]        = useState(false)
   const [tab,           setTab]           = useState('active')
   const [confirmCancel, setConfirmCancel] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
   const [toast,         setToast]         = useState(null)  // { msg, type }
 
   const showToast = (msg, type = 'success') => setToast({ msg, type })
@@ -745,6 +753,13 @@ export default function SaleInstallments({
     setConfirmCancel(null)
     if (res.success) showToast('Plan cancelado')
     else showToast(res.error || 'Error al cancelar', 'error')
+  }
+
+  const handleDelete = async (planId) => {
+    const res = await onDeletePlan(planId)
+    setConfirmDelete(null)
+    if (res.success) showToast('Plan eliminado')
+    else showToast(res.error || 'Error al eliminar', 'error')
   }
 
   return (
@@ -806,6 +821,7 @@ export default function SaleInstallments({
                   plan={plan}
                   onPay={setPayingPlan}
                   onCancel={setConfirmCancel}
+                  onDelete={setConfirmDelete}
                   onMarkDelivered={onMarkDelivered}
                 />
               ))}
@@ -861,6 +877,26 @@ export default function SaleInstallments({
               <button onClick={() => handleCancel(confirmCancel)}
                 className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600">
                 Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
+            <Trash2 size={32} className="mx-auto text-red-600 mb-3" />
+            <p className="font-semibold text-gray-800 mb-1">¿Eliminar este plan?</p>
+            <p className="text-xs text-gray-500 mb-5">Esta acción es permanente y no se puede deshacer. Solo es posible porque no tiene abonos registrados.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300">
+                No, volver
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)}
+                className="flex-1 py-2.5 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-800">
+                Sí, eliminar
               </button>
             </div>
           </div>
