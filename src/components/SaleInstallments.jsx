@@ -535,7 +535,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           {/* Total */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-              Total acordado *
+              Precio total del producto *
               {cart.length > 0 && cartTotal > 0 && (
                 <span className="ml-2 text-purple-500 font-normal normal-case">(catálogo: ${cartTotal.toFixed(2)})</span>
               )}
@@ -547,7 +547,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 className="flex-1 text-sm outline-none bg-transparent"
                 placeholder={cart.length > 0 ? cartTotal.toFixed(2) : '0.00'} />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Ajusta si hay descuento o acuerdo especial.</p>
+            <p className="text-xs text-amber-600 mt-1 font-medium">⚠ Es el precio TOTAL del artículo, no el primer abono.</p>
           </div>
 
           {/* Notas */}
@@ -573,8 +573,12 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 }
 
 // ─── Tarjeta de plan ──────────────────────────────────────────────────────────
-function PlanCard({ plan, onPay, onCancel, onDelete, onMarkDelivered }) {
+function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelivered }) {
   const [expanded, setExpanded] = useState(false)
+  const [editingTotal, setEditingTotal] = useState(false)
+  const [newTotal, setNewTotal] = useState('')
+  const [editError, setEditError] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
   const balance    = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
   const paidPct    = Math.min(100, (parseFloat(plan.amount_paid) / parseFloat(plan.total_amount)) * 100)
   const itemsLabel = Array.isArray(plan.items)
@@ -657,9 +661,52 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onMarkDelivered }) {
           {plan.notes && (
             <p className="text-xs text-gray-400 mt-2 italic bg-gray-50 px-3 py-2 rounded-xl">Nota: {plan.notes}</p>
           )}
+
+          {/* Editar total */}
+          {plan.status !== 'cancelled' && (
+            <div className="mt-3">
+              {editingTotal ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-semibold text-amber-800">Corregir precio total del plan</p>
+                  <div className="flex items-center gap-1.5 border-2 border-amber-300 rounded-xl px-3 py-2 bg-white focus-within:border-amber-500">
+                    <span className="text-gray-500 font-medium text-sm shrink-0">$</span>
+                    <input type="number" step="0.01" min="0.01" value={newTotal}
+                      onChange={e => { setNewTotal(e.target.value); setEditError('') }}
+                      className="flex-1 text-sm outline-none bg-transparent"
+                      placeholder={fmt(plan.total_amount)} autoFocus />
+                  </div>
+                  {editError && <p className="text-xs text-red-600">{editError}</p>}
+                  <div className="flex gap-2">
+                    <button type="button" onClick={async () => {
+                      const v = parseFloat(newTotal)
+                      if (!v || v <= 0) { setEditError('Ingresa un valor válido'); return }
+                      setEditSaving(true)
+                      const res = await onUpdateTotal(plan.id, v)
+                      setEditSaving(false)
+                      if (res.success) { setEditingTotal(false); setNewTotal('') }
+                      else setEditError(res.error || 'Error al guardar')
+                    }} disabled={editSaving}
+                      className="flex-1 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 disabled:opacity-50">
+                      {editSaving ? 'Guardando...' : 'Guardar'}
+                    </button>
+                    <button type="button" onClick={() => { setEditingTotal(false); setNewTotal(''); setEditError('') }}
+                      className="flex-1 py-2 rounded-xl border-2 border-gray-200 text-xs font-semibold text-gray-600">
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => { setEditingTotal(true); setNewTotal(plan.total_amount) }}
+                  className="flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-800 font-medium">
+                  ✏ Corregir precio total
+                </button>
+              )}
+            </div>
+          )}
+
           {plan.status !== 'paid' && plan.status !== 'cancelled' && (
             <button onClick={() => onCancel(plan.id)}
-              className="mt-3 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium">
+              className="mt-2 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium">
               <Trash2 size={12} /> Cancelar plan
             </button>
           )}
@@ -689,6 +736,7 @@ export default function SaleInstallments({
   onRegisterPayment,
   onCancelPlan,
   onDeletePlan,
+  onUpdatePlanTotal,
   onMarkDelivered,
   onRefresh,
   externalShowNew   = false,
@@ -822,6 +870,7 @@ export default function SaleInstallments({
                   onPay={setPayingPlan}
                   onCancel={setConfirmCancel}
                   onDelete={setConfirmDelete}
+                  onUpdateTotal={onUpdatePlanTotal}
                   onMarkDelivered={onMarkDelivered}
                 />
               ))}

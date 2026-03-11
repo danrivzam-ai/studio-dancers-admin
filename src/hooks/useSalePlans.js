@@ -117,6 +117,28 @@ export function useSalePlans() {
     }
   }
 
+  // ── Editar total del plan ─────────────────────────────────────────────────
+  const updatePlanTotal = async (planId, newTotal) => {
+    try {
+      const plan = plans.find(p => p.id === planId)
+      if (!plan) throw new Error('Plan no encontrado')
+      const paid = parseFloat(plan.amount_paid)
+      const total = parseFloat(newTotal)
+      if (total <= 0) throw new Error('El total debe ser mayor a $0')
+      if (total < paid) throw new Error(`El total no puede ser menor al monto ya pagado ($${paid.toFixed(2)})`)
+      const status = paid >= total ? 'paid' : paid > 0 ? 'partial' : 'pending'
+      const { error } = await supabase
+        .from('sale_plans')
+        .update({ total_amount: total, status, updated_at: new Date().toISOString() })
+        .eq('id', planId)
+      if (error) throw error
+      await fetchPlans()
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err?.message }
+    }
+  }
+
   // ── Cancelar plan ────────────────────────────────────────────────────────
   const cancelPlan = async (planId) => {
     try {
@@ -174,6 +196,6 @@ export function useSalePlans() {
   return {
     plans, activePlans, paidPlans, totalDebt,
     loading, dbError, refresh: fetchPlans,
-    createPlan, registerPayment, cancelPlan, deletePlan, markDelivered
+    createPlan, registerPayment, cancelPlan, deletePlan, updatePlanTotal, markDelivered
   }
 }
