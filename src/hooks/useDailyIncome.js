@@ -38,13 +38,20 @@ export function useDailyIncome() {
 
       if (salesError) throw salesError
 
+      // Abonos de planes de venta de hoy
+      const { data: planPayments } = await supabase
+        .from('sale_plan_payments')
+        .select('amount')
+        .eq('payment_date', today)
+
       // Calcular totales
       const studentTotal = studentPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const quickTotal = quickPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
       const salesTotal = salesData?.reduce((sum, s) => sum + parseFloat(s.total || 0), 0) || 0
+      const planTotal = planPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
 
-      const totalIncome = studentTotal + quickTotal + salesTotal
-      const totalCount = (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0)
+      const totalIncome = studentTotal + quickTotal + salesTotal + planTotal
+      const totalCount = (studentPayments?.length || 0) + (quickPayments?.length || 0) + (salesData?.length || 0) + (planPayments?.length || 0)
 
       setTodayIncome(totalIncome)
       setTodayPaymentsCount(totalCount)

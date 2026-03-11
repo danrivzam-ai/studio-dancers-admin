@@ -12,14 +12,15 @@ export function useDailyReport() {
       setLoading(true)
       const d = targetDate || date
 
-      // Query all 6 sources in parallel
+      // Query all 7 sources in parallel
       const [
         { data: payments },
         { data: quickPayments },
         { data: salesData },
         { data: expensesData },
         { data: movementsData },
-        { data: registerData }
+        { data: registerData },
+        { data: planPaymentsData }
       ] = await Promise.all([
         supabase
           .from('payments')
@@ -53,7 +54,11 @@ export function useDailyReport() {
           .from('cash_registers')
           .select('*')
           .eq('register_date', d)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase
+          .from('sale_plan_payments')
+          .select('amount, payment_method')
+          .eq('payment_date', d)
       ])
 
       const p = payments || []
@@ -61,6 +66,7 @@ export function useDailyReport() {
       const s = salesData || []
       const e = expensesData || []
       const m = movementsData || []
+      const pp = planPaymentsData || []
 
       // Helper: sum amounts from array
       const sum = (arr, field = 'amount') => arr.reduce((t, r) => t + parseFloat(r[field] || 0), 0)
@@ -69,21 +75,24 @@ export function useDailyReport() {
       const studentTotal = sum(p)
       const quickTotal = sum(qp)
       const salesTotal = sum(s, 'total')
+      const planTotal = sum(pp)
 
       // --- INCOME BY METHOD ---
-      // payments/quick_payments use Spanish: 'Efectivo', 'Transferencia'
+      // payments/quick_payments/sale_plan_payments use Spanish: 'Efectivo', 'Transferencia'
       // sales uses English: 'cash', 'transfer', 'card'
       const incomeCash = sum(p.filter(r => r.payment_method === 'Efectivo'))
         + sum(qp.filter(r => r.payment_method === 'Efectivo'))
         + sum(s.filter(r => r.payment_method === 'cash'), 'total')
+        + sum(pp.filter(r => r.payment_method === 'Efectivo'))
 
       const incomeTransfer = sum(p.filter(r => r.payment_method === 'Transferencia'))
         + sum(qp.filter(r => r.payment_method === 'Transferencia'))
         + sum(s.filter(r => r.payment_method === 'transfer'), 'total')
+        + sum(pp.filter(r => r.payment_method === 'Transferencia'))
 
       const incomeCard = sum(s.filter(r => r.payment_method === 'card'), 'total')
 
-      const totalIncome = studentTotal + quickTotal + salesTotal
+      const totalIncome = studentTotal + quickTotal + salesTotal + planTotal
 
       // --- INCOME BY SOURCE WITH METHOD BREAKDOWN ---
       const incomeBySource = {
@@ -105,6 +114,12 @@ export function useDailyReport() {
           transfer: sum(s.filter(r => r.payment_method === 'transfer'), 'total'),
           card: sum(s.filter(r => r.payment_method === 'card'), 'total'),
           count: s.length
+        },
+        planPayments: {
+          total: planTotal,
+          cash: sum(pp.filter(r => r.payment_method === 'Efectivo')),
+          transfer: sum(pp.filter(r => r.payment_method === 'Transferencia')),
+          count: pp.length
         }
       }
 
@@ -149,7 +164,7 @@ export function useDailyReport() {
         incomeByMethod: { cash: incomeCash, transfer: incomeTransfer, card: incomeCard },
         incomeBySource,
         totalIncome,
-        incomeCount: p.length + qp.length + s.length,
+        incomeCount: p.length + qp.length + s.length + pp.length,
         expensesByMethod: { cash: expensesCash, transfer: expensesTransfer, card: expensesCard },
         expensesByCategory,
         expensesTotal,
