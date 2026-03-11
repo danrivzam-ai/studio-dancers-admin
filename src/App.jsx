@@ -37,6 +37,8 @@ import DailyReport from './components/DailyReport'
 import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
+import SaleInstallments from './components/SaleInstallments'
+import { useSalePlans } from './hooks/useSalePlans'
 import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
@@ -73,6 +75,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
+  const { activePlans, paidPlans, totalDebt, loading: plansLoading, createPlan, registerPayment: registerPlanPayment, cancelPlan, markDelivered } = useSalePlans()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -1518,6 +1521,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const filteredTotal = filteredSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
           return (
+          <div className="space-y-4">
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -1679,6 +1683,29 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 })()}
               </div>
             )}
+          </div>
+
+          {/* Ventas en Abonos */}
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
+              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
+            </div>
+            <div className="p-4">
+              <SaleInstallments
+                allProducts={allProducts}
+                schoolName={settings?.school_name || 'Studio Dancers'}
+                activePlans={activePlans}
+                paidPlans={paidPlans}
+                totalDebt={totalDebt}
+                loading={plansLoading}
+                onCreatePlan={createPlan}
+                onRegisterPayment={registerPlanPayment}
+                onCancelPlan={cancelPlan}
+                onMarkDelivered={markDelivered}
+              />
+            </div>
+          </div>
           </div>
           )
         })()}
