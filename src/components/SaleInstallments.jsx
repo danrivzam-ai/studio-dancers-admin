@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toPng } from 'html-to-image'
 import {
-  Plus, X, ChevronDown, ChevronUp, Package, DollarSign,
+  Plus, X, ChevronDown, ChevronUp,
   CheckCircle, Clock, AlertCircle, Printer, Trash2, PackageCheck,
-  Search, Minus, CreditCard, ClipboardList
+  Search, Minus, ClipboardList, Database, Copy, Check
 } from 'lucide-react'
 
 const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
@@ -16,6 +16,111 @@ const fmtDate = (d) => {
   return dt.toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// ─── Toast global ─────────────────────────────────────────────────────────────
+function Toast({ msg, type = 'success', onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3500)
+    return () => clearTimeout(t)
+  }, [onDone])
+  const colors = {
+    success: 'bg-green-600',
+    error:   'bg-red-600',
+    info:    'bg-purple-600',
+  }
+  return (
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-xs text-center ${colors[type]}`}>
+      {type === 'success' && <CheckCircle size={16} />}
+      {type === 'error'   && <AlertCircle size={16} />}
+      {msg}
+    </div>
+  )
+}
+
+// ─── Banner: migración pendiente ──────────────────────────────────────────────
+const SETUP_SQL = `-- Ejecutar en Supabase → SQL Editor
+CREATE TABLE IF NOT EXISTS sale_plans (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_name TEXT NOT NULL,
+  customer_cedula_ruc TEXT,
+  customer_email TEXT,
+  items JSONB NOT NULL DEFAULT '[]',
+  total_amount DECIMAL(10,2) NOT NULL,
+  amount_paid DECIMAL(10,2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','partial','paid','cancelled')),
+  delivered BOOLEAN NOT NULL DEFAULT false,
+  notes TEXT,
+  requires_invoice BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sale_plan_payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  plan_id UUID NOT NULL REFERENCES sale_plans(id) ON DELETE CASCADE,
+  amount DECIMAL(10,2) NOT NULL,
+  payment_method TEXT NOT NULL,
+  payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  installment_number INT NOT NULL DEFAULT 1,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE sale_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sale_plan_payments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "sale_plans_all" ON sale_plans;
+DROP POLICY IF EXISTS "sale_plan_payments_all" ON sale_plan_payments;
+CREATE POLICY "sale_plans_all" ON sale_plans FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "sale_plan_payments_all" ON sale_plan_payments FOR ALL USING (true) WITH CHECK (true);`
+
+function DbSetupBanner({ error, onRetry }) {
+  const [copied, setCopied] = useState(false)
+  const isTableMissing = error && (error.includes('does not exist') || error.includes('relation') || error.includes('42P01'))
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(SETUP_SQL).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    })
+  }
+
+  return (
+    <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 space-y-3">
+      <div className="flex items-start gap-3">
+        <Database size={22} className="text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold text-amber-800">Configuración pendiente</p>
+          <p className="text-sm text-amber-700 mt-1">
+            {isTableMissing
+              ? 'Las tablas de planes de abono no existen aún en Supabase. Sigue los pasos:'
+              : `Error: ${error}`}
+          </p>
+        </div>
+      </div>
+
+      {isTableMissing && (
+        <ol className="text-sm text-amber-800 space-y-1 ml-7 list-decimal">
+          <li>Abre <strong>Supabase → SQL Editor</strong></li>
+          <li>Copia el SQL y pégalo, luego presiona <strong>Run</strong></li>
+          <li>Vuelve aquí y recarga la página</li>
+        </ol>
+      )}
+
+      <div className="flex gap-2 ml-7">
+        {isTableMissing && (
+          <button onClick={handleCopy}
+            className="flex items-center gap-1.5 px-3 py-2 bg-amber-600 text-white rounded-xl text-xs font-semibold hover:bg-amber-700 transition-all">
+            {copied ? <><Check size={13} /> Copiado</> : <><Copy size={13} /> Copiar SQL</>}
+          </button>
+        )}
+        <button onClick={onRetry}
+          className="px-3 py-2 border-2 border-amber-400 text-amber-700 rounded-xl text-xs font-semibold hover:bg-amber-100 transition-all">
+          Reintentar
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── StatusBadge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = {
     pending:   { label: 'Pendiente',  cls: 'bg-gray-100 text-gray-600',   icon: Clock },
@@ -45,13 +150,16 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
       link.download = `Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.png`
       link.href = dataUrl
       link.click()
-    } catch (e) { console.error(e) }
+    } catch (e) { console.error('toPng error:', e) }
     setDownloading(false)
   }
 
   const itemsLabel = Array.isArray(plan.items)
     ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ')
     : ''
+
+  const amtPaid = parseFloat(plan.amount_paid || 0)
+  const total   = parseFloat(plan.total_amount || 0)
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
@@ -62,7 +170,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
           <div className="flex gap-2">
             <button onClick={handleDownload} disabled={downloading}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 disabled:opacity-50">
-              <Printer size={13} /> {downloading ? 'Guardando...' : 'Descargar'}
+              <Printer size={13} /> {downloading ? 'Guardando...' : 'Descargar PNG'}
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
               <X size={16} />
@@ -70,69 +178,57 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
           </div>
         </div>
 
-        {/* Recibo visual (capturado como imagen) */}
-        <div ref={receiptRef} className="p-6 bg-white font-mono text-sm" style={{ minWidth: 320 }}>
-          {/* Encabezado */}
+        {/* Recibo visual */}
+        <div ref={receiptRef} className="p-6 bg-white" style={{ minWidth: 320 }}>
           <div className="text-center mb-4">
-            <p className="font-bold text-lg tracking-wide">{schoolName.toUpperCase()}</p>
-            <p className="text-xs text-gray-500 mt-1">Comprobante de Abono</p>
+            <p className="font-bold text-lg tracking-wide uppercase">{schoolName}</p>
+            <p className="text-xs text-gray-500 mt-1">Comprobante de Abono #{installmentNumber}</p>
             <div className="border-t border-dashed border-gray-300 mt-3" />
           </div>
 
-          {/* Datos del cliente */}
-          <div className="space-y-1 mb-4 text-xs">
+          <div className="space-y-1.5 mb-4 text-xs font-mono">
             <div className="flex justify-between">
               <span className="text-gray-500">Cliente:</span>
-              <span className="font-semibold text-right ml-2">{plan.customer_name}</span>
+              <span className="font-semibold text-right ml-4">{plan.customer_name}</span>
             </div>
             {plan.customer_cedula_ruc && (
               <div className="flex justify-between">
-                <span className="text-gray-500">C.I./RUC:</span>
+                <span className="text-gray-500">C.I.:</span>
                 <span>{plan.customer_cedula_ruc}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span className="text-gray-500">Artículo(s):</span>
-              <span className="text-right ml-2 max-w-[60%]">{itemsLabel}</span>
+              <span className="text-right ml-4 max-w-[60%]">{itemsLabel}</span>
             </div>
           </div>
 
           <div className="border-t border-dashed border-gray-300 mb-4" />
 
-          {/* Resumen de pagos */}
-          <div className="space-y-1.5 text-xs mb-4">
-            <div className="flex justify-between text-gray-600">
-              <span>Total del plan:</span>
-              <span>{fmt(plan.total_amount)}</span>
+          <div className="space-y-1.5 text-xs font-mono">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Abono #{installmentNumber}:</span>
+              <span className="font-bold text-green-700">{fmt(payment?.amount)}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
-              <span>Abonos anteriores:</span>
-              <span>{fmt(parseFloat(plan.amount_paid) - parseFloat(payment.amount))}</span>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Total plan:</span>
+              <span>{fmt(total)}</span>
             </div>
-            <div className="border-t border-gray-200 my-1" />
-            <div className="flex justify-between font-bold text-sm">
-              <span>Este abono (N° {installmentNumber}):</span>
-              <span>{fmt(payment.amount)}</span>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Total pagado:</span>
+              <span>{fmt(amtPaid)}</span>
             </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Forma de pago:</span>
-              <span>{payment.payment_method}</span>
+            <div className="flex justify-between font-bold">
+              <span className="text-gray-700">Saldo pendiente:</span>
+              <span className={balance <= 0 ? 'text-green-600' : 'text-amber-700'}>{fmt(balance)}</span>
             </div>
           </div>
 
-          <div className="border-t border-dashed border-gray-300 mb-4" />
+          <div className="border-t border-dashed border-gray-300 mt-4 mb-3" />
 
-          {/* Saldo */}
-          <div className={`flex justify-between font-bold text-sm rounded p-2 ${balance <= 0 ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            <span>{balance <= 0 ? '✓ PAGADO COMPLETO' : 'SALDO PENDIENTE:'}</span>
-            <span>{balance <= 0 ? '' : fmt(balance)}</span>
-          </div>
-
-          {/* Pie */}
-          <div className="text-center mt-4 text-xs text-gray-400">
-            <p>{fmtDate(payment.payment_date)}</p>
-            <p className="mt-1">Gracias por su confianza</p>
-            <div className="border-t border-dashed border-gray-300 mt-3" />
+          <div className="text-center text-xs text-gray-400 font-mono">
+            <p>{payment?.payment_method} · {fmtDate(payment?.payment_date || new Date().toISOString().split('T')[0])}</p>
+            {balance <= 0 && <p className="font-bold text-green-600 mt-1">✓ PLAN CANCELADO</p>}
           </div>
         </div>
       </div>
@@ -140,12 +236,12 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
   )
 }
 
-// ─── Modal: Registrar abono ────────────────────────────────────────────────────
-function PaymentModal({ plan, onConfirm, onClose, loading }) {
-  const [amount, setAmount]   = useState('')
-  const [method, setMethod]   = useState('Efectivo')
-  const [notes, setNotes]     = useState('')
-  const [error, setError]     = useState('')
+// ─── Modal: Registrar abono ───────────────────────────────────────────────────
+function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
+  const [amount, setAmount] = useState('')
+  const [method, setMethod] = useState('Efectivo')
+  const [notes,  setNotes]  = useState('')
+  const [error,  setError]  = useState('')
 
   const balance = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
 
@@ -172,13 +268,19 @@ function PaymentModal({ plan, onConfirm, onClose, loading }) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Saldo actual */}
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex justify-between items-center">
-            <span className="text-sm text-amber-700">Saldo pendiente</span>
-            <span className="font-bold text-amber-800 text-lg">{fmt(balance)}</span>
+            <div>
+              <p className="text-xs text-amber-600">Saldo pendiente</p>
+              <p className="font-bold text-amber-800 text-xl">{fmt(balance)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-400">Pagado</p>
+              <p className="text-sm font-semibold text-gray-600">{fmt(plan.amount_paid)} / {fmt(plan.total_amount)}</p>
+            </div>
           </div>
 
           {/* Monto */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Monto del abono</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Monto del abono *</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
               <input type="number" step="0.01" min="0.01" value={amount}
@@ -213,7 +315,11 @@ function PaymentModal({ plan, onConfirm, onClose, loading }) {
               placeholder="Observación..." />
           </div>
 
-          {error && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
+          {(error || serverError) && (
+            <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 leading-relaxed">
+              {error || serverError}
+            </p>
+          )}
 
           <button type="submit" disabled={loading}
             className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 active:bg-purple-800 disabled:opacity-50 transition-all">
@@ -227,21 +333,20 @@ function PaymentModal({ plan, onConfirm, onClose, loading }) {
 
 // ─── Modal: Nuevo plan ─────────────────────────────────────────────────────────
 function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading, preselect = null }) {
-  const [customerName,    setCustomerName]    = useState('')
-  const [customerCedula,  setCustomerCedula]  = useState('')
-  const [customerEmail,   setCustomerEmail]   = useState('')
-  const [notes,           setNotes]           = useState('')
-  const [studentSearch,   setStudentSearch]   = useState('')
-  const [productSearch,   setProductSearch]   = useState('')
-  const [cart,            setCart]            = useState(preselect ? [{ product: preselect, quantity: 1 }] : [])
-  const [customTotal,     setCustomTotal]     = useState('')
-  const [error,           setError]           = useState('')
-  const [showStudents,    setShowStudents]     = useState(false)
+  const [customerName,   setCustomerName]   = useState('')
+  const [customerCedula, setCustomerCedula] = useState('')
+  const [customerEmail,  setCustomerEmail]  = useState('')
+  const [notes,          setNotes]          = useState('')
+  const [studentSearch,  setStudentSearch]  = useState('')
+  const [productSearch,  setProductSearch]  = useState('')
+  const [cart,           setCart]           = useState(preselect ? [{ product: preselect, quantity: 1 }] : [])
+  const [customTotal,    setCustomTotal]    = useState('')
+  const [error,          setError]          = useState('')
+  const [showStudents,   setShowStudents]   = useState(false)
 
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0)
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
 
-  // Autocompletar desde estudiante
   const fillFromStudent = (student) => {
     setCustomerName(student.name)
     setCustomerCedula(student.cedula || '')
@@ -251,8 +356,10 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   }
 
   const filteredStudents = studentSearch.length >= 2
-    ? students.filter(s => s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-                           (s.cedula || '').includes(studentSearch)).slice(0, 6)
+    ? students.filter(s =>
+        s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+        (s.cedula || '').includes(studentSearch)
+      ).slice(0, 6)
     : []
 
   const addToCart = (product) => {
@@ -304,9 +411,9 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
 
-          {/* Buscar alumno (autocompletar) */}
+          {/* Buscar alumna (autocompletar) */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Cliente</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Buscar alumna en sistema</label>
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input
@@ -314,11 +421,12 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 value={studentSearch}
                 onChange={e => { setStudentSearch(e.target.value); setShowStudents(true) }}
                 onFocus={() => setShowStudents(true)}
-                placeholder="Buscar alumna o cliente..."
-                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+                onBlur={() => setTimeout(() => setShowStudents(false), 150)}
+                placeholder="Nombre o cédula..."
+                className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
               />
               {studentSearch && (
-                <button type="button" onClick={() => { setStudentSearch(''); setShowStudents(false) }}
+                <button type="button" onMouseDown={() => { setStudentSearch(''); setShowStudents(false) }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
                   <X size={14} />
                 </button>
@@ -338,7 +446,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
             )}
           </div>
 
-          {/* Nombre del cliente (editable) */}
+          {/* Nombre */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
@@ -364,29 +472,26 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           {/* Artículos */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Artículos *</label>
-
-            {/* Buscador */}
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <input type="text" value={productSearch} onChange={e => setProductSearch(e.target.value)}
                 placeholder="Buscar y agregar artículo..."
-                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400" />
+                className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400" />
               {productSearch && (
-                <button type="button" onClick={() => setProductSearch('')}
+                <button type="button" onMouseDown={() => setProductSearch('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
                   <X size={14} />
                 </button>
               )}
             </div>
 
-            {/* Dropdown resultados — siempre en el flujo, no absolute */}
             {filteredProducts.length > 0 && (
               <div className="mt-1 border-2 border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
                 {filteredProducts.map(p => {
                   const outOfStock = p.stock !== null && p.stock !== undefined && p.stock === 0
                   return (
                     <button key={p.id} type="button"
-                      onMouseDown={() => { addToCart(p); setProductSearch('') }}
+                      onMouseDown={() => addToCart(p)}
                       disabled={outOfStock}
                       className="w-full px-3 py-2.5 text-left text-sm flex justify-between items-center hover:bg-gray-50 border-b last:border-0 disabled:opacity-40">
                       <span className="font-medium">{p.name}</span>
@@ -400,9 +505,8 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <p className="text-xs text-gray-400 text-center py-2 mt-1">Sin resultados</p>
             )}
 
-            {/* Carrito */}
             {cart.length > 0 && (
-              <div className="space-y-2 mt-2">
+              <div className="space-y-2 mt-3">
                 {cart.map(({ product, quantity }) => (
                   <div key={product.id} className="flex items-center gap-2 bg-gray-50 rounded-xl border border-gray-100 px-3 py-2">
                     <span className="flex-1 text-sm font-medium text-gray-800 truncate">{product.name}</span>
@@ -454,7 +558,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               placeholder="Ej: Uniforme show de mayo, talla M..." />
           </div>
 
-          {error && <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
+          {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">{error}</p>}
         </div>
 
         <div className="px-5 py-4 border-t bg-white shrink-0">
@@ -468,13 +572,15 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   )
 }
 
-// ─── Tarjeta de plan ───────────────────────────────────────────────────────────
+// ─── Tarjeta de plan ──────────────────────────────────────────────────────────
 function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
   const [expanded, setExpanded] = useState(false)
   const balance    = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
   const paidPct    = Math.min(100, (parseFloat(plan.amount_paid) / parseFloat(plan.total_amount)) * 100)
-  const itemsLabel = Array.isArray(plan.items) ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` ×${i.quantity}` : ''}`).join(', ') : ''
-  const payments   = plan.sale_plan_payments || []
+  const itemsLabel = Array.isArray(plan.items)
+    ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` ×${i.quantity}` : ''}`).join(', ')
+    : ''
+  const payments = plan.sale_plan_payments || []
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
@@ -487,7 +593,7 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
           <StatusBadge status={plan.status} />
         </div>
 
-        {/* Barra de progreso */}
+        {/* Progreso */}
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
             <span>Pagado: <strong className="text-gray-700">{fmt(plan.amount_paid)}</strong></span>
@@ -504,7 +610,7 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
           )}
         </div>
 
-        {/* Acciones rápidas */}
+        {/* Acciones */}
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {plan.status !== 'paid' && plan.status !== 'cancelled' && (
             <button onClick={() => onPay(plan)}
@@ -528,7 +634,7 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
         </div>
       </div>
 
-      {/* Historial expandible */}
+      {/* Historial */}
       {expanded && (
         <div className="border-t border-gray-100 px-4 pb-4">
           {payments.length === 0 ? (
@@ -548,13 +654,9 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
                 ))}
             </div>
           )}
-
           {plan.notes && (
-            <p className="text-xs text-gray-400 mt-2 italic bg-gray-50 px-3 py-2 rounded-xl">
-              Nota: {plan.notes}
-            </p>
+            <p className="text-xs text-gray-400 mt-2 italic bg-gray-50 px-3 py-2 rounded-xl">Nota: {plan.notes}</p>
           )}
-
           {plan.status !== 'paid' && plan.status !== 'cancelled' && (
             <button onClick={() => onCancel(plan.id)}
               className="mt-3 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium">
@@ -567,33 +669,39 @@ function PlanCard({ plan, onPay, onCancel, onMarkDelivered }) {
   )
 }
 
-// ─── Componente principal exportado ──────────────────────────────────────────
+// ─── Componente principal ─────────────────────────────────────────────────────
 export default function SaleInstallments({
-  allProducts      = [],
-  students         = [],
-  schoolName       = 'Studio Dancers',
-  activePlans      = [],
-  paidPlans        = [],
-  totalDebt        = 0,
-  loading          = false,
+  allProducts       = [],
+  students          = [],
+  schoolName        = 'Studio Dancers',
+  activePlans       = [],
+  paidPlans         = [],
+  totalDebt         = 0,
+  loading           = false,
+  dbError           = null,
   onCreatePlan,
   onRegisterPayment,
   onCancelPlan,
   onMarkDelivered,
-  externalShowNew  = false,
+  onRefresh,
+  externalShowNew   = false,
   externalPreselect = null,
   onExternalClose,
 }) {
   const [showNew,       setShowNew]       = useState(false)
   const [payingPlan,    setPayingPlan]    = useState(null)
+  const [paymentError,  setPaymentError]  = useState('')
   const [receipt,       setReceipt]       = useState(null)
   const [saving,        setSaving]        = useState(false)
   const [tab,           setTab]           = useState('active')
   const [confirmCancel, setConfirmCancel] = useState(null)
+  const [toast,         setToast]         = useState(null)  // { msg, type }
 
-  const isNewOpen    = showNew || externalShowNew
-  const preselect    = externalShowNew ? externalPreselect : null
-  const closeNew     = () => { setShowNew(false); if (onExternalClose) onExternalClose() }
+  const showToast = (msg, type = 'success') => setToast({ msg, type })
+
+  const isNewOpen = showNew || externalShowNew
+  const preselect = externalShowNew ? externalPreselect : null
+  const closeNew  = () => { setShowNew(false); if (onExternalClose) onExternalClose() }
 
   const visiblePlans = tab === 'active' ? activePlans : paidPlans
 
@@ -601,12 +709,18 @@ export default function SaleInstallments({
     setSaving(true)
     const res = await onCreatePlan(formData)
     setSaving(false)
-    if (res.success) closeNew()
+    if (res.success) {
+      closeNew()
+      showToast('Plan creado correctamente')
+    } else {
+      showToast(res.error || 'Error al crear el plan', 'error')
+    }
   }
 
   const handlePayment = async (paymentData) => {
     if (!payingPlan) return
     setSaving(true)
+    setPaymentError('')
     const res = await onRegisterPayment(payingPlan.id, paymentData)
     setSaving(false)
     if (res.success) {
@@ -617,75 +731,90 @@ export default function SaleInstallments({
         balance:           res.balance,
       })
       setPayingPlan(null)
+      setPaymentError('')
+      showToast('Abono registrado')
+    } else {
+      const msg = res.error || 'Error al registrar el abono'
+      setPaymentError(msg)
+      showToast(msg, 'error')
     }
   }
 
   const handleCancel = async (planId) => {
-    await onCancelPlan(planId)
+    const res = await onCancelPlan(planId)
     setConfirmCancel(null)
+    if (res.success) showToast('Plan cancelado')
+    else showToast(res.error || 'Error al cancelar', 'error')
   }
 
   return (
     <div className="space-y-4">
 
-      {/* Resumen */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-          <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
-        </div>
-        <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4 text-center">
-          <p className="text-2xl font-bold text-amber-700">{fmt(totalDebt)}</p>
-          <p className="text-xs text-amber-600 mt-0.5">Por cobrar</p>
-        </div>
-        <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
-          <p className="text-2xl font-bold text-green-700">{paidPlans.length}</p>
-          <p className="text-xs text-green-600 mt-0.5">Pagados</p>
-        </div>
-      </div>
+      {/* Banner de error de DB */}
+      {dbError && <DbSetupBanner error={dbError} onRetry={onRefresh} />}
 
-      {/* Tabs + botón nuevo */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
-          {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
-            <button key={key} onClick={() => setTab(key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
-                ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
-              {label}
+      {!dbError && (
+        <>
+          {/* Resumen */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+              <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
+              <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
+            </div>
+            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4 text-center">
+              <p className="text-2xl font-bold text-amber-700">{fmt(totalDebt)}</p>
+              <p className="text-xs text-amber-600 mt-0.5">Por cobrar</p>
+            </div>
+            <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
+              <p className="text-2xl font-bold text-green-700">{paidPlans.length}</p>
+              <p className="text-xs text-green-600 mt-0.5">Pagados</p>
+            </div>
+          </div>
+
+          {/* Tabs + botón nuevo */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+              {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
+                <button key={key} onClick={() => setTab(key)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
+                    ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowNew(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm">
+              <Plus size={16} /> Nuevo plan
             </button>
-          ))}
-        </div>
-        <button onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-all shadow-sm">
-          <Plus size={16} /> Nuevo
-        </button>
-      </div>
+          </div>
 
-      {/* Lista */}
-      {loading ? (
-        <div className="text-center py-10 text-gray-400 text-sm">Cargando planes...</div>
-      ) : visiblePlans.length === 0 ? (
-        <div className="text-center py-10">
-          <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400 text-sm">
-            {tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {visiblePlans.map(plan => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              onPay={setPayingPlan}
-              onCancel={setConfirmCancel}
-              onMarkDelivered={onMarkDelivered}
-            />
-          ))}
-        </div>
+          {/* Lista */}
+          {loading ? (
+            <div className="text-center py-10 text-gray-400 text-sm">Cargando planes...</div>
+          ) : visiblePlans.length === 0 ? (
+            <div className="text-center py-10">
+              <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-400 text-sm">
+                {tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {visiblePlans.map(plan => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  onPay={setPayingPlan}
+                  onCancel={setConfirmCancel}
+                  onMarkDelivered={onMarkDelivered}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Modales */}
+      {/* ── Modales ─────────────────────────────────────────────────── */}
       {isNewOpen && (
         <NewPlanModal
           allProducts={allProducts}
@@ -701,8 +830,9 @@ export default function SaleInstallments({
         <PaymentModal
           plan={payingPlan}
           onConfirm={handlePayment}
-          onClose={() => setPayingPlan(null)}
+          onClose={() => { setPayingPlan(null); setPaymentError('') }}
           loading={saving}
+          serverError={paymentError}
         />
       )}
 
@@ -735,6 +865,11 @@ export default function SaleInstallments({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <Toast msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />
       )}
     </div>
   )

@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useSalePlans() {
-  const [plans, setPlans] = useState([])
+  const [plans, setPlans]     = useState([])
   const [loading, setLoading] = useState(true)
+  const [dbError, setDbError] = useState(null)   // null = ok, string = error message
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -19,8 +20,10 @@ export function useSalePlans() {
 
       if (error) throw error
       setPlans(data || [])
+      setDbError(null)
     } catch (err) {
       console.error('useSalePlans fetchPlans:', err)
+      setDbError(err?.message || 'Error al conectar con la base de datos')
     } finally {
       setLoading(false)
     }
@@ -51,7 +54,7 @@ export function useSalePlans() {
       return { success: true, data }
     } catch (err) {
       console.error('useSalePlans createPlan:', err)
-      return { success: false, error: err.message }
+      return { success: false, error: err?.message || 'Error al crear el plan' }
     }
   }
 
@@ -76,12 +79,12 @@ export function useSalePlans() {
       const { data: payment, error: payErr } = await supabase
         .from('sale_plan_payments')
         .insert({
-          plan_id:             planId,
-          amount:              parseFloat(amount),
-          payment_method:      paymentMethod,
-          payment_date:        new Date().toISOString().split('T')[0],
-          installment_number:  installmentNo,
-          notes:               notes?.trim() || null
+          plan_id:            planId,
+          amount:             parseFloat(amount),
+          payment_method:     paymentMethod,
+          payment_date:       new Date().toISOString().split('T')[0],
+          installment_number: installmentNo,
+          notes:              notes?.trim() || null
         })
         .select()
         .single()
@@ -102,15 +105,15 @@ export function useSalePlans() {
 
       await fetchPlans()
       return {
-        success: true,
+        success:           true,
         payment,
-        plan: { ...plan, amount_paid: newAmountPaid, status: newStatus },
+        plan:              { ...plan, amount_paid: newAmountPaid, status: newStatus },
         installmentNumber: installmentNo,
-        balance: Math.max(0, balance)
+        balance:           Math.max(0, balance)
       }
     } catch (err) {
       console.error('useSalePlans registerPayment:', err)
-      return { success: false, error: err.message }
+      return { success: false, error: err?.message || 'Error al registrar el abono' }
     }
   }
 
@@ -126,7 +129,7 @@ export function useSalePlans() {
       await fetchPlans()
       return { success: true }
     } catch (err) {
-      return { success: false, error: err.message }
+      return { success: false, error: err?.message }
     }
   }
 
@@ -142,7 +145,7 @@ export function useSalePlans() {
       await fetchPlans()
       return { success: true }
     } catch (err) {
-      return { success: false, error: err.message }
+      return { success: false, error: err?.message }
     }
   }
 
@@ -153,7 +156,7 @@ export function useSalePlans() {
 
   return {
     plans, activePlans, paidPlans, totalDebt,
-    loading, refresh: fetchPlans,
+    loading, dbError, refresh: fetchPlans,
     createPlan, registerPayment, cancelPlan, markDelivered
   }
 }
