@@ -282,7 +282,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Monto del abono *</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium text-sm">$</span>
               <input type="number" step="0.01" min="0.01" value={amount}
                 onChange={e => setAmount(e.target.value)}
                 className="w-full pl-7 pr-3 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
@@ -415,7 +415,9 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Buscar alumna en sistema</label>
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search size={14} className="text-gray-400" />
+              </span>
               <input
                 type="text"
                 value={studentSearch}
@@ -423,11 +425,11 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 onFocus={() => setShowStudents(true)}
                 onBlur={() => setTimeout(() => setShowStudents(false), 150)}
                 placeholder="Nombre o cédula..."
-                className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
               />
               {studentSearch && (
                 <button type="button" onMouseDown={() => { setStudentSearch(''); setShowStudents(false) }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-300 hover:text-gray-500">
                   <X size={14} />
                 </button>
               )}
@@ -473,13 +475,15 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Artículos *</label>
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search size={14} className="text-gray-400" />
+              </span>
               <input type="text" value={productSearch} onChange={e => setProductSearch(e.target.value)}
                 placeholder="Buscar y agregar artículo..."
-                className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400" />
+                className="w-full pl-9 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400" />
               {productSearch && (
                 <button type="button" onMouseDown={() => setProductSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-300 hover:text-gray-500">
                   <X size={14} />
                 </button>
               )}
@@ -541,7 +545,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               )}
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">$</span>
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 font-medium text-sm">$</span>
               <input type="number" step="0.01" min="0.01" value={customTotal}
                 onChange={e => setCustomTotal(e.target.value)}
                 className="w-full pl-7 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
