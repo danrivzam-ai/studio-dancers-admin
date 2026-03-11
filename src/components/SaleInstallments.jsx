@@ -3,7 +3,8 @@ import { toPng } from 'html-to-image'
 import {
   Plus, X, ChevronDown, ChevronUp,
   CheckCircle, Clock, AlertCircle, Printer, Trash2, PackageCheck,
-  Search, Minus, ClipboardList, Database, Copy, Check
+  Search, Minus, ClipboardList, Database, Copy, Check,
+  Eye, MessageCircle
 } from 'lucide-react'
 
 const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
@@ -389,6 +390,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const [customerName,   setCustomerName]   = useState('')
   const [customerCedula, setCustomerCedula] = useState('')
   const [customerEmail,  setCustomerEmail]  = useState('')
+  const [customerPhone,  setCustomerPhone]  = useState('')
   const [notes,          setNotes]          = useState('')
   const [studentSearch,  setStudentSearch]  = useState('')
   const [productSearch,  setProductSearch]  = useState('')
@@ -404,6 +406,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
     setCustomerName(student.name)
     setCustomerCedula(student.cedula || '')
     setCustomerEmail(student.email || '')
+    setCustomerPhone(student.phone || '')
     setStudentSearch('')
     setShowStudents(false)
   }
@@ -455,6 +458,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
       customerName:   customerName.trim(),
       customerCedula: customerCedula.trim() || null,
       customerEmail:  customerEmail.trim() || null,
+      customerPhone:  customerPhone.trim() || null,
       items: cart.map(i => ({
         product_code: i.product.code || i.product.id,
         name:         i.product.name,
@@ -531,10 +535,10 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 placeholder="0912345678" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Correo</label>
-              <input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)}
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">WhatsApp</label>
+              <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
                 className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-                placeholder="email@..." />
+                placeholder="0991234567" />
             </div>
           </div>
 
@@ -639,8 +643,30 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 }
 
 // ─── Tarjeta de plan ──────────────────────────────────────────────────────────
+// Formatea teléfono Ecuador para wa.me (09XX → 593XX)
+function buildWALink(plan) {
+  const balance  = parseFloat(plan.total_amount) - parseFloat(plan.amount_paid)
+  const items    = Array.isArray(plan.items) ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` ×${i.quantity}` : ''}`).join(', ') : ''
+  const payments = plan.sale_plan_payments || []
+  const last     = [...payments].sort((a, b) => b.installment_number - a.installment_number)[0]
+
+  let msg = `Hola *${plan.customer_name}*, le contactamos de *Studio Dancers* sobre su plan de abono.`
+  msg += `\n\n🛍️ *Artículo(s):* ${items}`
+  if (last) {
+    msg += `\n💳 *Último abono:* ${fmt(last.amount)} el ${fmtDate(last.payment_date)}`
+  }
+  msg += `\n💰 *Total abonado:* ${fmt(plan.amount_paid)}`
+  msg += `\n⚠️ *Saldo pendiente:* ${fmt(Math.max(0, balance))}`
+  msg += `\n\nPor favor coordine su próximo abono. ¡Gracias! 🙏`
+
+  const raw = (plan.customer_phone || '').replace(/\D/g, '')
+  const phone = raw.startsWith('593') ? raw : raw.startsWith('0') ? '593' + raw.slice(1) : '593' + raw
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+}
+
 function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelivered }) {
   const [expanded, setExpanded] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
   const [editingTotal, setEditingTotal] = useState(false)
   const [newTotal, setNewTotal] = useState('')
   const [editError, setEditError] = useState('')
@@ -697,6 +723,20 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             <PackageCheck size={13} />
             {plan.delivered ? 'Entregado' : 'Sin entregar'}
           </button>
+          {/* Ojo: ver detalle */}
+          <button onClick={() => setShowDetail(true)}
+            className="p-2 rounded-xl border-2 border-gray-200 text-gray-500 hover:border-purple-300 hover:text-purple-600 transition-all"
+            title="Ver detalle">
+            <Eye size={14} />
+          </button>
+          {/* WhatsApp: solo si tiene teléfono y hay saldo */}
+          {plan.customer_phone && balance > 0 && (
+            <a href={buildWALink(plan)} target="_blank" rel="noopener noreferrer"
+              className="p-2 rounded-xl border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all"
+              title="Enviar recordatorio por WhatsApp">
+              <MessageCircle size={14} />
+            </a>
+          )}
           <button onClick={() => setExpanded(v => !v)}
             className="p-2 rounded-xl border-2 border-gray-200 text-gray-500 hover:border-gray-300 transition-all">
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -782,6 +822,120 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               <Trash2 size={12} /> Eliminar plan (sin abonos)
             </button>
           )}
+        </div>
+      )}
+
+      {/* ─── Modal de detalle ─────────────────────────────── */}
+      {showDetail && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowDetail(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+              <p className="font-semibold text-sm">Detalle del plan</p>
+              <button onClick={() => setShowDetail(false)}
+                className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[70vh]">
+              <div className="p-4 space-y-4">
+
+                {/* Datos del cliente */}
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente</p>
+                  <p className="font-bold text-gray-800">{plan.customer_name}</p>
+                  {plan.customer_cedula_ruc && (
+                    <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
+                  )}
+                  {plan.customer_phone && (
+                    <p className="text-sm text-gray-500 mt-0.5">📱 {plan.customer_phone}</p>
+                  )}
+                  {plan.customer_email && (
+                    <p className="text-sm text-gray-500 mt-0.5">✉️ {plan.customer_email}</p>
+                  )}
+                </div>
+
+                {/* Artículos */}
+                {Array.isArray(plan.items) && plan.items.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Artículos</p>
+                    {plan.items.map((item, i) => (
+                      <div key={i} className="flex justify-between text-sm py-0.5">
+                        <span className="text-gray-700">{item.name}{item.quantity > 1 ? ` ×${item.quantity}` : ''}</span>
+                        <span className="text-gray-500 ml-2">${((item.unit_price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Saldos */}
+                <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total del plan</span>
+                    <span className="font-semibold">{fmt(plan.total_amount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total abonado</span>
+                    <span className="font-semibold text-green-600">{fmt(plan.amount_paid)}</span>
+                  </div>
+                  {balance > 0 && (
+                    <div className="flex justify-between text-sm bg-amber-50 rounded-xl px-3 py-2">
+                      <span className="text-amber-700 font-semibold">Saldo pendiente</span>
+                      <span className="font-bold text-amber-700">{fmt(balance)}</span>
+                    </div>
+                  )}
+                  {balance <= 0 && (
+                    <p className="text-center text-xs font-semibold text-green-600 bg-green-50 rounded-xl px-3 py-2">
+                      ✓ Plan cancelado completamente
+                    </p>
+                  )}
+                </div>
+
+                {/* Historial de abonos */}
+                {payments.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Historial de abonos</p>
+                    {[...payments]
+                      .sort((a, b) => a.installment_number - b.installment_number)
+                      .map(pmt => (
+                        <div key={pmt.id} className="flex justify-between items-start py-1.5 border-b last:border-0">
+                          <div>
+                            <p className="text-xs font-semibold text-gray-700">
+                              Abono #{pmt.installment_number} · {fmt(pmt.amount)}
+                            </p>
+                            <p className="text-xs text-gray-400">{fmtDate(pmt.payment_date)} · {pmt.payment_method}</p>
+                            {pmt.notes && <p className="text-xs text-gray-400 italic">{pmt.notes}</p>}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer: botón WhatsApp */}
+            <div className="p-4 border-t bg-gray-50 space-y-2">
+              {plan.customer_phone ? (
+                <a href={buildWALink(plan)} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                  <MessageCircle size={16} />
+                  {balance > 0 ? 'Enviar recordatorio por WhatsApp' : 'Enviar mensaje por WhatsApp'}
+                </a>
+              ) : (
+                <p className="text-xs text-gray-400 text-center">
+                  Sin teléfono registrado — edita el plan para agregar uno
+                </p>
+              )}
+              <button onClick={() => setShowDetail(false)}
+                className="w-full py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition-all">
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
