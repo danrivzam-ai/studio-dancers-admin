@@ -6,7 +6,7 @@ const BANKS = [
   'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
   'Banco Bolivariano', 'Banco del Austro', 'Banco Internacional',
   'Banco Solidario', 'Produbanco', 'BanEcuador',
-  'Cooperativa JEP', 'Cooperativa Jardín Azuayo', 'PayPhone', 'Otro'
+  'Cooperativa JEP', 'Cooperativa Jardín Azuayo', 'Otro'
 ]
 
 function compressImage(file) {
@@ -163,7 +163,6 @@ export default function UploadComprobante({ auth, student }) {
           >
             <option value="">Seleccionar...</option>
             {BANKS.map(b => <option key={b} value={b}>{b}</option>)}
-            <option value="" disabled style={{ color: '#9CA3AF' }}>💳 Pago con tarjeta — Próximamente</option>
           </select>
         </div>
 
