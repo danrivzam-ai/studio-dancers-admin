@@ -79,7 +79,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
-  const { activePlans, paidPlans, totalDebt, loading: plansLoading, dbError: plansDbError, refresh: refreshPlans, createPlan, registerPayment: registerPlanPayment, cancelPlan, markDelivered } = useSalePlans()
+  const { activePlans, paidPlans, totalDebt, loading: plansLoading, dbError: plansDbError, refresh: refreshPlans, createPlan, registerPayment: registerPlanPayment, cancelPlan, deletePlan, markDelivered } = useSalePlans()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -1751,6 +1751,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onCreatePlan={createPlan}
                 onRegisterPayment={registerPlanPayment}
                 onCancelPlan={cancelPlan}
+                onDeletePlan={deletePlan}
                 onMarkDelivered={markDelivered}
                 externalShowNew={showNewPlan}
                 externalPreselect={newPlanPreselect}

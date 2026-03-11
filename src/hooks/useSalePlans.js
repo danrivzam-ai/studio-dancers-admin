@@ -133,6 +133,23 @@ export function useSalePlans() {
     }
   }
 
+  // ── Eliminar plan (solo si amount_paid === 0) ────────────────────────────
+  const deletePlan = async (planId) => {
+    try {
+      const { error } = await supabase
+        .from('sale_plans')
+        .delete()
+        .eq('id', planId)
+        .eq('amount_paid', 0)
+
+      if (error) throw error
+      await fetchPlans()
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err?.message }
+    }
+  }
+
   // ── Marcar entregado ─────────────────────────────────────────────────────
   const markDelivered = async (planId, delivered = true) => {
     try {
@@ -157,6 +174,6 @@ export function useSalePlans() {
   return {
     plans, activePlans, paidPlans, totalDebt,
     loading, dbError, refresh: fetchPlans,
-    createPlan, registerPayment, cancelPlan, markDelivered
+    createPlan, registerPayment, cancelPlan, deletePlan, markDelivered
   }
 }
