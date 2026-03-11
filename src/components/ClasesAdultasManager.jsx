@@ -52,7 +52,7 @@ function CursoOverview({ courses, activeCicloMap, selectedCode, onSelect }) {
               {ciclo ? (
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded-full" style={{ background: PURPLE }}>
+                    <span className="text-xs font-bold text-white px-2.5 py-1 rounded-lg" style={{ background: PURPLE }}>
                       Ciclo {ciclo.numero_ciclo}
                     </span>
                     <span className="text-xs text-green-600 font-medium">● Activo</span>
