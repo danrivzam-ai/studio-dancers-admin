@@ -47,17 +47,19 @@ export default function CashRegister({ onClose, settings }) {
 
       setCashRegister(registerData || null)
 
-      // Pagos de estudiantes
+      // Pagos de estudiantes (excluir anulados)
       const { data: studentPayments } = await supabase
         .from('payments')
         .select('amount, payment_method')
         .eq('payment_date', date)
+        .eq('voided', false)
 
-      // Pagos rápidos
+      // Pagos rápidos (excluir anulados)
       const { data: quickPayments } = await supabase
         .from('quick_payments')
         .select('amount, payment_method')
         .eq('payment_date', date)
+        .eq('voided', false)
 
       // Ventas
       const { data: salesData } = await supabase
