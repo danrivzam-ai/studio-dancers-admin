@@ -664,7 +664,7 @@ function buildWALink(plan) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
 }
 
-function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelivered }) {
+function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelivered, students = [] }) {
   const [expanded, setExpanded] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
   const [editingTotal, setEditingTotal] = useState(false)
@@ -677,6 +677,13 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
     ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` ×${i.quantity}` : ''}`).join(', ')
     : ''
   const payments = plan.sale_plan_payments || []
+
+  // Buscar alumna en sistema por cédula para obtener teléfono y curso si el plan no los tiene
+  const linkedStudent = plan.customer_cedula_ruc
+    ? students.find(s => (s.cedula || '') === plan.customer_cedula_ruc)
+    : null
+  const effectivePhone = plan.customer_phone || linkedStudent?.phone || ''
+  const effectiveCourse = linkedStudent?.course_name || ''
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
@@ -730,8 +737,8 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             <Eye size={14} />
           </button>
           {/* WhatsApp: solo si tiene teléfono y hay saldo */}
-          {plan.customer_phone && balance > 0 && (
-            <a href={buildWALink(plan)} target="_blank" rel="noopener noreferrer"
+          {effectivePhone && balance > 0 && (
+            <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
               className="p-2 rounded-xl border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all"
               title="Enviar recordatorio por WhatsApp">
               <MessageCircle size={14} />
@@ -851,11 +858,16 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                   {plan.customer_cedula_ruc && (
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
                   )}
-                  {plan.customer_phone && (
-                    <p className="text-sm text-gray-500 mt-0.5">📱 {plan.customer_phone}</p>
+                  {effectivePhone && (
+                    <p className="text-sm text-gray-500 mt-0.5">📱 {effectivePhone}</p>
                   )}
                   {plan.customer_email && (
                     <p className="text-sm text-gray-500 mt-0.5">✉️ {plan.customer_email}</p>
+                  )}
+                  {effectiveCourse && (
+                    <p className="text-xs mt-1.5 px-2 py-1 bg-purple-50 text-purple-700 rounded-lg font-medium inline-block">
+                      🎓 {effectiveCourse}
+                    </p>
                   )}
                 </div>
 
@@ -919,8 +931,8 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
             {/* Footer: botón WhatsApp */}
             <div className="p-4 border-t bg-gray-50 space-y-2">
-              {plan.customer_phone ? (
-                <a href={buildWALink(plan)} target="_blank" rel="noopener noreferrer"
+              {effectivePhone ? (
+                <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
                   <MessageCircle size={16} />
                   {balance > 0 ? 'Enviar recordatorio por WhatsApp' : 'Enviar mensaje por WhatsApp'}
@@ -1092,6 +1104,7 @@ export default function SaleInstallments({
                   onDelete={setConfirmDelete}
                   onUpdateTotal={onUpdatePlanTotal}
                   onMarkDelivered={onMarkDelivered}
+                  students={students}
                 />
               ))}
             </div>
