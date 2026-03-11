@@ -2081,7 +2081,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </div>
 
                   {/* Selector de artículo + cantidad + botón agregar */}
-                  <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                  <div className="bg-gray-50 rounded-xl p-3 space-y-3">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
                     <div className="relative">
@@ -2089,21 +2089,53 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <input
                         type="text"
                         value={productSearch}
-                        onChange={(e) => setProductSearch(e.target.value)}
+                        onChange={(e) => { setProductSearch(e.target.value); setSaleForm(f => ({...f, productId: ''})) }}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-9 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       />
+                      {productSearch && (
+                        <button type="button" onClick={() => { setProductSearch(''); setSaleForm(f => ({...f, productId: ''})) }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
-                    {/* Fila 1: selector ancho completo, filtrado por búsqueda */}
-                    <select
-                      value={saleForm.productId}
-                      onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
-                    >
-                      <option value="">— Seleccionar —</option>
-                      {allProducts
-                        .filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()))
-                        .map(product => {
+                    {/* Resultados de búsqueda o selector completo */}
+                    {productSearch ? (
+                      <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden max-h-44 overflow-y-auto">
+                        {allProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase())).length === 0 ? (
+                          <p className="px-3 py-3 text-sm text-gray-400 text-center">Sin resultados</p>
+                        ) : allProducts
+                            .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                            .map(product => {
+                              const hasStock = product.stock !== null && product.stock !== undefined
+                              const outOfStock = hasStock && product.stock === 0
+                              const isSelected = saleForm.productId === product.id
+                              return (
+                                <button
+                                  key={product.id}
+                                  type="button"
+                                  disabled={outOfStock}
+                                  onClick={() => { setSaleForm(f => ({...f, productId: product.id})); setProductSearch(product.name) }}
+                                  className={`w-full px-3 py-2.5 text-left text-sm border-b last:border-0 flex justify-between items-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${isSelected ? 'bg-green-50 text-green-800' : 'hover:bg-gray-50'}`}
+                                >
+                                  <span className="font-medium">{product.name}</span>
+                                  <span className="text-xs text-gray-500 shrink-0 ml-2">
+                                    ${product.price}{hasStock ? ` · ${outOfStock ? 'Agotado' : product.stock + ' disp.'}` : ''}
+                                  </span>
+                                </button>
+                              )
+                            })
+                        }
+                      </div>
+                    ) : (
+                      <select
+                        value={saleForm.productId}
+                        onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                      >
+                        <option value="">— Seleccionar —</option>
+                        {allProducts.map(product => {
                           const hasStock = product.stock !== null && product.stock !== undefined
                           const outOfStock = hasStock && product.stock === 0
                           return (
@@ -2111,9 +2143,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               {product.name} — ${product.price}{hasStock ? ` (${outOfStock ? 'Agotado' : product.stock + ' disp.'})` : ''}
                             </option>
                           )
-                        })
-                      }
-                    </select>
+                        })}
+                      </select>
+                    )}
                     {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
                       <div className="flex items-center border rounded-xl bg-white overflow-hidden">
