@@ -13,6 +13,7 @@ export default function PaymentHistory({
 }) {
   const [payments, setPayments] = useState([])
   const [quickPayments, setQuickPayments] = useState([])
+  const [planPayments, setPlanPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState(() => {
     // Por defecto, últimos 30 días
@@ -57,8 +58,19 @@ export default function PaymentHistory({
 
       if (quickError) throw quickError
 
+      // Abonos de planes de venta (tienda)
+      const { data: planData, error: planError } = await supabase
+        .from('sale_plan_payments')
+        .select('*, sale_plans(customer_name, customer_cedula_ruc, total_amount, items)')
+        .gte('payment_date', dateFrom)
+        .lte('payment_date', dateTo)
+        .order('payment_date', { ascending: false })
+
+      if (planError) console.warn('sale_plan_payments error:', planError.message)
+
       setPayments(studentPayments || [])
       setQuickPayments(quickData || [])
+      setPlanPayments(planData || [])
     } catch (err) {
       console.error('Error fetching payments:', err)
     } finally {
@@ -86,6 +98,13 @@ export default function PaymentHistory({
            p.customer_cedula?.includes(searchTerm)
   })
 
+  const filteredPlanPayments = planPayments.filter(p => {
+    const searchLower = searchTerm.toLowerCase()
+    const name = p.sale_plans?.customer_name || ''
+    const cedula = p.sale_plans?.customer_cedula_ruc || ''
+    return name.toLowerCase().includes(searchLower) || cedula.includes(searchTerm)
+  })
+
   // Calcular totales (solo no anulados)
   const totalStudentPayments = filteredPayments
     .filter(p => !p.voided)
@@ -93,7 +112,9 @@ export default function PaymentHistory({
   const totalQuickPayments = filteredQuickPayments
     .filter(p => !p.voided)
     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
-  const grandTotal = totalStudentPayments + totalQuickPayments
+  const totalPlanPayments = filteredPlanPayments
+    .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
+  const grandTotal = totalStudentPayments + totalQuickPayments + totalPlanPayments
 
   // Anular comprobante
   const handleVoid = async () => {
@@ -416,6 +437,7 @@ export default function PaymentHistory({
                     <option value="all">Todos</option>
                     <option value="students">Alumnos</option>
                     <option value="quick">Rápidos</option>
+                    <option value="plans">Tienda (abonos)</option>
                   </select>
                 </div>
                 <div>
@@ -445,7 +467,7 @@ export default function PaymentHistory({
           )}
 
           {/* Summary - always visible */}
-          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
               <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
@@ -456,10 +478,15 @@ export default function PaymentHistory({
               <p className="text-sm sm:text-lg font-bold text-yellow-600">${totalQuickPayments.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
             </div>
+            <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
+              <p className="text-[10px] sm:text-xs text-gray-500">Tienda</p>
+              <p className="text-sm sm:text-lg font-bold text-blue-600">${totalPlanPayments.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{filteredPlanPayments.length} abonos</p>
+            </div>
             <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200">
               <p className="text-[10px] sm:text-xs text-green-600 font-medium">TOTAL</p>
               <p className="text-sm sm:text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
-              <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length} pagos</p>
+              <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length + filteredPlanPayments.length} pagos</p>
             </div>
           </div>
         </div>
@@ -607,8 +634,46 @@ export default function PaymentHistory({
                 </div>
               ))}
 
+              {/* Plan Payments (Tienda) */}
+              {(viewType === 'all' || viewType === 'plans') && filteredPlanPayments.map(payment => (
+                <div
+                  key={`plan-${payment.id}`}
+                  className="p-3 sm:p-4 transition-colors hover:bg-blue-50/30"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        🛍️
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate text-gray-800">
+                          {payment.sale_plans?.customer_name || 'Desconocido'}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          Abono #{payment.installment_number} • {formatDate(payment.payment_date)}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate hidden sm:block">
+                          {payment.payment_method}
+                          {payment.notes && ` • ${payment.notes}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                      <div className="text-right">
+                        <p className="font-bold text-sm sm:text-base text-green-600">
+                          ${parseFloat(payment.amount).toFixed(2)}
+                        </p>
+                        <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                          Tienda
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
               {/* Empty state */}
-              {filteredPayments.length === 0 && filteredQuickPayments.length === 0 && (
+              {filteredPayments.length === 0 && filteredQuickPayments.length === 0 && filteredPlanPayments.length === 0 && (
                 <div className="p-12 text-center text-gray-500">
                   <FileText size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No hay pagos en el rango seleccionado</p>
