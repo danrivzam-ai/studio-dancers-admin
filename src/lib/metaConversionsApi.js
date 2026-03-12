@@ -125,7 +125,7 @@ export async function sendLeadEvent(studentData, eventId) {
         {
           event_name: 'Lead',
           event_time: Math.floor(Date.now() / 1000),
-          action_source: 'system_generated',
+          action_source: 'physical_store',
           event_id: eventId || `lead_${Date.now()}`,
           user_data: userData,
           custom_data: {
@@ -193,15 +193,19 @@ export async function sendBulkLeadEvents(students, onProgress) {
         continue
       }
 
-      // Usar fecha real de inscripción como event_time
-      const eventTime = student.enrollment_date || student.created_at
+      // Meta rechaza eventos con más de 7 días de antigüedad
+      // Usar fecha de inscripción solo si es reciente, sino usar fecha actual
+      const now = Math.floor(Date.now() / 1000)
+      const sevenDaysAgo = now - (7 * 24 * 60 * 60)
+      const rawTime = student.enrollment_date || student.created_at
         ? Math.floor(new Date(student.enrollment_date || student.created_at).getTime() / 1000)
-        : Math.floor(Date.now() / 1000)
+        : now
+      const eventTime = rawTime < sevenDaysAgo ? now : rawTime
 
       events.push({
         event_name: 'Lead',
         event_time: eventTime,
-        action_source: 'system_generated',
+        action_source: 'physical_store',
         event_id: `lead_${student.id}`,
         user_data: userData,
         custom_data: {
@@ -227,9 +231,9 @@ export async function sendBulkLeadEvents(students, onProgress) {
         console.log(`[Meta CAPI] Batch sent: ${events.length} events`, result)
       } else {
         failed += events.length
-        const errMsg = result.error?.message || 'API error'
+        const errMsg = result.error?.message || result.error?.error_user_msg || JSON.stringify(result.error || result)
         errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${errMsg}`)
-        console.error('[Meta CAPI] Batch error:', result)
+        console.error('[Meta CAPI] Batch error:', JSON.stringify(result, null, 2))
       }
     } catch (err) {
       failed += events.length
