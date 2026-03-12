@@ -4,6 +4,7 @@ import { X, Download, Send } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { useToast } from './Toast'
+import InvoiceButton from './InvoiceButton'
 
 export default function ReceiptGenerator({
   payment,
@@ -427,6 +428,19 @@ ${settings.name}`
             <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
               <span>⚠️</span>
               <span>API no disponible \u2014 enviado por WhatsApp Web</span>
+            </div>
+          )}
+
+          {/* Botón Generar Factura Electrónica */}
+          {!isQuickPayment && (
+            <div className="mt-2">
+              <InvoiceButton
+                payment={payment}
+                student={student}
+                courseName={course?.name}
+                settings={settings}
+                logoBase64={logoBase64}
+              />
             </div>
           )}
 

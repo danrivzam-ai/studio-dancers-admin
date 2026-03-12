@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle, Database, Megaphone } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle, Database, Megaphone, FileText } from 'lucide-react'
 import BackupExport from './BackupExport'
 import { sendBulkPurchaseEvents } from '../lib/metaConversionsApi'
 import { getCourseById } from '../lib/courses'
@@ -35,6 +35,11 @@ export default function SettingsModal({ settings, onClose, onSave }) {
     telegram_bot_token: '',
     telegram_chat_id:   '',
     whatsapp_enabled:   false,
+    sri_invoicing_enabled: false,
+    sri_environment:       '1',
+    sri_establishment:     '001',
+    sri_emission_point:    '001',
+    sri_obligado_contabilidad: true,
   })
   const [loading, setLoading] = useState(false)
   const [saveError, setSaveError] = useState('')
@@ -73,6 +78,11 @@ export default function SettingsModal({ settings, onClose, onSave }) {
         telegram_bot_token:              settings.telegram_bot_token              || '',
         telegram_chat_id:                settings.telegram_chat_id                || '',
         whatsapp_enabled:                settings.whatsapp_enabled                ?? false,
+        sri_invoicing_enabled:           settings.sri_invoicing_enabled           ?? false,
+        sri_environment:                 settings.sri_environment                 || '1',
+        sri_establishment:               settings.sri_establishment               || '001',
+        sri_emission_point:              settings.sri_emission_point              || '001',
+        sri_obligado_contabilidad:       settings.sri_obligado_contabilidad       ?? true,
       })
     }
   }, [settings])
@@ -430,6 +440,57 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Facturación Electrónica SRI */}
+              <div className="border-t pt-4 mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <FileText size={15} className="text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Facturación Electrónica SRI</span>
+                  </div>
+                  <button type="button"
+                    onClick={() => setFormData(f => ({ ...f, sri_invoicing_enabled: !f.sri_invoicing_enabled }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${fd.sri_invoicing_enabled ? 'bg-blue-500' : 'bg-gray-300'}`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${fd.sri_invoicing_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                <p className={`text-xs mb-3 ${fd.sri_invoicing_enabled ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+                  {fd.sri_invoicing_enabled
+                    ? '✅ Habilitada — botón "Generar Factura" disponible en comprobantes.'
+                    : '⏸️ Deshabilitada — activa cuando tengas la firma electrónica.'}
+                </p>
+                {fd.sri_invoicing_enabled && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Ambiente</label>
+                      <select value={fd.sri_environment} onChange={e => set('sri_environment', e.target.value)}
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm outline-none transition-all">
+                        <option value="1">Pruebas</option>
+                        <option value="2">Producción</option>
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Establecimiento</label>
+                        <input type="text" value={fd.sri_establishment} maxLength={3}
+                          onChange={e => set('sri_establishment', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm outline-none transition-all text-center font-mono"
+                          placeholder="001" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Punto de Emisión</label>
+                        <input type="text" value={fd.sri_emission_point} maxLength={3}
+                          onChange={e => set('sri_emission_point', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 text-sm outline-none transition-all text-center font-mono"
+                          placeholder="001" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Razón Social: ADLAB STUDIO S.A.S. • RUC: {fd.ruc || '0993406931001'} • IVA 0% (Enseñanza de danza)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* WhatsApp API */}

@@ -17,7 +17,14 @@ export function useSchoolSettings() {
     bank_name: '',
     bank_account_number: '',
     bank_account_holder: '',
-    bank_account_type: 'Ahorros'
+    bank_account_type: 'Ahorros',
+    sri_invoicing_enabled: false,
+    sri_environment: '1',
+    sri_establishment: '001',
+    sri_emission_point: '001',
+    sri_obligado_contabilidad: true,
+    sri_contribuyente_especial: '',
+    sri_main_activity: 'P8549.03',
   })
   const [loading, setLoading] = useState(true)
 
