@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle, Database, Megaphone, FileText } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle, Database, FileText } from 'lucide-react'
 import BackupExport from './BackupExport'
-import { sendBulkPurchaseEvents } from '../lib/metaConversionsApi'
-import { getCourseById } from '../lib/courses'
-import { supabase } from '../lib/supabase'
 
 const TABS = [
   { id: 'general',      label: 'General',      icon: Building2   },
@@ -46,9 +43,6 @@ export default function SettingsModal({ settings, onClose, onSave }) {
   const [showApiKey, setShowApiKey] = useState(false)
   const [showWaToken, setShowWaToken] = useState(false)
   const [showTgToken, setShowTgToken] = useState(false)
-  const [metaSyncing, setMetaSyncing] = useState(false)
-  const [metaProgress, setMetaProgress] = useState(null) // { sent, total, current }
-  const [metaResult, setMetaResult] = useState(null)     // { sent, skipped, failed, errors }
   const [changingPin, setChangingPin] = useState(false)
   const [currentPinInput, setCurrentPinInput] = useState('')
   const [newPin, setNewPin] = useState('')
@@ -349,96 +343,6 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                       className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 text-sm outline-none transition-all"
                       placeholder="987654321" />
                   </div>
-                </div>
-              </div>
-
-              {/* Meta Conversions API */}
-              <div className="border-t pt-4 mt-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Megaphone size={15} className="text-blue-600" />
-                  <span className="text-sm font-medium text-gray-700">Meta Conversions API</span>
-                </div>
-                <p className="text-xs text-gray-500 mb-3">
-                  Envía eventos Purchase a Meta para optimizar tus anuncios de Instagram/Facebook.
-                </p>
-
-                <div className="bg-blue-50 rounded-xl p-3 space-y-3">
-                  <p className="text-xs text-blue-700">
-                    Envía los pagos existentes como eventos Purchase a Meta con el curso correspondiente.
-                    Alumnas menores usan datos del representante; adultas usan sus propios datos.
-                  </p>
-
-                  <button
-                    type="button"
-                    disabled={metaSyncing}
-                    onClick={async () => {
-                      setMetaSyncing(true)
-                      setMetaResult(null)
-                      setMetaProgress({ sent: 0, total: 0, current: '' })
-                      try {
-                        // Traer pagos con datos de la alumna
-                        const { data: payments, error } = await supabase
-                          .from('payments')
-                          .select('id, amount, payment_date, student_id, students(id, name, phone, email, cedula, is_minor, parent_name, parent_phone, parent_email, parent_cedula, course_id)')
-                        if (error) throw error
-
-                        // Mapear pagos con datos de alumna y nombre de curso
-                        const mapped = payments.map(p => ({
-                          id: p.id,
-                          amount: p.amount,
-                          payment_date: p.payment_date,
-                          courseName: getCourseById(p.students?.course_id)?.name || 'Curso',
-                          student: p.students,
-                        })).filter(p => p.student)
-
-                        setMetaProgress({ sent: 0, total: mapped.length, current: '' })
-                        const result = await sendBulkPurchaseEvents(mapped, (processed, total, current) => {
-                          setMetaProgress({ sent: processed, total, current: current || '' })
-                        })
-                        setMetaResult(result)
-                      } catch (err) {
-                        setMetaResult({ sent: 0, skipped: 0, failed: 0, errors: [err.message] })
-                      } finally {
-                        setMetaSyncing(false)
-                      }
-                    }}
-                    className={`w-full py-2 px-4 rounded-xl text-sm font-medium transition-all ${
-                      metaSyncing
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  >
-                    {metaSyncing
-                      ? `Enviando... ${metaProgress?.sent || 0}/${metaProgress?.total || 0}`
-                      : 'Enviar pagos existentes a Meta'}
-                  </button>
-
-                  {metaSyncing && metaProgress && (
-                    <div className="space-y-1">
-                      <div className="w-full bg-blue-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${metaProgress.total ? (metaProgress.sent / metaProgress.total * 100) : 0}%` }}
-                        />
-                      </div>
-                      {metaProgress.current && (
-                        <p className="text-xs text-blue-600 truncate">Procesando: {metaProgress.current}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {metaResult && !metaSyncing && (
-                    <div className={`text-xs p-2 rounded-lg ${metaResult.errors.length > 0 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                      <p className="font-medium">
-                        {metaResult.sent} enviados, {metaResult.skipped} sin datos de contacto, {metaResult.failed} fallidos
-                      </p>
-                      {metaResult.errors.length > 0 && (
-                        <ul className="mt-1 list-disc list-inside">
-                          {metaResult.errors.map((e, i) => <li key={i}>{e}</li>)}
-                        </ul>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
 

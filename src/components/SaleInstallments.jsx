@@ -494,7 +494,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 value={studentSearch}
                 onChange={e => { setStudentSearch(e.target.value); setShowStudents(true) }}
                 onFocus={() => setShowStudents(true)}
-                onBlur={() => setTimeout(() => setShowStudents(false), 150)}
+                onBlur={() => setTimeout(() => setShowStudents(false), 250)}
                 placeholder="Nombre o cédula..."
                 className="flex-1 text-sm outline-none bg-transparent"
               />
@@ -509,7 +509,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <div className="mt-1 border-2 border-purple-200 rounded-xl overflow-hidden bg-white shadow-lg z-10">
                 {filteredStudents.map(s => (
                   <button key={s.id} type="button"
-                    onMouseDown={() => fillFromStudent(s)}
+                    onMouseDown={(e) => { e.preventDefault(); fillFromStudent(s) }}
                     className="w-full px-3 py-2.5 text-left flex justify-between items-center hover:bg-purple-50 border-b last:border-0">
                     <span className="text-sm font-medium text-gray-800">{s.name}</span>
                     {s.cedula && <span className="text-xs text-gray-400 ml-2">{s.cedula}</span>}
