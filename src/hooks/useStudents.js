@@ -393,12 +393,12 @@ export function useStudents() {
       logAudit({ action: 'payment_registered', tableName: 'payments', recordId: paymentRecord.id, newData: { amount: paymentData.amount, student_id: studentId, payment_method: paymentData.paymentMethod } })
 
       // Fire-and-forget: enviar evento Purchase a Meta CAPI
-      const student = students.find(s => s.id === studentId)
       if (student) {
         sendPurchaseEvent(student, {
           amount: paymentData.amount,
           paymentMethod: paymentData.paymentMethod,
           paymentId: paymentRecord.id,
+          courseName: course?.name || 'Curso',
         })
       }
 

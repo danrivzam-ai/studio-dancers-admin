@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark, MessageCircle, Database, Megaphone } from 'lucide-react'
 import BackupExport from './BackupExport'
-import { sendBulkLeadEvents } from '../lib/metaConversionsApi'
+import { sendBulkPurchaseEvents } from '../lib/metaConversionsApi'
+import { getCourseById } from '../lib/courses'
 import { supabase } from '../lib/supabase'
 
 const TABS = [
@@ -348,12 +349,12 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                   <span className="text-sm font-medium text-gray-700">Meta Conversions API</span>
                 </div>
                 <p className="text-xs text-gray-500 mb-3">
-                  Envía eventos Lead a Meta para optimizar tus anuncios de Instagram/Facebook.
+                  Envía eventos Purchase a Meta para optimizar tus anuncios de Instagram/Facebook.
                 </p>
 
                 <div className="bg-blue-50 rounded-xl p-3 space-y-3">
                   <p className="text-xs text-blue-700">
-                    Envia las alumnas existentes como eventos Lead a Meta.
+                    Envía los pagos existentes como eventos Purchase a Meta con el curso correspondiente.
                     Alumnas menores usan datos del representante; adultas usan sus propios datos.
                   </p>
 
@@ -365,13 +366,23 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                       setMetaResult(null)
                       setMetaProgress({ sent: 0, total: 0, current: '' })
                       try {
-                        const { data, error } = await supabase
-                          .from('students')
-                          .select('id, name, phone, email, cedula, is_minor, parent_name, parent_phone, parent_email, parent_cedula, enrollment_date, created_at')
-                          .eq('active', true)
+                        // Traer pagos con datos de la alumna
+                        const { data: payments, error } = await supabase
+                          .from('payments')
+                          .select('id, amount, payment_date, student_id, students(id, name, phone, email, cedula, is_minor, parent_name, parent_phone, parent_email, parent_cedula, course_id)')
                         if (error) throw error
-                        setMetaProgress({ sent: 0, total: data.length, current: '' })
-                        const result = await sendBulkLeadEvents(data, (processed, total, current) => {
+
+                        // Mapear pagos con datos de alumna y nombre de curso
+                        const mapped = payments.map(p => ({
+                          id: p.id,
+                          amount: p.amount,
+                          payment_date: p.payment_date,
+                          courseName: getCourseById(p.students?.course_id)?.name || 'Curso',
+                          student: p.students,
+                        })).filter(p => p.student)
+
+                        setMetaProgress({ sent: 0, total: mapped.length, current: '' })
+                        const result = await sendBulkPurchaseEvents(mapped, (processed, total, current) => {
                           setMetaProgress({ sent: processed, total, current: current || '' })
                         })
                         setMetaResult(result)
@@ -389,7 +400,7 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                   >
                     {metaSyncing
                       ? `Enviando... ${metaProgress?.sent || 0}/${metaProgress?.total || 0}`
-                      : 'Enviar alumnas existentes a Meta'}
+                      : 'Enviar pagos existentes a Meta'}
                   </button>
 
                   {metaSyncing && metaProgress && (
