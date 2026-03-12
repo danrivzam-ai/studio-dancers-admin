@@ -173,8 +173,8 @@ export async function sendBulkLeadEvents(students, onProgress) {
     return { sent: 0, skipped: 0, failed: 0, errors: ['Missing PIXEL_ID or ACCESS_TOKEN'] }
   }
 
-  const BATCH_SIZE = 10
-  const DELAY_MS = 2000 // 2 segundos entre lotes
+  const BATCH_SIZE = 5
+  const DELAY_MS = 5000 // 5 segundos entre lotes
   let sent = 0
   let skipped = 0
   let failed = 0
