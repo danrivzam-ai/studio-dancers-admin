@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
+import { sendLeadEvent } from '../lib/metaConversionsApi'
 
 export function useStudents() {
   const [students, setStudents] = useState([])
@@ -102,6 +103,10 @@ export function useStudents() {
 
       setStudents(prev => [data, ...prev])
       logAudit({ action: 'student_created', tableName: 'students', recordId: data.id, newData: { name: data.name, course_id: data.course_id } })
+
+      // Fire-and-forget: enviar evento Lead a Meta Conversions API
+      sendLeadEvent(data, data.id)
+
       return { success: true, data }
     } catch (err) {
       console.error('Error creating student:', err)
