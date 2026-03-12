@@ -403,10 +403,17 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
 
   const fillFromStudent = (student) => {
-    setCustomerName(student.name)
-    setCustomerCedula(student.cedula || '')
-    setCustomerEmail(student.email || '')
-    setCustomerPhone(student.phone || '')
+    if (student.is_minor) {
+      setCustomerName(student.parent_name || student.name)
+      setCustomerCedula(student.parent_cedula || '')
+      setCustomerEmail(student.parent_email || '')
+      setCustomerPhone(student.parent_phone || student.phone || '')
+    } else {
+      setCustomerName(student.name)
+      setCustomerCedula(student.cedula || '')
+      setCustomerEmail(student.email || '')
+      setCustomerPhone(student.phone || '')
+    }
     setStudentSearch('')
     setShowStudents(false)
   }
