@@ -165,7 +165,7 @@ export async function sendLeadEvent(studentData, eventId) {
  * Fire-and-forget: no lanza excepciones.
  *
  * @param {Object} studentData - Datos de la alumna
- * @param {Object} paymentData - Datos del pago { amount, paymentMethod, paymentId }
+ * @param {Object} paymentData - Datos del pago { amount, paymentMethod, paymentId, courseName }
  * @returns {Promise<{success: boolean, error?: string}>}
  */
 export async function sendPurchaseEvent(studentData, paymentData) {
@@ -193,7 +193,7 @@ export async function sendPurchaseEvent(studentData, paymentData) {
           custom_data: {
             currency: 'USD',
             value: parseFloat(paymentData.amount) || 0,
-            content_name: 'Pago de mensualidad',
+            content_name: paymentData.courseName || 'Pago de mensualidad',
             content_category: studentData.is_minor || studentData.isMinor
               ? 'menor_con_representante'
               : 'adulta',
@@ -224,56 +224,60 @@ export async function sendPurchaseEvent(studentData, paymentData) {
 }
 
 /**
- * Envía eventos Lead en lote para alumnas existentes en la BD.
- * Usa event_time basado en enrollment_date o created_at de cada alumna.
- * Envía en lotes de 10 con pausas para no sobrecargar la API.
+ * Envía eventos Purchase en lote para pagos existentes en la BD.
+ * Cada pago incluye datos de la alumna y el nombre del curso.
+ * Envía en lotes de 5 con pausas de 5s para no sobrecargar la API.
  *
- * @param {Object[]} students - Array de alumnas desde la BD
+ * @param {Object[]} payments - Array de pagos con datos de alumna y curso
+ *   Cada item: { id, amount, payment_date, student: { id, name, phone, email, ... }, courseName }
  * @param {function} [onProgress] - Callback (sent, total, current) para mostrar progreso
  * @returns {Promise<{sent: number, skipped: number, failed: number, errors: string[]}>}
  */
-export async function sendBulkLeadEvents(students, onProgress) {
+export async function sendBulkPurchaseEvents(payments, onProgress) {
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     return { sent: 0, skipped: 0, failed: 0, errors: ['Missing PIXEL_ID or ACCESS_TOKEN'] }
   }
 
   const BATCH_SIZE = 5
-  const DELAY_MS = 5000 // 5 segundos entre lotes
+  const DELAY_MS = 5000
   let sent = 0
   let skipped = 0
   let failed = 0
   const errors = []
 
-  for (let i = 0; i < students.length; i += BATCH_SIZE) {
-    const batch = students.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < payments.length; i += BATCH_SIZE) {
+    const batch = payments.slice(i, i + BATCH_SIZE)
     const events = []
 
-    for (const student of batch) {
+    for (const payment of batch) {
+      const student = payment.student
+      if (!student) { skipped++; continue }
+
       const userData = await buildUserData(student)
 
-      // Sin teléfono ni email → no hay forma de hacer match
       if (!userData.ph && !userData.em) {
         skipped++
         continue
       }
 
       // Meta rechaza eventos con más de 7 días de antigüedad
-      // Usar fecha de inscripción solo si es reciente, sino usar fecha actual
       const now = Math.floor(Date.now() / 1000)
       const sevenDaysAgo = now - (7 * 24 * 60 * 60)
-      const rawTime = student.enrollment_date || student.created_at
-        ? Math.floor(new Date(student.enrollment_date || student.created_at).getTime() / 1000)
+      const rawTime = payment.payment_date
+        ? Math.floor(new Date(payment.payment_date).getTime() / 1000)
         : now
       const eventTime = rawTime < sevenDaysAgo ? now : rawTime
 
       events.push({
-        event_name: 'Lead',
+        event_name: 'Purchase',
         event_time: eventTime,
         action_source: 'physical_store',
-        event_id: `lead_${student.id}`,
+        event_id: `purchase_${payment.id}`,
         user_data: userData,
         custom_data: {
-          content_name: 'Registro de alumna',
+          currency: 'USD',
+          value: parseFloat(payment.amount) || 0,
+          content_name: payment.courseName || 'Pago de mensualidad',
           content_category: student.is_minor ? 'menor_con_representante' : 'adulta',
         },
       })
@@ -292,7 +296,7 @@ export async function sendBulkLeadEvents(students, onProgress) {
 
       if (res.ok) {
         sent += events.length
-        console.log(`[Meta CAPI] Batch sent: ${events.length} events`, result)
+        console.log(`[Meta CAPI] Batch sent: ${events.length} Purchase events`, result)
       } else {
         failed += events.length
         const errMsg = result.error?.message || result.error?.error_user_msg || JSON.stringify(result.error || result)
@@ -304,10 +308,9 @@ export async function sendBulkLeadEvents(students, onProgress) {
       errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${err.message}`)
     }
 
-    if (onProgress) onProgress(sent + skipped + failed, students.length, batch[batch.length - 1]?.name)
+    if (onProgress) onProgress(sent + skipped + failed, payments.length, batch[batch.length - 1]?.student?.name)
 
-    // Pausa entre lotes (excepto el último)
-    if (i + BATCH_SIZE < students.length) {
+    if (i + BATCH_SIZE < payments.length) {
       await new Promise(r => setTimeout(r, DELAY_MS))
     }
   }
