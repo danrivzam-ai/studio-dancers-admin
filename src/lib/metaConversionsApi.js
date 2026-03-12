@@ -160,6 +160,70 @@ export async function sendLeadEvent(studentData, eventId) {
 }
 
 /**
+ * Envía un evento Purchase a Meta Conversions API.
+ * Se llama al registrar un pago de alumna.
+ * Fire-and-forget: no lanza excepciones.
+ *
+ * @param {Object} studentData - Datos de la alumna
+ * @param {Object} paymentData - Datos del pago { amount, paymentMethod, paymentId }
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export async function sendPurchaseEvent(studentData, paymentData) {
+  try {
+    if (!PIXEL_ID || !ACCESS_TOKEN) {
+      console.warn('[Meta CAPI] Missing PIXEL_ID or ACCESS_TOKEN — skipping event')
+      return { success: false, error: 'Missing config' }
+    }
+
+    const userData = await buildUserData(studentData)
+
+    if (!userData.ph && !userData.em) {
+      console.warn('[Meta CAPI] No phone or email available — skipping event')
+      return { success: false, error: 'No contact data for matching' }
+    }
+
+    const payload = {
+      data: [
+        {
+          event_name: 'Purchase',
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'physical_store',
+          event_id: `purchase_${paymentData.paymentId || Date.now()}`,
+          user_data: userData,
+          custom_data: {
+            currency: 'USD',
+            value: parseFloat(paymentData.amount) || 0,
+            content_name: 'Pago de mensualidad',
+            content_category: studentData.is_minor || studentData.isMinor
+              ? 'menor_con_representante'
+              : 'adulta',
+          },
+        },
+      ],
+    }
+
+    const res = await fetch(`${ENDPOINT}?access_token=${ACCESS_TOKEN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    const result = await res.json()
+
+    if (!res.ok) {
+      console.error('[Meta CAPI] Error:', result)
+      return { success: false, error: result.error?.message || 'API error' }
+    }
+
+    console.log('[Meta CAPI] Purchase event sent:', result)
+    return { success: true }
+  } catch (err) {
+    console.error('[Meta CAPI] Failed to send Purchase event:', err)
+    return { success: false, error: err.message }
+  }
+}
+
+/**
  * Envía eventos Lead en lote para alumnas existentes en la BD.
  * Usa event_time basado en enrollment_date o created_at de cada alumna.
  * Envía en lotes de 10 con pausas para no sobrecargar la API.
