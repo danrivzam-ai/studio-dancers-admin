@@ -32,7 +32,7 @@ export function useSalePlans() {
   useEffect(() => { fetchPlans() }, [fetchPlans])
 
   // ── Crear nuevo plan ─────────────────────────────────────────────────────
-  const createPlan = async ({ customerName, customerCedula, customerEmail, customerPhone, items, totalAmount, notes }) => {
+  const createPlan = async ({ customerName, customerCedula, customerEmail, customerPhone, items, totalAmount, notes, studentId, studentName, studentCourse }) => {
     try {
       const { data, error } = await supabase
         .from('sale_plans')
@@ -41,6 +41,9 @@ export function useSalePlans() {
           customer_cedula_ruc: customerCedula?.trim() || null,
           customer_email:      customerEmail?.trim() || null,
           customer_phone:      customerPhone?.trim() || null,
+          student_id:          studentId || null,
+          student_name:        studentName?.trim() || null,
+          student_course:      studentCourse?.trim() || null,
           items,
           total_amount:        totalAmount,
           amount_paid:         0,

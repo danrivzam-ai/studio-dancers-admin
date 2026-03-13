@@ -398,6 +398,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const [customTotal,    setCustomTotal]    = useState('')
   const [error,          setError]          = useState('')
   const [showStudents,   setShowStudents]   = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState(null) // alumna vinculada
 
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0)
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
@@ -414,6 +415,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
       setCustomerEmail(student.email || '')
       setCustomerPhone(student.phone || '')
     }
+    setSelectedStudent(student)
     setStudentSearch('')
     setShowStudents(false)
   }
@@ -466,6 +468,9 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
       customerCedula: customerCedula.trim() || null,
       customerEmail:  customerEmail.trim() || null,
       customerPhone:  customerPhone.trim() || null,
+      studentId:      selectedStudent?.id || null,
+      studentName:    selectedStudent ? selectedStudent.name : null,
+      studentCourse:  selectedStudent?.course_name || null,
       items: cart.map(i => ({
         product_code: i.product.code || i.product.id,
         name:         i.product.name,
@@ -526,12 +531,35 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
             )}
           </div>
 
+          {/* Info alumna seleccionada */}
+          {selectedStudent && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-purple-800">
+                  👩‍🎓 {selectedStudent.name}
+                  {selectedStudent.is_minor && <span className="ml-1 text-purple-500">(menor)</span>}
+                </p>
+                {selectedStudent.course_name && (
+                  <p className="text-[10px] text-purple-600">🎓 {selectedStudent.course_name}</p>
+                )}
+              </div>
+              <button type="button" onClick={() => {
+                setSelectedStudent(null)
+                setCustomerName(''); setCustomerCedula(''); setCustomerEmail(''); setCustomerPhone('')
+              }} className="text-purple-400 hover:text-purple-600">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           {/* Nombre */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+              {selectedStudent?.is_minor ? 'Nombre del representante *' : 'Nombre completo *'}
+            </label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-              placeholder="Nombre completo" />
+              placeholder={selectedStudent?.is_minor ? 'Nombre del representante' : 'Nombre completo'} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -685,12 +713,17 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
     : ''
   const payments = plan.sale_plan_payments || []
 
-  // Buscar alumna en sistema por cédula para obtener teléfono y curso si el plan no los tiene
-  const linkedStudent = plan.customer_cedula_ruc
-    ? students.find(s => (s.cedula || '') === plan.customer_cedula_ruc)
-    : null
+  // Buscar alumna en sistema por student_id o cédula como fallback
+  const linkedStudent = plan.student_id
+    ? students.find(s => s.id === plan.student_id)
+    : plan.customer_cedula_ruc
+      ? students.find(s => (s.cedula || '') === plan.customer_cedula_ruc)
+      : null
   const effectivePhone = plan.customer_phone || linkedStudent?.phone || ''
-  const effectiveCourse = linkedStudent?.course_name || ''
+  const effectiveCourse = plan.student_course || linkedStudent?.course_name || ''
+  const effectiveStudentName = plan.student_name || linkedStudent?.name || ''
+  // Mostrar nombre alumna solo si es diferente al customer_name (representante)
+  const showStudentName = effectiveStudentName && effectiveStudentName !== plan.customer_name
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
@@ -698,7 +731,13 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-800 text-sm truncate">{plan.customer_name}</p>
+            {showStudentName && (
+              <p className="text-xs text-purple-600 font-medium truncate">👩‍🎓 {effectiveStudentName}</p>
+            )}
             <p className="text-xs text-gray-500 mt-0.5 truncate">{itemsLabel}</p>
+            {effectiveCourse && (
+              <p className="text-[10px] text-gray-400 truncate">🎓 {effectiveCourse}</p>
+            )}
           </div>
           <StatusBadge status={plan.status} />
         </div>
@@ -860,7 +899,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
                 {/* Datos del cliente */}
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente / Representante</p>
                   <p className="font-bold text-gray-800">{plan.customer_name}</p>
                   {plan.customer_cedula_ruc && (
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
@@ -871,12 +910,20 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                   {plan.customer_email && (
                     <p className="text-sm text-gray-500 mt-0.5">✉️ {plan.customer_email}</p>
                   )}
-                  {effectiveCourse && (
-                    <p className="text-xs mt-1.5 px-2 py-1 bg-purple-50 text-purple-700 rounded-lg font-medium inline-block">
-                      🎓 {effectiveCourse}
-                    </p>
-                  )}
                 </div>
+
+                {/* Alumna y curso */}
+                {(showStudentName || effectiveCourse) && (
+                  <div className="bg-purple-50 rounded-xl p-3">
+                    <p className="text-[10px] text-purple-400 uppercase tracking-wide font-semibold mb-1">Alumna</p>
+                    {showStudentName && (
+                      <p className="text-sm font-semibold text-purple-800">👩‍🎓 {effectiveStudentName}</p>
+                    )}
+                    {effectiveCourse && (
+                      <p className="text-xs text-purple-600 mt-0.5">🎓 {effectiveCourse}</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Artículos */}
                 {Array.isArray(plan.items) && plan.items.length > 0 && (
