@@ -146,11 +146,28 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
     if (!receiptRef.current) return
     setDownloading(true)
     try {
-      const dataUrl = await toPng(receiptRef.current, { pixelRatio: 2, backgroundColor: '#ffffff' })
-      const link = document.createElement('a')
-      link.download = `Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.png`
-      link.href = dataUrl
-      link.click()
+      const dataUrl = await toPng(receiptRef.current, { pixelRatio: 2, backgroundColor: '#ffffff', cacheBust: true })
+      const filename = `Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.png`
+
+      // Convertir data URL a blob para mejor compatibilidad móvil
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+
+      // Intentar compartir en móvil (nativo)
+      if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+        const file = new File([blob], filename, { type: 'image/png' })
+        await navigator.share({ files: [file], title: 'Comprobante de abono' })
+      } else {
+        // Fallback: descargar con blob URL
+        const blobUrl = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+      }
     } catch (e) { console.error('toPng error:', e) }
     setDownloading(false)
   }
@@ -171,7 +188,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
           <div className="flex gap-2">
             <button onClick={handleDownload} disabled={downloading}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 disabled:opacity-50">
-              <Printer size={13} /> {downloading ? 'Guardando...' : 'Descargar PNG'}
+              <Printer size={13} /> {downloading ? 'Guardando...' : (navigator.share ? 'Compartir' : 'Descargar PNG')}
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
               <X size={16} />
