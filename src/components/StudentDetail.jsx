@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
@@ -13,7 +13,7 @@ const METHOD_STYLE = {
 }
 const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, schoolName }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, schoolName }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
@@ -474,19 +474,41 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Footer ── */}
-        <div className="p-4 border-t bg-gray-50 space-y-2 shrink-0">
-          {!student.is_courtesy && isRecurring && onReactivate && (
-            <button
-              onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
-              className="w-full py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
-            >
-              <RefreshCw size={15} /> Reactivar ciclo (gracia)
-            </button>
+        <div className="p-4 border-t bg-gray-50 space-y-3 shrink-0">
+          {/* Acciones secundarias */}
+          {!student.is_courtesy && isRecurring && (
+            <div className="flex gap-2">
+              {onReactivate && (
+                <button
+                  onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
+                  className="flex-1 py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+                >
+                  <RefreshCw size={15} /> Reactivar ciclo
+                </button>
+              )}
+              {onPause && (
+                <button
+                  onClick={() => onPause(student)}
+                  className={`flex-1 py-2.5 border rounded-xl font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all ${
+                    student.is_paused
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                      : 'bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100'
+                  }`}
+                >
+                  {student.is_paused
+                    ? <><Play size={15} /> Reanudar</>
+                    : <><Snowflake size={15} /> Pausar 1 clase</>
+                  }
+                </button>
+              )}
+            </div>
           )}
+
+          {/* Acciones principales */}
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
+              className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
             >
               Cerrar
             </button>

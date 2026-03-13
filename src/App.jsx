@@ -2793,6 +2793,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               openPaymentModal(student)
             }}
             onReactivate={reactivateCycle}
+            onPause={handlePauseStudent}
             schoolName={settings?.name}
           />
         )}
