@@ -118,7 +118,7 @@ export default function SettingsModal({ settings, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className="p-5 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl shrink-0">
@@ -143,7 +143,7 @@ export default function SettingsModal({ settings, onClose, onSave }) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium transition-all border-b-2 ${
                   active
-                    ? 'border-purple-600 text-purple-700 bg-white'
+                    ? 'border-purple-600 text-purple-700 bg-white font-semibold'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >

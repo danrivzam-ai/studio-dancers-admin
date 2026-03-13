@@ -25,6 +25,7 @@ export default function PaymentHistory({
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(window.innerWidth >= 768)
   const [viewType, setViewType] = useState('all') // 'all', 'students', 'quick'
+  const [activePreset, setActivePreset] = useState(null)
 
   // Estado para anulación
   const [voidModal, setVoidModal] = useState({ show: false, type: null, payment: null })
@@ -350,6 +351,7 @@ export default function PaymentHistory({
 
     setDateFrom(formatDateForInput(from))
     setDateTo(formatDateForInput(today))
+    setActivePreset(preset)
   }
 
   return (
@@ -400,7 +402,11 @@ export default function PaymentHistory({
                   <button
                     key={p.key}
                     onClick={() => setDatePreset(p.key)}
-                    className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 active:scale-95 transition-all"
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold active:scale-95 transition-all ${
+                      activePreset === p.key
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:text-purple-700'
+                    }`}
                   >
                     {p.label}
                   </button>
@@ -414,7 +420,7 @@ export default function PaymentHistory({
                   <input
                     type="date"
                     value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
+                    onChange={(e) => { setDateFrom(e.target.value); setActivePreset(null) }}
                     className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   />
                 </div>
@@ -423,7 +429,7 @@ export default function PaymentHistory({
                   <input
                     type="date"
                     value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
+                    onChange={(e) => { setDateTo(e.target.value); setActivePreset(null) }}
                     className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
                   />
                 </div>

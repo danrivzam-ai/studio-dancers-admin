@@ -279,7 +279,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <p className="font-semibold text-gray-800">Registrar abono</p>
@@ -916,7 +916,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
                 {/* Datos del cliente */}
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente / Representante</p>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente / Representante</p>
                   <p className="font-bold text-gray-800">{plan.customer_name}</p>
                   {plan.customer_cedula_ruc && (
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
@@ -932,7 +932,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                 {/* Alumna y curso */}
                 {(showStudentName || effectiveCourse) && (
                   <div className="bg-purple-50 rounded-xl p-3">
-                    <p className="text-[10px] text-purple-400 uppercase tracking-wide font-semibold mb-1">Alumna</p>
+                    <p className="text-xs text-purple-400 uppercase tracking-wide font-semibold mb-1">Alumna</p>
                     {showStudentName && (
                       <p className="text-sm font-semibold text-purple-800">👩‍🎓 {effectiveStudentName}</p>
                     )}
@@ -945,7 +945,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                 {/* Artículos */}
                 {Array.isArray(plan.items) && plan.items.length > 0 && (
                   <div className="border-t pt-3">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Artículos</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Artículos</p>
                     {plan.items.map((item, i) => (
                       <div key={i} className="flex justify-between text-sm py-0.5">
                         <span className="text-gray-700">{item.name}{item.quantity > 1 ? ` ×${item.quantity}` : ''}</span>
@@ -981,7 +981,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                 {/* Historial de abonos */}
                 {payments.length > 0 && (
                   <div className="border-t pt-3">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Historial de abonos</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Historial de abonos</p>
                     {[...payments]
                       .sort((a, b) => a.installment_number - b.installment_number)
                       .map(pmt => (
@@ -1143,7 +1143,7 @@ export default function SaleInstallments({
               {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)}
                   className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
-                    ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+                    ${tab === key ? 'bg-white shadow-sm text-purple-700' : 'text-gray-500 hover:text-gray-700'}`}>
                   {label}
                 </button>
               ))}

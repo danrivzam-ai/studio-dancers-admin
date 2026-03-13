@@ -287,6 +287,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
+  const [storeView, setStoreView] = useState('articulos')
   const [newPlanPreselect, setNewPlanPreselect] = useState(null)
   const [collapsedCats, setCollapsedCats] = useState(new Set())
   const [showNewPlan, setShowNewPlan] = useState(false)
@@ -1530,6 +1531,29 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
           return (
           <div className="space-y-4">
+
+          {/* Sub-tabs Tienda */}
+          <div className="bg-gray-100 rounded-xl p-1 flex gap-1">
+            <button onClick={() => setStoreView('articulos')}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                storeView === 'articulos' ? 'bg-white text-purple-700 shadow-sm font-semibold' : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              Artículos
+            </button>
+            <button onClick={() => setStoreView('abonos')}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all relative ${
+                storeView === 'abonos' ? 'bg-white text-purple-700 shadow-sm font-semibold' : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              Planes de Abono
+              {activePlans.length > 0 && (
+                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-bold ${
+                  storeView === 'abonos' ? 'bg-purple-100 text-purple-700' : 'bg-purple-600 text-white'
+                }`}>{activePlans.length}</span>
+              )}
+            </button>
+          </div>
+
+          {storeView === 'articulos' && (<>
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -1553,8 +1577,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     onClick={() => setSalesDateFilter(f.value)}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                       salesDateFilter === f.value
-                        ? 'bg-green-600 text-white shadow-sm'
-                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:text-purple-700'
                     }`}
                   >
                     {f.label}
@@ -1646,6 +1670,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   onClick={() => {
                                     setNewPlanPreselect(product)
                                     setShowNewPlan(true)
+                                    setStoreView('abonos')
                                   }}
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
                                   Abonar
@@ -1750,8 +1775,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             )}
           </div>
+          </>)}
 
           {/* Ventas en Abonos */}
+          {storeView === 'abonos' && (
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
@@ -1784,6 +1811,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               />
             </div>
           </div>
+          )}
           </div>
           )
         })()}

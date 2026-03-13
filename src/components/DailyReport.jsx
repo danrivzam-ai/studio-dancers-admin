@@ -122,7 +122,7 @@ export default function DailyReport({ cashRegister }) {
 
       {/* Fila 1: Resumen principal */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
           <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className="p-2 bg-green-100 rounded-xl">
               <TrendingUp size={18} className="text-green-600" />
@@ -136,7 +136,7 @@ export default function DailyReport({ cashRegister }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
           <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className="p-2 bg-red-100 rounded-xl">
               <TrendingDown size={18} className="text-red-600" />
@@ -150,7 +150,7 @@ export default function DailyReport({ cashRegister }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 flex sm:block items-center gap-3">
           <div className="flex items-center gap-2 sm:mb-2 shrink-0">
             <div className={`p-2 rounded-xl ${r.totals.netBalance >= 0 ? 'bg-blue-100' : 'bg-orange-100'}`}>
               <DollarSign size={18} className={r.totals.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'} />
