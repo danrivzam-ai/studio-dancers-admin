@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Check, User, Users, CreditCard, Search, UserCheck } from 'lucide-react'
+import { X, Check, User, Users, CreditCard, Search, UserCheck, Gift } from 'lucide-react'
 import { getTodayEC } from '../lib/dateUtils'
 
 // Reusable labeled input component
@@ -77,7 +77,10 @@ export default function StudentForm({
     hasDifferentPayer: false,
     payerName: '', payerCedula: '', payerPhone: '', payerAddress: '',
     courseId: '', notes: '',
-    enrollmentDate: getTodayEC()
+    enrollmentDate: getTodayEC(),
+    isCourtesy: false,
+    courtesyCategory: '',
+    courtesyEndDate: ''
   })
 
   useEffect(() => {
@@ -106,7 +109,10 @@ export default function StudentForm({
         payerAddress: student.payer_address || '',
         courseId: student.course_id || '',
         notes: student.notes || '',
-        enrollmentDate: student.enrollment_date || getTodayEC()
+        enrollmentDate: student.enrollment_date || getTodayEC(),
+        isCourtesy: student.is_courtesy || false,
+        courtesyCategory: student.courtesy_category || '',
+        courtesyEndDate: student.courtesy_end_date || ''
       })
     }
   }, [student])
@@ -384,6 +390,51 @@ export default function StudentForm({
               </div>
             </div>
           )}
+
+          {/* CORTESÍA */}
+          <div className={`border-2 rounded-xl p-3 transition-all ${formData.isCourtesy ? 'border-amber-300 bg-amber-50/50' : 'border-gray-100'}`}>
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.isCourtesy}
+                onChange={(e) => setFormData({...formData, isCourtesy: e.target.checked, courtesyCategory: e.target.checked ? 'invitado' : '', courtesyEndDate: ''})}
+                className="w-3.5 h-3.5 text-amber-600 rounded"
+              />
+              <Gift size={12} className="text-amber-600" />
+              Pase de cortesía
+            </label>
+
+            {formData.isCourtesy && (
+              <div className="mt-3 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <LabeledInput label="Categoría" required>
+                    <select
+                      required
+                      value={formData.courtesyCategory}
+                      onChange={(e) => setFormData({...formData, courtesyCategory: e.target.value})}
+                      className={inputClass}
+                    >
+                      <option value="invitado">Invitado</option>
+                      <option value="influencer">Influencer</option>
+                      <option value="vip">VIP</option>
+                    </select>
+                  </LabeledInput>
+                  <LabeledInput label="Acceso hasta">
+                    <input
+                      type="date"
+                      value={formData.courtesyEndDate}
+                      onChange={(e) => setFormData({...formData, courtesyEndDate: e.target.value})}
+                      className={inputClass}
+                      placeholder="Indefinido"
+                    />
+                  </LabeledInput>
+                </div>
+                <p className="text-[10px] text-amber-600">
+                  Sin fecha = acceso indefinido. No generará registros financieros.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* PAGADOR DIFERENTE */}
           <div className="border-2 border-gray-100 rounded-xl p-3">

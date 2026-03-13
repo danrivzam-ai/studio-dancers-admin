@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
@@ -175,9 +175,20 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
           {/* Status + Loyalty badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${paymentStatus.color}`}>
-              {paymentStatus.label}
-            </span>
+            {student.is_courtesy ? (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                student.courtesy_category === 'influencer' ? 'bg-pink-100 text-pink-700'
+                : student.courtesy_category === 'vip' ? 'bg-amber-100 text-amber-700'
+                : 'bg-blue-100 text-blue-700'
+              }`}>
+                <Gift size={11} className="inline mr-1" />
+                Cortesía {student.courtesy_category === 'influencer' ? '· Influencer' : student.courtesy_category === 'vip' ? '· VIP' : '· Invitado'}
+              </span>
+            ) : (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${paymentStatus.color}`}>
+                {paymentStatus.label}
+              </span>
+            )}
             {student.is_paused && (
               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                 Pausado
@@ -199,8 +210,24 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         {/* ── Scrollable content ── */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100svh - 270px)' }}>
 
+          {/* Courtesy info banner */}
+          {student.is_courtesy && (
+            <div className="p-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                <Gift size={24} className="mx-auto mb-2 text-amber-500" />
+                <p className="text-sm font-bold text-amber-800">Pase de Cortesía</p>
+                <p className="text-xs text-amber-600 mt-1">
+                  {student.courtesy_end_date
+                    ? `Válido hasta ${formatDate(student.courtesy_end_date)}`
+                    : 'Acceso indefinido'}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">Este alumno no genera registros financieros</p>
+              </div>
+            </div>
+          )}
+
           {/* Payment cards grid */}
-          <div className="p-4 grid grid-cols-2 gap-3">
+          {!student.is_courtesy && <div className="p-4 grid grid-cols-2 gap-3">
             <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
               <p className="text-[10px] text-violet-400 uppercase tracking-wider font-medium mb-1">Tarifa</p>
               <p className="text-xl font-bold text-violet-700">${coursePrice.toFixed(2)}</p>
@@ -255,10 +282,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 {hasBalance && <p className="text-xs text-orange-400 mt-0.5">de ${coursePrice.toFixed(2)}</p>}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Fidelidad */}
-          {isRecurring && loyalty.months > 0 && (() => {
+          {!student.is_courtesy && isRecurring && loyalty.months > 0 && (() => {
             const lc = loyalty.tier === 'oro'
               ? { card: 'bg-amber-50 border-amber-300', icon: 'text-amber-600', title: 'text-amber-800', pct: 'text-amber-700' }
               : loyalty.tier === 'plata'
@@ -380,7 +407,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           )}
 
           {/* Historial de pagos */}
-          <div className="px-4 pb-5">
+          {!student.is_courtesy && <div className="px-4 pb-5">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Historial de pagos</p>
               <p className="text-xs text-gray-400">
@@ -443,12 +470,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 })}
               </div>
             )}
-          </div>
+          </div>}
         </div>
 
         {/* ── Footer ── */}
         <div className="p-4 border-t bg-gray-50 space-y-2 shrink-0">
-          {isRecurring && onReactivate && (
+          {!student.is_courtesy && isRecurring && onReactivate && (
             <button
               onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
               className="w-full py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
@@ -472,12 +499,14 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <MessageCircle size={18} />
               </button>
             )}
-            <button
-              onClick={() => { onClose(); if (onPayment) onPayment(student) }}
-              className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
-            >
-              <CreditCard size={16} /> Registrar Pago
-            </button>
+            {!student.is_courtesy && (
+              <button
+                onClick={() => { onClose(); if (onPayment) onPayment(student) }}
+                className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+              >
+                <CreditCard size={16} /> Registrar Pago
+              </button>
+            )}
           </div>
         </div>
       </div>

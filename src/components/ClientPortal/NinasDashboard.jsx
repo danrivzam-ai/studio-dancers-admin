@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CreditCard, CalendarDays, BookOpen, BarChart2 } from 'lucide-react'
+import { CreditCard, CalendarDays, BookOpen, BarChart2, Gift } from 'lucide-react'
 import TabPagos from './tabs/TabPagos'
 import TabCalendario from './tabs/TabCalendario'
 import TabGlosario from './tabs/TabGlosario'
@@ -17,9 +17,12 @@ export default function NinasDashboard({ auth, student, onLogout }) {
   const [activeTab, setActiveTab] = useState('pagos')
 
   const initials = (student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+  const isCourtesy = student.is_courtesy
   const ps = student.payment_status
   // DB values: 'paid' | 'pending' | 'partial' | 'overdue'
-  const chip = ps === 'paid'
+  const chip = isCourtesy
+    ? { label: 'Cortesía', cls: 'bg-amber-100 text-amber-700' }
+    : ps === 'paid'
     ? { label: 'Al día', cls: 'bg-emerald-100 text-emerald-700' }
     : ps === 'overdue'
     ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
@@ -52,6 +55,17 @@ export default function NinasDashboard({ auth, student, onLogout }) {
 
       {/* Contenido principal */}
       <div className="flex-1 overflow-y-auto pb-20">
+        {isCourtesy && (
+          <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+            <Gift size={18} className="mx-auto mb-1 text-amber-500" />
+            <p className="text-xs font-semibold text-amber-800">Pase de Cortesía</p>
+            <p className="text-[11px] text-amber-600 mt-0.5">
+              {student.courtesy_end_date
+                ? `Válido hasta ${new Date(student.courtesy_end_date + 'T12:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                : 'Acceso indefinido'}
+            </p>
+          </div>
+        )}
         {activeTab === 'pagos'      && <TabPagos        auth={auth} student={student} onLogout={onLogout} />}
         {activeTab === 'calendario' && <TabCalendario   auth={auth} student={student} />}
         {activeTab === 'glosario'   && <TabGlosario     />}

@@ -90,7 +90,10 @@ export function useStudents() {
         classes_used: course?.priceType === 'paquete' ? 0 : null,
         payment_status: 'pending',
         notes: studentData.notes || null,
-        active: true
+        active: true,
+        is_courtesy: studentData.isCourtesy || false,
+        courtesy_category: studentData.isCourtesy ? (studentData.courtesyCategory || 'invitado') : null,
+        courtesy_end_date: studentData.isCourtesy && studentData.courtesyEndDate ? studentData.courtesyEndDate : null
       }
 
       const { data, error } = await supabase
@@ -104,8 +107,8 @@ export function useStudents() {
       setStudents(prev => [data, ...prev])
       logAudit({ action: 'student_created', tableName: 'students', recordId: data.id, newData: { name: data.name, course_id: data.course_id } })
 
-      // Fire-and-forget: enviar evento Lead a Meta Conversions API
-      sendLeadEvent(data, data.id)
+      // Fire-and-forget: enviar evento Lead a Meta Conversions API (no para cortesías)
+      if (!data.is_courtesy) sendLeadEvent(data, data.id)
 
       return { success: true, data }
     } catch (err) {
@@ -148,7 +151,10 @@ export function useStudents() {
           : null,
         course_id: studentData.courseId,
         monthly_fee: coursePrice,
-        notes: studentData.notes || null
+        notes: studentData.notes || null,
+        is_courtesy: studentData.isCourtesy || false,
+        courtesy_category: studentData.isCourtesy ? (studentData.courtesyCategory || 'invitado') : null,
+        courtesy_end_date: studentData.isCourtesy && studentData.courtesyEndDate ? studentData.courtesyEndDate : null
       }
 
       const { data, error } = await supabase
@@ -191,6 +197,12 @@ export function useStudents() {
   // Registrar pago y actualizar fechas
   const registerPayment = async (studentId, paymentData) => {
     try {
+      // Bloquear pagos para cortesías
+      const courtesyCheck = students.find(s => s.id === studentId)
+      if (courtesyCheck?.is_courtesy) {
+        return { success: false, error: 'No se pueden registrar pagos para alumnos de cortesía' }
+      }
+
       // Usar fecha de pago del formulario o fecha actual
       const paymentDate = paymentData.paymentDate
         ? new Date(paymentData.paymentDate + 'T12:00:00')
