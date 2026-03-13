@@ -289,7 +289,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [salesDateFilter, setSalesDateFilter] = useState('today')
   const [storeView, setStoreView] = useState('articulos')
   const [newPlanPreselect, setNewPlanPreselect] = useState(null)
-  const [collapsedCats, setCollapsedCats] = useState(new Set())
+  const [expandedCats, setExpandedCats] = useState(new Set())
   const [showNewPlan, setShowNewPlan] = useState(false)
 
   // Días de gracia antes de marcar como inactiva
@@ -1606,7 +1606,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               const otros = allProducts.filter(p => !catKeys.includes(p.category))
               if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
 
-              const toggleCat = (key) => setCollapsedCats(prev => {
+              const toggleCat = (key) => setExpandedCats(prev => {
                 const next = new Set(prev)
                 if (next.has(key)) next.delete(key); else next.add(key)
                 return next
@@ -1626,7 +1626,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     )}
                   </div>
                   {categorized.map(cat => {
-                    const collapsed = collapsedCats.has(cat.key)
+                    const collapsed = !expandedCats.has(cat.key)
                     return (
                     <div key={cat.key} className="border border-gray-100 rounded-2xl overflow-hidden">
                       <button type="button" onClick={() => toggleCat(cat.key)}
