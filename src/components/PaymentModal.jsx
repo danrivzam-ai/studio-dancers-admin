@@ -838,7 +838,8 @@ export default function PaymentModal({
 
         {/* ── Paso de confirmación ──────────────────────────────────── */}
         {confirmStep && pendingPayment && (
-          <div className="absolute inset-0 bg-white rounded-2xl flex flex-col p-6 gap-4 z-10 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl flex flex-col p-6 gap-4 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="text-center">
               <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Check size={28} className="text-green-600" />
@@ -897,6 +898,7 @@ export default function PaymentModal({
                 {loading ? 'Procesando...' : 'Sí, registrar'}
               </button>
             </div>
+          </div>
           </div>
         )}
       </div>
