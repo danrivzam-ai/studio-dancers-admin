@@ -2,25 +2,43 @@ import { addMonths, addDays, subDays, differenceInDays, format, parseISO, getDay
 import { es } from 'date-fns/locale'
 
 /**
- * Obtener la fecha actual en zona horaria de Ecuador (UTC-5)
- * Evita que new Date() devuelva el día siguiente cuando el servidor está en UTC
+ * Obtener la fecha/hora actual en zona horaria de Ecuador (America/Guayaquil)
+ * Usa Intl.DateTimeFormat para obtener los componentes reales de fecha/hora
+ * en la zona de Ecuador, sin depender de getTimezoneOffset() que puede fallar.
  */
 export const getNowEC = () => {
   const now = new Date()
-  // Obtener offset de Ecuador: UTC-5 = -300 minutos
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000
-  return new Date(utcMs - 5 * 3600000)
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Guayaquil',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  })
+  const parts = {}
+  fmt.formatToParts(now).forEach(p => { parts[p.type] = p.value })
+  // Crear Date con los componentes de Ecuador (se interpreta en local, pero
+  // los valores de año/mes/día/hora son los correctos de Ecuador)
+  return new Date(
+    parseInt(parts.year),
+    parseInt(parts.month) - 1,
+    parseInt(parts.day),
+    parseInt(parts.hour),
+    parseInt(parts.minute),
+    parseInt(parts.second)
+  )
 }
 
 /**
  * Obtener la fecha de hoy como string yyyy-MM-dd en zona horaria de Ecuador
  */
 export const getTodayEC = () => {
-  const ec = getNowEC()
-  const y = ec.getFullYear()
-  const m = String(ec.getMonth() + 1).padStart(2, '0')
-  const d = String(ec.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+  const now = new Date()
+  // Usar Intl directamente para máxima confiabilidad
+  const dateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Guayaquil',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(now)
+  return dateStr // formato 'yyyy-MM-dd' (en-CA locale)
 }
 
 /**
