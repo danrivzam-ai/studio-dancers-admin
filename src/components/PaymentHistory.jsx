@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap } from 'lucide-react'
+import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap, ShoppingBag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, getTodayEC, getNowEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
@@ -14,6 +14,7 @@ export default function PaymentHistory({
   const [payments, setPayments] = useState([])
   const [quickPayments, setQuickPayments] = useState([])
   const [planPayments, setPlanPayments] = useState([])
+  const [articleSales, setArticleSales] = useState([])
   const [loading, setLoading] = useState(true)
   const [dateFrom, setDateFrom] = useState(() => {
     // Por defecto, últimos 30 días
@@ -69,9 +70,40 @@ export default function PaymentHistory({
 
       if (planError) console.warn('sale_plan_payments error:', planError.message)
 
+      // Ventas de artículos (tienda directa)
+      const { data: salesData, error: salesError } = await supabase
+        .from('sales')
+        .select('*')
+        .gte('sale_date', dateFrom)
+        .lte('sale_date', dateTo)
+        .is('deleted_at', null)
+        .order('sale_date', { ascending: false })
+
+      if (salesError) console.warn('sales error:', salesError.message)
+
+      // Agrupar ventas por sale_group_id
+      const grouped = {}
+      for (const s of (salesData || [])) {
+        const key = s.sale_group_id || s.id
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: key,
+            customer_name: s.customer_name,
+            sale_date: s.sale_date,
+            payment_method: s.payment_method,
+            receipt_number: s.receipt_number,
+            total: 0,
+            items: []
+          }
+        }
+        grouped[key].total += parseFloat(s.total || 0)
+        grouped[key].items.push({ name: s.product_name, qty: s.quantity, price: s.unit_price, total: s.total })
+      }
+
       setPayments(studentPayments || [])
       setQuickPayments(quickData || [])
       setPlanPayments(planData || [])
+      setArticleSales(Object.values(grouped))
     } catch (err) {
       console.error('Error fetching payments:', err)
     } finally {
@@ -106,6 +138,13 @@ export default function PaymentHistory({
     return name.toLowerCase().includes(searchLower) || cedula.includes(searchTerm)
   })
 
+  const filteredArticleSales = articleSales.filter(s => {
+    const searchLower = searchTerm.toLowerCase()
+    return s.customer_name?.toLowerCase().includes(searchLower) ||
+           s.receipt_number?.toLowerCase().includes(searchLower) ||
+           s.items.some(i => i.name?.toLowerCase().includes(searchLower))
+  })
+
   // Calcular totales (solo no anulados)
   const totalStudentPayments = filteredPayments
     .filter(p => !p.voided)
@@ -115,7 +154,9 @@ export default function PaymentHistory({
     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
   const totalPlanPayments = filteredPlanPayments
     .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
-  const grandTotal = totalStudentPayments + totalQuickPayments + totalPlanPayments
+  const totalArticleSales = filteredArticleSales
+    .reduce((sum, s) => sum + s.total, 0)
+  const grandTotal = totalStudentPayments + totalQuickPayments + totalPlanPayments + totalArticleSales
 
   // Anular comprobante
   const handleVoid = async () => {
@@ -444,6 +485,7 @@ export default function PaymentHistory({
                     <option value="students">Alumnos</option>
                     <option value="quick">Rápidos</option>
                     <option value="plans">Tienda (abonos)</option>
+                    <option value="articles">Ventas</option>
                   </select>
                 </div>
                 <div>
@@ -473,7 +515,7 @@ export default function PaymentHistory({
           )}
 
           {/* Summary - always visible */}
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
             <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
               <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
@@ -489,10 +531,15 @@ export default function PaymentHistory({
               <p className="text-sm sm:text-lg font-bold text-blue-600">${totalPlanPayments.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredPlanPayments.length} abonos</p>
             </div>
-            <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200">
+            <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
+              <p className="text-[10px] sm:text-xs text-gray-500">Ventas</p>
+              <p className="text-sm sm:text-lg font-bold text-emerald-600">${totalArticleSales.toFixed(2)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{filteredArticleSales.length} ventas</p>
+            </div>
+            <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200 col-span-3 sm:col-span-1">
               <p className="text-[10px] sm:text-xs text-green-600 font-medium">TOTAL</p>
               <p className="text-sm sm:text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
-              <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length + filteredPlanPayments.length} pagos</p>
+              <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length + filteredPlanPayments.length + filteredArticleSales.length} pagos</p>
             </div>
           </div>
         </div>
@@ -678,8 +725,46 @@ export default function PaymentHistory({
                 </div>
               ))}
 
+              {/* Article Sales (Ventas directas) */}
+              {(viewType === 'all' || viewType === 'articles') && filteredArticleSales.map(sale => (
+                <div
+                  key={`sale-${sale.id}`}
+                  className="p-3 sm:p-4 transition-colors hover:bg-emerald-50/30"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <ShoppingBag size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate text-gray-800">
+                          {sale.customer_name || 'Consumidor final'}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {sale.receipt_number ? `${sale.receipt_number} • ` : ''}{formatDate(sale.sale_date)}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate hidden sm:block">
+                          {sale.items.map(i => `${i.name}${i.qty > 1 ? ` ×${i.qty}` : ''}`).join(', ')}
+                          {sale.payment_method && ` • ${sale.payment_method}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                      <div className="text-right">
+                        <p className="font-bold text-sm sm:text-base text-green-600">
+                          ${sale.total.toFixed(2)}
+                        </p>
+                        <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                          Venta
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
               {/* Empty state */}
-              {filteredPayments.length === 0 && filteredQuickPayments.length === 0 && filteredPlanPayments.length === 0 && (
+              {filteredPayments.length === 0 && filteredQuickPayments.length === 0 && filteredPlanPayments.length === 0 && filteredArticleSales.length === 0 && (
                 <div className="p-12 text-center text-gray-500">
                   <FileText size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No hay pagos en el rango seleccionado</p>
