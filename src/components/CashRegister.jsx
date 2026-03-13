@@ -68,10 +68,12 @@ export default function CashRegister({ onClose, settings }) {
         .eq('sale_date', date)
 
       // Abonos de planes de venta
-      const { data: planPaymentsData } = await supabase
+      const { data: planPaymentsData, error: planPaymentsError } = await supabase
         .from('sale_plan_payments')
         .select('amount, payment_method')
         .eq('payment_date', date)
+
+      if (planPaymentsError) console.error('CashRegister plan payments error:', planPaymentsError)
 
       // Egresos (solo si hay caja)
       let expensesData = []

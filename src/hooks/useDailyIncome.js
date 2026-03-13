@@ -39,10 +39,12 @@ export function useDailyIncome() {
       if (salesError) throw salesError
 
       // Abonos de planes de venta de hoy
-      const { data: planPayments } = await supabase
+      const { data: planPayments, error: planError } = await supabase
         .from('sale_plan_payments')
         .select('amount')
         .eq('payment_date', today)
+
+      if (planError) console.error('useDailyIncome plan payments error:', planError)
 
       // Calcular totales
       const studentTotal = studentPayments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0
