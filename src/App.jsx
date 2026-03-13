@@ -1769,7 +1769,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 dbError={plansDbError}
                 onRefresh={refreshPlans}
                 onCreatePlan={createPlan}
-                onRegisterPayment={registerPlanPayment}
+                onRegisterPayment={async (planId, data) => {
+                  const res = await registerPlanPayment(planId, data)
+                  if (res.success) { refreshIncome(); refreshCash() }
+                  return res
+                }}
                 onCancelPlan={cancelPlan}
                 onDeletePlan={deletePlan}
                 onUpdatePlanTotal={updatePlanTotal}

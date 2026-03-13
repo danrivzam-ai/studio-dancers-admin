@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { getTodayEC } from '../lib/dateUtils'
 
 export function useSalePlans() {
   const [plans, setPlans]     = useState([])
@@ -86,7 +87,7 @@ export function useSalePlans() {
           plan_id:            planId,
           amount:             parseFloat(amount),
           payment_method:     paymentMethod,
-          payment_date:       new Date().toISOString().split('T')[0],
+          payment_date:       getTodayEC(),
           installment_number: installmentNo,
           notes:              notes?.trim() || null
         })
