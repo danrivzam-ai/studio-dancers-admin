@@ -134,6 +134,45 @@ Por favor contáctanos para coordinar tu pago y retomar las clases.
 }
 
 /**
+ * Mensaje Adult-A — Recordatorio previo para adultas (ciclo próximo a vencer).
+ * Sin mencionar "mensualidad" — habla de "ciclo de clases".
+ */
+export const buildMessageAdultReminder = (student, courseName, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
+
+  return `Hola ${student.name} 👋
+Te recordamos que tu ciclo de clases en *${courseName}* vence el *${dueDate}*.
+
+💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+
+Renueva a tiempo para continuar en clases sin interrupciones 🩰
+${schoolName}`
+}
+
+/**
+ * Mensaje Adult-B — Ciclo vencido para adultas (ya no puede asistir hasta renovar).
+ * Sin "mora" ni "suspensión" — lenguaje de renovación voluntaria.
+ */
+export const buildMessageAdultExpired = (student, courseName, daysOverdue, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
+  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+
+  return `Hola ${student.name},
+Tu ciclo de clases en *${courseName}* venció hace *${daysText}*.
+
+Para retomar las clases, renueva tu inscripción cuando quieras 😊
+💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+
+¡Te esperamos! 🩰
+${schoolName}`
+}
+
+/**
  * Construye mensaje de recordatorio de cobro para WhatsApp.
  * Selecciona automáticamente el mensaje correcto según los días de retraso.
  *
@@ -147,14 +186,21 @@ Por favor contáctanos para coordinar tu pago y retomar las clases.
 export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20, isAdultCourse = false) => {
   const absDays = Math.abs(daysUntilDue)
 
-  // Días anteriores al vencimiento (recordatorio) o día exacto
-  if (daysUntilDue >= 0) {
-    return buildMessageA(student, courseName, settings)
+  // ── Cursos de adultas (ageMin >= 18) ──────────────────────────────────────
+  // Sin "mensualidad", sin mora, sin suspensión — renovación voluntaria de ciclo.
+  if (isAdultCourse) {
+    // Ciclo vigente o próximo a vencer → recordatorio de ciclo
+    if (daysUntilDue >= 0) {
+      return buildMessageAdultReminder(student, courseName, settings)
+    }
+    // Ciclo vencido → invitación a renovar
+    return buildMessageAdultExpired(student, courseName, absDays, settings)
   }
 
-  // Adultas: nunca mensaje de suspensión — siempre Mensaje B (ciclo vencido, debe renovar)
-  if (isAdultCourse) {
-    return buildMessageB(student, courseName, absDays, settings)
+  // ── Cursos infantiles/juveniles ───────────────────────────────────────────
+  // Días anteriores al vencimiento o día exacto → recordatorio (Mensaje A)
+  if (daysUntilDue >= 0) {
+    return buildMessageA(student, courseName, settings)
   }
 
   // Dentro del período de gracia → recordatorio amable (Mensaje A)
@@ -162,12 +208,12 @@ export const buildReminderMessage = (student, courseName, daysUntilDue, settings
     return buildMessageA(student, courseName, settings)
   }
 
-  // Vencido pero sin llegar a mora → Mensaje B
+  // Vencida pero sin llegar a mora → aviso de cobro (Mensaje B)
   if (absDays <= moraDays) {
     return buildMessageB(student, courseName, absDays, settings)
   }
 
-  // Mora (suspendida) — solo cursos infantiles/juveniles → Mensaje C
+  // Mora / suspendida → aviso de suspensión (Mensaje C)
   return buildMessageC(student, courseName, absDays, settings)
 }
 
