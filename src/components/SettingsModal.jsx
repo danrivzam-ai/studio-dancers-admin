@@ -15,7 +15,9 @@ export default function SettingsModal({
     logo_url: '',
     ruc: '',
     security_pin: '',
-    auto_inactive_days: 10,
+    grace_days: 5,
+    mora_days: 20,
+    auto_inactive_days: 60,
     mailerlite_api_key: '',
     mailerlite_group_id: '',
     mailerlite_instructors_group_id: '',
@@ -43,7 +45,9 @@ export default function SettingsModal({
         logo_url: settings.logo_url || '',
         ruc: settings.ruc || '',
         security_pin: settings.security_pin || '',
-        auto_inactive_days: settings.auto_inactive_days ?? 10,
+        grace_days: settings.grace_days ?? 5,
+        mora_days: settings.mora_days ?? 20,
+        auto_inactive_days: settings.auto_inactive_days ?? 60,
         mailerlite_api_key: settings.mailerlite_api_key || '',
         mailerlite_group_id: settings.mailerlite_group_id || '',
         mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || '',
@@ -199,21 +203,70 @@ export default function SettingsModal({
             />
           </div>
 
-          {/* Auto-Inactivación */}
-          <div className="border-t pt-4 mt-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Días para inactivar alumna
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={90}
-              value={formData.auto_inactive_days}
-              onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 10})}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Después de este número de días sin pagar, la alumna se marca como "Inactiva" automáticamente.
+          {/* Sistema de mora y suspensión */}
+          <div className="border-t pt-4 mt-2 space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">⏱ Control de cobros — Mensualidades</p>
+              {/* Línea de tiempo visual */}
+              <div className="flex items-center gap-1 text-[10px] font-semibold mb-3 overflow-x-auto pb-1">
+                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg whitespace-nowrap">Al día ✅</span>
+                <span className="text-gray-300">→</span>
+                <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap">Gracia 🟡</span>
+                <span className="text-gray-300">→</span>
+                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg whitespace-nowrap">Vencida 🔴</span>
+                <span className="text-gray-300">→</span>
+                <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg whitespace-nowrap">Suspendida 🚫</span>
+                <span className="text-gray-300">→</span>
+                <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-lg whitespace-nowrap">Inactiva ⚫</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-amber-700 mb-1">
+                  🟡 Días de gracia
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={15}
+                  value={formData.grace_days}
+                  onChange={(e) => setFormData({...formData, grace_days: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all text-center font-bold"
+                />
+                <p className="text-[10px] text-gray-400 mt-1 text-center">Puede asistir</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-red-600 mb-1">
+                  🔴 Días hasta suspender
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={formData.mora_days}
+                  onChange={(e) => setFormData({...formData, mora_days: parseInt(e.target.value) || 20})}
+                  className="w-full px-3 py-2 border-2 border-red-200 rounded-xl focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all text-center font-bold"
+                />
+                <p className="text-[10px] text-gray-400 mt-1 text-center">Se suspende</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">
+                  ⚫ Días hasta inactivar
+                </label>
+                <input
+                  type="number"
+                  min={21}
+                  max={180}
+                  value={formData.auto_inactive_days}
+                  onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 60})}
+                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-400 focus:border-slate-400 outline-none transition-all text-center font-bold"
+                />
+                <p className="text-[10px] text-gray-400 mt-1 text-center">Inactiva total</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-gray-400">
+              Ejemplo con valores actuales: gracia días 1–{formData.grace_days} → vencida días {formData.grace_days + 1}–{formData.mora_days} → suspendida días {formData.mora_days + 1}–{formData.auto_inactive_days} → inactiva día {formData.auto_inactive_days + 1}+
             </p>
           </div>
 

@@ -33,32 +33,113 @@ export const openWhatsAppNoRecipient = (message) => {
 }
 
 /**
- * Construye mensaje de recordatorio de cobro para WhatsApp.
+ * Detecta el nombre de pago preferido del alumno.
+ * Prioriza: representante (si es menor) > pagador > alumno
  */
-export const buildReminderMessage = (student, courseName, daysUntilDue, schoolName) => {
+const getPayerName = (student) => {
+  if (student.is_minor !== false) return student.parent_name || student.name
+  return student.payer_name || student.name
+}
+
+/**
+ * Construye línea de banco para mensajes de pago.
+ */
+const buildBankLine = (settings) => {
+  if (!settings?.bank_name && !settings?.bank_account_number) return ''
+  const parts = [settings.bank_name, settings.bank_account_number, settings.bank_account_holder].filter(Boolean)
+  return parts.join(' — ')
+}
+
+/**
+ * Mensaje A — Recordatorio previo (3 días antes del vencimiento).
+ */
+export const buildMessageA = (student, courseName, settings) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
   const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
 
-  let statusLine = ''
-  if (daysUntilDue < 0) {
-    statusLine = `Su pago esta vencido desde hace ${Math.abs(daysUntilDue)} dia(s).`
-  } else if (daysUntilDue === 0) {
-    statusLine = `Su pago vence hoy.`
-  } else {
-    statusLine = `Su proximo pago es en ${daysUntilDue} dia(s).`
+  return `Hola ${payerName} 👋
+Te recordamos que la mensualidad de *${student.name}* en *${courseName}* vence el *${dueDate}*.
+
+💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+
+Envíanos tu comprobante por aquí y ¡listo! 🙌
+🩰 ${schoolName}`
+}
+
+/**
+ * Mensaje B — Pago vencido (días 1 al mora_days — puede asistir).
+ */
+export const buildMessageB = (student, courseName, daysOverdue, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
+
+  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+
+  return `Hola ${payerName},
+La mensualidad de *${student.name}* en *${courseName}* está vencida hace *${daysText}*.
+
+💰 Monto pendiente: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+
+Por favor envíanos tu comprobante para continuar en clases.
+Cualquier consulta estamos aquí 🙌
+🩰 ${schoolName}`
+}
+
+/**
+ * Mensaje C — Mora / Suspensión (días mora_days+1 en adelante — NO puede asistir).
+ */
+export const buildMessageC = (student, courseName, daysOverdue, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+
+  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+
+  return `Hola ${payerName},
+Te escribimos de *${schoolName}* porque el pago de *${student.name}* en *${courseName}* lleva *${daysText} de retraso* y su asistencia ha sido suspendida.
+
+💰 Monto pendiente: *$${amount}*
+
+Por favor contáctanos para coordinar tu pago y retomar las clases.
+🩰 ${schoolName}`
+}
+
+/**
+ * Construye mensaje de recordatorio de cobro para WhatsApp.
+ * Selecciona automáticamente el mensaje correcto según los días de retraso.
+ *
+ * @param {object} student
+ * @param {string} courseName
+ * @param {number} daysUntilDue  - negativo = vencido, positivo = faltan días
+ * @param {object|string} settings - objeto de configuración o string con nombre del estudio
+ * @param {number} graceDays     - días de gracia (default 5)
+ * @param {number} moraDays      - días hasta suspensión (default 20)
+ */
+export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20) => {
+  const absDays = Math.abs(daysUntilDue)
+
+  // Días anteriores al vencimiento (recordatorio) o día exacto
+  if (daysUntilDue >= 0) {
+    return buildMessageA(student, courseName, settings)
   }
 
-  return `Hola, le saludamos de *${schoolName}*.
+  // Dentro del período de gracia → recordatorio amable (Mensaje A)
+  if (absDays <= graceDays) {
+    return buildMessageA(student, courseName, settings)
+  }
 
-Le recordamos sobre el pago de *${student.name}*:
+  // Vencido pero sin llegar a mora → Mensaje B
+  if (absDays <= moraDays) {
+    return buildMessageB(student, courseName, absDays, settings)
+  }
 
-📚 Curso: ${courseName}
-💰 Monto: $${amount}
-📅 Vencimiento: ${dueDate}
-⏰ ${statusLine}
-
-Gracias por su atencion.
-🩰 ${schoolName}`
+  // Mora (suspendida) → Mensaje C
+  return buildMessageC(student, courseName, absDays, settings)
 }
 
 /**
