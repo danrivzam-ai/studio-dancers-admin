@@ -17,7 +17,7 @@ import { useAuth } from './hooks/useAuth'
 import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
-import { openWhatsApp, buildReminderMessage } from './lib/whatsapp'
+import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -43,6 +43,7 @@ import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
+import CobranzaReport from './components/CobranzaReport'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
@@ -132,6 +133,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showBalanceAlerts, setShowBalanceAlerts] = useState(false)
   const [detailBalanceStudent, setDetailBalanceStudent] = useState(null)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
+  const [showCobranzaReport, setShowCobranzaReport]   = useState(false)
   const globalSearchRef = useRef(null)
 
   // Tablón de anuncios
@@ -1270,6 +1272,57 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </button>
             </div>
 
+            {/* Alumnas Suspendidas Alert — mora, no pueden asistir */}
+            {moraStudents.length > 0 && (
+              <div
+                onClick={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
+                className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-rose-800 flex items-center gap-2">
+                    <AlertCircle size={18} />
+                    🚫 Suspendidas — No pueden asistir
+                  </h3>
+                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {moraStudents.length} alumna{moraStudents.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {moraStudents.slice(0, 3).map(s => {
+                    const course = enrichCourse(getCourseById(s.course_id))
+                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
+                    const { contactName, contactPhone, contactRelation } = getContactInfo(s)
+                    return (
+                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-rose-500 rounded-r-xl pl-3 pr-2 py-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {course?.name || 'Sin curso'}
+                            {contactRelation !== 'Alumna' && (
+                              <span className="ml-1.5 text-rose-600">· {contactRelation}: {contactName}</span>
+                            )}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">{days}d mora</span>
+                        <button
+                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays)) }}
+                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
+                          title={`Enviar aviso de suspensión a ${contactRelation}`}
+                        >
+                          <MessageCircle size={13} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                  {moraStudents.length > 3 && (
+                    <p className="text-xs text-rose-600 text-center pt-1">
+                      +{moraStudents.length - 3} más · Toca para ver todas
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Cobros Vencidos Alert */}
             {overduePayments.length > 0 && (
               <div
@@ -1289,15 +1342,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {overduePayments.slice(0, 3).map(s => {
                     const course = enrichCourse(getCourseById(s.course_id))
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
+                    const { contactName, contactPhone, contactRelation } = getContactInfo(s)
                     return (
                       <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-red-400 rounded-r-xl pl-3 pr-2 py-2.5">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {course?.name || 'Sin curso'}
+                            {contactRelation !== 'Alumna' && (
+                              <span className="ml-1.5 text-red-500">· {contactRelation}: {contactName}</span>
+                            )}
+                          </p>
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1372,17 +1431,23 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).slice(0, 3).map(s => {
                     const course = enrichCourse(getCourseById(s.course_id))
                     const days = getDaysUntilDue(s.next_payment_date)
+                    const { contactName, contactRelation } = getContactInfo(s)
                     return (
                       <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {course?.name || 'Sin curso'}
+                            {contactRelation !== 'Alumna' && (
+                              <span className="ml-1.5 text-amber-600">· {contactRelation}: {contactName}</span>
+                            )}
+                          </p>
                         </div>
                         <span className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full ${days === 0 ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-700'}`}>
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const phone = s.payer_phone || s.parent_phone || s.phone; if (!phone) { alert('Sin teléfono'); return }; openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -2768,16 +2833,24 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               {/* Footer */}
-              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-3">
-                <p className="text-xs text-gray-400 hidden sm:block">
+              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
+                <p className="text-xs text-gray-400 hidden sm:block shrink-0">
                   {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
                 </p>
-                <button
-                  onClick={() => setShowStudentListModal(false)}
-                  className="flex-1 sm:flex-none sm:w-32 px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
-                >
-                  Cerrar
-                </button>
+                <div className="flex gap-2 flex-1 sm:flex-none justify-end">
+                  <button
+                    onClick={() => { setShowStudentListModal(false); setShowCobranzaReport(true) }}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors font-medium text-xs"
+                  >
+                    <FileText size={13} /> Reporte cobranza
+                  </button>
+                  <button
+                    onClick={() => setShowStudentListModal(false)}
+                    className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2860,6 +2933,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             students={students}
+          />
+        )}
+
+        {/* Reporte de Cobranza */}
+        {showCobranzaReport && (
+          <CobranzaReport
+            students={students}
+            courses={allCourses}
+            settings={settings}
+            graceDays={graceDays}
+            moraDays={moraDays}
+            autoInactiveDays={autoInactiveDays}
+            getCourseById={getCourseById}
+            enrichCourse={enrichCourse}
+            onClose={() => setShowCobranzaReport(false)}
           />
         )}
 

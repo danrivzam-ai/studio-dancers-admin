@@ -33,13 +33,37 @@ export const openWhatsAppNoRecipient = (message) => {
 }
 
 /**
- * Detecta el nombre de pago preferido del alumno.
- * Prioriza: representante (si es menor) > pagador > alumno
+ * Resuelve los datos de contacto correctos para cobro.
+ * Regla: menores → SIEMPRE el representante. Adultos → pagador o la misma alumna.
+ *
+ * @returns {{ contactName, contactPhone, contactRelation }}
  */
-const getPayerName = (student) => {
-  if (student.is_minor !== false) return student.parent_name || student.name
-  return student.payer_name || student.name
+export const getContactInfo = (student) => {
+  const isMinor = student.is_minor !== false
+  if (isMinor) {
+    return {
+      contactName:     student.parent_name  || student.name,
+      contactPhone:    student.parent_phone || student.payer_phone || student.phone || '',
+      contactRelation: 'Representante'
+    }
+  }
+  // Adulta con pagador diferente explícito
+  if (student.payer_name && (student.payer_phone || student.phone)) {
+    return {
+      contactName:     student.payer_name,
+      contactPhone:    student.payer_phone || student.phone || '',
+      contactRelation: 'Pagador'
+    }
+  }
+  return {
+    contactName:     student.name,
+    contactPhone:    student.payer_phone || student.phone || '',
+    contactRelation: 'Alumna'
+  }
 }
+
+// Alias interno para uso en los mensajes
+const getPayerName = (student) => getContactInfo(student).contactName
 
 /**
  * Construye línea de banco para mensajes de pago.
