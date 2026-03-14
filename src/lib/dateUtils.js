@@ -459,10 +459,14 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
 
   const days = getDaysUntilDue(student.next_payment_date)
 
+  // Cursos de adultas (ageMin >= 18): sin gracia, sin mora, sin suspensión.
+  // Cuando el ciclo vence → no puede asistir hasta renovar.
+  const isAdultCourse = (course?.ageMin ?? 0) >= 18
+
   if (days < 0) {
     const absDays = Math.abs(days)
 
-    // Inactiva: muy largo sin pagar (más allá de autoInactiveDays)
+    // Inactiva: muy largo sin renovar (más allá de autoInactiveDays)
     if (absDays > autoInactiveDays) {
       return {
         status: 'inactive',
@@ -474,8 +478,19 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
+    // Adultas: ciclo vencido → no puede asistir, debe renovar (sin mora ni gracia)
+    if (isAdultCourse) {
+      return {
+        status: 'overdue',
+        label: absDays === 1 ? 'Ciclo vencido (1 día)' : `Ciclo vencido (${absDays}d)`,
+        color: 'bg-red-600 text-white ring-1 ring-red-700',
+        colorCode: 'red',
+        canAttend: false,
+        priority: 1
+      }
+    }
+
     // Mora: suspendida (más allá de moraDays, sin llegar a inactiva)
-    // Solo aplica a mensualidades, no a ciclos
     if (absDays > moraDays) {
       return {
         status: 'mora',
@@ -499,7 +514,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
-    // Gracia: vencida pero dentro del período de gracia
+    // Gracia: vencida pero dentro del período de gracia (solo cursos infantiles/juveniles)
     return {
       status: 'grace',
       label: absDays === 1 ? 'Gracia (1 día)' : `Gracia (${absDays} días)`,

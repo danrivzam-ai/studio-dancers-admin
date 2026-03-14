@@ -1380,7 +1380,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">{days}d mora</span>
                         <button
-                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays)) }}
+                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title={`Enviar aviso de suspensión a ${contactRelation}`}
                         >
@@ -1431,7 +1431,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1522,7 +1522,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
                         >
@@ -1614,7 +1614,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 if (!phone) { alert('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
-                                openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings.name))
+                                openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                                 setTimeout(() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null), 800)
                               }}
                               className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
@@ -1656,7 +1656,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               onClick={() => {
                                 const phone = s.payer_phone || s.parent_phone || s.phone
                                 if (!phone) { alert('Sin teléfono registrado'); return }
-                                openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings.name))
+                                openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
                               title="Enviar recordatorio"
@@ -2873,7 +2873,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
                                     const courseObj = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
-                                    const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays)
+                                    const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18)
                                     openWhatsApp(phone, msg)
                                   }}
                                   className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
