@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -44,6 +44,8 @@ import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import CobranzaReport from './components/CobranzaReport'
+import MonthlyClose from './components/MonthlyClose'
+import { useMonthlyClose } from './hooks/useMonthlyClose'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
@@ -134,6 +136,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [detailBalanceStudent, setDetailBalanceStudent] = useState(null)
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const [showCobranzaReport, setShowCobranzaReport]   = useState(false)
+  const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
+  const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
 
   // Tablón de anuncios
@@ -1044,13 +1048,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 )}
               </button>
               {!isRecepcion && isAdmin && (
-                <button
-                  onClick={() => setShowAuditLog(true)}
-                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                >
-                  <ScrollText size={16} />
-                  Auditoría
-                </button>
+                <>
+                  <button
+                    onClick={() => setShowMonthlyClose(true)}
+                    className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                  >
+                    <Lock size={16} />
+                    Cierre mensual
+                  </button>
+                  <button
+                    onClick={() => setShowAuditLog(true)}
+                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                  >
+                    <ScrollText size={16} />
+                    Auditoría
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -2933,6 +2946,26 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             students={students}
+          />
+        )}
+
+        {/* Cierre Mensual */}
+        {showMonthlyClose && (
+          <MonthlyClose
+            onClose={() => setShowMonthlyClose(false)}
+            closes={closes}
+            loading={closesLoading}
+            summaryLoading={summaryLoading}
+            summary={summary}
+            fetchCloses={fetchCloses}
+            getMonthSummary={getMonthSummary}
+            closeMonth={closeMonth}
+            studentsCount={students.length}
+            moraStudentsCount={moraStudents.length}
+            inactiveStudentsCount={inactiveStudents.length}
+            settings={settings}
+            userName={user?.email || 'Admin'}
+            userId={user?.id}
           />
         )}
 
