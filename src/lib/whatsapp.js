@@ -144,12 +144,17 @@ Por favor contáctanos para coordinar tu pago y retomar las clases.
  * @param {number} graceDays     - días de gracia (default 5)
  * @param {number} moraDays      - días hasta suspensión (default 20)
  */
-export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20) => {
+export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20, isAdultCourse = false) => {
   const absDays = Math.abs(daysUntilDue)
 
   // Días anteriores al vencimiento (recordatorio) o día exacto
   if (daysUntilDue >= 0) {
     return buildMessageA(student, courseName, settings)
+  }
+
+  // Adultas: nunca mensaje de suspensión — siempre Mensaje B (ciclo vencido, debe renovar)
+  if (isAdultCourse) {
+    return buildMessageB(student, courseName, absDays, settings)
   }
 
   // Dentro del período de gracia → recordatorio amable (Mensaje A)
@@ -162,7 +167,7 @@ export const buildReminderMessage = (student, courseName, daysUntilDue, settings
     return buildMessageB(student, courseName, absDays, settings)
   }
 
-  // Mora (suspendida) → Mensaje C
+  // Mora (suspendida) — solo cursos infantiles/juveniles → Mensaje C
   return buildMessageC(student, courseName, absDays, settings)
 }
 
