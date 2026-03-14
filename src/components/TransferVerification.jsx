@@ -3,6 +3,7 @@ import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSi
 import { formatDate } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 import { useToast } from './Toast'
+import Modal from './ui/Modal'
 
 // ═══════ MANUAL TRANSFER FORM (WhatsApp) ═══════
 function ManualTransferForm({ students, onSubmitted, onCancel }) {
@@ -118,7 +119,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <select
         value={studentId}
         onChange={(e) => setStudentId(e.target.value)}
-        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
       >
         <option value="">Seleccionar alumna...</option>
         {students.map(s => (
@@ -136,14 +137,14 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+            className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
             placeholder="Monto"
           />
         </div>
         <select
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
-          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
         >
           <option value="">Banco...</option>
           {BANKS.map(b => (
@@ -159,7 +160,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
           type="text"
           value={receiptNumber}
           onChange={(e) => setReceiptNumber(e.target.value)}
-          className="w-full pl-8 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+          className="w-full pl-8 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
           placeholder="N° Comprobante"
         />
       </div>
@@ -189,7 +190,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
         type="text"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
-        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
         placeholder="Nota (opcional)"
       />
 
@@ -289,8 +290,8 @@ export default function TransferVerification({
   const cleanableCount = requests.filter(r => r.status === 'rejected' || r.status === 'expired').length
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Verificar transferencias">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
@@ -324,7 +325,7 @@ export default function TransferVerification({
               >
                 <Plus size={20} />
               </button>
-              <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+              <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -495,6 +496,6 @@ export default function TransferVerification({
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

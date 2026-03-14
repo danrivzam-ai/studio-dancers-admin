@@ -5,6 +5,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { ALL_COURSES, getCourseById } from '../lib/courses'
 import { formatDate } from '../lib/dateUtils'
+import Modal from './ui/Modal'
 
 export default function ExportStudents({ students, settings, onClose }) {
   const [selectedCourse, setSelectedCourse] = useState('all')
@@ -156,14 +157,15 @@ export default function ExportStudents({ students, settings, onClose }) {
   const danceCamp = ALL_COURSES.filter(c => c.id.startsWith('camp-'))
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Exportar alumnos">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         {/* Header */}
         <div className="p-6 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
           <h2 className="text-xl font-semibold">Exportar Listado</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
+            aria-label="Cerrar"
           >
             <X size={20} />
           </button>
@@ -178,7 +180,7 @@ export default function ExportStudents({ students, settings, onClose }) {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
             >
               <option value="all">Todos los cursos ({students.length} alumnos)</option>
 
@@ -297,6 +299,6 @@ export default function ExportStudents({ students, settings, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

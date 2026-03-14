@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, Lock, Shield } from 'lucide-react'
+import Modal from './ui/Modal'
 
 export default function PinPromptModal({
   isOpen,
@@ -12,8 +13,6 @@ export default function PinPromptModal({
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [attempts, setAttempts] = useState(0)
-
-  if (!isOpen) return null
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -47,7 +46,7 @@ export default function PinPromptModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={title}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs">
         {/* Header */}
         <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
@@ -60,6 +59,7 @@ export default function PinPromptModal({
             </div>
             <button
               onClick={handleClose}
+              aria-label="Cerrar"
               className="p-1.5 hover:bg-white/20 rounded-xl transition-colors"
             >
               <X size={16} />
@@ -85,7 +85,7 @@ export default function PinPromptModal({
                 setPin(e.target.value.replace(/\D/g, ''))
                 setError('')
               }}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
               placeholder="••••"
               autoFocus
               disabled={attempts >= 3}
@@ -113,6 +113,6 @@ export default function PinPromptModal({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

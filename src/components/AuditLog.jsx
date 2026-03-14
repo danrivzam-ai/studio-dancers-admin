@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { getTodayEC, getNowEC } from '../lib/dateUtils'
 import { useAuditLog } from '../hooks/useAuditLog'
+import Modal from './ui/Modal'
 
 const ACTION_CONFIG = {
   // Egresos
@@ -103,15 +104,6 @@ export default function AuditLog({ onClose }) {
     fetchLogs(filters)
   }, [])
 
-  // ESC key to close
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
   const handleFilter = () => {
     fetchLogs(filters)
   }
@@ -125,8 +117,8 @@ export default function AuditLog({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Registro de auditoría">
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
           <div className="flex items-center justify-between">
@@ -134,7 +126,7 @@ export default function AuditLog({ onClose }) {
               <h2 className="text-xl font-bold">Log de Auditoria</h2>
               <p className="text-white/80 text-sm">{logs.length} eventos{hasMore ? '+' : ''}</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
               <X size={22} />
             </button>
           </div>
@@ -329,6 +321,6 @@ export default function AuditLog({ onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

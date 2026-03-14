@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
 import { openWhatsApp, buildReminderMessage } from '../lib/whatsapp'
@@ -41,8 +42,9 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   })()
 
   const paymentStatus = getPaymentStatus(student, course)
-  const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
-  const isProgram = course?.priceType === 'programa'
+  const coursePriceType = course?.priceType || course?.price_type
+  const isRecurring = coursePriceType === 'mes' || coursePriceType === 'paquete'
+  const isProgram = coursePriceType === 'programa'
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -128,10 +130,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center !p-0 sm:!p-4">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col">
 
         {/* ── Header ── */}
@@ -168,7 +167,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             </div>
 
             {/* Close */}
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors shrink-0">
+            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl transition-colors shrink-0">
               <X size={18} />
             </button>
           </div>
@@ -491,12 +490,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   onClick={() => onPause(student)}
                   className={`flex-1 py-2.5 border rounded-xl font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all ${
                     student.is_paused
-                      ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
-                      : 'bg-cyan-50 border-cyan-200 text-cyan-700 hover:bg-cyan-100'
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                      : 'bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100'
                   }`}
                 >
                   {student.is_paused
-                    ? <><Play size={15} /> Reanudar</>
+                    ? <><Play size={15} className="fill-emerald-700" /> Reanudar clase</>
                     : <><Snowflake size={15} /> Pausar 1 clase</>
                   }
                 </button>
@@ -536,7 +535,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       {/* Modal: Ver foto ampliada */}
       {photoPreview && !photoError && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-4"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-2 sm:p-4"
           onClick={() => setPhotoPreview(false)}
         >
           <div className="relative max-w-xs w-full" onClick={e => e.stopPropagation()}>
@@ -558,7 +557,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
       {/* Diálogo: Reactivar ciclo */}
       {showReactivateDialog && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
             <h3 className="text-lg font-bold text-gray-800 mb-1 text-center flex items-center justify-center gap-2">
               <RefreshCw size={20} className="text-purple-600" /> Reactivar ciclo
@@ -575,7 +574,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               <>
                 <div className={`rounded-xl p-3 mb-3 text-center ${isTodayClassDay ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
                   <p className={`text-sm font-medium ${isTodayClassDay ? 'text-green-700' : 'text-orange-700'}`}>
-                    {isTodayClassDay ? '✅ Hoy es día de clase' : '⚠️ Hoy no es día de clase'}
+                    {isTodayClassDay ? 'Hoy es día de clase' : 'Hoy no es día de clase'}
                   </p>
                   {!isTodayClassDay && (
                     <p className="text-xs text-orange-600 mt-1">El ciclo arrancará desde la próxima clase disponible</p>
@@ -619,6 +618,6 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           </div>
         </div>
       )}
-    </div>
+    </Modal>
   )
 }

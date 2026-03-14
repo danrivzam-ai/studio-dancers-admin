@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from './Toast'
+import Modal from './ui/Modal'
 
 // Tipos de items
 const ITEM_TYPES = [
@@ -296,8 +297,8 @@ export default function ManageItems({
   const programs = courses.filter(c => c.priceType === 'programa')
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar cursos y productos">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-4 md:p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600">
           <div className="flex items-center justify-between">
@@ -312,6 +313,7 @@ export default function ManageItems({
             </div>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all text-white"
             >
               <X size={20} />
@@ -473,7 +475,7 @@ export default function ManageItems({
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                   placeholder={formData.type === 'product' ? 'Ej: Zapatillas Ballet' : 'Ej: Ballet Kids'}
                 />
               </div>
@@ -514,7 +516,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMin}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMin: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                         />
                       </div>
                       <div className="flex-1">
@@ -525,7 +527,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMax}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMax: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -538,7 +540,7 @@ export default function ManageItems({
                       type="text"
                       value={formData.schedule}
                       onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                       placeholder="Ej: Lunes y Miércoles 17:00 - 18:00"
                     />
                   </div>
@@ -592,7 +594,7 @@ export default function ManageItems({
                         max="50"
                         value={formData.classesPerCycle}
                         onChange={(e) => setFormData({...formData, classesPerCycle: e.target.value})}
-                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                         placeholder={`Ej: ${formData.classDays.length * 4}`}
                       />
                       <p className="text-xs text-gray-400 mt-1">
@@ -614,7 +616,7 @@ export default function ManageItems({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                   />
                 </div>
                 {formData.type !== 'product' && (
@@ -623,7 +625,7 @@ export default function ManageItems({
                     <select
                       value={formData.priceType}
                       onChange={(e) => setFormData({...formData, priceType: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                     >
                       {PRICE_TYPES.map(pt => (
                         <option key={pt.id} value={pt.id}>{pt.name}</option>
@@ -639,7 +641,7 @@ export default function ManageItems({
                       min="0"
                       value={formData.stock}
                       onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                       placeholder="Opcional"
                     />
                   </div>
@@ -653,13 +655,13 @@ export default function ManageItems({
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                   >
                     <option value="">Sin categoría</option>
-                    <option value="entradas">🎟️ Entradas</option>
-                    <option value="vestuario">👗 Vestuario</option>
-                    <option value="uniformes">📦 Uniformes</option>
-                    <option value="bar">🥤 Bar</option>
+                    <option value="entradas">Entradas</option>
+                    <option value="vestuario">Vestuario</option>
+                    <option value="uniformes">Uniformes</option>
+                    <option value="bar">Bar</option>
                   </select>
                 </div>
               )}
@@ -754,7 +756,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.benefits}
                       onChange={(e) => setFormData({...formData, benefits: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white text-sm outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-sm outline-none transition-all"
                       placeholder="Un beneficio por línea&#10;Ej: Mejora la postura&#10;Aumenta la flexibilidad"
                       rows={3}
                     />
@@ -766,7 +768,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.requirements}
                       onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-white text-sm outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-sm outline-none transition-all"
                       placeholder="Un requisito por línea&#10;Ej: Zapatillas de media punta&#10;Ropa ajustada"
                       rows={3}
                     />
@@ -890,7 +892,7 @@ export default function ManageItems({
 
         {/* Restock Modal */}
         {restockModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="text-center mb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -945,7 +947,7 @@ export default function ManageItems({
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -1065,7 +1067,7 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

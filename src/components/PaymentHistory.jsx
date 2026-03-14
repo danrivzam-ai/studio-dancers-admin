@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, getTodayEC, getNowEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
+import Modal from './ui/Modal'
 
 export default function PaymentHistory({
   onClose,
@@ -414,8 +415,8 @@ export default function PaymentHistory({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Historial de pagos">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
@@ -431,6 +432,7 @@ export default function PaymentHistory({
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
+              aria-label="Cerrar"
             >
               <X size={20} />
             </button>
@@ -480,7 +482,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => { setDateFrom(e.target.value); setActivePreset(null) }}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   />
                 </div>
                 <div>
@@ -489,7 +491,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateTo}
                     onChange={(e) => { setDateTo(e.target.value); setActivePreset(null) }}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   />
                 </div>
                 <div>
@@ -497,7 +499,7 @@ export default function PaymentHistory({
                   <select
                     value={viewType}
                     onChange={(e) => setViewType(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   >
                     <option value="all">Todos</option>
                     <option value="students">Alumnos</option>
@@ -533,7 +535,7 @@ export default function PaymentHistory({
           )}
 
           {/* Summary - always visible */}
-          <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2">
             <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
               <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
@@ -554,7 +556,7 @@ export default function PaymentHistory({
               <p className="text-sm sm:text-lg font-bold text-emerald-600">${totalArticleSales.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredArticleSales.length} ventas</p>
             </div>
-            <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200 col-span-3 sm:col-span-1">
+            <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center border border-green-200 col-span-2 sm:col-span-1">
               <p className="text-[10px] sm:text-xs text-green-600 font-medium">TOTAL</p>
               <p className="text-sm sm:text-xl font-bold text-green-700">${grandTotal.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-green-500">{filteredPayments.filter(p => !p.voided).length + filteredQuickPayments.filter(p => !p.voided).length + filteredPlanPayments.length + filteredArticleSales.length} pagos</p>
@@ -713,8 +715,8 @@ export default function PaymentHistory({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
-                        🛍️
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <ShoppingBag size={16} />
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate text-gray-800">
@@ -806,14 +808,14 @@ export default function PaymentHistory({
 
       {/* Modal de Anulación */}
       {voidModal.show && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-2xl shadow-xl w-80" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs sm:w-80">
             <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="text-red-500" size={18} />
                 <span className="font-medium text-red-700 text-sm">Anular Comprobante</span>
               </div>
-              <button onClick={closeVoidModal} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
+              <button onClick={closeVoidModal} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all" aria-label="Cerrar">
                 <X size={16} className="text-red-500" />
               </button>
             </div>
@@ -836,7 +838,7 @@ export default function PaymentHistory({
                   type="text"
                   value={voidReason}
                   onChange={(e) => setVoidReason(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   placeholder="Motivo de anulación..."
                 />
               </div>
@@ -890,6 +892,6 @@ export default function PaymentHistory({
           </div>
         </div>
       )}
-    </div>
+    </Modal>
   )
 }

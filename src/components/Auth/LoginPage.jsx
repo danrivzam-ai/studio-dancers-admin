@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-
+import Modal from '../ui/Modal'
 
 export default function LoginPage({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -65,9 +65,7 @@ export default function LoginPage({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{
-      background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
-    }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-700 via-purple-800 to-pink-700">
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-6">
@@ -75,8 +73,7 @@ export default function LoginPage({ onLogin }) {
             <img
               src="/logo-cream.png"
               alt="Studio Dancers"
-              className="h-20 mx-auto"
-              style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
+              className="h-20 mx-auto drop-shadow-lg"
               onError={(e) => { e.target.src = '/logo.png' }}
             />
           </div>
@@ -85,8 +82,7 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* ── Modal recuperar contraseña ── */}
-        {isResetting && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <Modal isOpen={isResetting} onClose={() => { setIsResetting(false); setError('') }} ariaLabel="Recuperar contraseña">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
               <div className="px-6 pt-6 pb-2">
                 <h2 className="text-lg font-bold text-gray-800 mb-1">Recuperar contraseña</h2>
@@ -96,7 +92,7 @@ export default function LoginPage({ onLogin }) {
               {resetSent ? (
                 <div className="px-6 py-5 space-y-4">
                   <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                    ✅ Enlace enviado a <strong>{resetEmail}</strong>. Revisa tu bandeja (y la carpeta de spam).
+                    Enlace enviado a <strong>{resetEmail}</strong>. Revisa tu bandeja (y la carpeta de spam).
                   </div>
                   <button
                     onClick={() => { setIsResetting(false); setResetSent(false) }}
@@ -125,8 +121,7 @@ export default function LoginPage({ onLogin }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
+                    className="w-full py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all disabled:opacity-50 btn-primary-gradient"
                   >
                     {loading ? 'Enviando...' : 'Enviar enlace'}
                   </button>
@@ -140,8 +135,7 @@ export default function LoginPage({ onLogin }) {
                 </form>
               )}
             </div>
-          </div>
-        )}
+        </Modal>
 
         {/* Card de login */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -184,6 +178,7 @@ export default function LoginPage({ onLogin }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -194,11 +189,7 @@ export default function LoginPage({ onLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-4 py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
-                boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'
-              }}
+              className="w-full mt-4 py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed btn-primary-gradient"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-3">

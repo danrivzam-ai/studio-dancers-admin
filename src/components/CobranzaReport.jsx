@@ -11,6 +11,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { getDaysUntilDue, getPaymentStatus } from '../lib/dateUtils'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from '../lib/whatsapp'
+import Modal from './ui/Modal'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,12 +24,12 @@ function formatDateShort(dateStr) {
 
 const STATUS_ORDER  = ['mora', 'overdue', 'grace', 'upcoming', 'due_today', 'urgent']
 const STATUS_LABELS = {
-  mora:      '🚫 Suspendida',
-  overdue:   '🔴 Vencida',
-  grace:     '🟡 En gracia',
-  upcoming:  '🟠 Próxima',
-  due_today: '🔴 Vence hoy',
-  urgent:    '🟠 Vence pronto',
+  mora:      'Suspendida',
+  overdue:   'Vencida',
+  grace:     'En gracia',
+  upcoming:  'Próxima',
+  due_today: 'Vence hoy',
+  urgent:    'Vence pronto',
 }
 const STATUS_BG = {
   mora:      'bg-rose-50 border-rose-200',
@@ -192,36 +193,35 @@ export default function CobranzaReport({
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4" onClick={onClose}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Reporte de cobranza">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold">📋 Reporte de Cobranza</h2>
+              <h2 className="text-lg font-bold">Reporte de Cobranza</h2>
               <p className="text-xs text-purple-200 mt-0.5">
                 {cobranzaList.length} alumna{cobranzaList.length !== 1 ? 's' : ''} con cobro pendiente o próximo
               </p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl transition-colors">
               <X size={20} />
             </button>
           </div>
 
           {/* Resumen de totales */}
-          <div className="grid grid-cols-4 gap-2 mt-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
             {[
-              { label: '🚫 Suspendidas', value: totals.mora,    color: 'bg-rose-500/30' },
-              { label: '🔴 Vencidas',    value: totals.overdue, color: 'bg-red-500/30' },
-              { label: '🟡 En gracia',   value: totals.grace,   color: 'bg-amber-400/30' },
-              { label: '🟠 Próximas',    value: totals.upcoming,color: 'bg-orange-400/30' },
+              { label: 'Suspendidas', value: totals.mora,    color: 'bg-rose-500/30' },
+              { label: 'Vencidas',    value: totals.overdue, color: 'bg-red-500/30' },
+              { label: 'En gracia',   value: totals.grace,   color: 'bg-amber-400/30' },
+              { label: 'Próximas',    value: totals.upcoming,color: 'bg-orange-400/30' },
             ].map(t => (
               <div key={t.label} className={`${t.color} rounded-xl px-3 py-2 text-center`}>
-                <p className="text-xl font-bold">{t.value}</p>
-                <p className="text-[10px] text-purple-100">{t.label}</p>
+                <p className="text-lg sm:text-xl font-bold">{t.value}</p>
+                <p className="text-[11px] sm:text-xs text-purple-100">{t.label}</p>
               </div>
             ))}
           </div>
@@ -232,10 +232,10 @@ export default function CobranzaReport({
           <div className="flex gap-1.5 flex-wrap flex-1">
             {[
               { v: 'all',     l: 'Todas' },
-              { v: 'mora',    l: '🚫 Suspendidas' },
-              { v: 'overdue', l: '🔴 Vencidas' },
-              { v: 'grace',   l: '🟡 En gracia' },
-              { v: 'upcoming',l: '🟠 Próximas' },
+              { v: 'mora',    l: 'Suspendidas' },
+              { v: 'overdue', l: 'Vencidas' },
+              { v: 'grace',   l: 'En gracia' },
+              { v: 'upcoming',l: 'Próximas' },
             ].map(f => (
               <button
                 key={f.v}
@@ -276,7 +276,7 @@ export default function CobranzaReport({
         </div>
 
         {/* Tabla */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-auto">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">
               <p className="text-base font-medium">Sin registros para este filtro</p>
@@ -304,7 +304,7 @@ export default function CobranzaReport({
                       <p className="text-xs text-gray-400 md:hidden">{row.course?.name || '—'}</p>
                       {row.status.status === 'mora' && (
                         <span className="inline-block mt-0.5 text-[10px] font-semibold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-full">
-                          🚫 No puede asistir
+                          No puede asistir
                         </span>
                       )}
                     </td>
@@ -360,6 +360,6 @@ export default function CobranzaReport({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

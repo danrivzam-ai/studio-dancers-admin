@@ -1,5 +1,6 @@
 import { X, Download } from 'lucide-react'
 import jsPDF from 'jspdf'
+import Modal from './ui/Modal'
 
 const PAYMENT_LABELS = {
   cash: 'Efectivo',
@@ -101,8 +102,8 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
   })()
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Comprobante de venta">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
         {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
           <span className="font-semibold">Comprobante de Venta</span>
@@ -116,6 +117,7 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
             </button>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={18} />
@@ -181,6 +183,6 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

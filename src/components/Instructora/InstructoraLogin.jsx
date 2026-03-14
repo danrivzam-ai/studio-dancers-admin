@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+// SECURITY WARNING: bcryptjs runs client-side, exposing hashed passwords to the browser.
+// TODO: Migrate to a Supabase Edge Function (e.g. POST /functions/v1/instructor-login)
+// that accepts {cedula, password}, compares server-side, and returns a session token.
 import bcrypt from 'bcryptjs'
 import { supabase } from '../../lib/supabase'
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Plus, Edit2, Trash2, Eye, EyeOff, X, Shield, Check } from 'lucide-react'
+import Modal from './ui/Modal'
 
 const EMPTY_FORM = { name: '', username: '', password: '', active: true }
 
@@ -171,9 +172,9 @@ export default function ReceptionistManager() {
       )}
 
       {/* Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" onClick={e => e.stopPropagation()}>
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} ariaLabel={editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}>
+        {showForm && (
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-xl">
@@ -183,7 +184,7 @@ export default function ReceptionistManager() {
                   {editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}
                 </h3>
               </div>
-              <button onClick={() => setShowForm(false)} className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
+              <button onClick={() => setShowForm(false)} aria-label="Cerrar" className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -263,21 +264,20 @@ export default function ReceptionistManager() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all"
-                  style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
+                  className="flex-1 py-3 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all btn-primary-gradient"
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Delete confirm */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center" onClick={e => e.stopPropagation()}>
+      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} ariaLabel="Confirmar eliminación">
+        {deleteConfirm && (
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 className="text-red-600" size={24} />
             </div>
@@ -298,8 +298,8 @@ export default function ReceptionistManager() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   )
 }

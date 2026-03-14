@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, AlertTriangle, Trash2, Lock } from 'lucide-react'
+import Modal from './ui/Modal'
 
 export default function DeleteConfirmModal({
   isOpen,
@@ -12,8 +13,6 @@ export default function DeleteConfirmModal({
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  if (!isOpen) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -44,7 +43,7 @@ export default function DeleteConfirmModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <Modal isOpen={isOpen} onClose={handleClose} ariaLabel="Confirmar eliminación">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
         {/* Header pequeño */}
         <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
@@ -52,7 +51,7 @@ export default function DeleteConfirmModal({
             <AlertTriangle className="text-red-500" size={18} />
             <span className="font-medium text-red-700 text-sm">Eliminar</span>
           </div>
-          <button onClick={handleClose} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
+          <button onClick={handleClose} aria-label="Cerrar" className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
             <X size={16} className="text-red-500" />
           </button>
         </div>
@@ -115,6 +114,6 @@ export default function DeleteConfirmModal({
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

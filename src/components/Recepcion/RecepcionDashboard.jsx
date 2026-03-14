@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { getCourseById, ALL_COURSES } from '../../lib/courses'
 import { getDaysUntilDue, getTodayEC } from '../../lib/dateUtils'
 import PaymentModal from '../PaymentModal'
+import Modal from '../ui/Modal'
 
 const PURPLE = '#7B2D8E'
 const GREEN  = '#2A9D8F'
@@ -67,7 +68,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
   const ACTIVE_COURSES = ALL_COURSES.filter(c => c.id)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Nueva alumna">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
@@ -75,7 +76,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <div className="bg-white/20 p-1.5 rounded-xl"><Plus size={16} /></div>
             <h3 className="font-semibold text-base">Nueva alumna</h3>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+          <button onClick={onClose} aria-label="Cerrar" className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -86,7 +87,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Nombre completo *</label>
             <input required value={form.name} onChange={e => set('name', e.target.value)}
               placeholder="Nombre de la alumna"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
           </div>
 
           {/* Cédula + Edad */}
@@ -95,13 +96,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
               <label className="text-xs font-medium text-gray-600 block mb-1">Cédula</label>
               <input value={form.cedula} onChange={e => set('cedula', e.target.value)}
                 placeholder="0000000000"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Edad</label>
               <input type="number" min={1} max={99} value={form.age} onChange={e => set('age', e.target.value)}
                 placeholder="Años"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
             </div>
           </div>
 
@@ -110,7 +111,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono</label>
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               placeholder="09xxxxxxxx"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
           </div>
 
           {/* Es menor */}
@@ -126,13 +127,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
                 <label className="text-xs font-medium text-gray-600 block mb-1">Nombre del representante *</label>
                 <input value={form.parent_name} onChange={e => set('parent_name', e.target.value)}
                   placeholder="Nombre completo"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono del representante</label>
                 <input value={form.parent_phone} onChange={e => set('parent_phone', e.target.value)}
                   placeholder="09xxxxxxxx"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
               </div>
             </div>
           )}
@@ -141,7 +142,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Curso *</label>
             <select required value={form.course_id} onChange={e => set('course_id', e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none transition-all">
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all">
               <option value="">— Selecciona un curso —</option>
               {ACTIVE_COURSES.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -154,7 +155,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Notas (opcional)</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
               placeholder="Observaciones adicionales..."
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none resize-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none resize-none transition-all" />
           </div>
 
           {error && (
@@ -176,7 +177,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -227,14 +228,14 @@ function StudentDetailModal({ student, onClose, onPago }) {
   const status  = getPaymentStatus(student)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 px-4 pb-4 sm:pb-0">
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle alumna">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
         <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><User size={16} /></div>
             <h3 className="font-semibold text-base">Detalle alumna</h3>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+          <button onClick={onClose} aria-label="Cerrar" className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -296,7 +297,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -386,7 +387,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nombre, cédula o representante..."
-              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-300 focus:outline-none bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}

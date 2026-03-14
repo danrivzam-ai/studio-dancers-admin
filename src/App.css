@@ -11,23 +11,6 @@
 }
 
 /* =============================================
-   Header Styles
-   ============================================= */
-.app-header {
-  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%);
-  color: white;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 20px rgba(126, 34, 206, 0.3);
-}
-
-.app-header-glass {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* =============================================
    Card Styles
    ============================================= */
 .card-modern {
@@ -53,18 +36,8 @@
 }
 
 .card-stat:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-}
-
-.card-stat-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 0.875rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* =============================================
@@ -114,41 +87,6 @@
 
 .btn-icon:hover {
   transform: scale(1.05);
-}
-
-/* =============================================
-   Tab Navigation
-   ============================================= */
-.tab-nav {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem;
-  border-radius: 0.875rem;
-  display: inline-flex;
-  gap: 0.25rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-}
-
-.tab-btn {
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
-  font-size: 0.9375rem;
-  color: #6b7280;
-  border-radius: 0.625rem;
-  transition: all 0.2s ease;
-  background: transparent;
-  border: none;
-}
-
-.tab-btn:hover {
-  background: rgba(147, 51, 234, 0.08);
-  color: #7e22ce;
-}
-
-.tab-btn.active {
-  background: white;
-  color: #7e22ce;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* =============================================
@@ -217,40 +155,6 @@
 }
 
 /* =============================================
-   Modal Styles
-   ============================================= */
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: white;
-  border-radius: 1.25rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  max-height: 90vh;
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(180deg, #faf5ff 0%, white 100%);
-}
-
-.modal-body {
-  padding: 1.5rem;
-  overflow-y: auto;
-  max-height: calc(90vh - 140px);
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
-
-/* =============================================
    Form Styles
    ============================================= */
 .form-input {
@@ -298,35 +202,12 @@
   letter-spacing: 0.025em;
 }
 
-.badge-success {
-  background: #d1fae5;
-  color: #047857;
-}
-
-.badge-warning {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.badge-danger {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.badge-info {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.badge-primary {
-  background: #f3e8ff;
-  color: #6b21a8;
-}
-
-.badge-gray {
-  background: #f3f4f6;
-  color: #4b5563;
-}
+.badge-success { background: #d1fae5; color: #047857; }
+.badge-warning { background: #fef3c7; color: #b45309; }
+.badge-danger  { background: #fee2e2; color: #b91c1c; }
+.badge-info    { background: #dbeafe; color: #1e40af; }
+.badge-primary { background: #f3e8ff; color: #6b21a8; }
+.badge-gray    { background: #f3f4f6; color: #4b5563; }
 
 /* =============================================
    Search Input
@@ -363,122 +244,60 @@
    Animations
    ============================================= */
 @keyframes slide-in {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
-
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
 }
 
 @keyframes slide-up {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
-
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
 
 @keyframes pulse-urgent {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
-
 .animate-pulse-urgent {
   animation: pulse-urgent 2s ease-in-out infinite;
 }
 
-@keyframes bounce-gentle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
+/* Reuse slide-in for notification toasts (replaces old bounce-in) */
+.animate-bounce-in {
+  animation: slide-in 0.3s ease-out;
 }
 
 /* =============================================
    Scrollbar Styles
    ============================================= */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Global scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* =============================================
-   Loading Spinner & Animations
+   Loading Spinner
    ============================================= */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .spinner {
@@ -496,68 +315,17 @@
   border-width: 2px;
 }
 
-/* Loading Screen - Dancing Dots */
-@keyframes dancing-dot {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(-20px) scale(1.2);
-    opacity: 0.7;
-  }
-}
-
-.loading-dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.loading-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  animation: dancing-dot 0.6s ease-in-out infinite;
-}
-
-.loading-dot:nth-child(1) {
-  background: #9333ea;
-  animation-delay: 0s;
-}
-
-.loading-dot:nth-child(2) {
-  background: #db2777;
-  animation-delay: 0.1s;
-}
-
-.loading-dot:nth-child(3) {
-  background: #f59e0b;
-  animation-delay: 0.2s;
-}
-
-.loading-dot:nth-child(4) {
-  background: #10b981;
-  animation-delay: 0.3s;
-}
-
-/* Loading Bar */
+/* Loading bar (used in App.jsx loading screen) */
 @keyframes loading-bar {
-  0% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
 }
 
 .loading-bar-container {
   width: 200px;
   height: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(147, 51, 234, 0.15);
   border-radius: 2px;
   overflow: hidden;
   margin: 0 auto;
@@ -566,48 +334,9 @@
 .loading-bar {
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, #9333ea, #db2777, #f59e0b);
+  background: #9333ea;
   border-radius: 2px;
   animation: loading-bar 1.5s ease-in-out infinite;
-}
-
-/* Spinning Logo */
-@keyframes logo-pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px 10px rgba(147, 51, 234, 0.2);
-  }
-}
-
-.loading-logo {
-  animation: logo-pulse 2s ease-in-out infinite;
-}
-
-/* Shimmer Effect */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.shimmer-text {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0.6) 100%
-  );
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 2s infinite;
 }
 
 /* =============================================
@@ -642,19 +371,6 @@
 /* =============================================
    Utility Classes
    ============================================= */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -669,4 +385,21 @@
   background: rgba(147, 51, 234, 0.2);
   color: #6b21a8;
 }
-/* Deploy jue., 12 de feb. de 2026 - v4.7 */
+
+/* Reduced motion: disable animations for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hover-lift:hover,
+  .card-modern:hover,
+  .card-stat:hover {
+    transform: none !important;
+  }
+}

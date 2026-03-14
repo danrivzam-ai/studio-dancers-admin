@@ -1,10 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import { toPng } from 'html-to-image'
-import { X, Download, Send } from 'lucide-react'
+import { X, Download, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { useToast } from './Toast'
 import InvoiceButton from './InvoiceButton'
+import Modal from './ui/Modal'
 
 export default function ReceiptGenerator({
   payment,
@@ -57,17 +58,6 @@ export default function ReceiptGenerator({
 
     loadLogo()
   }, [settings?.logo_url])
-
-  // Cerrar con Escape
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
 
   // Calcular información de saldos
   const coursePrice = course?.price || 0
@@ -191,21 +181,15 @@ ${settings.name}`
   if (!payment || !student) return null
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={(e) => {
-        // Cerrar al hacer clic fuera del modal
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Comprobante de Pago">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
-            title="Cerrar (Esc)"
           >
             <X size={20} />
           </button>
@@ -244,7 +228,7 @@ ${settings.name}`
               <h2 className="text-lg font-bold text-gray-800">COMPROBANTE DE PAGO</h2>
               {isReprint && (
                 <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full mb-1 font-semibold">
-                  📋 REIMPRESIÓN
+                  REIMPRESIÓN
                 </span>
               )}
               {isQuickPayment && (
@@ -323,7 +307,7 @@ ${settings.name}`
             {(isProgram || (isRecurring && isPartialPayment)) && (
               <div className={`rounded-xl p-3 mb-4 ${hasBalance ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
                 <p className="text-sm font-semibold text-center mb-2">
-                  {hasBalance ? '📊 Estado de Cuenta del Ciclo' : (isProgram ? '✅ Programa Pagado' : '✅ Ciclo Pagado')}
+                  {hasBalance ? 'Estado de Cuenta del Ciclo' : (isProgram ? 'Programa Pagado' : 'Ciclo Pagado')}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center text-sm">
                   <div>
@@ -420,13 +404,13 @@ ${settings.name}`
           {/* Toast de estado de envío API */}
           {waStatus === 'sent' && (
             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-              <span>✅</span>
+              <CheckCircle size={16} />
               <span>Comprobante enviado autom\u00e1ticamente por WhatsApp</span>
             </div>
           )}
           {waStatus === 'manual' && (
             <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
-              <span>⚠️</span>
+              <AlertCircle size={16} />
               <span>API no disponible \u2014 enviado por WhatsApp Web</span>
             </div>
           )}
@@ -452,6 +436,6 @@ ${settings.name}`
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

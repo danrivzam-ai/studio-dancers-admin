@@ -33,11 +33,12 @@ export function ToastProvider({ children }) {
       {children}
 
       {/* Toast Container */}
-      <div className="fixed bottom-4 right-4 z-[100] space-y-2">
+      <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-[100] space-y-2">
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg animate-slide-in min-w-[280px] max-w-[400px] ${
+            role="alert"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg animate-slide-in w-full sm:min-w-[280px] sm:max-w-[400px] ${
               t.type === 'success' ? 'bg-green-600 text-white' :
               t.type === 'error' ? 'bg-red-600 text-white' :
               t.type === 'warning' ? 'bg-yellow-500 text-white' :
@@ -51,6 +52,7 @@ export function ToastProvider({ children }) {
             <p className="flex-1 text-sm font-medium">{t.message}</p>
             <button
               onClick={() => removeToast(t.id)}
+              aria-label="Cerrar notificación"
               className="p-1 hover:bg-white/20 rounded transition-colors"
             >
               <X size={16} />

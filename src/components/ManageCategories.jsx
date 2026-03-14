@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Plus, Edit2, Trash2, ChevronDown, ChevronUp, RotateCcw, Check, Palette } from 'lucide-react'
 import { useCategoryManagement } from '../hooks/useCategoryManagement'
+import Modal from './ui/Modal'
 
 const PRESET_COLORS = [
   '#EF4444', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899',
@@ -141,8 +142,8 @@ export default function ManageCategories({ onClose }) {
   const inactiveCount = categories.filter(c => c.active === false).length
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar categorías">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
           <div className="flex items-center justify-between">
@@ -153,7 +154,7 @@ export default function ManageCategories({ onClose }) {
                 <p className="text-white/80 text-sm">{activeCount} activas{inactiveCount > 0 ? ` · ${inactiveCount} inactivas` : ''}</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
               <X size={22} />
             </button>
           </div>
@@ -472,6 +473,6 @@ export default function ManageCategories({ onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

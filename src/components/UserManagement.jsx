@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, UserPlus, Trash2, Shield, User, Eye, Mail, Check, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { ROLES } from '../hooks/useAuth'
+import Modal from './ui/Modal'
 
 const ROLE_LABELS = {
   admin: { label: 'Administrador', color: 'bg-purple-100 text-purple-700', icon: Shield },
@@ -129,11 +130,9 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={isOpen} onClose={onClose} ariaLabel="Gestionar usuarios">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
@@ -146,6 +145,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
             </div>
             <button
               onClick={onClose}
+              aria-label="Cerrar"
               className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
             >
               <X size={24} />
@@ -338,6 +338,6 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

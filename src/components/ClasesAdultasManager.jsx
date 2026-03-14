@@ -162,7 +162,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
               <div className="flex gap-1 items-center">
                 <input autoFocus value={objetivoEdit} onChange={e => setObjetivoEdit(e.target.value)}
                   placeholder="Objetivo del ciclo"
-                  className="flex-1 border border-purple-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-purple-400" />
+                  className="flex-1 border border-purple-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-4 focus:ring-purple-100" />
                 <button onClick={handleSaveObjetivo} disabled={saving}
                   className="p-1.5 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 transition-colors">
                   <Check size={14} />
@@ -232,19 +232,19 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
               <label className="text-xs text-gray-600 block mb-1">Fecha de inicio *</label>
               <input type="date" required value={form.fechaInicio}
                 onChange={e => setForm({ ...form, fechaInicio: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs text-gray-600 block mb-1">Fecha fin est.</label>
               <input type="date" value={form.fechaFin}
                 onChange={e => setForm({ ...form, fechaFin: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs text-gray-600 block mb-1">Total clases *</label>
               <input type="number" required min={1} max={999} value={form.totalClases}
                 onChange={e => setForm({ ...form, totalClases: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all" />
             </div>
           </div>
           <div>
@@ -252,7 +252,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
             <input type="text" value={form.objetivoCiclo}
               onChange={e => setForm({ ...form, objetivoCiclo: e.target.value })}
               placeholder="ej. Perfeccionar port de bras"
-              className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-2 py-1.5 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all" />
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
@@ -356,7 +356,7 @@ export default function ClasesAdultasManager() {
             Selecciona un curso para gestionar su ciclo
           </label>
           <select value={selectedCourseCode} onChange={e => setSelectedCourseCode(e.target.value)}
-            className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-purple-300 focus:border-purple-400 outline-none transition-all">
+            className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all">
             <option value="">— Elige un curso —</option>
             {courses.map(c => (
               <option key={c.code} value={c.code}>{c.name}</option>

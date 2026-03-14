@@ -3,6 +3,7 @@ import { FileText, Download, Send, X, AlertCircle, CheckCircle, Loader2, Edit3 }
 import { useInvoices } from '../hooks/useInvoices'
 import { detectBuyerIdType, resolveBuyerData, getBuyerIdTypeLabel } from '../lib/sriUtils'
 import { downloadRidePDF } from '../lib/rideGenerator'
+import Modal from './ui/Modal'
 
 /**
  * Modal para generar y gestionar facturas electrónicas SRI
@@ -86,10 +87,9 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
   const amount = parseFloat(payment?.amount || 0).toFixed(2)
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Factura">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
@@ -97,7 +97,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
             <FileText className="w-5 h-5 text-blue-600" />
             <h2 className="text-lg font-bold text-gray-800">Factura Electrónica</h2>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+          <button onClick={onClose} aria-label="Cerrar" className="p-1 hover:bg-gray-100 rounded-full">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -354,6 +354,6 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

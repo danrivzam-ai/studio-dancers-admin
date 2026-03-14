@@ -180,7 +180,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
   const total   = parseFloat(plan.total_amount || 0)
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Acciones */}
         <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
@@ -874,7 +874,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               ) : (
                 <button onClick={() => { setEditingTotal(true); setNewTotal(plan.total_amount) }}
                   className="flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-800 font-medium">
-                  ✏ Corregir precio total
+                  Corregir precio total
                 </button>
               )}
             </div>
@@ -897,7 +897,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
       {/* ─── Modal de detalle ─────────────────────────────── */}
       {showDetail && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setShowDetail(false)}>
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
@@ -922,10 +922,10 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
                   )}
                   {effectivePhone && (
-                    <p className="text-sm text-gray-500 mt-0.5">📱 {effectivePhone}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{effectivePhone}</p>
                   )}
                   {plan.customer_email && (
-                    <p className="text-sm text-gray-500 mt-0.5">✉️ {plan.customer_email}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{plan.customer_email}</p>
                   )}
                 </div>
 
@@ -1122,7 +1122,7 @@ export default function SaleInstallments({
       {!dbError && (
         <>
           {/* Resumen */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
               <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
@@ -1217,7 +1217,7 @@ export default function SaleInstallments({
       )}
 
       {confirmCancel && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
             <Trash2 size={32} className="mx-auto text-red-400 mb-3" />
             <p className="font-semibold text-gray-800 mb-1">¿Cancelar este plan?</p>
@@ -1237,7 +1237,7 @@ export default function SaleInstallments({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
             <Trash2 size={32} className="mx-auto text-red-600 mb-3" />
             <p className="font-semibold text-gray-800 mb-1">¿Eliminar este plan?</p>

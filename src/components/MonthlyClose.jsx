@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { X, Lock, ChevronDown, ChevronUp, AlertTriangle, CheckCircle } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import Modal from './ui/Modal'
 
 const MESES = [
   'Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -301,10 +302,9 @@ export default function MonthlyClose({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4" onClick={onClose}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Cierre mensual">
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col"
-        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white flex-shrink-0">
@@ -318,7 +318,7 @@ export default function MonthlyClose({
                 <p className="text-xs text-purple-200">Solo admin · Bloquea el historial del mes</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -336,7 +336,7 @@ export default function MonthlyClose({
                 setSelectedYear(y)
                 setSelectedMonth(m)
               }}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:outline-none"
             >
               {prevMonths.map(({ year, month }) => (
                 <option key={`${year}-${month}`} value={`${year}-${month}`}>
@@ -344,7 +344,7 @@ export default function MonthlyClose({
                   {closes.some(c => {
                     const [y, m] = c.periodo.split('-').map(Number)
                     return y === year && m === month
-                  }) ? ' ✅ Cerrado' : ''}
+                  }) ? ' — Cerrado' : ''}
                 </option>
               ))}
             </select>
@@ -397,7 +397,7 @@ export default function MonthlyClose({
                     onChange={e => setNotas(e.target.value)}
                     rows={2}
                     placeholder="Observaciones, irregularidades, acuerdos del mes..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:outline-none resize-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:outline-none resize-none"
                   />
                 </div>
               )}
@@ -487,6 +487,6 @@ export default function MonthlyClose({
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

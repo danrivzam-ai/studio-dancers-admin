@@ -105,7 +105,7 @@ export default function TabGlosario() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Buscar término..."
-          className="w-full pl-9 pr-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300 shadow-sm transition-all"
+          className="w-full pl-9 pr-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 shadow-sm transition-all"
         />
       </div>
 

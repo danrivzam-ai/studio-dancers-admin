@@ -50,6 +50,7 @@ import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
+import { useToast } from './components/Toast'
 import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
@@ -85,24 +86,27 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
   const { activePlans, paidPlans, totalDebt, loading: plansLoading, dbError: plansDbError, refresh: refreshPlans, createPlan, registerPayment: registerPlanPayment, cancelPlan, deletePlan, updatePlanTotal, markDelivered } = useSalePlans()
   const { kpis, loading: kpisLoading, fetchKPIs } = useFinancialKPIs()
+  const toast = useToast()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
   const enrichCourse = (course) => {
     if (!course) return null
-    if (course.classDays && course.classDays.length > 0) return course
+    // Normalizar price_type → priceType si falta
+    const base = course.priceType ? course : { ...course, priceType: course.price_type }
+    if (base.classDays && base.classDays.length > 0) return base
     // 1. Match exacto por id/code en cursos hardcodeados
-    const hardcoded = ALL_COURSES.find(c => c.id === course.code || c.id === course.id)
+    const hardcoded = ALL_COURSES.find(c => c.id === base.code || c.id === base.id)
     if (hardcoded) {
-      return { ...course, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage }
+      return { ...base, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage, priceType: base.priceType || hardcoded.priceType }
     }
     // 2. Match por patrón: cursos custom de sábados (ej: sabados-intensivos-adultos)
-    const key = (course.code || course.id || '').toLowerCase()
-    const name = (course.name || '').toLowerCase()
+    const key = (base.code || base.id || '').toLowerCase()
+    const name = (base.name || '').toLowerCase()
     if (key.includes('sabados') || key.includes('sabado') || name.includes('sábado') || name.includes('sabado')) {
-      return { ...course, classDays: [6], classesPerPackage: course.classesPerPackage || 4 }
+      return { ...base, classDays: [6], classesPerPackage: base.classesPerPackage || 4 }
     }
-    return course
+    return base
   }
 
   const [activeTab, setActiveTab] = useState('students')
@@ -141,6 +145,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
   const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
+  const [saleSubmitting, setSaleSubmitting] = useState(false)
 
   // Tablón de anuncios
   const [announcements, setAnnouncements] = useState([])
@@ -513,7 +518,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       resetForm()
     } else {
-      alert('Error: ' + result.error)
+      toast.error(result.error)
     }
   }
 
@@ -530,7 +535,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const totalRequested = alreadyInCart + qty
 
     if (product.stock !== null && product.stock !== undefined && product.stock < totalRequested) {
-      alert(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
+      toast.warning(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
       return
     }
 
@@ -546,11 +551,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Registrar venta completa (todos los ítems del carrito)
   const handleSaleSubmit = async (e) => {
     e.preventDefault()
+    if (saleSubmitting) return
     if (cartItems.length === 0) {
-      alert('Agrega al menos un artículo al carrito')
+      toast.warning('Agrega al menos un artículo al carrito')
       return
     }
 
+    setSaleSubmitting(true)
+    try {
     const result = await createSaleGroup({
       customerName: saleForm.customerName,
       items: cartItems,
@@ -584,7 +592,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
-      alert('Error: ' + result.error)
+      toast.error(result.error)
+    }
+    } finally {
+      setSaleSubmitting(false)
     }
   }
 
@@ -623,7 +634,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         }
       }
     } else {
-      alert('Error: ' + result.error)
+      toast.error(result.error)
     }
   }
 
@@ -741,7 +752,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       refreshIncome()
     } catch (err) {
       console.error('Error en pago rápido:', err)
-      alert('Error: ' + err.message)
+      toast.error(err.message)
     }
   }
 
@@ -759,7 +770,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setShowForm(false)
       setEditingStudent(null)
     } else {
-      alert('Error: ' + result.error)
+      toast.error(result.error)
     }
   }
 
@@ -818,20 +829,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     if (student.is_paused) {
       const result = await unpauseStudent(student.id)
       if (!result.success) {
-        alert('Error: ' + result.error)
+        toast.error(result.error)
       }
     } else {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
-        alert('Solo se pueden pausar alumnos con clases mensuales o por paquete')
+        toast.warning('Solo se pueden pausar alumnos con clases mensuales o por paquete')
         return
       }
       if (confirm(`¿Pausar 1 clase para ${student.name}?\nSe extenderá la fecha de pago.`)) {
         const result = await pauseStudent(student.id)
         if (result.success) {
-          alert(`Pausa activada para ${student.name}.\nSe agregaron ${result.daysAdded} días al ciclo.`)
+          toast.success(`Pausa activada para ${student.name}. Se agregaron ${result.daysAdded} días al ciclo.`)
         } else {
-          alert('Error: ' + result.error)
+          toast.error(result.error)
         }
       }
     }
@@ -961,6 +972,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   }}
                   className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                   title="Configuración"
+                  aria-label="Configuración"
                 >
                   <Settings size={20} />
                 </button>
@@ -980,6 +992,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 }}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                 title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
+                aria-label="Cerrar sesión"
               >
                 <LogOut size={20} />
               </button>
@@ -992,44 +1005,44 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <Plus size={20} />
+                <Plus size={18} />
                 <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <ShoppingBag size={20} />
+                <ShoppingBag size={18} />
                 <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <Zap size={20} />
+                <Zap size={18} />
                 <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <TrendingDown size={20} />
+                <TrendingDown size={18} />
                 <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <ArrowLeftRight size={20} />
+                <ArrowLeftRight size={18} />
                 <span>Movimiento</span>
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
               >
-                <History size={20} />
+                <History size={18} />
                 <span>Historial</span>
               </button>
             </div>
@@ -1127,8 +1140,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowCashRegister(true) } }}
+            role="button"
+            tabIndex={0}
             className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 border-green-400"
             title="Ver cuadre de caja"
+            aria-label="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-green-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1140,6 +1157,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <button
                     onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
                     className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
+                    aria-label={hideIncome ? 'Mostrar ingresos' : 'Ocultar ingresos'}
                   >
                     {hideIncome ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -1155,6 +1173,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setFilterPayment(target)
               setShowStudentListModal(true)
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const target = moraStudents.length > 0 ? 'mora' : urgentCount > 0 ? 'overdue' : 'upcoming'; setFilterPayment(target); setShowStudentListModal(true) } }}
+            role="button"
+            tabIndex={0}
             className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
               moraStudents.length > 0 ? 'border-rose-600 animate-pulse-urgent' :
               urgentCount > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'
@@ -1173,7 +1194,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {moraStudents.length > 0 ? (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-rose-700">{moraStudents.length}</p>
-                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas 🚫</p>
+                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas</p>
                   </>
                 ) : urgentCount > 0 ? (
                   <>
@@ -1264,6 +1285,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onClick={() => setSearchTerm('')}
                 className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                 title="Limpiar búsqueda"
+                aria-label="Limpiar búsqueda"
               >
                 <X size={16} />
               </button>
@@ -1279,7 +1301,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-purple-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-purple-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1295,7 +1317,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-amber-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-amber-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
@@ -1313,7 +1335,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-orange-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-orange-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
@@ -1331,7 +1353,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-slate-300"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-slate-300"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
@@ -1351,12 +1373,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {moraStudents.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('mora'); setShowStudentListModal(true) } }}
+                role="button"
+                tabIndex={0}
                 className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-rose-800 flex items-center gap-2">
                     <AlertCircle size={18} />
-                    🚫 Suspendidas — No pueden asistir
+                    Suspendidas — No pueden asistir
                   </h3>
                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">
                     {moraStudents.length} alumna{moraStudents.length !== 1 ? 's' : ''}
@@ -1380,9 +1405,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">{days}d mora</span>
                         <button
-                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title={`Enviar aviso de suspensión a ${contactRelation}`}
+                          aria-label={`Enviar aviso de suspensión a ${contactRelation}`}
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1402,6 +1428,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {overduePayments.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('overdue'); setShowStudentListModal(true) } }}
+                role="button"
+                tabIndex={0}
                 className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1431,9 +1460,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
+                          aria-label="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1453,6 +1483,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {inactiveStudents.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('inactive'); setShowStudentListModal(true) } }}
+                role="button"
+                tabIndex={0}
                 className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1491,6 +1524,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
               <div
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('upcoming'); setShowStudentListModal(true) } }}
+                role="button"
+                tabIndex={0}
                 className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1522,9 +1558,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
+                          aria-label="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1544,6 +1581,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {studentsWithBalance.length > 0 && (
               <div
                 onClick={() => setShowBalanceAlerts(true)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowBalanceAlerts(true) } }}
+                role="button"
+                tabIndex={0}
                 className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1611,7 +1651,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
-                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                if (!phone) { toast.warning('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
                                 openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
@@ -1630,6 +1670,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => setReminderQueueIdx(null)}
                               className="px-3 py-2.5 rounded-xl border border-red-200 text-sm text-red-500 hover:bg-red-50"
+                              aria-label="Detener modo secuencial"
                             >
                               <X size={14} />
                             </button>
@@ -1655,11 +1696,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = s.payer_phone || s.parent_phone || s.phone
-                                if (!phone) { alert('Sin teléfono registrado'); return }
+                                if (!phone) { toast.warning('Sin teléfono registrado'); return }
                                 openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
                               title="Enviar recordatorio"
+                              aria-label="Enviar recordatorio WhatsApp"
                             >
                               <MessageCircle size={15} />
                             </button>
@@ -1748,10 +1790,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {/* Catálogo por categoría */}
             {(() => {
               const CATS = [
-                { key: 'entradas',  label: 'Entradas',  emoji: '🎟️' },
-                { key: 'vestuario', label: 'Vestuario', emoji: '👗' },
-                { key: 'uniformes', label: 'Uniformes', emoji: '📦' },
-                { key: 'bar',       label: 'Bar',       emoji: '🥤' },
+                { key: 'entradas',  label: 'Entradas' },
+                { key: 'vestuario', label: 'Vestuario' },
+                { key: 'uniformes', label: 'Uniformes' },
+                { key: 'bar',       label: 'Bar' },
               ]
               const catKeys = CATS.map(c => c.key)
               const categorized = CATS.map(cat => ({
@@ -1759,7 +1801,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 products: allProducts.filter(p => p.category === cat.key)
               })).filter(c => c.products.length > 0)
               const otros = allProducts.filter(p => !catKeys.includes(p.category))
-              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
+              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', products: otros })
 
               const toggleCat = (key) => setCollapsedCats(prev => {
                 const next = new Set(prev)
@@ -1787,7 +1829,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <button type="button" onClick={() => toggleCat(cat.key)}
                         className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors">
                         <span className="text-sm font-semibold text-gray-700">
-                          {cat.emoji} {cat.label}
+                          {cat.label}
                           <span className="ml-2 text-xs font-normal text-gray-400">{cat.products.length} {cat.products.length === 1 ? 'artículo' : 'artículos'}</span>
                         </span>
                         <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} />
@@ -1911,6 +1953,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 }}
                                 className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                 title="Ver comprobante"
+                                aria-label="Ver comprobante"
                               >
                                 <ScrollText size={16} />
                               </button>
@@ -1919,6 +1962,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <button
                                 onClick={() => group.items.forEach(i => handleDeleteSale(i))}
                                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                                aria-label="Eliminar venta"
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -2190,14 +2234,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
@@ -2233,7 +2277,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={announcementForm.expires_at}
                         onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
-                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-400 outline-none transition-all"
+                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-4 focus:ring-purple-100 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -2278,13 +2322,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
-                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all">
+                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all" aria-label="Editar anuncio">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`} aria-label={a.active ? 'Desactivar anuncio' : 'Activar anuncio'}>
                           {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
-                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all">
+                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all" aria-label="Eliminar anuncio">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -2330,8 +2374,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-5 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
@@ -2539,11 +2583,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                   <button
                     type="submit"
-                    disabled={cartItems.length === 0 || !saleForm.customerName}
+                    disabled={cartItems.length === 0 || !saleForm.customerName || saleSubmitting}
                     className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
                   >
                     <Check size={18} />
-                    Registrar venta
+                    {saleSubmitting ? 'Registrando...' : 'Registrar venta'}
                   </button>
                 </div>
               </form>
@@ -2671,7 +2715,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Search and Filters */}
               <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
                 {/* Fila 1: Búsqueda + Curso */}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2 bg-white transition-all">
                     <Search className="text-gray-400 shrink-0" size={16} />
                     <input
@@ -2693,7 +2737,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 max-w-[160px]"
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 bg-white text-gray-700 w-full sm:max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -2839,7 +2883,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium">Pausado</span>
                                 )}
                                 {paymentStatus.status === 'mora' && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">🚫 No puede asistir</span>
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">No puede asistir</span>
                                 )}
                               </div>
                             </div>
@@ -2870,7 +2914,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
-                                    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
+                                    if (!phone) { toast.warning('Este alumno no tiene teléfono registrado'); return }
                                     const courseObj = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
                                     const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18)
@@ -2881,22 +2925,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 >
                                   <MessageCircle size={16} />
                                 </button>
-                                <button
-                                  onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
-                                  title="Editar"
-                                >
-                                  <Edit2 size={16} />
-                                </button>
-                                {!isRecepcion && (
-                                  <button
-                                    onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                                    title="Eliminar"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -2940,6 +2968,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setShowStudentDetail(null)
               openPaymentModal(student)
             }}
+            onPause={handlePauseStudent}
             onReactivate={reactivateCycle}
             schoolName={settings?.name}
           />
@@ -3048,8 +3077,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -3110,13 +3139,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         <button
                           onClick={() => setDetailBalanceStudent(s)}
                           className="p-1.5 rounded-lg bg-white border border-orange-200 text-orange-500 hover:bg-orange-100 transition-all"
-                          title="Ver detalle">
+                          title="Ver detalle"
+                          aria-label="Ver detalle de saldo">
                           <Eye size={14} />
                         </button>
                         {waLink && (
                           <a href={waLink} target="_blank" rel="noopener noreferrer"
                             className="p-1.5 rounded-lg bg-white border border-green-200 text-green-600 hover:bg-green-50 transition-all"
-                            title="Enviar recordatorio por WhatsApp">
+                            title="Enviar recordatorio por WhatsApp"
+                            aria-label="Enviar recordatorio por WhatsApp">
                             <MessageCircle size={14} />
                           </a>
                         )}
@@ -3162,7 +3193,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
           })() : null
           return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]"
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]"
               onClick={() => setDetailBalanceStudent(null)}>
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
                 onClick={e => e.stopPropagation()}>
@@ -3182,7 +3213,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Alumno/a</p>
                     <p className="font-bold text-gray-800">{s.name}</p>
                     {s.cedula && <p className="text-sm text-gray-500 mt-0.5">CI: {s.cedula}</p>}
-                    {s.phone && <p className="text-sm text-gray-500 mt-0.5">📱 {s.phone}</p>}
+                    {s.phone && <p className="text-sm text-gray-500 mt-0.5">{s.phone}</p>}
                   </div>
 
                   {/* Representante (si menor) */}
@@ -3193,7 +3224,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       {(s.payer_cedula || s.parent_cedula) && (
                         <p className="text-sm text-gray-500 mt-0.5">CI: {s.payer_cedula || s.parent_cedula}</p>
                       )}
-                      {waPhone && <p className="text-sm text-gray-500 mt-0.5">📱 {waPhone}</p>}
+                      {waPhone && <p className="text-sm text-gray-500 mt-0.5">{waPhone}</p>}
                     </div>
                   )}
 

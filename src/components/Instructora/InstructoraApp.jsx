@@ -1,4 +1,6 @@
 import { useState } from 'react'
+// SECURITY WARNING: bcryptjs runs client-side. Password hashing should be server-side.
+// TODO: Migrate to Supabase Edge Function for password change operations.
 import bcrypt from 'bcryptjs'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -127,8 +129,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all disabled:opacity-50 outline-none"
-              style={{ background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)' }}
+              className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all disabled:opacity-50 outline-none btn-primary-gradient"
             >
               {saving ? 'Guardando...' : 'Guardar contraseña y continuar'}
             </button>

@@ -111,7 +111,7 @@ export default function TabDiario({ auth, student }) {
                 value={form.fecha}
                 onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
                 max={todayEC()}
-                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
               />
             </div>
           )}
@@ -142,7 +142,7 @@ export default function TabDiario({ auth, student }) {
             onChange={e => setForm(f => ({ ...f, contenido: e.target.value }))}
             rows={5}
             placeholder="¿Cómo estuvo tu clase? ¿Qué sentiste? ¿Qué te gustó? ¿Qué te costó?"
-            className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all resize-none"
+            className="w-full rounded-xl border-2 border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all resize-none"
           />
 
           <button

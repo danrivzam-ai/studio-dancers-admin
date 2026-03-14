@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Users, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 // ── Fecha en zona horaria LOCAL ──────────────────────────────────────────────
@@ -94,7 +94,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
           <select
             value={courseId}
             onChange={e => { setCourseId(e.target.value); setRecords({}) }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-4 focus:ring-purple-100"
           >
             <option value="">— Selecciona un curso —</option>
             {allCourses.map(c => (
@@ -128,7 +128,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
             {/* Banner de fecha futura (ayuda a encontrar registros con bug UTC) */}
             {isFuture && (
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-xs text-amber-700">
-                <span className="mt-0.5 shrink-0">⚠️</span>
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
                 <span>
                   Fecha futura. Si la instructora tomó asistencia después de las 7 PM y los registros
                   no aparecen en "Hoy", podrían estar aquí (diferencia UTC−5 Ecuador).

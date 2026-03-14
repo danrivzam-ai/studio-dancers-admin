@@ -5,6 +5,7 @@ import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import CashCloseReport from './CashCloseReport'
+import Modal from './ui/Modal'
 
 export default function CashRegister({ onClose, settings }) {
   const toast = useToast()
@@ -307,8 +308,8 @@ export default function CashRegister({ onClose, settings }) {
   const netBalance = todayData.totalIncome - todayData.expensesTotal
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Caja registradora">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
           <div className="flex items-center justify-between">
@@ -324,6 +325,7 @@ export default function CashRegister({ onClose, settings }) {
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
+              aria-label="Cerrar"
             >
               <X size={20} />
             </button>
@@ -338,7 +340,7 @@ export default function CashRegister({ onClose, settings }) {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+              className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
             />
             <button
               onClick={() => fetchDayData(selectedDate)}
@@ -631,7 +633,7 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={closingAmount}
                         onChange={(e) => setClosingAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -673,7 +675,7 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                       placeholder="Observaciones del cierre..."
                     />
                   </div>
@@ -795,6 +797,6 @@ export default function CashRegister({ onClose, settings }) {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

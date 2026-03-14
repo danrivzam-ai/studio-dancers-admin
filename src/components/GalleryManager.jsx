@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Images, Upload, Trash2, Edit2, Check, X, ImageOff, Loader2, AlertTriangle } from 'lucide-react'
 import { useGallery } from '../hooks/useGallery'
+import Modal from './ui/Modal'
 
 export default function GalleryManager() {
   const { photos, loading, uploading, getPhotoUrl, uploadPhoto, deletePhoto, updateCaption } = useGallery()
@@ -157,12 +158,9 @@ export default function GalleryManager() {
       )}
 
       {/* ══════ MODAL: Editar pie de foto ══════ */}
-      {editTarget && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setEditTarget(null)}>
-          <div
-            className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
+      <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} ariaLabel="Editar pie de foto">
+        {editTarget && (
+          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden">
             {/* Preview + header */}
             <div className="relative h-36 bg-gray-900">
               <img src={editTarget.url} alt="" className="w-full h-full object-cover opacity-70" />
@@ -189,7 +187,7 @@ export default function GalleryManager() {
                 placeholder="Ej: Clase de técnica clásica"
                 autoFocus
                 maxLength={80}
-                className="w-full text-sm border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+                className="w-full text-sm border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
               />
               <div className="flex gap-2">
                 <button
@@ -209,16 +207,13 @@ export default function GalleryManager() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* ══════ MODAL: Confirmar eliminación ══════ */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setDeleteTarget(null)}>
-          <div
-            className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden"
-            onClick={e => e.stopPropagation()}
-          >
+      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} ariaLabel="Confirmar eliminación de foto">
+        {deleteTarget && (
+          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden">
             {/* Preview */}
             <div className="relative h-36 bg-gray-900">
               <img src={getPhotoUrl(deleteTarget.storage_path)} alt="" className="w-full h-full object-cover opacity-50" />
@@ -255,8 +250,8 @@ export default function GalleryManager() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
     </div>
   )
