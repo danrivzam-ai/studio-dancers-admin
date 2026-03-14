@@ -490,6 +490,19 @@ export function useStudents() {
         return s
       }))
 
+      logAudit({
+        action: 'student_paused',
+        tableName: 'students',
+        recordId: studentId,
+        oldData: { next_payment_date: student.next_payment_date, is_paused: false },
+        newData: {
+          next_payment_date: formatDateForInput(newNextPayment),
+          is_paused: true,
+          pause_date: formatDateForInput(today),
+          days_added: daysToAdd,
+        },
+      })
+
       return { success: true, daysAdded: daysToAdd }
     } catch (err) {
       console.error('Error pausing student:', err)
@@ -500,6 +513,8 @@ export function useStudents() {
   // Reactivar pausa (quitar flag de pausa)
   const unpauseStudent = async (studentId) => {
     try {
+      const student = students.find(s => s.id === studentId)
+
       const { error } = await supabase
         .from('students')
         .update({
@@ -516,6 +531,14 @@ export function useStudents() {
         }
         return s
       }))
+
+      logAudit({
+        action: 'student_unpaused',
+        tableName: 'students',
+        recordId: studentId,
+        oldData: { is_paused: true, pause_date: student?.pause_date || null },
+        newData: { is_paused: false, pause_date: null },
+      })
 
       return { success: true }
     } catch (err) {
@@ -622,9 +645,24 @@ export function useStudents() {
       }
     }
 
-    // Recargar datos
+    // Recargar datos y auditar resumen
     if (results.length > 0) {
       await fetchStudents()
+      logAudit({
+        action: 'payment_dates_recalculated',
+        tableName: 'students',
+        newData: {
+          updated_count: results.filter(r => !r.error).length,
+          error_count: results.filter(r => r.error).length,
+          changes: results.map(r => ({
+            name: r.name,
+            course: r.course,
+            from: r.oldDate,
+            to: r.newDate,
+            error: r.error || null,
+          })),
+        },
+      })
     }
 
     return results
