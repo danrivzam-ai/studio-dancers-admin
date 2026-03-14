@@ -61,8 +61,26 @@ export default function SettingsModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
 
+    // Validar coherencia de días de cobro
+    const grace = parseInt(formData.grace_days) || 0
+    const mora  = parseInt(formData.mora_days)  || 0
+    const inact = parseInt(formData.auto_inactive_days) || 0
+
+    if (grace < 0) {
+      alert('Los días de gracia no pueden ser negativos.')
+      return
+    }
+    if (mora <= grace) {
+      alert(`Los días hasta suspender (${mora}) deben ser mayores que los días de gracia (${grace}).`)
+      return
+    }
+    if (inact <= mora) {
+      alert(`Los días hasta inactivar (${inact}) deben ser mayores que los días hasta suspender (${mora}).`)
+      return
+    }
+
+    setLoading(true)
     try {
       await onSave(formData)
       onClose()
