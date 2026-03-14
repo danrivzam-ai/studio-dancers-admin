@@ -114,16 +114,12 @@ ALTER TABLE cash_movements
 -- ── 8. ALUMNAS (students) ────────────────────────────────────
 
 -- Cuota mensual no negativa
+-- NOTA: el estado de pago (active/mora/grace/etc.) es calculado en el frontend
+-- a partir de next_payment_date, no hay columna 'status' en students.
 ALTER TABLE students
   DROP CONSTRAINT IF EXISTS students_monthly_fee_non_negative,
   ADD CONSTRAINT students_monthly_fee_non_negative
     CHECK (monthly_fee IS NULL OR monthly_fee >= 0);
-
--- Estado válido
-ALTER TABLE students
-  DROP CONSTRAINT IF EXISTS students_status_valid,
-  ADD CONSTRAINT students_status_valid
-    CHECK (status IN ('active', 'inactive', 'suspended', 'grace'));
 
 -- ── 9. CIERRE MENSUAL (monthly_closes) ───────────────────────
 
