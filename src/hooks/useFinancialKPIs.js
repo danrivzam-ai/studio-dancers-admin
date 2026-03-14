@@ -87,12 +87,10 @@ export function useFinancialKPIs() {
         : null
 
       setKpis({
-        incomeC,
-        incomeP,
-        expensesC,
-        netC: incomeC - expensesC,
-        trend,             // % vs mes anterior (puede ser negativo)
-        collectionRate,    // % de alumnas que ya pagaron este ciclo
+        incomeC,           // ingresos mes actual
+        expensesC,         // egresos mes actual
+        trend,             // % vs mes anterior (puede ser negativo o null si no hay anterior)
+        collectionRate,    // % de alumnas que ya pagaron este ciclo (null si no hay datos)
       })
     } catch (err) {
       console.error('useFinancialKPIs:', err)
