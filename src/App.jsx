@@ -46,6 +46,7 @@ import ClasesAdultasManager from './components/ClasesAdultasManager'
 import CobranzaReport from './components/CobranzaReport'
 import MonthlyClose from './components/MonthlyClose'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
+import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
@@ -83,6 +84,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
   const { activePlans, paidPlans, totalDebt, loading: plansLoading, dbError: plansDbError, refresh: refreshPlans, createPlan, registerPayment: registerPlanPayment, cancelPlan, deletePlan, updatePlanTotal, markDelivered } = useSalePlans()
+  const { kpis, loading: kpisLoading, fetchKPIs } = useFinancialKPIs()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
@@ -153,6 +155,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   useEffect(() => {
     onNewTransferRef.current = () => setShowTransferVerification(true)
   }, [onNewTransferRef])
+
+  // Cargar KPIs financieros cuando los alumnos estén disponibles
+  useEffect(() => {
+    if (students.length > 0) fetchKPIs(students)
+  }, [students, fetchKPIs])
 
   // Cargar tablón de anuncios
   useEffect(() => {
@@ -1176,6 +1183,54 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
           </div>
         </div>
+
+        {/* KPI Strip — franja compacta mensual */}
+        {kpis && !kpisLoading && (
+          <button
+            onClick={() => setShowMonthlyClose(true)}
+            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-2.5 mb-3 flex items-center justify-between gap-2 hover:shadow-md hover:border-purple-200 transition-all text-left"
+            title="Ver cierre mensual"
+          >
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-[10px] text-gray-400 font-medium shrink-0">MES</span>
+              <span className={`text-sm font-bold ml-1 ${hideIncome ? 'blur-sm select-none' : 'text-gray-800'}`}>
+                ${kpis.incomeC.toFixed(0)}
+              </span>
+              {kpis.trend !== null && (
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1 shrink-0 ${
+                  kpis.trend >= 0
+                    ? 'bg-emerald-50 text-emerald-600'
+                    : 'bg-red-50 text-red-500'
+                }`}>
+                  {kpis.trend >= 0 ? '▲' : '▼'}{Math.abs(kpis.trend)}%
+                </span>
+              )}
+            </div>
+            <div className="h-4 w-px bg-gray-200 shrink-0" />
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-[10px] text-gray-400 font-medium shrink-0">GASTOS</span>
+              <span className={`text-sm font-bold ml-1 text-gray-700 ${hideIncome ? 'blur-sm select-none' : ''}`}>
+                ${kpis.expensesC.toFixed(0)}
+              </span>
+            </div>
+            <div className="h-4 w-px bg-gray-200 shrink-0" />
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-[10px] text-gray-400 font-medium shrink-0">COBRO</span>
+              {kpis.collectionRate !== null ? (
+                <span className={`text-sm font-bold ml-1 ${
+                  kpis.collectionRate >= 80 ? 'text-emerald-600'
+                  : kpis.collectionRate >= 50 ? 'text-amber-500'
+                  : 'text-red-500'
+                }`}>
+                  {kpis.collectionRate}%
+                </span>
+              ) : (
+                <span className="text-sm font-bold ml-1 text-gray-400">—</span>
+              )}
+            </div>
+            <span className="text-gray-300 text-xs shrink-0">›</span>
+          </button>
+        )}
 
         {/* Global Search Bar */}
         <div className="mb-3 sm:mb-4">
