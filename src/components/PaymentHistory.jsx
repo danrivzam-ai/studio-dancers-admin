@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, getTodayEC, getNowEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
@@ -155,6 +156,23 @@ export default function PaymentHistory({
 
         if (fallbackError) throw fallbackError
       }
+
+      // Auditar anulación (crítico: impacto financiero directo)
+      logAudit({
+        action: type === 'student' ? 'payment_voided' : 'quick_payment_voided',
+        tableName: table,
+        recordId: payment.id,
+        oldData: {
+          amount: payment.amount,
+          payment_date: payment.payment_date,
+          payment_method: payment.payment_method,
+          student_name: payment.students?.name || payment.student_name || null,
+        },
+        newData: {
+          voided: true,
+          voided_reason: voidReason || 'Anulado por administrador',
+        },
+      })
 
       // Si es pago de alumno, recalcular next_payment_date desde el pago anterior
       if (type === 'student' && payment.student_id) {
