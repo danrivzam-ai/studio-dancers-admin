@@ -328,8 +328,10 @@ export const getMonthName = (date) => {
 }
 
 // Estado del pago basado en fecha de vencimiento
-// autoInactiveDays: días de gracia antes de marcar como inactiva (default 10)
-export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
+// graceDays:        días de gracia antes de mostrar aviso (default 5)
+// moraDays:         días hasta suspender asistencia (default 20)
+// autoInactiveDays: días hasta marcar como inactiva definitivamente (default 60)
+export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDays = 5, moraDays = 20) => {
   // Si es pago por clase
   if (course?.priceType === 'clase' || course?.price_type === 'clase') {
     return {
@@ -457,59 +459,93 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 10) => {
 
   const days = getDaysUntilDue(student.next_payment_date)
 
-  // Inactiva: vencida más allá del periodo de gracia
-  if (days < 0 && Math.abs(days) > autoInactiveDays) {
+  if (days < 0) {
+    const absDays = Math.abs(days)
+
+    // Inactiva: muy largo sin pagar (más allá de autoInactiveDays)
+    if (absDays > autoInactiveDays) {
+      return {
+        status: 'inactive',
+        label: 'Inactiva',
+        color: 'bg-slate-200 text-slate-600 border border-slate-300',
+        colorCode: 'gray',
+        canAttend: false,
+        priority: 6
+      }
+    }
+
+    // Mora: suspendida (más allá de moraDays, sin llegar a inactiva)
+    // Solo aplica a mensualidades, no a ciclos
+    if (absDays > moraDays) {
+      return {
+        status: 'mora',
+        label: `Suspendida (${absDays}d)`,
+        color: 'bg-rose-700 text-white ring-1 ring-rose-800',
+        colorCode: 'rose',
+        canAttend: false,
+        priority: 0
+      }
+    }
+
+    // Vencida: pasó el período de gracia pero aún puede asistir
+    if (absDays > graceDays) {
+      return {
+        status: 'overdue',
+        label: absDays === 1 ? 'Vencida (1 día)' : `Vencida (${absDays} días)`,
+        color: 'bg-red-600 text-white ring-1 ring-red-700',
+        colorCode: 'red',
+        canAttend: true,
+        priority: 1
+      }
+    }
+
+    // Gracia: vencida pero dentro del período de gracia
     return {
-      status: 'inactive',
-      label: 'Inactiva',
-      color: 'bg-slate-200 text-slate-600 border border-slate-300',
-      colorCode: 'gray',
-      priority: 6
+      status: 'grace',
+      label: absDays === 1 ? 'Gracia (1 día)' : `Gracia (${absDays} días)`,
+      color: 'bg-amber-400 text-white ring-1 ring-amber-500',
+      colorCode: 'amber',
+      canAttend: true,
+      priority: 2
     }
   }
 
-  if (days < 0) {
-    const absDays = Math.abs(days)
-    return {
-      status: 'overdue',
-      label: absDays === 1 ? 'Renovar (1 día atrás)' : `Renovar (${absDays} días atrás)`,
-      color: 'bg-red-600 text-white ring-1 ring-red-700',
-      colorCode: 'red',
-      priority: 1
-    }
-  }
   if (days === 0) {
     return {
       status: 'due_today',
       label: 'Renovar hoy',
       color: 'bg-red-500 text-white ring-1 ring-red-600',
       colorCode: 'red',
+      canAttend: true,
       priority: 1
     }
   }
   if (days <= 3) {
     return {
       status: 'urgent',
-      label: days === 1 ? 'Renovar mañana' : `Renovar en ${days} días`,
+      label: days === 1 ? 'Vence mañana' : `Vence en ${days} días`,
       color: 'bg-orange-500 text-white ring-1 ring-orange-600',
       colorCode: 'orange',
+      canAttend: true,
       priority: 2
     }
   }
   if (days <= 7) {
     return {
       status: 'upcoming',
-      label: `Renovar en ${days} días`,
+      label: `Vence en ${days} días`,
       color: 'bg-amber-100 text-amber-800 border border-amber-300',
       colorCode: 'yellow',
+      canAttend: true,
       priority: 3
     }
   }
   return {
     status: 'ok',
-    label: `Renovación en ${days} días`,
+    label: `Al día (${days}d)`,
     color: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
     colorCode: 'green',
+    canAttend: true,
     priority: 5
   }
 }

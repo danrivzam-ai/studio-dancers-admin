@@ -287,13 +287,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showSaleReceipt, setShowSaleReceipt] = useState(false)
   const [lastSaleReceipt, setLastSaleReceipt] = useState(null)
   const [salesDateFilter, setSalesDateFilter] = useState('today')
-  const [storeView, setStoreView] = useState('articulos')
   const [newPlanPreselect, setNewPlanPreselect] = useState(null)
-  const [expandedCats, setExpandedCats] = useState(new Set())
+  const [collapsedCats, setCollapsedCats] = useState(new Set())
   const [showNewPlan, setShowNewPlan] = useState(false)
 
-  // Días de gracia antes de marcar como inactiva
-  const autoInactiveDays = settings.auto_inactive_days || 10
+  // Configuración de períodos de mora
+  const graceDays       = settings.grace_days       ?? 5
+  const moraDays        = settings.mora_days        ?? 20
+  const autoInactiveDays = settings.auto_inactive_days ?? 60
 
   // Filtrar estudiantes (incluye búsqueda por cédula)
   const filteredStudents = students.filter(student => {
@@ -306,14 +307,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                          student.payer_cedula?.includes(searchTerm)
     const matchesCourse = filterCourse === 'all' || student.course_id === filterCourse
     const daysUntil = getDaysUntilDue(student.next_payment_date)
+    const absDays   = Math.abs(daysUntil)
     const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
     const matchesPayment = filterPayment === 'all' ||
-                          (filterPayment === 'courtesy' && student.is_courtesy) ||
-                          (filterPayment === 'overdue' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) <= autoInactiveDays) ||
-                          (filterPayment === 'inactive' && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && Math.abs(daysUntil) > autoInactiveDays) ||
-                          (filterPayment === 'upcoming' && daysUntil >= 0 && daysUntil <= 5)
-    // Hide courtesy from default "Todas" view unless explicitly filtered
-    if (filterPayment === 'all' && student.is_courtesy) return false
+      // "Por renovar": gracia + vencidas (pueden asistir, días 1 a moraDays)
+      (filterPayment === 'overdue'   && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && absDays <= moraDays) ||
+      // "Suspendidas": mora (no pueden asistir, días moraDays+1 a autoInactiveDays)
+      (filterPayment === 'mora'      && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && absDays > moraDays && absDays <= autoInactiveDays) ||
+      // "Inactivas": completamente inactivas (días autoInactiveDays+1 en adelante)
+      (filterPayment === 'inactive'  && isRecurring && student.payment_status !== 'pending' && daysUntil < 0 && absDays > autoInactiveDays) ||
+      (filterPayment === 'upcoming'  && daysUntil >= 0 && daysUntil <= 5)
     return matchesSearch && matchesCourse && matchesPayment
   })
 
@@ -327,19 +330,38 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     .filter(s => s.next_payment_date && s.payment_status !== 'pending' && getDaysUntilDue(s.next_payment_date) <= 5)
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
 
-  // Alumnos con pago vencido pero dentro del periodo de gracia
+  // Alumnos en período de gracia (días 1 a graceDays) — pueden asistir
+  const graceStudents = recurringStudents.filter(s => {
+    if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const days = getDaysUntilDue(s.next_payment_date)
+    return days < 0 && Math.abs(days) <= graceDays
+  })
+
+  // Alumnos con pago vencido (días graceDays+1 a moraDays) — pueden asistir pero deben pagar
   const overduePayments = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
-    return days < 0 && Math.abs(days) <= autoInactiveDays
+    const abs  = Math.abs(days)
+    return days < 0 && abs > graceDays && abs <= moraDays
   })
 
-  // Alumnos inactivos (pasaron el periodo de gracia)
+  // Alumnos en mora / suspendidas (días moraDays+1 a autoInactiveDays) — NO pueden asistir
+  const moraStudents = recurringStudents.filter(s => {
+    if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const days = getDaysUntilDue(s.next_payment_date)
+    const abs  = Math.abs(days)
+    return days < 0 && abs > moraDays && abs <= autoInactiveDays
+  })
+
+  // Alumnos inactivos definitivos (días autoInactiveDays+1 en adelante)
   const inactiveStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) > autoInactiveDays
   })
+
+  // Total de alumnos que necesitan atención urgente (vencidas + mora)
+  const urgentCount = overduePayments.length + moraStudents.length
 
   const totalMonthlyIncome = recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0)
   const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
@@ -1099,24 +1121,40 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
 
           <div
-            onClick={() => { setFilterPayment(overduePayments.length > 0 ? 'overdue' : 'upcoming'); setShowStudentListModal(true) }}
-            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${overduePayments.length > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'}`}
-            title={overduePayments.length > 0 ? 'Ver alumnos por renovar' : 'Ver próximos cobros'}
+            onClick={() => {
+              const target = moraStudents.length > 0 ? 'mora' : urgentCount > 0 ? 'overdue' : 'upcoming'
+              setFilterPayment(target)
+              setShowStudentListModal(true)
+            }}
+            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
+              moraStudents.length > 0 ? 'border-rose-600 animate-pulse-urgent' :
+              urgentCount > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'
+            }`}
+            title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${overduePayments.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
-                <AlertCircle className={overduePayments.length > 0 ? 'text-red-600' : 'text-yellow-600'} size={20} />
+              <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${
+                moraStudents.length > 0 ? 'bg-rose-100' : urgentCount > 0 ? 'bg-red-100' : 'bg-yellow-100'
+              }`}>
+                <AlertCircle className={
+                  moraStudents.length > 0 ? 'text-rose-700' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
+                } size={20} />
               </div>
               <div className="min-w-0">
-                {overduePayments.length > 0 ? (
+                {moraStudents.length > 0 ? (
                   <>
-                    <p className="text-xl sm:text-2xl font-bold text-red-600">{overduePayments.length}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-rose-700">{moraStudents.length}</p>
+                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas 🚫</p>
+                  </>
+                ) : urgentCount > 0 ? (
+                  <>
+                    <p className="text-xl sm:text-2xl font-bold text-red-600">{urgentCount}</p>
                     <p className="text-xs sm:text-sm text-red-500 font-medium">Por renovar</p>
                   </>
                 ) : (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Próximos</p>
+                    <p className="text-xs sm:text-sm text-gray-500">Próximos cobros</p>
                   </>
                 )}
               </div>
@@ -1534,29 +1572,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
           return (
           <div className="space-y-4">
-
-          {/* Sub-tabs Tienda */}
-          <div className="bg-gray-100 rounded-xl p-1 flex gap-1">
-            <button onClick={() => setStoreView('articulos')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                storeView === 'articulos' ? 'bg-white text-purple-700 shadow-sm font-semibold' : 'text-gray-500 hover:text-gray-700'
-              }`}>
-              Artículos
-            </button>
-            <button onClick={() => setStoreView('abonos')}
-              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all relative ${
-                storeView === 'abonos' ? 'bg-white text-purple-700 shadow-sm font-semibold' : 'text-gray-500 hover:text-gray-700'
-              }`}>
-              Planes de Abono
-              {activePlans.length > 0 && (
-                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-bold ${
-                  storeView === 'abonos' ? 'bg-purple-100 text-purple-700' : 'bg-purple-600 text-white'
-                }`}>{activePlans.length}</span>
-              )}
-            </button>
-          </div>
-
-          {storeView === 'articulos' && (<>
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -1580,8 +1595,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     onClick={() => setSalesDateFilter(f.value)}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                       salesDateFilter === f.value
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:text-purple-700'
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
                     }`}
                   >
                     {f.label}
@@ -1606,7 +1621,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               const otros = allProducts.filter(p => !catKeys.includes(p.category))
               if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
 
-              const toggleCat = (key) => setExpandedCats(prev => {
+              const toggleCat = (key) => setCollapsedCats(prev => {
                 const next = new Set(prev)
                 if (next.has(key)) next.delete(key); else next.add(key)
                 return next
@@ -1626,7 +1641,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     )}
                   </div>
                   {categorized.map(cat => {
-                    const collapsed = !expandedCats.has(cat.key)
+                    const collapsed = collapsedCats.has(cat.key)
                     return (
                     <div key={cat.key} className="border border-gray-100 rounded-2xl overflow-hidden">
                       <button type="button" onClick={() => toggleCat(cat.key)}
@@ -1673,7 +1688,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   onClick={() => {
                                     setNewPlanPreselect(product)
                                     setShowNewPlan(true)
-                                    setStoreView('abonos')
                                   }}
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
                                   Abonar
@@ -1778,10 +1792,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             )}
           </div>
-          </>)}
 
           {/* Ventas en Abonos */}
-          {storeView === 'abonos' && (
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
@@ -1799,11 +1811,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 dbError={plansDbError}
                 onRefresh={refreshPlans}
                 onCreatePlan={createPlan}
-                onRegisterPayment={async (planId, data) => {
-                  const res = await registerPlanPayment(planId, data)
-                  if (res.success) { refreshIncome(); refreshCash() }
-                  return res
-                }}
+                onRegisterPayment={registerPlanPayment}
                 onCancelPlan={cancelPlan}
                 onDeletePlan={deletePlan}
                 onUpdatePlanTotal={updatePlanTotal}
@@ -1814,7 +1822,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               />
             </div>
           </div>
-          )}
           </div>
           )
         })()}
@@ -2510,7 +2517,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {filterPayment === 'overdue' ? 'Filtro: Por renovar' :
                          filterPayment === 'upcoming' ? 'Filtro: Próximas a vencer' :
                          filterPayment === 'inactive' ? 'Filtro: Inactivas' :
-                         filterPayment === 'courtesy' ? 'Filtro: Cortesías' :
                          filterCourse !== 'all' ? 'Filtro: Por curso' :
                          'Gestiona tu lista de alumnas'}
                       </p>
@@ -2580,9 +2586,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {[
                     { value: 'all',      label: 'Todas',         active: 'bg-purple-600 text-white shadow-sm',        inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-purple-300 hover:text-purple-600' },
                     { value: 'overdue',  label: 'Por renovar',   active: 'bg-red-600 text-white shadow-sm',           inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600' },
+                    { value: 'mora',     label: 'Suspendidas',   active: 'bg-rose-700 text-white shadow-sm',          inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-rose-400 hover:text-rose-700' },
                     { value: 'upcoming', label: 'Próximas',      active: 'bg-amber-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300 hover:text-amber-600' },
                     { value: 'inactive', label: 'Inactivas',     active: 'bg-slate-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-slate-300 hover:text-slate-600' },
-                    { value: 'courtesy', label: 'Cortesías',    active: 'bg-amber-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300 hover:text-amber-600' },
                   ].map(chip => (
                     <button
                       key={chip.value}
@@ -2592,19 +2598,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       }`}
                     >
                       {chip.label}
-                      {chip.value === 'overdue' && overduePayments.length > 0 && (
+                      {chip.value === 'overdue' && (graceStudents.length + overduePayments.length) > 0 && (
                         <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
-                          {overduePayments.length}
+                          {graceStudents.length + overduePayments.length}
+                        </span>
+                      )}
+                      {chip.value === 'mora' && moraStudents.length > 0 && (
+                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'mora' ? 'bg-white/30' : 'bg-rose-100 text-rose-700'}`}>
+                          {moraStudents.length}
                         </span>
                       )}
                       {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
                         <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
                           {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
-                        </span>
-                      )}
-                      {chip.value === 'courtesy' && students.filter(s => s.is_courtesy).length > 0 && (
-                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'courtesy' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
-                          {students.filter(s => s.is_courtesy).length}
                         </span>
                       )}
                     </button>
@@ -2650,16 +2656,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <div className="divide-y">
                     {filteredStudents.map(student => {
                       const course = enrichCourse(getCourseById(student.course_id))
-                      const paymentStatus = getPaymentStatus(student, course, autoInactiveDays)
+                      const paymentStatus = getPaymentStatus(student, course, autoInactiveDays, graceDays, moraDays)
                       const isCamp = student.course_id?.startsWith('camp-')
 
                       const rowBg = isCamp
                         ? 'border-l-4 border-pink-400 hover:bg-pink-50/40'
-                        : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
-                          ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
-                          : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
-                            ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
-                            : 'hover:bg-gray-50'
+                        : paymentStatus.status === 'mora'
+                          ? 'border-l-4 border-rose-600 bg-rose-50/40 hover:bg-rose-50/60'
+                          : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
+                            ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
+                            : paymentStatus.status === 'grace'
+                              ? 'border-l-4 border-amber-300 bg-amber-50/20 hover:bg-amber-50/40'
+                              : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
+                                ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
+                                : 'hover:bg-gray-50'
 
                       return (
                         <div key={student.id} className={`p-3 sm:p-4 transition-colors ${rowBg}`}>
@@ -2688,25 +2698,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {student.is_paused && (
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium">Pausado</span>
                                 )}
-                                {student.is_courtesy && (
-                                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                                    student.courtesy_category === 'influencer' ? 'bg-pink-100 text-pink-700'
-                                    : student.courtesy_category === 'vip' ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-blue-100 text-blue-700'
-                                  }`}>
-                                    {student.courtesy_category === 'influencer' ? 'Influencer' : student.courtesy_category === 'vip' ? 'VIP' : 'Invitado'}
-                                  </span>
+                                {paymentStatus.status === 'mora' && (
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">🚫 No puede asistir</span>
                                 )}
                               </div>
                             </div>
 
                             <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                               <div className="text-right">
-                                {!student.is_courtesy && <p className="font-semibold text-gray-800 text-sm hidden sm:block">${student.monthly_fee}</p>}
-                                <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${
-                                  student.is_courtesy ? 'bg-amber-100 text-amber-700' : paymentStatus.color
-                                }`}>
-                                  {student.is_courtesy ? 'Cortesía' : paymentStatus.label}
+                                <p className="font-semibold text-gray-800 text-sm hidden sm:block">${student.monthly_fee}</p>
+                                <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${paymentStatus.color}`}>
+                                  {paymentStatus.label}
                                 </span>
                               </div>
 
@@ -2718,7 +2720,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 >
                                   <Eye size={16} />
                                 </button>
-                                {!student.is_courtesy && (
                                 <button
                                   onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
                                   className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
@@ -2726,14 +2727,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 >
                                   <CreditCard size={16} />
                                 </button>
-                                )}
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
                                     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
-                                    const course = enrichCourse(getCourseById(student.course_id))
+                                    const courseObj = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
-                                    const msg = buildReminderMessage(student, course?.name || 'N/A', days, settings.name)
+                                    const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays)
                                     openWhatsApp(phone, msg)
                                   }}
                                   className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
@@ -2793,7 +2793,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               openPaymentModal(student)
             }}
             onReactivate={reactivateCycle}
-            onPause={handlePauseStudent}
             schoolName={settings?.name}
           />
         )}

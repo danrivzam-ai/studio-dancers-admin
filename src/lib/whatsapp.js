@@ -33,101 +33,113 @@ export const openWhatsAppNoRecipient = (message) => {
 }
 
 /**
- * Construye mensaje de recordatorio de cobro para WhatsApp.
- * - Menores (is_minor !== false): lenguaje dirigido al representante.
- * - Adultas (is_minor === false): lenguaje de ciclo, sin usar "vencido".
+ * Detecta el nombre de pago preferido del alumno.
+ * Prioriza: representante (si es menor) > pagador > alumno
  */
-export const buildReminderMessage = (student, courseName, daysUntilDue, schoolName) => {
-  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
-  const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
-  const isRepresentante = student.is_minor !== false  // true para menores (o si no hay dato)
-  const isAdulta = student.is_minor === false
-
-  let intro = ''
-  let dateLabel = ''  // string = mostrar l\u00ednea de fecha; '' = omitir
-  let closing = ''
-
-  if (isAdulta) {
-    // ── Adultas: l\u00f3gica de ciclos ────────────────────────────────────────
-    // IMPORTANTE: next_payment_date es la fecha de COBRO del pr\u00f3ximo ciclo,
-    // no la \u00faltima clase. La \u00faltima clase ocurre t\u00edpicamente 5-7 d\u00edas ANTES.
-    // Por eso, cuando daysUntilDue <= 0, el ciclo ya termin\u00f3 hace varios d\u00edas
-    // y mostrar next_payment_date como "fin de ciclo" es incorrecto y confuso.
-    if (daysUntilDue <= 0) {
-      // Ciclo ya finaliz\u00f3 — no mostramos fecha espec\u00edfica para evitar confusi\u00f3n
-      intro   = 'Su ciclo de clases ha finalizado y est\u00e1 lista para renovar.'
-      closing = 'Para seguir asistiendo a sus clases, puede realizar la renovaci\u00f3n cuando guste.\n\nSi ya realiz\u00f3 el pago, puede ignorar este mensaje.'
-    } else {
-      // Ciclo pr\u00f3ximo a finalizar — la fecha de cobro s\u00ed es relevante aqu\u00ed
-      dateLabel = 'Pr\u00f3xima renovaci\u00f3n'
-      intro     = 'Su ciclo de clases est\u00e1 pr\u00f3ximo a finalizar.'
-      closing   = 'Puede renovar cuando guste para continuar con sus clases.\n\nSi ya realiz\u00f3 el pago, puede ignorar este mensaje.'
-    }
-  } else {
-    // ── Menores / representante: l\u00f3gica de mensualidades ──────────────────
-    if (daysUntilDue < 0) {
-      dateLabel = 'Venci\u00f3'
-      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi necesita coordinar el pago, con gusto le ayudamos \uD83E\uDE70'
-      intro     = isRepresentante
-        ? `El pago de *${student.name}* se encuentra vencido:`
-        : 'Su pago se encuentra vencido:'
-    } else if (daysUntilDue === 0) {
-      dateLabel = 'Vence hoy'
-      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
-      intro     = isRepresentante
-        ? `El pago de *${student.name}* vence hoy:`
-        : 'Su pago vence hoy:'
-    } else {
-      dateLabel = 'Vencimiento'
-      closing   = 'Si ya realiz\u00f3 el pago, puede ignorar este mensaje.\nSi tiene alguna duda, aqu\u00ed estamos para ayudarle \uD83E\uDE70'
-      intro     = isRepresentante
-        ? `El pago de *${student.name}* est\u00e1 pr\u00f3ximo a vencer:`
-        : 'Su pago est\u00e1 pr\u00f3ximo a vencer:'
-    }
-  }
-
-  // Bloque de datos del curso (con fecha solo si aplica)
-  const courseLines = [
-    `\uD83D\uDCDA Curso: ${courseName}`,
-    `\uD83D\uDCB0 Monto: $${amount}`,
-    ...(dateLabel ? [`\uD83D\uDCC5 ${dateLabel}: ${dueDate}`] : []),
-  ].join('\n')
-
-  return `Hola \uD83D\uDE0A
-Le escribimos de ${schoolName}.
-
-${intro}
-
-${courseLines}
-
-${closing}
-
-${schoolName}`
+const getPayerName = (student) => {
+  if (student.is_minor !== false) return student.parent_name || student.name
+  return student.payer_name || student.name
 }
 
 /**
- * Construye mensaje de recordatorio para saldo pendiente (abono parcial).
- * Aplica a cualquier tipo de curso — no depende de priceType ni ciclos.
+ * Construye línea de banco para mensajes de pago.
  */
-export const buildBalanceReminderMessage = (student, courseName, balance, schoolName) => {
-  const isRepresentante = student.is_minor !== false
-  const intro = isRepresentante
-    ? `*${student.name}* tiene un saldo pendiente con nosotros:`
-    : 'Tiene un saldo pendiente con nosotros:'
-  const balanceFmt = parseFloat(balance || 0).toFixed(2)
+const buildBankLine = (settings) => {
+  if (!settings?.bank_name && !settings?.bank_account_number) return ''
+  const parts = [settings.bank_name, settings.bank_account_number, settings.bank_account_holder].filter(Boolean)
+  return parts.join(' — ')
+}
 
-  return `Hola 😊
-Le escribimos de ${schoolName}.
+/**
+ * Mensaje A — Recordatorio previo (3 días antes del vencimiento).
+ */
+export const buildMessageA = (student, courseName, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
 
-${intro}
+  return `Hola ${payerName} 👋
+Te recordamos que la mensualidad de *${student.name}* en *${courseName}* vence el *${dueDate}*.
 
-📚 Curso: ${courseName}
-💳 Saldo pendiente: $${balanceFmt}
+💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
-Si ya realizó el pago completo, puede ignorar este mensaje.
-Si necesita coordinar el pago, con gusto le ayudamos 🪷
+Envíanos tu comprobante por aquí y ¡listo! 🙌
+🩰 ${schoolName}`
+}
 
-${schoolName}`
+/**
+ * Mensaje B — Pago vencido (días 1 al mora_days — puede asistir).
+ */
+export const buildMessageB = (student, courseName, daysOverdue, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+  const bankLine = buildBankLine(settings)
+
+  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+
+  return `Hola ${payerName},
+La mensualidad de *${student.name}* en *${courseName}* está vencida hace *${daysText}*.
+
+💰 Monto pendiente: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+
+Por favor envíanos tu comprobante para continuar en clases.
+Cualquier consulta estamos aquí 🙌
+🩰 ${schoolName}`
+}
+
+/**
+ * Mensaje C — Mora / Suspensión (días mora_days+1 en adelante — NO puede asistir).
+ */
+export const buildMessageC = (student, courseName, daysOverdue, settings) => {
+  const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
+  const payerName = getPayerName(student)
+  const schoolName = settings?.name || settings || 'Studio Dancers'
+
+  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+
+  return `Hola ${payerName},
+Te escribimos de *${schoolName}* porque el pago de *${student.name}* en *${courseName}* lleva *${daysText} de retraso* y su asistencia ha sido suspendida.
+
+💰 Monto pendiente: *$${amount}*
+
+Por favor contáctanos para coordinar tu pago y retomar las clases.
+🩰 ${schoolName}`
+}
+
+/**
+ * Construye mensaje de recordatorio de cobro para WhatsApp.
+ * Selecciona automáticamente el mensaje correcto según los días de retraso.
+ *
+ * @param {object} student
+ * @param {string} courseName
+ * @param {number} daysUntilDue  - negativo = vencido, positivo = faltan días
+ * @param {object|string} settings - objeto de configuración o string con nombre del estudio
+ * @param {number} graceDays     - días de gracia (default 5)
+ * @param {number} moraDays      - días hasta suspensión (default 20)
+ */
+export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20) => {
+  const absDays = Math.abs(daysUntilDue)
+
+  // Días anteriores al vencimiento (recordatorio) o día exacto
+  if (daysUntilDue >= 0) {
+    return buildMessageA(student, courseName, settings)
+  }
+
+  // Dentro del período de gracia → recordatorio amable (Mensaje A)
+  if (absDays <= graceDays) {
+    return buildMessageA(student, courseName, settings)
+  }
+
+  // Vencido pero sin llegar a mora → Mensaje B
+  if (absDays <= moraDays) {
+    return buildMessageB(student, courseName, absDays, settings)
+  }
+
+  // Mora (suspendida) → Mensaje C
+  return buildMessageC(student, courseName, absDays, settings)
 }
 
 /**
