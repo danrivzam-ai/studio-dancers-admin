@@ -178,7 +178,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       showExport, showManageItems, showQuickPayment, showPaymentHistory,
       showCashRegister, showExpenses, showCashMovements, showManageCategories,
       showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-      !!showStudentDetail, !!selectedStudent, showStudentListModal, showTransferVerification
+      !!showStudentDetail, !!selectedStudent, showStudentListModal, showTransferVerification,
+      showCobranzaReport, showMonthlyClose
     ]
     const anyModalOpen = allModals.some(Boolean)
 
@@ -197,6 +198,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       if (showStudentDetail) { setShowStudentDetail(null); return }
       if (selectedStudent) { setSelectedStudent(null); return }
       if (showStudentListModal) { setShowStudentListModal(false); return }
+      if (showMonthlyClose) { setShowMonthlyClose(false); return }
+      if (showCobranzaReport) { setShowCobranzaReport(false); return }
       if (showForm) { setShowForm(false); setEditingStudent(null); return }
       if (showSaleForm) { setShowSaleForm(false); return }
       if (showQuickPayment) { setShowQuickPayment(false); return }
@@ -220,7 +223,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
     showCashRegister, showExpenses, showCashMovements, showManageCategories,
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification
+    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification,
+    showCobranzaReport, showMonthlyClose
   ])
 
   // ESC key closes the topmost modal (same priority as back button)
@@ -248,6 +252,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       if (showSettings) { setShowSettings(false); return }
       if (showAuditLog) { setShowAuditLog(false); return }
       if (showTransferVerification) { setShowTransferVerification(false); return }
+      if (showMonthlyClose) { setShowMonthlyClose(false); return }
+      if (showCobranzaReport) { setShowCobranzaReport(false); return }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -256,7 +262,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
     showCashRegister, showExpenses, showCashMovements, showManageCategories,
     showAuditLog, showBalanceAlerts, showPinPrompt, deleteModal.isOpen,
-    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification
+    showStudentDetail, selectedStudent, showStudentListModal, showTransferVerification,
+    showMonthlyClose, showCobranzaReport
   ])
 
   // Ctrl+K / Cmd+K focuses global search
