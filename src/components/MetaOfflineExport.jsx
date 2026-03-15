@@ -61,22 +61,18 @@ export default function MetaOfflineExport() {
       const adultRows = []
       const parentRows = []
 
+      // Fecha actual para event_time (Meta rechaza >7 días)
+      const now = new Date().toISOString().split('.')[0]
+
       for (const pay of payments) {
         const student = studentMap[pay.student_id]
         if (!student) continue
-        // Saltar cortesías y eliminados
         if (student.is_courtesy || student.deleted_at) continue
 
         const course = getCourseById(student.course_id)
         const courseName = course?.name || 'Mensualidad'
 
-        // Formato de fecha ISO para Meta: YYYY-MM-DDTHH:MM:SS
-        const eventTime = pay.payment_date
-          ? `${pay.payment_date}T12:00:00`
-          : new Date().toISOString().split('.')[0]
-
         if (student.is_minor) {
-          // Representante
           const { fn, ln } = splitName(student.parent_name)
           if (!student.parent_email && !student.parent_phone) continue
           parentRows.push({
@@ -86,14 +82,14 @@ export default function MetaOfflineExport() {
             ln: ln.toLowerCase(),
             country: 'ec',
             event_name: 'Purchase',
-            event_time: eventTime,
+            event_time: now,
             value: parseFloat(pay.amount) || 0,
             currency: 'USD',
             content_name: courseName,
             content_category: 'representante',
+            original_date: pay.payment_date || '',
           })
         } else {
-          // Adulta
           const { fn, ln } = splitName(student.name)
           if (!student.email && !student.phone) continue
           adultRows.push({
@@ -103,16 +99,17 @@ export default function MetaOfflineExport() {
             ln: ln.toLowerCase(),
             country: 'ec',
             event_name: 'Purchase',
-            event_time: eventTime,
+            event_time: now,
             value: parseFloat(pay.amount) || 0,
             currency: 'USD',
             content_name: courseName,
             content_category: 'adulta',
+            original_date: pay.payment_date || '',
           })
         }
       }
 
-      // También agregar Leads (registros sin pagos)
+      // Leads (registros)
       for (const student of students) {
         if (student.is_courtesy || student.deleted_at) continue
         if (!student.email && !student.phone && !student.parent_email && !student.parent_phone) continue
@@ -130,11 +127,12 @@ export default function MetaOfflineExport() {
             ln: ln.toLowerCase(),
             country: 'ec',
             event_name: 'Lead',
-            event_time: `${student.enrollment_date || new Date().toISOString().split('T')[0]}T12:00:00`,
+            event_time: now,
             value: 0,
             currency: 'USD',
             content_name: courseName,
             content_category: 'representante',
+            original_date: student.enrollment_date || '',
           })
         } else {
           const { fn, ln } = splitName(student.name)
@@ -146,11 +144,12 @@ export default function MetaOfflineExport() {
             ln: ln.toLowerCase(),
             country: 'ec',
             event_name: 'Lead',
-            event_time: `${student.enrollment_date || new Date().toISOString().split('T')[0]}T12:00:00`,
+            event_time: now,
             value: 0,
             currency: 'USD',
             content_name: courseName,
             content_category: 'adulta',
+            original_date: student.enrollment_date || '',
           })
         }
       }
