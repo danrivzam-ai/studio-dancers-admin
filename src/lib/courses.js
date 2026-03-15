@@ -46,6 +46,17 @@ export const BANKS = [
   { id: 'jardin-azuayo', name: 'Cooperativa Jardín Azuayo' },
   { id: 'jep', name: 'Cooperativa JEP' },
   { id: 'produbanco', name: 'Produbanco' },
+  { id: 'general-ruminahui', name: 'Banco General Rumiñahui' },
+  { id: 'loja', name: 'Banco de Loja' },
+  { id: 'machala', name: 'Banco de Machala' },
+  { id: 'amazonas', name: 'Banco Amazonas' },
+  { id: 'diners', name: 'Diners Club' },
+  { id: 'mutualista-pichincha', name: 'Mutualista Pichincha' },
+  { id: 'coop-policia', name: 'Cooperativa Policía Nacional' },
+  { id: 'coop-29-octubre', name: 'Cooperativa 29 de Octubre' },
+  { id: 'coop-cooprogreso', name: 'Cooperativa Cooprogreso' },
+  { id: 'nequi', name: 'Nequi' },
+  { id: 'otro', name: 'Otro' },
 ]
 
 // Obtener curso por ID (busca en dinámicos primero, luego en hardcodeados)

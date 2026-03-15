@@ -23,7 +23,7 @@ export default function BackupExport({ settings }) {
         { data: sales, error: e5 },
         { data: categories, error: e6 }
       ] = await Promise.all([
-        supabase.from('students').select('*').eq('active', true).order('name'),
+        supabase.from('students').select('*').order('name'),
         supabase.from('payments').select('*, students(name)').order('payment_date', { ascending: false }),
         supabase.from('quick_payments').select('*').order('payment_date', { ascending: false }),
         supabase.from('expenses').select('*, expense_categories(name), expense_subcategories(name)').is('deleted_at', null).order('expense_date', { ascending: false }),
@@ -62,7 +62,9 @@ export default function BackupExport({ settings }) {
           'Monto Pagado': s.amount_paid || 0,
           'Saldo Pendiente': s.balance || 0,
           'Estado Pago': s.payment_status || '',
+          'Activo': s.active ? 'Sí' : 'No',
           'Pausado': s.is_paused ? 'Sí' : 'No',
+          'Cortesía': s.is_courtesy ? 'Sí' : 'No',
           'Notas': s.notes || ''
         }
       })

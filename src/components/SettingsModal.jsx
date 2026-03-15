@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail } from 'lucide-react'
 import BackupExport from './BackupExport'
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
@@ -22,11 +22,7 @@ export default function SettingsModal({
     auto_inactive_days: 60,
     mailerlite_api_key: '',
     mailerlite_group_id: '',
-    mailerlite_instructors_group_id: '',
-    bank_name: '',
-    bank_account_number: '',
-    bank_account_holder: '',
-    bank_account_type: 'Ahorros'
+    mailerlite_instructors_group_id: ''
   })
   const toast = useToast()
   const [loading, setLoading] = useState(false)
@@ -53,11 +49,7 @@ export default function SettingsModal({
         auto_inactive_days: settings.auto_inactive_days ?? 60,
         mailerlite_api_key: settings.mailerlite_api_key || '',
         mailerlite_group_id: settings.mailerlite_group_id || '',
-        mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || '',
-        bank_name: settings.bank_name || '',
-        bank_account_number: settings.bank_account_number || '',
-        bank_account_holder: settings.bank_account_holder || '',
-        bank_account_type: settings.bank_account_type || 'Ahorros'
+        mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || ''
       })
     }
   }, [settings])
@@ -559,73 +551,6 @@ export default function SettingsModal({
             </div>
           </div>
 
-          {/* Datos Bancarios (Portal del Cliente) */}
-          <div className="border-t pt-4 mt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Landmark size={16} className="text-blue-600" />
-              <label className="text-sm font-medium text-gray-700">Datos Bancarios</label>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">
-              Se muestran a los clientes en el portal de pagos para que hagan transferencias.
-            </p>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Banco</label>
-                  <select
-                    value={formData.bank_name}
-                    onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="Banco Pichincha">Banco Pichincha</option>
-                    <option value="Banco del Pacífico">Banco del Pacífico</option>
-                    <option value="Banco de Guayaquil">Banco de Guayaquil</option>
-                    <option value="Banco Bolivariano">Banco Bolivariano</option>
-                    <option value="Banco del Austro">Banco del Austro</option>
-                    <option value="Banco Internacional">Banco Internacional</option>
-                    <option value="Banco Solidario">Banco Solidario</option>
-                    <option value="Banco ProCredit">Banco ProCredit</option>
-                    <option value="BanEcuador">BanEcuador</option>
-                    <option value="Produbanco">Produbanco</option>
-                    <option value="Cooperativa JEP">Cooperativa JEP</option>
-                    <option value="Cooperativa Jardín Azuayo">Cooperativa Jardín Azuayo</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de cuenta</label>
-                  <select
-                    value={formData.bank_account_type}
-                    onChange={(e) => setFormData({...formData, bank_account_type: e.target.value})}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
-                  >
-                    <option value="Ahorros">Ahorros</option>
-                    <option value="Corriente">Corriente</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Número de cuenta</label>
-                <input
-                  type="text"
-                  value={formData.bank_account_number}
-                  onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
-                  placeholder="2200123456"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Titular de la cuenta</label>
-                <input
-                  type="text"
-                  value={formData.bank_account_holder}
-                  onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
-                  placeholder="Nombre del titular"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Backup Export */}
           <BackupExport settings={settings} />
