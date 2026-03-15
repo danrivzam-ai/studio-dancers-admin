@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark } from 'lucide-react'
 import BackupExport from './BackupExport'
-import MetaOfflineExport from './MetaOfflineExport'
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
 
@@ -227,70 +226,103 @@ export default function SettingsModal({
           </div>
 
           {/* Sistema de mora y suspensión */}
-          <div className="border-t pt-4 mt-2 space-y-4">
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">⏱ Control de cobros — Mensualidades</p>
-              {/* Línea de tiempo visual */}
-              <div className="flex items-center gap-1 text-[10px] font-semibold mb-3 overflow-x-auto pb-1">
-                <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg whitespace-nowrap">Al día</span>
-                <span className="text-gray-300">→</span>
-                <span className="px-2 py-1 bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap">Gracia</span>
-                <span className="text-gray-300">→</span>
-                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg whitespace-nowrap">Vencida</span>
-                <span className="text-gray-300">→</span>
-                <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded-lg whitespace-nowrap">Suspendida</span>
-                <span className="text-gray-300">→</span>
-                <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded-lg whitespace-nowrap">Inactiva</span>
+          <div className="border-t pt-4 mt-2">
+            <p className="text-sm font-semibold text-gray-700 mb-4">Control de cobros — Mensualidades</p>
+
+            {/* Timeline visual integrada con inputs */}
+            <div className="space-y-0">
+              {/* Fila 1: Al día → Gracia */}
+              <div className="flex items-stretch">
+                <div className="flex flex-col items-center mr-3">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
+                  <div className="w-0.5 flex-1 bg-amber-300" />
+                </div>
+                <div className="flex-1 pb-4">
+                  <span className="text-xs font-semibold text-emerald-700">Al día</span>
+                  <p className="text-[11px] text-gray-400">Pago al corriente</p>
+                </div>
+              </div>
+
+              <div className="flex items-stretch">
+                <div className="flex flex-col items-center mr-3">
+                  <div className="w-3 h-3 rounded-full bg-amber-400 ring-4 ring-amber-100" />
+                  <div className="w-0.5 flex-1 bg-red-300" />
+                </div>
+                <div className="flex-1 pb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-amber-700">Gracia</span>
+                    <span className="text-[10px] text-amber-500">Puede asistir</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      max={15}
+                      value={formData.grace_days}
+                      onChange={(e) => setFormData({...formData, grace_days: parseInt(e.target.value) || 0})}
+                      className="w-16 px-2 py-1.5 border-2 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none transition-all text-center text-sm font-bold"
+                    />
+                    <span className="text-xs text-gray-500">días después del vencimiento</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fila 2: Vencida → Suspendida */}
+              <div className="flex items-stretch">
+                <div className="flex flex-col items-center mr-3">
+                  <div className="w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-100" />
+                  <div className="w-0.5 flex-1 bg-rose-300" />
+                </div>
+                <div className="flex-1 pb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-red-600">Suspender</span>
+                    <span className="text-[10px] text-red-400">No puede asistir</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={formData.mora_days}
+                      onChange={(e) => setFormData({...formData, mora_days: parseInt(e.target.value) || 20})}
+                      className="w-16 px-2 py-1.5 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-400 outline-none transition-all text-center text-sm font-bold"
+                    />
+                    <span className="text-xs text-gray-500">días sin pagar</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fila 3: Inactiva */}
+              <div className="flex items-stretch">
+                <div className="flex flex-col items-center mr-3">
+                  <div className="w-3 h-3 rounded-full bg-slate-400 ring-4 ring-slate-100" />
+                </div>
+                <div className="flex-1 pb-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-slate-500">Inactivar</span>
+                    <span className="text-[10px] text-slate-400">Baja automática</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={21}
+                      max={180}
+                      value={formData.auto_inactive_days}
+                      onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 60})}
+                      className="w-16 px-2 py-1.5 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 focus:border-slate-400 outline-none transition-all text-center text-sm font-bold"
+                    />
+                    <span className="text-xs text-gray-500">días sin pagar</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-amber-700 mb-1">
-                  Días de gracia
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  max={15}
-                  value={formData.grace_days}
-                  onChange={(e) => setFormData({...formData, grace_days: parseInt(e.target.value) || 0})}
-                  className="w-full px-3 py-2 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all text-center font-bold"
-                />
-                <p className="text-[10px] text-gray-400 mt-1 text-center">Puede asistir</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-red-600 mb-1">
-                  Días hasta suspender
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={formData.mora_days}
-                  onChange={(e) => setFormData({...formData, mora_days: parseInt(e.target.value) || 20})}
-                  className="w-full px-3 py-2 border-2 border-red-200 rounded-xl focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all text-center font-bold"
-                />
-                <p className="text-[10px] text-gray-400 mt-1 text-center">Se suspende</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">
-                  ⚫ Días hasta inactivar
-                </label>
-                <input
-                  type="number"
-                  min={21}
-                  max={180}
-                  value={formData.auto_inactive_days}
-                  onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 60})}
-                  className="w-full px-3 py-2 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-400 focus:border-slate-400 outline-none transition-all text-center font-bold"
-                />
-                <p className="text-[10px] text-gray-400 mt-1 text-center">Inactiva total</p>
-              </div>
+            {/* Ejemplo dinámico */}
+            <div className="mt-3 px-3 py-2 bg-gray-50 rounded-lg">
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                <span className="font-medium text-gray-600">Con tus valores:</span> gracia hasta día {formData.grace_days} → vencida día {formData.grace_days + 1}–{formData.mora_days} → suspendida día {formData.mora_days + 1}–{formData.auto_inactive_days} → inactiva día {formData.auto_inactive_days + 1}+
+              </p>
             </div>
-            <p className="text-[10px] text-gray-400">
-              Ejemplo con valores actuales: gracia días 1–{formData.grace_days} → vencida días {formData.grace_days + 1}–{formData.mora_days} → suspendida días {formData.mora_days + 1}–{formData.auto_inactive_days} → inactiva día {formData.auto_inactive_days + 1}+
-            </p>
           </div>
 
           <div>
@@ -598,10 +630,6 @@ export default function SettingsModal({
           {/* Backup Export */}
           <BackupExport settings={settings} />
 
-          {/* Meta Offline Conversions */}
-          <div className="border-t pt-4 mt-2">
-            <MetaOfflineExport />
-          </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
