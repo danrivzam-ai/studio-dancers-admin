@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Landmark } from 'lucide-react'
 import BackupExport from './BackupExport'
+import MetaOfflineExport from './MetaOfflineExport'
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
 
@@ -596,6 +597,11 @@ export default function SettingsModal({
 
           {/* Backup Export */}
           <BackupExport settings={settings} />
+
+          {/* Meta Offline Conversions */}
+          <div className="border-t pt-4 mt-2">
+            <MetaOfflineExport />
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
