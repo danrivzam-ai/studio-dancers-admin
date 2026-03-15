@@ -222,101 +222,104 @@ export default function ManageCategories({ onClose }) {
 
           {/* Category form */}
           {showCategoryForm && (
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-xl border border-purple-200">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800">
+            <div className="bg-white p-4 rounded-xl border-2 border-purple-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-800 text-sm">
                   {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                 </h3>
-                <button onClick={closeCategoryForm} className="p-1 hover:bg-white/60 rounded-xl active:scale-95 transition-all">
-                  <X size={18} className="text-gray-500" />
+                <button onClick={closeCategoryForm} className="p-1 hover:bg-gray-100 rounded-lg active:scale-95 transition-all">
+                  <X size={16} className="text-gray-400" />
                 </button>
               </div>
 
               <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                  <input
-                    type="text"
-                    value={categoryForm.name}
-                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                    placeholder="Ej: Pagos a Personal"
-                    maxLength={MAX_NAME_LENGTH}
-                    autoFocus
-                  />
-                  <p className="text-xs text-gray-400 mt-1 text-right">{categoryForm.name.length}/{MAX_NAME_LENGTH}</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                  <div className="flex flex-wrap gap-2">
-                    {PRESET_COLORS.map(color => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => setCategoryForm({ ...categoryForm, color })}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          categoryForm.color === color
-                            ? 'border-gray-800 scale-110 shadow-md'
-                            : 'border-transparent hover:border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="color"
-                        value={categoryForm.color}
-                        onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
-                        className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Presupuesto mensual</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-400">$</span>
-                      <input
-                        type="number"
-                        value={categoryForm.monthly_budget}
-                        onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
-                        className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                        placeholder="Opcional"
-                        min="0"
-                        step="0.01"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Orden</label>
+                {/* Row 1: Color + Name */}
+                <div className="flex gap-2 items-start">
+                  <div className="relative flex-shrink-0 pt-0.5">
+                    <button
+                      type="button"
+                      className="w-9 h-9 rounded-full border-2 border-gray-200 hover:border-purple-400 transition-all shadow-sm"
+                      style={{ backgroundColor: categoryForm.color }}
+                      onClick={() => document.getElementById('cat-color-picker').click()}
+                      title="Cambiar color"
+                    />
                     <input
-                      type="number"
-                      value={categoryForm.sort_order}
-                      onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                      placeholder="0"
-                      min="0"
+                      id="cat-color-picker"
+                      type="color"
+                      value={categoryForm.color}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={categoryForm.name}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
+                      placeholder="Nombre de la categoría *"
+                      maxLength={MAX_NAME_LENGTH}
+                      autoFocus
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                {/* Color presets */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {PRESET_COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setCategoryForm({ ...categoryForm, color })}
+                      className={`w-6 h-6 rounded-full border-2 transition-all ${
+                        categoryForm.color === color
+                          ? 'border-gray-800 scale-110 shadow-md'
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+
+                {/* Row 2: Budget + Order */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      value={categoryForm.monthly_budget}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
+                      className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
+                      placeholder="Presupuesto"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    value={categoryForm.sort_order}
+                    onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
+                    placeholder="Orden (0, 1, 2...)"
+                    min="0"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={closeCategoryForm}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                  >
+                    Cancelar
+                  </button>
                   <button
                     onClick={handleSaveCategory}
                     disabled={saving}
-                    className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
                   >
-                    <Check size={18} />
-                    {saving ? 'Guardando...' : 'Guardar'}
-                  </button>
-                  <button
-                    onClick={closeCategoryForm}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    Cancelar
+                    <Check size={16} />
+                    {saving ? 'Guardando...' : editingCategory ? 'Actualizar' : 'Crear categoría'}
                   </button>
                 </div>
               </div>
