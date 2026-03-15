@@ -260,11 +260,19 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in {
-  animation: fade-in 0.2s ease-out;
+  animation: fade-in 0.4s ease-out;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 2.4s ease-in-out infinite;
 }
 
 @keyframes pulse-urgent {
@@ -323,18 +331,18 @@
 }
 
 .loading-bar-container {
-  width: 200px;
-  height: 4px;
-  background: rgba(147, 51, 234, 0.15);
+  width: 180px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
   overflow: hidden;
   margin: 0 auto;
 }
 
 .loading-bar {
-  width: 50%;
+  width: 40%;
   height: 100%;
-  background: #9333ea;
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 2px;
   animation: loading-bar 1.5s ease-in-out infinite;
 }

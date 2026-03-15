@@ -874,16 +874,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       <div className="min-h-screen flex items-center justify-center" style={{
         background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
-        <div className="text-center">
-          {/* Spinner animado */}
-          <div className="mb-6 flex justify-center">
-            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-          </div>
-
-          {/* Texto */}
-          <p className="text-white/80 text-sm mb-6">Cargando...</p>
-
-          {/* Barra de carga */}
+        <div className="text-center animate-fade-in">
+          <img
+            src="/logo2.png"
+            alt="Studio Dancers"
+            className="w-36 mx-auto mb-6 drop-shadow-lg animate-pulse-slow"
+            style={{ filter: 'brightness(0) invert(1)', opacity: 0.92 }}
+          />
+          <p className="text-white/70 text-sm mb-6">Cargando...</p>
           <div className="loading-bar-container">
             <div className="loading-bar"></div>
           </div>
@@ -902,13 +900,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       <div className="min-h-screen flex items-center justify-center" style={{
         background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fff7ed 100%)'
       }}>
-        <div className="text-center">
-          {/* Spinner animado */}
-          <div className="mb-5 flex justify-center">
-            <div className="w-14 h-14 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-          </div>
-
-          {/* Texto */}
+        <div className="text-center animate-fade-in">
+          <img
+            src="/logo2.png"
+            alt="Studio Dancers"
+            className="w-32 mx-auto mb-5 animate-pulse-slow"
+          />
           <h2 className="text-purple-800 text-lg font-semibold mb-1">Cargando datos</h2>
           <p className="text-purple-400 text-sm">Un momento por favor...</p>
         </div>
@@ -920,7 +917,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
-        <div className="text-center mb-3">
+        <div className="text-center mb-3 animate-fade-in">
           <img
             src="/logo2.png"
             alt="Studio Dancers"
