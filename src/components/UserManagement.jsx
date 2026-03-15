@@ -132,9 +132,9 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} ariaLabel="Gestionar usuarios">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
+        <div className="bg-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield size={28} />

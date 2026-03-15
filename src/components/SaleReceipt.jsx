@@ -103,9 +103,9 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Comprobante de venta">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between px-4 py-3 bg-purple-700 text-white rounded-t-2xl">
           <span className="font-semibold">Comprobante de Venta</span>
           <div className="flex items-center gap-1">
             <button

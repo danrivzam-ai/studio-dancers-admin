@@ -298,9 +298,9 @@ export default function ManageItems({
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar cursos y productos">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-4 md:p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600">
+        <div className="p-4 md:p-6 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-xl">
@@ -333,7 +333,7 @@ export default function ManageItems({
         )}
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 border-b bg-gray-50">
+        <div className="grid grid-cols-3 border-b bg-gray-50 text-sm sm:text-base">
           <button
             onClick={() => setActiveTab('courses')}
             className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all ${
@@ -893,7 +893,7 @@ export default function ManageItems({
         {/* Restock Modal */}
         {restockModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
               <div className="text-center mb-4">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <PackagePlus size={32} className="text-blue-600" />
@@ -1068,7 +1068,7 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Trash2 size={32} className="text-red-600" />

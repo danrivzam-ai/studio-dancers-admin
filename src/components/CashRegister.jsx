@@ -309,9 +309,9 @@ export default function CashRegister({ onClose, settings }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Caja registradora">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-5 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">

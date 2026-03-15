@@ -137,7 +137,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
             )}
 
             {/* Resumen */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
                 { label: 'Presentes', value: presentes + tardanzas, color: '#2A9D8F', bg: '#E6F7F5' },
                 { label: 'Tardanzas', value: tardanzas,             color: '#E9C46A', bg: '#FDF8E7' },

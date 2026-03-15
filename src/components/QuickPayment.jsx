@@ -134,9 +134,9 @@ export default function QuickPayment({
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Pago r\u00e1pido">
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-5 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={24} />

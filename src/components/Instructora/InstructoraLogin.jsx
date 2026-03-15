@@ -83,7 +83,7 @@ export default function InstructoraLogin({ onLogin }) {
         </div>
 
         {/* Card de login */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">

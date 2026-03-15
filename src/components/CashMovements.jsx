@@ -3,6 +3,8 @@ import { X, ArrowLeftRight, Trash2, AlertTriangle, Check, Clock, Building2, Arro
 import { useCashMovements } from '../hooks/useCashMovements'
 import { formatDate } from '../lib/dateUtils'
 import Modal from './ui/Modal'
+import EmptyState from './ui/EmptyState'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 const MOVEMENT_TYPES = [
   {
@@ -145,9 +147,9 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Movimientos de caja">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-5 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -361,16 +363,18 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                 <p className="text-gray-500 text-sm">Cargando...</p>
               </div>
             ) : movements.length === 0 ? (
-              <div className="p-8 text-center">
-                <ArrowLeftRight className="mx-auto text-gray-300 mb-3" size={48} />
-                <p className="text-gray-500">No hay movimientos registrados</p>
-                <button
-                  onClick={() => setActiveTab('register')}
-                  className="mt-3 text-purple-600 hover:text-purple-700 text-sm font-medium"
-                >
-                  Registrar un movimiento
-                </button>
-              </div>
+              <EmptyState
+                icon={ArrowLeftRight}
+                title="No hay movimientos registrados"
+                action={
+                  <button
+                    onClick={() => setActiveTab('register')}
+                    className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                  >
+                    Registrar un movimiento
+                  </button>
+                }
+              />
             ) : (
               <div className="space-y-3">
                 {movements.map(movement => {
@@ -415,26 +419,6 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                         </div>
                       </div>
 
-                      {/* Confirm delete */}
-                      {deleteConfirm === movement.id && (
-                        <div className="mt-3 pt-3 border-t flex items-center justify-between">
-                          <span className="text-sm text-red-600">¿Eliminar este movimiento?</span>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-xl active:scale-95 transition-all"
-                            >
-                              No
-                            </button>
-                            <button
-                              onClick={() => handleDelete(movement.id)}
-                              className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white rounded-xl active:scale-95 transition-all"
-                            >
-                              Sí, eliminar
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )
                 })}
@@ -483,6 +467,16 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => handleDelete(deleteConfirm)}
+        icon={Trash2}
+        title="¿Eliminar este movimiento?"
+        description="Esta acción no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+      />
     </Modal>
   )
 }

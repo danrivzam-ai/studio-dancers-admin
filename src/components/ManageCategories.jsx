@@ -143,9 +143,9 @@ export default function ManageCategories({ onClose }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar categorías">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
+        <div className="bg-purple-700 text-white p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Palette size={24} />

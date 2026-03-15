@@ -144,9 +144,9 @@ export default function StudentForm({
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Formulario de alumno">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-purple-700 text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>

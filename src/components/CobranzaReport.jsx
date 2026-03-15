@@ -195,10 +195,10 @@ export default function CobranzaReport({
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Reporte de cobranza">
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white flex-shrink-0">
+        <div className="p-4 sm:p-5 border-b bg-purple-700 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold">Reporte de Cobranza</h2>

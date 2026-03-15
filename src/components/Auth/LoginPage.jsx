@@ -83,7 +83,7 @@ export default function LoginPage({ onLogin }) {
 
         {/* ── Modal recuperar contraseña ── */}
         <Modal isOpen={isResetting} onClose={() => { setIsResetting(false); setError('') }} ariaLabel="Recuperar contraseña">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
               <div className="px-6 pt-6 pb-2">
                 <h2 className="text-lg font-bold text-gray-800 mb-1">Recuperar contraseña</h2>
                 <p className="text-sm text-gray-500">Te enviaremos un enlace a tu correo para restablecer la contraseña.</p>
@@ -138,7 +138,7 @@ export default function LoginPage({ onLogin }) {
         </Modal>
 
         {/* Card de login */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleLogin} className="p-6 space-y-5">
             {error && (
               <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">

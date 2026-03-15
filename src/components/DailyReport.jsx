@@ -4,6 +4,7 @@ import {
   CreditCard, ArrowLeftRight, ChevronLeft, ChevronRight, RefreshCw, Calendar
 } from 'lucide-react'
 import { useDailyReport } from '../hooks/useDailyReport'
+import EmptyState from './ui/EmptyState'
 import { getTodayEC } from '../lib/dateUtils'
 
 const fmt = (n) => `$${parseFloat(n || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -166,6 +167,13 @@ export default function DailyReport({ cashRegister }) {
           </div>
         </div>
       </div>
+
+      {/* Motivational note on good days */}
+      {r.totals.netBalance > 0 && r.incomeCount >= 3 && (
+        <p className="text-center text-xs text-gray-400 -mt-1">
+          Buen ritmo hoy — {r.incomeCount} transacciones registradas.
+        </p>
+      )}
 
       {/* Fila 2: Donde esta el dinero */}
       <div className="grid grid-cols-2 gap-3">
@@ -342,10 +350,12 @@ export default function DailyReport({ cashRegister }) {
 
       {/* Empty state */}
       {r.totalIncome === 0 && r.expensesTotal === 0 && r.movements.count === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-          <DollarSign className="mx-auto text-gray-300 mb-3" size={48} />
-          <p className="text-gray-500 font-medium">Sin movimientos este dia</p>
-          <p className="text-gray-400 text-sm mt-1">No hay ingresos, egresos ni movimientos registrados</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <EmptyState
+            icon={DollarSign}
+            title="Sin movimientos este día"
+            description="No hay ingresos, egresos ni movimientos registrados"
+          />
         </div>
       )}
     </div>

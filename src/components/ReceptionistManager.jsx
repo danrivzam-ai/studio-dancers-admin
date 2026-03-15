@@ -174,8 +174,8 @@ export default function ReceptionistManager() {
       {/* Form Modal */}
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} ariaLabel={editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}>
         {showForm && (
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className="px-5 py-4 bg-purple-700 text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-xl">
                   <Shield size={18} />
@@ -277,7 +277,7 @@ export default function ReceptionistManager() {
       {/* Delete confirm */}
       <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} ariaLabel="Confirmar eliminación">
         {deleteConfirm && (
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 className="text-red-600" size={24} />
             </div>

@@ -78,7 +78,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
           <p className="text-white/80 text-sm">Antes de continuar, debes crear tu propia contraseña.</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="px-6 pt-6 pb-7 space-y-5">
             <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-purple-700 text-sm">
               Por seguridad, el administrador ha solicitado que cambies tu contraseña inicial.

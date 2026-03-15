@@ -304,10 +304,10 @@ export default function MonthlyClose({
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Cierre mensual">
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white flex-shrink-0">
+        <div className="p-4 sm:p-5 border-b bg-purple-700 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">

@@ -61,7 +61,7 @@ export default function ClientLoginPage({ onLogin }) {
       </div>
 
       {/* Card de login */}
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="px-1 pt-1">
           <div className="rounded-xl px-6 py-5" style={{ background: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%)' }}>
             <div className="flex items-center justify-center gap-2 mb-1">

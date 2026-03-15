@@ -47,9 +47,9 @@ export default function PinPromptModal({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={title}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs">
         {/* Header */}
-        <div className="px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+        <div className="px-4 py-3 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">

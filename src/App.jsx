@@ -952,10 +952,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <span className="hidden sm:inline">{isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}</span>
             </button>
 
-            {/* Centro: Nombre */}
+            {/* Centro: Nombre + saludo */}
             <div className="text-center flex-1 min-w-0 px-2">
               <h1 className="text-base sm:text-xl md:text-2xl font-bold text-purple-800 truncate">{settings.name}</h1>
-              <p className="text-gray-400 text-xs hidden md:block truncate">{settings.address}</p>
+              <p className="text-gray-400 text-xs hidden sm:block truncate">
+                {(() => {
+                  const h = new Date().getHours()
+                  return h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches'
+                })()}{user?.email ? ` · ${user.email.split('@')[0]}` : ''}
+              </p>
             </div>
 
             {/* Derecha: Configuración y Logout */}
@@ -1143,7 +1148,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowCashRegister(true) } }}
             role="button"
             tabIndex={0}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 border-green-400"
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all border-t-2 border-green-400"
             title="Ver cuadre de caja"
             aria-label="Ver cuadre de caja"
           >
@@ -1176,9 +1181,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const target = moraStudents.length > 0 ? 'mora' : urgentCount > 0 ? 'overdue' : 'upcoming'; setFilterPayment(target); setShowStudentListModal(true) } }}
             role="button"
             tabIndex={0}
-            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
-              moraStudents.length > 0 ? 'border-rose-600 animate-pulse-urgent' :
-              urgentCount > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'
+            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all border-t-2 ${
+              moraStudents.length > 0 ? 'border-rose-600' :
+              urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
             }`}
             title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
@@ -1301,7 +1306,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-purple-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-purple-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1317,7 +1322,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-amber-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-amber-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
@@ -1335,7 +1340,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-orange-400"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-orange-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
@@ -1353,7 +1358,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-4 border-slate-300"
+                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-slate-300"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
@@ -1728,8 +1733,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
                 <Check size={32} className="mx-auto mb-2 text-green-500" />
-                <p className="font-medium text-green-800">¡Todo al día!</p>
-                <p className="text-sm text-green-600 mt-1">No hay cobros pendientes ni saldos por cobrar</p>
+                <p className="font-medium text-green-800">Todo al día</p>
+                <p className="text-sm text-green-600 mt-1">No hay cobros pendientes. Buen trabajo del equipo.</p>
               </div>
             )}
           </>
@@ -1754,6 +1759,38 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
           return (
           <div className="space-y-4">
+
+          {/* Ventas en Abonos — primero porque es gestión diaria */}
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
+              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
+            </div>
+            <div className="p-4">
+              <SaleInstallments
+                allProducts={allProducts}
+                students={students}
+                schoolName={settings?.school_name || 'Studio Dancers'}
+                activePlans={activePlans}
+                paidPlans={paidPlans}
+                totalDebt={totalDebt}
+                loading={plansLoading}
+                dbError={plansDbError}
+                onRefresh={refreshPlans}
+                onCreatePlan={createPlan}
+                onRegisterPayment={registerPlanPayment}
+                onCancelPlan={cancelPlan}
+                onDeletePlan={deletePlan}
+                onUpdatePlanTotal={updatePlanTotal}
+                onMarkDelivered={markDelivered}
+                externalShowNew={showNewPlan}
+                externalPreselect={newPlanPreselect}
+                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
+              />
+            </div>
+          </div>
+
+          {/* Ventas de Artículos — catálogo + historial */}
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -1977,35 +2014,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             )}
           </div>
 
-          {/* Ventas en Abonos */}
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
-              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
-            </div>
-            <div className="p-4">
-              <SaleInstallments
-                allProducts={allProducts}
-                students={students}
-                schoolName={settings?.school_name || 'Studio Dancers'}
-                activePlans={activePlans}
-                paidPlans={paidPlans}
-                totalDebt={totalDebt}
-                loading={plansLoading}
-                dbError={plansDbError}
-                onRefresh={refreshPlans}
-                onCreatePlan={createPlan}
-                onRegisterPayment={registerPlanPayment}
-                onCancelPlan={cancelPlan}
-                onDeletePlan={deletePlan}
-                onUpdatePlanTotal={updatePlanTotal}
-                onMarkDelivered={markDelivered}
-                externalShowNew={showNewPlan}
-                externalPreselect={newPlanPreselect}
-                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
-              />
-            </div>
-          </div>
           </div>
           )
         })()}
@@ -2046,7 +2054,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {regular.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-4 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="border-t-2 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-purple-700 leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">{course.schedule || 'Sin horario definido'}</p>
                               <div className="flex items-center justify-between mt-3">
@@ -2073,7 +2081,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {programs.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-4 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="border-t-2 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-orange-700 leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">
                                 {(course.ageMin || course.age_min)} - {(course.ageMax || course.age_max)} años
@@ -2129,7 +2137,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-md border-t-4 border-red-400 p-6 text-center">
+            <div className="bg-white rounded-2xl shadow-md border-t-2 border-red-400 p-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
                 <TrendingDown className="text-red-400" size={28} />
               </div>
@@ -2375,7 +2383,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Modal Form - New Sale */}
         {showSaleForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-5 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
@@ -2507,7 +2515,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <div className="border rounded-xl overflow-hidden">
                       <div className="bg-green-50 px-4 py-2 flex items-center justify-between border-b">
                         <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">
-                          🛒 Carrito — {cartItems.length} ítem{cartItems.length !== 1 ? 's' : ''}
+                          Carrito — {cartItems.length} ítem{cartItems.length !== 1 ? 's' : ''}
                         </span>
                       </div>
                       <div className="divide-y">
@@ -2683,9 +2691,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Student List Modal */}
         {showStudentListModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white">
+              <div className="p-3 sm:p-5 border-b bg-purple-700 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -3078,7 +3086,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -3195,7 +3203,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]"
               onClick={() => setDetailBalanceStudent(null)}>
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
                 onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
@@ -3315,7 +3323,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       {/* Toast notification for new transfers */}
       {newTransferAlert && (
         <div
-          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
+          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
           onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
         >
           <div className="flex items-start gap-3">

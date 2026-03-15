@@ -158,9 +158,9 @@ export default function ExportStudents({ students, settings, onClose }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Exportar alumnos">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
         {/* Header */}
-        <div className="p-6 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
+        <div className="p-6 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
           <h2 className="text-xl font-semibold">Exportar Listado</h2>
           <button
             onClick={onClose}

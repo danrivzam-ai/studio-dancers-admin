@@ -102,9 +102,9 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white flex items-center justify-between rounded-t-2xl">
+        <div className="p-4 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
           <h3 className="font-semibold">Reporte de Cierre</h3>
           <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
@@ -225,7 +225,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
               }}>
                 <span>Diferencia:</span>
                 <span>
-                  {diff === 0 ? 'Cuadrado' : diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                  {diff === 0 ? 'Cuadrado — Excelente cierre' : diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
                 </span>
               </div>
             </div>

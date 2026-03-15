@@ -6,6 +6,7 @@ import {
 import { getTodayEC, getNowEC } from '../lib/dateUtils'
 import { useAuditLog } from '../hooks/useAuditLog'
 import Modal from './ui/Modal'
+import EmptyState from './ui/EmptyState'
 
 const ACTION_CONFIG = {
   // Egresos
@@ -118,9 +119,9 @@ export default function AuditLog({ onClose }) {
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Registro de auditoría">
-      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-5">
+        <div className="bg-purple-700 text-white p-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Log de Auditoria</h2>
@@ -210,11 +211,7 @@ export default function AuditLog({ onClose }) {
           )}
 
           {!loading && logs.length === 0 && (
-            <div className="text-center py-16">
-              <Search className="mx-auto text-gray-300 mb-3" size={48} />
-              <p className="text-gray-500 font-medium">Sin eventos</p>
-              <p className="text-gray-400 text-sm">No hay registros de auditoria en este periodo</p>
-            </div>
+            <EmptyState icon={Search} title="Sin eventos" description="No hay registros de auditoría" />
           )}
 
           <div className="divide-y divide-gray-50">

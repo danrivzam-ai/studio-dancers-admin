@@ -89,7 +89,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Factura">
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">

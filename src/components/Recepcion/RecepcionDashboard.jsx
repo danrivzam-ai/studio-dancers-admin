@@ -71,7 +71,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Nueva alumna">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><Plus size={16} /></div>
             <h3 className="font-semibold text-base">Nueva alumna</h3>
@@ -230,7 +230,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle alumna">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><User size={16} /></div>
             <h3 className="font-semibold text-base">Detalle alumna</h3>
@@ -405,7 +405,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
 
         {/* Resumen rápido */}
         {!search && (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
               { label: 'Total',     value: students.length, icon: Users,        color: PURPLE,    bg: '#F3E5F5' },
               { label: 'Atrasadas', value: atrasadas,       icon: AlertCircle,  color: '#e53935', bg: '#ffebee' },

@@ -131,10 +131,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center !p-0 sm:!p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col">
 
         {/* ── Header ── */}
-        <div className="text-white rounded-t-2xl shrink-0" style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)', padding: '36px 20px 16px' }}>
+        <div className="text-white rounded-t-2xl shrink-0 bg-purple-700" style={{ padding: '36px 20px 16px' }}>
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">
@@ -542,7 +542,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             <img
               src={avatarUrl}
               alt={student.name}
-              className="w-full rounded-2xl object-cover shadow-2xl"
+              className="w-full rounded-2xl object-cover shadow-xl"
             />
             <button
               onClick={() => setPhotoPreview(false)}
@@ -558,7 +558,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       {/* Diálogo: Reactivar ciclo */}
       {showReactivateDialog && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">
             <h3 className="text-lg font-bold text-gray-800 mb-1 text-center flex items-center justify-center gap-2">
               <RefreshCw size={20} className="text-purple-600" /> Reactivar ciclo
             </h3>

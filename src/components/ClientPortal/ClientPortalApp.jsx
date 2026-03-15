@@ -112,7 +112,7 @@ function StudentSelector({ students, onSelect, onLogout }) {
         onError={e => { e.target.src = '/logo2.png' }}
       />
 
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6">
         <h2 className="text-lg font-bold text-gray-800 mb-1">¿Quién eres?</h2>
         <p className="text-sm text-gray-500 mb-4">
           Encontramos más de una alumna con estos datos. Selecciona tu nombre.

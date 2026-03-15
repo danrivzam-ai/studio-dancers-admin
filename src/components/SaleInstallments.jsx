@@ -6,6 +6,8 @@ import {
   Search, Minus, ClipboardList, Database, Copy, Check,
   Eye, MessageCircle
 } from 'lucide-react'
+import ConfirmDialog from './ui/ConfirmDialog'
+import EmptyState from './ui/EmptyState'
 
 const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
 
@@ -29,7 +31,7 @@ function Toast({ msg, type = 'success', onDone }) {
     info:    'bg-purple-600',
   }
   return (
-    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-xs text-center ${colors[type]}`}>
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-xl flex items-center gap-2.5 max-w-xs text-center ${colors[type]}`}>
       {type === 'success' && <CheckCircle size={16} />}
       {type === 'error'   && <AlertCircle size={16} />}
       {msg}
@@ -181,7 +183,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
         {/* Acciones */}
         <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
           <p className="font-semibold text-gray-700 text-sm">Comprobante de abono</p>
@@ -279,7 +281,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <p className="font-semibold text-gray-800">Registrar abono</p>
@@ -505,7 +507,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
           <p className="font-semibold text-gray-800">Nuevo plan de abonos</p>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
@@ -749,11 +751,11 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-800 text-sm truncate">{plan.customer_name}</p>
             {showStudentName && (
-              <p className="text-xs text-purple-600 font-medium truncate">👩‍🎓 {effectiveStudentName}</p>
+              <p className="text-xs text-purple-600 font-medium truncate">{effectiveStudentName}</p>
             )}
             <p className="text-xs text-gray-500 mt-0.5 truncate">{itemsLabel}</p>
             {effectiveCourse && (
-              <p className="text-[10px] text-gray-400 truncate">🎓 {effectiveCourse}</p>
+              <p className="text-[10px] text-gray-400 truncate">{effectiveCourse}</p>
             )}
           </div>
           <StatusBadge status={plan.status} />
@@ -899,11 +901,11 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
       {showDetail && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setShowDetail(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+            <div className="flex items-center justify-between px-4 py-3 bg-purple-700 text-white">
               <p className="font-semibold text-sm">Detalle del plan</p>
               <button onClick={() => setShowDetail(false)}
                 className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
@@ -1158,12 +1160,10 @@ export default function SaleInstallments({
           {loading ? (
             <div className="text-center py-10 text-gray-400 text-sm">Cargando planes...</div>
           ) : visiblePlans.length === 0 ? (
-            <div className="text-center py-10">
-              <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-400 text-sm">
-                {tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
-              </p>
-            </div>
+            <EmptyState
+              icon={ClipboardList}
+              title={tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
+            />
           ) : (
             <div className="space-y-3">
               {visiblePlans.map(plan => (
@@ -1216,45 +1216,25 @@ export default function SaleInstallments({
         />
       )}
 
-      {confirmCancel && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
-            <Trash2 size={32} className="mx-auto text-red-400 mb-3" />
-            <p className="font-semibold text-gray-800 mb-1">¿Cancelar este plan?</p>
-            <p className="text-xs text-gray-500 mb-5">Los abonos registrados no se eliminarán del historial.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmCancel(null)}
-                className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300">
-                No, volver
-              </button>
-              <button onClick={() => handleCancel(confirmCancel)}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600">
-                Sí, cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!confirmCancel}
+        onClose={() => setConfirmCancel(null)}
+        onConfirm={() => handleCancel(confirmCancel)}
+        icon={Trash2}
+        title="¿Cancelar este plan?"
+        description="Los abonos registrados no se eliminarán del historial."
+        confirmLabel="Sí, cancelar"
+      />
 
-      {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
-            <Trash2 size={32} className="mx-auto text-red-600 mb-3" />
-            <p className="font-semibold text-gray-800 mb-1">¿Eliminar este plan?</p>
-            <p className="text-xs text-gray-500 mb-5">Esta acción es permanente y no se puede deshacer. Solo es posible porque no tiene abonos registrados.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300">
-                No, volver
-              </button>
-              <button onClick={() => handleDelete(confirmDelete)}
-                className="flex-1 py-2.5 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-800">
-                Sí, eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => handleDelete(confirmDelete)}
+        icon={Trash2}
+        title="¿Eliminar este plan?"
+        description="Esta acción es permanente y no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+      />
 
       {/* Toast */}
       {toast && (

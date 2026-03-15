@@ -416,9 +416,9 @@ export default function PaymentHistory({
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Historial de pagos">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-3 sm:p-5 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">

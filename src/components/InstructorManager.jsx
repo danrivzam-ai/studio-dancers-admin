@@ -864,7 +864,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
             {/* Header modal */}
-            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl">
+            <div className="flex items-center justify-between px-6 py-4 bg-purple-700 text-white rounded-t-2xl">
               <h3 className="font-bold flex items-center gap-2">
                 <div className="bg-white/20 p-1.5 rounded-xl"><GraduationCap size={18} /></div>
                 {editing ? 'Editar Instructora' : 'Nueva Instructora'}

@@ -91,7 +91,7 @@ export default function GalleryManager() {
 
       {/* Loading skeleton */}
       {loading && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="aspect-square bg-gray-200 rounded-xl animate-pulse" />
           ))}
@@ -116,7 +116,7 @@ export default function GalleryManager() {
 
       {/* Thumbnail grid */}
       {!loading && photos.length > 0 && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
           {photos.map(photo => {
             const url = getPhotoUrl(photo.storage_path)
             return (
@@ -160,7 +160,7 @@ export default function GalleryManager() {
       {/* ══════ MODAL: Editar pie de foto ══════ */}
       <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} ariaLabel="Editar pie de foto">
         {editTarget && (
-          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden">
+          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-xl overflow-hidden">
             {/* Preview + header */}
             <div className="relative h-36 bg-gray-900">
               <img src={editTarget.url} alt="" className="w-full h-full object-cover opacity-70" />
@@ -213,7 +213,7 @@ export default function GalleryManager() {
       {/* ══════ MODAL: Confirmar eliminación ══════ */}
       <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} ariaLabel="Confirmar eliminación de foto">
         {deleteTarget && (
-          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden">
+          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl shadow-xl overflow-hidden">
             {/* Preview */}
             <div className="relative h-36 bg-gray-900">
               <img src={getPhotoUrl(deleteTarget.storage_path)} alt="" className="w-full h-full object-cover opacity-50" />
