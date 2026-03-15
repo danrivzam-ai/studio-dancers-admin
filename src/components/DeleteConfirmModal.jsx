@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, AlertTriangle, Trash2, Lock } from 'lucide-react'
+import { X, AlertTriangle, Trash2, Ban, Lock } from 'lucide-react'
 import Modal from './ui/Modal'
 
 export default function DeleteConfirmModal({
@@ -13,6 +13,10 @@ export default function DeleteConfirmModal({
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const isVoid = itemType === 'venta'
+  const actionLabel = isVoid ? 'Anular' : 'Eliminar'
+  const ActionIcon = isVoid ? Ban : Trash2
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -43,16 +47,20 @@ export default function DeleteConfirmModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} ariaLabel="Confirmar eliminación">
+    <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={`Confirmar ${actionLabel.toLowerCase()}`}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        {/* Header pequeño */}
-        <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
+        {/* Header */}
+        <div className={`px-4 py-3 border-b rounded-t-2xl flex items-center justify-between ${
+          isVoid ? 'bg-amber-50' : 'bg-red-50'
+        }`}>
           <div className="flex items-center gap-2">
-            <AlertTriangle className="text-red-500" size={18} />
-            <span className="font-medium text-red-700 text-sm">Eliminar</span>
+            <AlertTriangle className={isVoid ? 'text-amber-500' : 'text-red-500'} size={18} />
+            <span className={`font-medium text-sm ${isVoid ? 'text-amber-700' : 'text-red-700'}`}>{actionLabel}</span>
           </div>
-          <button onClick={handleClose} aria-label="Cerrar" className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all">
-            <X size={16} className="text-red-500" />
+          <button onClick={handleClose} aria-label="Cerrar" className={`p-1 rounded-xl active:scale-95 transition-all ${
+            isVoid ? 'hover:bg-amber-100' : 'hover:bg-red-100'
+          }`}>
+            <X size={16} className={isVoid ? 'text-amber-500' : 'text-red-500'} />
           </button>
         </div>
 
@@ -60,16 +68,18 @@ export default function DeleteConfirmModal({
         <form onSubmit={handleSubmit} className="p-4">
           <div className="text-center mb-3">
             <p className="text-xs text-gray-500">
-              {itemType === 'alumno' ? '¿Eliminar alumno?' : '¿Eliminar?'}
+              {isVoid
+                ? '¿Anular esta venta? El stock se restaurará automáticamente.'
+                : itemType === 'alumno' ? '¿Eliminar alumno?' : '¿Eliminar?'}
             </p>
-            <p className="font-semibold text-gray-800">{itemName}</p>
+            <p className="font-semibold text-gray-800 mt-1">{itemName}</p>
           </div>
 
           {/* PIN */}
           {requiredPin && (
             <div className="mb-3">
               <label className="block text-xs text-gray-500 mb-1 flex items-center gap-1">
-                <Lock size={10} /> PIN
+                <Lock size={10} /> PIN de seguridad
               </label>
               <input
                 type="password"
@@ -105,11 +115,13 @@ export default function DeleteConfirmModal({
               className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
                 loading || (requiredPin && pin.length < 4)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-red-600 hover:bg-red-700 text-white'
+                  : isVoid
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
               }`}
             >
-              <Trash2 size={14} />
-              {loading ? 'Eliminando...' : 'Eliminar'}
+              <ActionIcon size={14} />
+              {loading ? (isVoid ? 'Anulando...' : 'Eliminando...') : actionLabel}
             </button>
           </div>
         </form>

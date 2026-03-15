@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload, History, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
@@ -36,6 +36,22 @@ const AGE_GROUPS = [
   { id: 'todos', name: 'Todas las edades', ageMin: 3, ageMax: 99 },
 ]
 
+const ADJUST_REASONS = [
+  { id: 'restock', label: 'Compra / Restock', type: 'restock', direction: 'add' },
+  { id: 'correction_add', label: 'Corrección (conteo físico)', type: 'adjustment', direction: 'add' },
+  { id: 'correction_sub', label: 'Corrección (conteo físico)', type: 'adjustment', direction: 'subtract' },
+  { id: 'damage', label: 'Daño / Merma', type: 'adjustment', direction: 'subtract' },
+  { id: 'gift', label: 'Obsequio / Donación', type: 'adjustment', direction: 'subtract' },
+  { id: 'other', label: 'Otro', type: 'adjustment', direction: null },
+]
+
+const MOVEMENT_LABELS = {
+  sale: { label: 'Venta', color: 'text-red-600', bg: 'bg-red-50' },
+  restock: { label: 'Restock', color: 'text-green-600', bg: 'bg-green-50' },
+  adjustment: { label: 'Ajuste', color: 'text-blue-600', bg: 'bg-blue-50' },
+  void_return: { label: 'Devolución', color: 'text-amber-600', bg: 'bg-amber-50' },
+}
+
 export default function ManageItems({
   courses,
   products,
@@ -44,6 +60,7 @@ export default function ManageItems({
   onSaveProduct,
   onDeleteProduct,
   onAdjustStock,
+  onGetInventoryMovements,
   onClose,
   onRequestPin
 }) {
@@ -53,9 +70,17 @@ export default function ManageItems({
   const [editingItem, setEditingItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [restockModal, setRestockModal] = useState(null) // { product, quantity }
-  const [restockQty, setRestockQty] = useState('')
-  const [restockLoading, setRestockLoading] = useState(false)
+  // Stock adjustment modal
+  const [stockModal, setStockModal] = useState(null)
+  const [adjustQty, setAdjustQty] = useState('')
+  const [adjustReason, setAdjustReason] = useState('restock')
+  const [adjustNotes, setAdjustNotes] = useState('')
+  const [adjustDirection, setAdjustDirection] = useState('add')
+  const [adjustLoading, setAdjustLoading] = useState(false)
+  // Inventory history modal
+  const [historyModal, setHistoryModal] = useState(null)
+  const [historyData, setHistoryData] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const formRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -266,30 +291,65 @@ export default function ManageItems({
     setDeleteConfirm(null)
   }
 
-  // Restock de producto
-  const handleRestock = async () => {
-    if (!restockModal || !restockQty || parseInt(restockQty) <= 0) return
-    setRestockLoading(true)
+  // Ajuste de stock (restock, corrección, merma, etc.)
+  const handleStockAdjust = async () => {
+    if (!stockModal || !adjustQty || parseInt(adjustQty) <= 0) return
+    setAdjustLoading(true)
     try {
-      const qty = parseInt(restockQty)
+      const qty = parseInt(adjustQty)
+      const reason = ADJUST_REASONS.find(r => r.id === adjustReason)
+      const direction = reason?.direction || adjustDirection
+      const actualQty = direction === 'subtract' ? -qty : qty
+      const movementType = reason?.type || 'adjustment'
+      const noteText = adjustNotes.trim() || reason?.label || 'Ajuste manual'
+
       const result = await onAdjustStock(
-        restockModal.code || restockModal.id,
-        qty,
-        'restock',
+        stockModal.code || stockModal.id,
+        actualQty,
+        movementType,
         null,
-        `Restock: +${qty} unidades`
+        `${noteText} (${direction === 'subtract' ? '-' : '+'}${qty})`
       )
       if (result.success) {
-        setRestockModal(null)
-        setRestockQty('')
+        toast.success(`Stock actualizado: ${result.newStock} unidades`)
+        setStockModal(null)
+        setAdjustQty('')
+        setAdjustNotes('')
+        setAdjustReason('restock')
+        setAdjustDirection('add')
       } else {
         setErrorMessage(result.error || 'Error al actualizar stock')
       }
     } catch (err) {
       setErrorMessage(err.message)
     } finally {
-      setRestockLoading(false)
+      setAdjustLoading(false)
     }
+  }
+
+  // Ver historial de movimientos
+  const handleViewHistory = async (product) => {
+    setHistoryModal(product)
+    setHistoryLoading(true)
+    try {
+      if (onGetInventoryMovements) {
+        const result = await onGetInventoryMovements(product.code || product.id, 50)
+        setHistoryData(result.data || [])
+      }
+    } catch (err) {
+      console.error('Error loading history:', err)
+      setHistoryData([])
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  const openStockModal = (product) => {
+    setStockModal(product)
+    setAdjustQty('')
+    setAdjustNotes('')
+    setAdjustReason('restock')
+    setAdjustDirection('add')
   }
 
   // Separar cursos regulares de programas
@@ -862,7 +922,8 @@ export default function ManageItems({
                     type="product"
                     onEdit={() => handleEdit(product, true)}
                     onDelete={() => handleDeleteRequest(product, true)}
-                    onRestock={onAdjustStock ? () => { setRestockModal(product); setRestockQty('') } : null}
+                    onAdjustStock={onAdjustStock ? () => openStockModal(product) : null}
+                    onViewHistory={onGetInventoryMovements ? () => handleViewHistory(product) : null}
                   />
                 ))
               )}
@@ -890,57 +951,225 @@ export default function ManageItems({
           />
         )}
 
-        {/* Restock Modal */}
-        {restockModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <PackagePlus size={32} className="text-blue-600" />
+        {/* Stock Adjustment Modal */}
+        {stockModal && (() => {
+          const reason = ADJUST_REASONS.find(r => r.id === adjustReason)
+          const direction = reason?.direction || adjustDirection
+          const qty = parseInt(adjustQty) || 0
+          const currentStock = stockModal.stock ?? 0
+          const newStock = direction === 'subtract' ? currentStock - qty : currentStock + qty
+          const isValid = qty > 0 && newStock >= 0
+          const needsDirection = reason?.direction === null
+
+          return (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+                <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-sm">Ajustar Stock</h3>
+                    <p className="text-purple-200 text-xs mt-0.5">{stockModal.name}</p>
+                  </div>
+                  <button onClick={() => setStockModal(null)} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+                    <X size={18} />
+                  </button>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Reabastecer Stock</h3>
-                <p className="text-gray-500 mt-1">{restockModal.name}</p>
-                <p className="text-sm text-blue-600 font-medium mt-1">
-                  Stock actual: {restockModal.stock ?? 0} unidades
-                </p>
+
+                <div className="p-5 space-y-4">
+                  {/* Stock actual */}
+                  <div className="text-center py-2 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500">Stock actual</p>
+                    <p className="text-2xl font-bold text-gray-800">{currentStock} <span className="text-sm font-normal text-gray-500">ud</span></p>
+                  </div>
+
+                  {/* Motivo */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Motivo</label>
+                    <select
+                      value={adjustReason}
+                      onChange={(e) => {
+                        setAdjustReason(e.target.value)
+                        const r = ADJUST_REASONS.find(r => r.id === e.target.value)
+                        if (r?.direction) setAdjustDirection(r.direction)
+                      }}
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-purple-400 outline-none transition-all"
+                    >
+                      <optgroup label="Entrada (+)">
+                        {ADJUST_REASONS.filter(r => r.direction === 'add').map(r => (
+                          <option key={r.id} value={r.id}>{r.label}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Salida (-)">
+                        {ADJUST_REASONS.filter(r => r.direction === 'subtract').map(r => (
+                          <option key={r.id} value={r.id}>{r.label}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Otro">
+                        {ADJUST_REASONS.filter(r => r.direction === null).map(r => (
+                          <option key={r.id} value={r.id}>{r.label}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  {/* Dirección manual si "Otro" */}
+                  {needsDirection && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAdjustDirection('add')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                          adjustDirection === 'add' ? 'bg-green-100 text-green-700 ring-2 ring-green-300' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        <ArrowUpCircle size={16} /> Entrada
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdjustDirection('subtract')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-all ${
+                          adjustDirection === 'subtract' ? 'bg-red-100 text-red-700 ring-2 ring-red-300' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        <ArrowDownCircle size={16} /> Salida
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Cantidad */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Cantidad</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={adjustQty}
+                      onChange={(e) => setAdjustQty(e.target.value)}
+                      className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 outline-none transition-all"
+                      placeholder="0"
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Preview */}
+                  {qty > 0 && (
+                    <div className={`text-center py-2 rounded-xl ${
+                      newStock < 0 ? 'bg-red-50' : direction === 'subtract' ? 'bg-amber-50' : 'bg-green-50'
+                    }`}>
+                      <p className="text-xs text-gray-500">Nuevo stock</p>
+                      <p className={`text-xl font-bold ${
+                        newStock < 0 ? 'text-red-600' : direction === 'subtract' ? 'text-amber-600' : 'text-green-600'
+                      }`}>
+                        {currentStock} {direction === 'subtract' ? '−' : '+'} {qty} = {newStock} ud
+                      </p>
+                      {newStock < 0 && <p className="text-xs text-red-500 mt-1">Stock insuficiente</p>}
+                    </div>
+                  )}
+
+                  {/* Notas opcionales */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Notas (opcional)</label>
+                    <input
+                      type="text"
+                      value={adjustNotes}
+                      onChange={(e) => setAdjustNotes(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:border-purple-400 outline-none transition-all"
+                      placeholder="Ej: Compra proveedor, conteo físico..."
+                    />
+                  </div>
+
+                  {/* Botones */}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setStockModal(null)}
+                      className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStockAdjust}
+                      disabled={!isValid || adjustLoading}
+                      className={`flex-1 px-3 py-2.5 rounded-xl font-medium text-sm text-white flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all ${
+                        direction === 'subtract' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
+                      {adjustLoading
+                        ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        : direction === 'subtract' ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />
+                      }
+                      {adjustLoading ? 'Guardando...' : 'Confirmar'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Inventory History Modal */}
+        {historyModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] flex flex-col">
+              <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-sm">Historial de Inventario</h3>
+                  <p className="text-purple-200 text-xs mt-0.5">{historyModal.name} · Stock: {historyModal.stock ?? 0}</p>
+                </div>
+                <button onClick={() => { setHistoryModal(null); setHistoryData([]) }} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cantidad a agregar
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={restockQty}
-                  onChange={(e) => setRestockQty(e.target.value)}
-                  className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="0"
-                  autoFocus
-                />
-                {restockQty && parseInt(restockQty) > 0 && (
-                  <p className="text-sm text-green-600 font-medium text-center mt-2">
-                    Nuevo stock: {(restockModal.stock ?? 0) + parseInt(restockQty)} unidades
-                  </p>
+              <div className="flex-1 overflow-y-auto p-4">
+                {historyLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                  </div>
+                ) : historyData.length === 0 ? (
+                  <div className="text-center py-12 text-gray-400">
+                    <History size={40} className="mx-auto mb-3 opacity-40" />
+                    <p className="font-medium text-gray-500">Sin movimientos registrados</p>
+                    <p className="text-xs mt-1">Los movimientos aparecerán aquí al vender, reabastecer o ajustar stock.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {historyData.map((mov, i) => {
+                      const meta = MOVEMENT_LABELS[mov.movement_type] || { label: mov.movement_type, color: 'text-gray-600', bg: 'bg-gray-50' }
+                      const isPositive = mov.quantity > 0
+                      return (
+                        <div key={mov.id || i} className={`p-3 rounded-xl border ${meta.bg}`}>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>
+                              {meta.label}
+                            </span>
+                            <span className={`text-sm font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                              {isPositive ? '+' : ''}{mov.quantity}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className="text-xs text-gray-500">
+                              {mov.stock_before} → {mov.stock_after} ud
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {new Date(mov.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                          {mov.notes && (
+                            <p className="text-xs text-gray-500 mt-1 italic">{mov.notes}</p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
                 <button
-                  type="button"
-                  onClick={() => setRestockModal(null)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
+                  onClick={() => { setHistoryModal(null); setHistoryData([]) }}
+                  className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRestock}
-                  disabled={!restockQty || parseInt(restockQty) <= 0 || restockLoading}
-                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                  <PackagePlus size={18} />
-                  {restockLoading ? 'Guardando...' : 'Agregar'}
+                  Cerrar
                 </button>
               </div>
             </div>
@@ -952,7 +1181,7 @@ export default function ManageItems({
 }
 
 // Componente de tarjeta de item
-function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
+function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }) {
   const isProduct = type === 'product'
   const isProgram = type === 'program' || item.priceType === 'programa'
 
@@ -1017,11 +1246,20 @@ function ItemCard({ item, type, onEdit, onDelete, onRestock }) {
 
         {/* Actions */}
         <div className="flex flex-col gap-1">
-          {isProduct && onRestock && (
+          {isProduct && onViewHistory && (
             <button
-              onClick={onRestock}
+              onClick={onViewHistory}
+              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+              title="Historial de inventario"
+            >
+              <History size={18} />
+            </button>
+          )}
+          {isProduct && onAdjustStock && (
+            <button
+              onClick={onAdjustStock}
               className="p-2 text-blue-600 hover:bg-blue-100 rounded-xl active:scale-95 transition-all"
-              title="Reabastecer stock"
+              title="Ajustar stock"
             >
               <PackagePlus size={18} />
             </button>

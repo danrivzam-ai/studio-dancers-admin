@@ -79,7 +79,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
-  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock } = useItems()
+  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, getInventoryMovements } = useItems()
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
@@ -1116,7 +1116,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
-            { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
+            { id: 'sales', icon: ShoppingBag, label: 'Tienda',
+              count: allProducts.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 3 && p.active !== false).length || undefined,
+              countColor: 'red' },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
@@ -1142,7 +1144,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
-                    activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
+                    tab.countColor === 'red'
+                      ? 'bg-red-500 text-white'
+                      : activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {tab.count}
                   </span>
@@ -2006,15 +2010,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <ScrollText size={16} />
                               </button>
                             )}
-                            {!isRecepcion && (
-                              <button
-                                onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                                aria-label="Eliminar venta"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => group.items.forEach(i => handleDeleteSale(i))}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                              title="Anular venta"
+                              aria-label="Anular venta"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -2678,6 +2681,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onSaveProduct={saveProduct}
             onDeleteProduct={deleteProduct}
             onAdjustStock={adjustStock}
+            onGetInventoryMovements={getInventoryMovements}
             onClose={() => setShowManageItems(false)}
             onRequestPin={(pin) => {
               // Verificar PIN
