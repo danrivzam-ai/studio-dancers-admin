@@ -106,7 +106,7 @@ export default function MetaOfflineExport() {
       // Traer estudiantes
       const { data: students, error: stuErr } = await supabase
         .from('students')
-        .select('id, name, email, phone, cedula, is_minor, is_courtesy, parent_name, parent_email, parent_phone, parent_cedula, course_id, deleted_at')
+        .select('id, name, email, phone, cedula, is_minor, is_courtesy, parent_name, parent_email, parent_phone, parent_cedula, course_id')
 
       if (stuErr) throw stuErr
 
@@ -120,7 +120,7 @@ export default function MetaOfflineExport() {
       // Purchase events
       for (const pay of payments) {
         const student = studentMap[pay.student_id]
-        if (!student || student.is_courtesy || student.deleted_at) continue
+        if (!student || student.is_courtesy) continue
 
         const contactField = student.is_minor
           ? (student.parent_email || student.parent_phone)
@@ -155,7 +155,7 @@ export default function MetaOfflineExport() {
 
       // Lead events
       for (const student of students) {
-        if (student.is_courtesy || student.deleted_at) continue
+        if (student.is_courtesy) continue
         const contactField = student.is_minor
           ? (student.parent_email || student.parent_phone)
           : (student.email || student.phone)
