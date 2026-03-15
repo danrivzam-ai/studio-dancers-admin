@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -38,6 +38,7 @@ import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import SaleInstallments from './components/SaleInstallments'
+import InventoryCount from './components/InventoryCount'
 import { useSalePlans } from './hooks/useSalePlans'
 import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
@@ -119,6 +120,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showSettings, setShowSettings] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showManageItems, setShowManageItems] = useState(false)
+  const [showInventoryCount, setShowInventoryCount] = useState(false)
   const [showQuickPayment, setShowQuickPayment] = useState(false)
   const [showPaymentHistory, setShowPaymentHistory] = useState(false)
   const [editingStudent, setEditingStudent] = useState(null)
@@ -1867,12 +1869,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
                       <Tag size={15} /> Catálogo
                     </h3>
-                    {isAdmin && (
-                      <button onClick={() => setShowManageItems(true)}
-                        className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
-                        <Package size={13} /> Gestionar
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setShowInventoryCount(true)}
+                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
+                        <ClipboardCheck size={13} /> Conteo
                       </button>
-                    )}
+                      {isAdmin && (
+                        <button onClick={() => setShowManageItems(true)}
+                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
+                          <Package size={13} /> Gestionar
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {categorized.map(cat => {
                     const collapsed = collapsedCats.has(cat.key)
@@ -2688,6 +2696,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               if (!settings.security_pin) return true // Si no hay PIN configurado, permitir
               return pin === settings.security_pin
             }}
+          />
+        )}
+
+        {/* Inventory Count Modal */}
+        {showInventoryCount && (
+          <InventoryCount
+            products={allProducts}
+            onAdjustStock={adjustStock}
+            onClose={() => setShowInventoryCount(false)}
+            schoolName={settings?.name || settings?.school_name || 'Studio Dancers'}
           />
         )}
 
