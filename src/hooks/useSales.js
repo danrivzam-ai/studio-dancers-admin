@@ -5,6 +5,7 @@ import { logAudit } from '../lib/auditLog'
 
 export function useSales() {
   const [sales, setSales] = useState([])
+  const [voidedSales, setVoidedSales] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -28,8 +29,25 @@ export function useSales() {
     }
   }
 
+  // Cargar ventas anuladas
+  const fetchVoidedSales = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .select('*')
+        .not('deleted_at', 'is', null)
+        .order('deleted_at', { ascending: false })
+
+      if (error) throw error
+      setVoidedSales(data || [])
+    } catch (err) {
+      console.error('Error fetching voided sales:', err)
+    }
+  }
+
   useEffect(() => {
     fetchSales()
+    fetchVoidedSales()
   }, [])
 
   // Crear venta
@@ -111,7 +129,9 @@ export function useSales() {
 
       if (error) throw error
 
+      const deletedSale = sales.find(s => s.id === id)
       setSales(prev => prev.filter(s => s.id !== id))
+      if (deletedSale) setVoidedSales(prev => [{ ...deletedSale, deleted_at: new Date().toISOString() }, ...prev])
       logAudit({ action: 'sale_deleted', tableName: 'sales', recordId: id })
       return { success: true }
     } catch (err) {
@@ -125,9 +145,11 @@ export function useSales() {
 
   return {
     sales,
+    voidedSales,
     loading,
     error,
     fetchSales,
+    fetchVoidedSales,
     createSale,
     createSaleGroup,
     deleteSale,

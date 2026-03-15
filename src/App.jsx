@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck, Banknote, Smartphone, Ban
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -77,7 +77,7 @@ function StudentAvatar({ student, isCamp }) {
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
-  const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
+  const { sales, voidedSales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, getInventoryMovements } = useItems()
@@ -1774,74 +1774,33 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           })
           const filteredTotal = filteredSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
+
+          // Subtotales por método de pago
+          const methodTotals = filteredSales.reduce((acc, s) => {
+            const m = s.payment_method || 'cash'
+            acc[m] = (acc[m] || 0) + (parseFloat(s.total) || 0)
+            return acc
+          }, {})
+          const METHOD_LABELS = { cash: { label: 'Efectivo', icon: 'banknote', color: 'text-green-700 bg-green-50' }, transfer: { label: 'Transfer.', icon: 'smartphone', color: 'text-blue-700 bg-blue-50' }, card: { label: 'Tarjeta', icon: 'card', color: 'text-purple-700 bg-purple-50' } }
+
+          // Ventas anuladas filtradas por el mismo periodo
+          const filteredVoided = voidedSales.filter(s => {
+            if (salesDateFilter === 'today') return s.sale_date === todayStr
+            if (salesDateFilter === 'week') {
+              const d = new Date(s.sale_date + 'T12:00:00')
+              return (todayDate - d) / 86400000 <= 6
+            }
+            if (salesDateFilter === 'month') {
+              return s.sale_date.startsWith(todayStr.slice(0, 7))
+            }
+            return true
+          })
+
           return (
-          <div className="space-y-4">
+          <div className="space-y-4 pb-20">
 
-          {/* Ventas en Abonos — primero porque es gestión diaria */}
+          {/* ─── 1. CATÁLOGO — card propio ─── */}
           <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
-              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
-            </div>
-            <div className="p-4">
-              <SaleInstallments
-                allProducts={allProducts}
-                students={students}
-                schoolName={settings?.school_name || 'Studio Dancers'}
-                activePlans={activePlans}
-                paidPlans={paidPlans}
-                totalDebt={totalDebt}
-                loading={plansLoading}
-                dbError={plansDbError}
-                onRefresh={refreshPlans}
-                onCreatePlan={createPlan}
-                onRegisterPayment={registerPlanPayment}
-                onCancelPlan={cancelPlan}
-                onDeletePlan={deletePlan}
-                onUpdatePlanTotal={updatePlanTotal}
-                onMarkDelivered={markDelivered}
-                externalShowNew={showNewPlan}
-                externalPreselect={newPlanPreselect}
-                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
-              />
-            </div>
-          </div>
-
-          {/* Ventas de Artículos — catálogo + historial */}
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="font-semibold text-gray-800">Ventas de Artículos</h2>
-                  <p className="text-sm text-gray-500">
-                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
-                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {[
-                  { value: 'today', label: 'Hoy' },
-                  { value: 'week', label: '7 días' },
-                  { value: 'month', label: 'Este mes' },
-                  { value: 'all', label: 'Todo' },
-                ].map(f => (
-                  <button
-                    key={f.value}
-                    onClick={() => setSalesDateFilter(f.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      salesDateFilter === f.value
-                        ? 'bg-green-600 text-white shadow-sm'
-                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Catálogo por categoría */}
             {(() => {
               const CATS = [
                 { key: 'entradas',  label: 'Entradas' },
@@ -1864,7 +1823,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               })
 
               return (
-                <div className="p-4 border-b space-y-2">
+                <div className="p-4 space-y-2">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
                       <Tag size={15} /> Catálogo
@@ -1947,8 +1906,59 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
               )
             })()}
+          </div>
 
-            {filteredSales.length === 0 ? (
+          {/* ─── 2. HISTORIAL DE VENTAS — card propio ─── */}
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-semibold text-gray-800">Historial de Ventas</h2>
+                  <p className="text-sm text-gray-500">
+                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
+                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[
+                  { value: 'today', label: 'Hoy' },
+                  { value: 'week', label: '7 días' },
+                  { value: 'month', label: 'Este mes' },
+                  { value: 'all', label: 'Todo' },
+                ].map(f => (
+                  <button
+                    key={f.value}
+                    onClick={() => setSalesDateFilter(f.value)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      salesDateFilter === f.value
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+              {/* Subtotales por método de pago */}
+              {filteredSales.length > 0 && Object.keys(methodTotals).length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-3 pt-3 border-t border-gray-200">
+                  {Object.entries(methodTotals).map(([method, total]) => {
+                    const meta = METHOD_LABELS[method] || { label: method, color: 'text-gray-700 bg-gray-50' }
+                    return (
+                      <span key={method} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${meta.color}`}>
+                        {method === 'cash' && <Banknote size={12} />}
+                        {method === 'transfer' && <Smartphone size={12} />}
+                        {method === 'card' && <CreditCard size={12} />}
+                        {meta.label}: ${total.toFixed(2)}
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {filteredSales.length === 0 && filteredVoided.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
                 <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
                 <p>{salesDateFilter === 'today' ? 'Sin ventas hoy' : salesDateFilter === 'week' ? 'Sin ventas esta semana' : salesDateFilter === 'month' ? 'Sin ventas este mes' : 'No hay ventas registradas'}</p>
@@ -1960,9 +1970,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
             ) : (
+              <>
               <div className="divide-y">
                 {(() => {
-                  // Agrupar ventas: agrupadas por sale_group_id, o individuales (null)
                   const groups = []
                   const seen = new Set()
                   for (const sale of filteredSales) {
@@ -1977,6 +1987,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   }
                   return groups.map(group => {
                     const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
+                    const pm = group.sale.payment_method || 'cash'
+                    const pmMeta = METHOD_LABELS[pm] || { label: pm, color: 'text-gray-700 bg-gray-50' }
                     return (
                       <div key={group.id} className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start justify-between gap-3">
@@ -1993,7 +2005,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             ) : (
                               <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
                             )}
-                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}</p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <p className="text-xs text-gray-500">Cliente: {group.sale.customer_name}</p>
+                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${pmMeta.color}`}>
+                                {pm === 'cash' && <Banknote size={10} />}
+                                {pm === 'transfer' && <Smartphone size={10} />}
+                                {pm === 'card' && <CreditCard size={10} />}
+                                {pmMeta.label}
+                              </span>
+                            </div>
                             <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-purple-400">{group.sale.receipt_number}</span>}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -2033,8 +2053,94 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   })
                 })()}
               </div>
+
+              {/* Ventas anuladas */}
+              {filteredVoided.length > 0 && (
+                <div className="border-t-2 border-dashed border-gray-200">
+                  <div className="px-4 py-2.5 bg-red-50/50">
+                    <p className="text-xs font-semibold text-red-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <Ban size={12} /> Anuladas ({filteredVoided.length})
+                    </p>
+                  </div>
+                  <div className="divide-y divide-dashed divide-gray-100">
+                    {(() => {
+                      const vGroups = []
+                      const vSeen = new Set()
+                      for (const sale of filteredVoided) {
+                        if (sale.sale_group_id) {
+                          if (vSeen.has(sale.sale_group_id)) continue
+                          vSeen.add(sale.sale_group_id)
+                          const items = filteredVoided.filter(s => s.sale_group_id === sale.sale_group_id)
+                          vGroups.push({ id: sale.sale_group_id, items, sale })
+                        } else {
+                          vGroups.push({ id: sale.id, items: [sale], sale })
+                        }
+                      }
+                      return vGroups.map(group => {
+                        const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
+                        return (
+                          <div key={group.id} className="px-4 py-3 opacity-50">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                {group.items.map((item, i) => (
+                                  <p key={i} className="text-sm text-gray-500 line-through">
+                                    {item.product_name} ×{item.quantity}
+                                  </p>
+                                ))}
+                                <p className="text-xs text-gray-400 mt-0.5">Cliente: {group.sale.customer_name}</p>
+                                <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2">{group.sale.receipt_number}</span>}</p>
+                              </div>
+                              <p className="text-sm font-semibold text-red-400 line-through shrink-0">${groupTotal.toFixed(2)}</p>
+                            </div>
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
+                </div>
+              )}
+              </>
             )}
           </div>
+
+          {/* ─── 3. VENTAS EN ABONOS — card propio ─── */}
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
+              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
+            </div>
+            <div className="p-4">
+              <SaleInstallments
+                allProducts={allProducts}
+                students={students}
+                schoolName={settings?.school_name || 'Studio Dancers'}
+                activePlans={activePlans}
+                paidPlans={paidPlans}
+                totalDebt={totalDebt}
+                loading={plansLoading}
+                dbError={plansDbError}
+                onRefresh={refreshPlans}
+                onCreatePlan={createPlan}
+                onRegisterPayment={registerPlanPayment}
+                onCancelPlan={cancelPlan}
+                onDeletePlan={deletePlan}
+                onUpdatePlanTotal={updatePlanTotal}
+                onMarkDelivered={markDelivered}
+                externalShowNew={showNewPlan}
+                externalPreselect={newPlanPreselect}
+                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
+              />
+            </div>
+          </div>
+
+          {/* FAB — Nueva Venta */}
+          <button
+            onClick={() => setShowSaleForm(true)}
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center active:scale-95 transition-all"
+            aria-label="Nueva venta"
+          >
+            <ShoppingBag size={22} />
+          </button>
 
           </div>
           )
