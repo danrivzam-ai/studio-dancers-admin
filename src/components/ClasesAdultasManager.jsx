@@ -29,10 +29,10 @@ function CursoOverview({ courses, activeCicloMap, selectedCode, onSelect }) {
   if (!courses.length) return null
   return (
     <div className="mb-5">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2.5 px-1">
         Estado de ciclos — todos los cursos
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {courses.map(c => {
           const ciclo = activeCicloMap[c.code]
           const isSelected = selectedCode === c.code
@@ -40,29 +40,32 @@ function CursoOverview({ courses, activeCicloMap, selectedCode, onSelect }) {
             <button
               key={c.code}
               onClick={() => onSelect(c.code)}
-              className={`text-left rounded-xl p-3 border-2 transition-all active:scale-95 ${
+              className={`text-left rounded-2xl p-4 border transition-all active:scale-[0.97] ${
                 isSelected
-                  ? 'border-purple-400 bg-purple-50 shadow-md'
+                  ? 'border-purple-300 bg-purple-50 shadow-sm ring-2 ring-purple-200'
                   : ciclo
-                  ? 'border-green-200 bg-green-50 hover:border-purple-300 hover:bg-purple-50'
-                  : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                  ? 'border-gray-200 bg-white hover:border-purple-200 hover:shadow-sm'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <p className="text-xs font-semibold text-gray-700 leading-tight mb-1.5 line-clamp-2">{c.name}</p>
+              <p className="text-sm font-semibold text-gray-800 leading-snug mb-2 line-clamp-2">{c.name}</p>
               {ciclo ? (
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white px-2.5 py-1 rounded-lg" style={{ background: PURPLE }}>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-white px-3 py-1 rounded-full tracking-wide" style={{ background: PURPLE }}>
                       Ciclo {ciclo.numero_ciclo}
                     </span>
-                    <span className="text-xs text-green-600 font-medium">● Activo</span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-green-600 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      Activo
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-400">
                     {ciclo.total_clases} clases · desde {formatDateShort(ciclo.fecha_inicio)}
                   </p>
                 </div>
               ) : (
-                <span className="text-xs text-gray-400 italic">Sin ciclo activo</span>
+                <span className="text-xs text-gray-400">Sin ciclo activo</span>
               )}
             </button>
           )
@@ -140,11 +143,14 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
 
             {/* Encabezado */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-white px-2 py-0.5 rounded-full" style={{ background: PURPLE }}>
+              <span className="text-[11px] font-bold text-white px-3 py-1 rounded-full tracking-wide" style={{ background: PURPLE }}>
                 Ciclo {activeCiclo.numero_ciclo}
               </span>
-              <span className="text-xs text-green-600 font-medium">● Activo</span>
-              <span className="text-xs text-purple-700 font-medium ml-auto">
+              <span className="inline-flex items-center gap-1 text-[11px] text-green-600 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                Activo
+              </span>
+              <span className="text-xs text-purple-600 font-medium ml-auto">
                 {activeCiclo.total_clases} clases
               </span>
             </div>
@@ -227,7 +233,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
       {showForm && (
         <form onSubmit={handleCreate} className="mt-3 border border-purple-100 rounded-xl p-3 bg-purple-50 space-y-3">
           <p className="text-sm font-medium" style={{ color: PURPLE }}>Ciclo {nextNum} — {course.name}</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="text-xs text-gray-600 block mb-1">Fecha de inicio *</label>
               <input type="date" required value={form.fechaInicio}
@@ -274,12 +280,13 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
           <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
             Historial — {closedCiclos.length} ciclo(s) cerrado(s)
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {closedCiclos.map(c => (
-              <div key={c.id} className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 rounded-xl px-3 py-2">
-                <span className="font-medium text-gray-700">Ciclo {c.numero_ciclo}</span>
-                <span className="text-gray-400">·</span>
-                <span>
+              <div key={c.id} className="flex items-center gap-2.5 text-sm text-gray-500 bg-gray-50 rounded-xl px-3 py-2.5">
+                <span className="text-[11px] font-bold text-gray-500 bg-gray-200 px-2.5 py-0.5 rounded-full shrink-0">
+                  Ciclo {c.numero_ciclo}
+                </span>
+                <span className="text-xs">
                   {formatDateShort(c.fecha_inicio)}
                   {c.fecha_fin ? ` – ${formatDateShort(c.fecha_fin)}` : ''}
                   {' '}· {c.total_clases} clases
@@ -351,7 +358,7 @@ export default function ClasesAdultasManager() {
 
       {/* Selector de respaldo (dropdown) */}
       {!loading && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
           <label className="text-sm font-medium text-gray-600 block mb-2">
             Selecciona un curso para gestionar su ciclo
           </label>
