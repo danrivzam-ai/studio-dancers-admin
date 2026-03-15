@@ -871,19 +871,33 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+      <div className="min-h-screen flex items-center justify-center overflow-hidden relative" style={{
+        background: 'linear-gradient(135deg, #5a1a3a 0%, #6b21a8 50%, #7e22ce 100%)'
       }}>
-        <div className="text-center animate-fade-in">
+        {/* Decorative ambient circles */}
+        <div className="absolute w-64 h-64 rounded-full opacity-[0.07]" style={{
+          background: 'radial-gradient(circle, white 0%, transparent 70%)',
+          top: '10%', left: '-8%',
+        }} />
+        <div className="absolute w-48 h-48 rounded-full opacity-[0.05]" style={{
+          background: 'radial-gradient(circle, white 0%, transparent 70%)',
+          bottom: '15%', right: '-5%',
+        }} />
+
+        <div className="text-center relative z-10">
           <img
             src="/logo2.png"
             alt="Studio Dancers"
-            className="w-36 mx-auto mb-6 drop-shadow-lg animate-pulse-slow"
-            style={{ filter: 'brightness(0) invert(1)', opacity: 0.92 }}
+            className="w-40 mx-auto mb-8 animate-splash-reveal animate-splash-glow"
+            style={{ opacity: 0.95 }}
           />
-          <p className="text-white/70 text-sm mb-6">Cargando...</p>
-          <div className="loading-bar-container">
-            <div className="loading-bar"></div>
+          <p className="text-white/50 text-xs mb-6 animate-splash-text tracking-widest uppercase">
+            Preparando tu espacio
+          </p>
+          <div className="animate-splash-bar">
+            <div className="loading-bar-container">
+              <div className="loading-bar"></div>
+            </div>
           </div>
         </div>
       </div>

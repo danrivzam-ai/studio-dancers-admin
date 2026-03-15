@@ -275,6 +275,44 @@
   animation: pulse-slow 2.4s ease-in-out infinite;
 }
 
+/* Splash screen — cinematic reveal */
+@keyframes splash-reveal {
+  0%   { clip-path: circle(0% at 50% 50%); opacity: 0; }
+  40%  { clip-path: circle(35% at 50% 50%); opacity: 1; }
+  100% { clip-path: circle(55% at 50% 50%); opacity: 1; }
+}
+.animate-splash-reveal {
+  animation: splash-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes splash-glow {
+  0%, 100% { filter: brightness(0) invert(1) drop-shadow(0 0 0px rgba(255,255,255,0)); }
+  50%      { filter: brightness(0) invert(1) drop-shadow(0 0 20px rgba(255,255,255,0.3)); }
+}
+.animate-splash-glow {
+  animation: splash-glow 2.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+  filter: brightness(0) invert(1);
+}
+
+@keyframes splash-text-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-splash-text {
+  opacity: 0;
+  animation: splash-text-in 0.5s ease-out 0.8s forwards;
+}
+
+@keyframes splash-bar-in {
+  from { opacity: 0; transform: scaleX(0.3); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+.animate-splash-bar {
+  opacity: 0;
+  animation: splash-bar-in 0.4s ease-out 1s forwards;
+}
+
 @keyframes pulse-urgent {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
