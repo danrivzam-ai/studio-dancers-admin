@@ -1158,7 +1158,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <p className={`text-xl sm:text-2xl font-bold text-green-600 truncate transition-all ${hideIncome ? 'blur-md select-none' : ''}`}>${todayIncome.toFixed(2)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">{hideIncome ? '$•••••' : `$${todayIncome.toFixed(2)}`}</p>
                   <button
                     onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
                     className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
@@ -1226,8 +1226,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           >
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-[10px] text-gray-400 font-medium shrink-0">MES</span>
-              <span className={`text-sm font-bold ml-1 ${hideIncome ? 'blur-sm select-none' : 'text-gray-800'}`}>
-                ${kpis.incomeC.toFixed(0)}
+              <span className="text-sm font-bold ml-1 text-gray-800">
+                {hideIncome ? '$•••' : `$${kpis.incomeC.toFixed(0)}`}
               </span>
               {kpis.trend !== null && (
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1 shrink-0 ${
@@ -1242,8 +1242,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="h-4 w-px bg-gray-200 shrink-0" />
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-[10px] text-gray-400 font-medium shrink-0">GASTOS</span>
-              <span className={`text-sm font-bold ml-1 text-gray-700 ${hideIncome ? 'blur-sm select-none' : ''}`}>
-                ${kpis.expensesC.toFixed(0)}
+              <span className="text-sm font-bold ml-1 text-gray-700">
+                {hideIncome ? '$•••' : `$${kpis.expensesC.toFixed(0)}`}
               </span>
             </div>
             <div className="h-4 w-px bg-gray-200 shrink-0" />
