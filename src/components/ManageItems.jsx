@@ -81,6 +81,7 @@ export default function ManageItems({
   const [historyModal, setHistoryModal] = useState(null)
   const [historyData, setHistoryData] = useState([])
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [imageUploading, setImageUploading] = useState(false)
   const formRef = useRef(null)
   const contentRef = useRef(null)
 
@@ -227,6 +228,7 @@ export default function ManageItems({
         setErrorMessage(result.error || 'Error al guardar')
         return
       }
+      toast.success(editingItem ? 'Producto actualizado' : 'Producto creado')
     } else {
       const courseData = {
         id: editingItem?.id || `${formData.type}-${Date.now()}`,
@@ -253,6 +255,8 @@ export default function ManageItems({
         setErrorMessage(result.error || 'Error al guardar')
         return
       }
+      const typeLabel = formData.type === 'program' ? 'Programa' : 'Curso'
+      toast.success(editingItem ? `${typeLabel} actualizado` : `${typeLabel} creado`)
     }
 
     resetForm()
@@ -393,8 +397,11 @@ export default function ManageItems({
         )}
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 border-b bg-gray-50 text-sm sm:text-base">
+        <div role="tablist" aria-label="Tipo de item" className="grid grid-cols-3 border-b bg-gray-50 text-sm sm:text-base">
           <button
+            role="tab"
+            aria-selected={activeTab === 'courses'}
+            aria-controls="panel-courses"
             onClick={() => setActiveTab('courses')}
             className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all ${
               activeTab === 'courses'
@@ -404,13 +411,16 @@ export default function ManageItems({
           >
             <BookOpen size={16} />
             <div className="flex items-center gap-1">
-              <span className="text-[11px] font-semibold">Cursos</span>
+              <span className="text-xs font-semibold">Cursos</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'courses' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500'}`}>
                 {regularCourses.length}
               </span>
             </div>
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'programs'}
+            aria-controls="panel-programs"
             onClick={() => setActiveTab('programs')}
             className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all border-x border-gray-200 ${
               activeTab === 'programs'
@@ -420,13 +430,16 @@ export default function ManageItems({
           >
             <Calendar size={16} />
             <div className="flex items-center gap-1">
-              <span className="text-[11px] font-semibold">Programas</span>
+              <span className="text-xs font-semibold">Programas</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'programs' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-500'}`}>
                 {programs.length}
               </span>
             </div>
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'products'}
+            aria-controls="panel-products"
             onClick={() => setActiveTab('products')}
             className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all ${
               activeTab === 'products'
@@ -436,7 +449,7 @@ export default function ManageItems({
           >
             <ShoppingBag size={16} />
             <div className="flex items-center gap-1">
-              <span className="text-[11px] font-semibold">Productos</span>
+              <span className="text-xs font-semibold">Productos</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'products' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
                 {products.length}
               </span>
@@ -473,7 +486,7 @@ export default function ManageItems({
 
           {/* Form */}
           {showForm && (
-            <form ref={formRef} onSubmit={handleSubmit} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 space-y-4 border shadow-sm">
+            <form ref={formRef} onSubmit={handleSubmit} className="bg-gray-50 rounded-xl p-4 mb-4 space-y-4 border shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                   {formData.type === 'product' ? (
@@ -765,7 +778,7 @@ export default function ManageItems({
                     </label>
                     {formData.imageUrl && (
                       <div className="mb-2 relative">
-                        <img src={formData.imageUrl} alt="Curso" className="w-full h-32 object-cover rounded-xl" />
+                        <img src={formData.imageUrl} alt={formData.name || 'Imagen del curso'} className="w-full h-32 object-cover rounded-xl" />
                         <button
                           type="button"
                           onClick={() => setFormData({...formData, imageUrl: ''})}
@@ -775,12 +788,20 @@ export default function ManageItems({
                         </button>
                       </div>
                     )}
+                    {imageUploading && (
+                      <div className="flex items-center gap-2 py-2 text-sm text-purple-600">
+                        <div className="w-4 h-4 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                        Subiendo imagen...
+                      </div>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={imageUploading}
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (!file) return
+                        setImageUploading(true)
                         try {
                           // Comprimir imagen
                           const canvas = document.createElement('canvas')
@@ -800,14 +821,18 @@ export default function ManageItems({
                           if (uploadErr) throw uploadErr
                           const { data: urlData } = supabase.storage.from('course-images').getPublicUrl(fileName)
                           setFormData(prev => ({...prev, imageUrl: urlData.publicUrl}))
+                          toast.success('Imagen subida')
                         } catch (err) {
                           console.error('Error uploading image:', err)
                           toast.error('Error al subir imagen')
+                        } finally {
+                          setImageUploading(false)
                         }
                         e.target.value = ''
                       }}
-                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50"
                     />
+                    <p className="text-xs text-gray-400 mt-1">JPG o PNG, se comprime a 800px max</p>
                   </div>
 
                   {/* Beneficios */}
@@ -974,7 +999,7 @@ export default function ManageItems({
                   </button>
                 </div>
 
-                <div className="p-5 space-y-4">
+                <form onSubmit={(e) => { e.preventDefault(); if (isValid && !adjustLoading) handleStockAdjust() }} className="p-5 space-y-4">
                   {/* Stock actual */}
                   <div className="text-center py-2 bg-gray-50 rounded-xl">
                     <p className="text-xs text-gray-500">Stock actual</p>
@@ -1086,8 +1111,7 @@ export default function ManageItems({
                       Cancelar
                     </button>
                     <button
-                      type="button"
-                      onClick={handleStockAdjust}
+                      type="submit"
                       disabled={!isValid || adjustLoading}
                       className={`flex-1 px-3 py-2.5 rounded-xl font-medium text-sm text-white flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all ${
                         direction === 'subtract' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'
@@ -1100,7 +1124,7 @@ export default function ManageItems({
                       {adjustLoading ? 'Guardando...' : 'Confirmar'}
                     </button>
                   </div>
-                </div>
+                </form>
               </div>
             </div>
           )
@@ -1237,20 +1261,25 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
             )}
 
             {isProduct && item.stock !== null && item.stock !== undefined && (
-              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                Stock: {item.stock}
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                item.stock === 0 ? 'bg-red-100 text-red-700' :
+                item.stock <= 3 ? 'bg-amber-100 text-amber-700' :
+                'bg-blue-100 text-blue-700'
+              }`}>
+                {item.stock === 0 ? 'Agotado' : `Stock: ${item.stock}`}
               </span>
             )}
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           {isProduct && onViewHistory && (
             <button
               onClick={onViewHistory}
-              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+              className="p-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
               title="Historial de inventario"
+              aria-label="Ver historial de inventario"
             >
               <History size={18} />
             </button>
@@ -1258,15 +1287,16 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
           {isProduct && onAdjustStock && (
             <button
               onClick={onAdjustStock}
-              className="p-2 text-blue-600 hover:bg-blue-100 rounded-xl active:scale-95 transition-all"
+              className="p-2.5 text-blue-600 hover:bg-blue-100 rounded-xl active:scale-95 transition-all"
               title="Ajustar stock"
+              aria-label="Ajustar stock"
             >
               <PackagePlus size={18} />
             </button>
           )}
           <button
             onClick={onEdit}
-            className={`p-2 rounded-xl active:scale-95 transition-all ${
+            className={`p-2.5 rounded-xl active:scale-95 transition-all ${
               isProduct
                 ? 'text-green-600 hover:bg-green-100'
                 : isProgram
@@ -1274,13 +1304,15 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
                   : 'text-purple-600 hover:bg-purple-100'
             }`}
             title="Editar"
+            aria-label={`Editar ${item.name}`}
           >
             <Edit2 size={18} />
           </button>
           <button
             onClick={onDelete}
-            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-xl active:scale-95 transition-all"
+            className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-xl active:scale-95 transition-all"
             title="Eliminar"
+            aria-label={`Eliminar ${item.name}`}
           >
             <Trash2 size={18} />
           </button>
@@ -1315,7 +1347,7 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
           <p className="text-gray-500 mt-2">
             Estás por eliminar: <strong>{itemName}</strong>
           </p>
-          <p className="text-sm text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+          <p className="text-sm text-gray-400 mt-1">Se desactivará y dejará de aparecer en el sistema.</p>
         </div>
 
         <form onSubmit={handleSubmit}>
