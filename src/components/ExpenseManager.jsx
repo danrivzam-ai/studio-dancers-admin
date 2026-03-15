@@ -359,8 +359,8 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         {activeTab === 'history' && (
           <div className="p-4">
             {loading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin text-3xl mb-2">⏳</div>
+              <div className="p-8 flex flex-col items-center">
+                <div className="w-7 h-7 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-3" />
                 <p className="text-gray-500 text-sm">Cargando...</p>
               </div>
             ) : expenses.length === 0 ? (

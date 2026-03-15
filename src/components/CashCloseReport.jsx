@@ -104,8 +104,13 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
-          <h3 className="font-semibold">Reporte de Cierre</h3>
+        <div className="px-5 py-4 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
+          <div>
+            <h3 className="font-semibold text-sm">Reporte de Cierre</h3>
+            <p className="text-purple-200 text-xs mt-0.5">
+              {formatDate(cashRegister.register_date)}{cashRegister.shift ? ` · Turno ${cashRegister.shift}` : ''}
+            </p>
+          </div>
           <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
@@ -209,25 +214,36 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
             )}
 
             {/* Closing Summary */}
-            <div style={{ marginTop: '8px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '13px', color: '#6b7280' }}>Esperado en caja:</span>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>${expected.toFixed(2)}</span>
+            <div style={{
+              marginTop: '12px', padding: '14px', borderRadius: '10px',
+              backgroundColor: diff === 0 ? '#ecfdf5' : diff > 0 ? '#eff6ff' : '#fef2f2',
+              border: `1.5px solid ${diff === 0 ? '#a7f3d0' : diff > 0 ? '#bfdbfe' : '#fecaca'}`
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>Esperado en caja:</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#1f2937' }}>${expected.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '13px', color: '#6b7280' }}>Cierre real:</span>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>${closing.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>Cierre real:</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#1f2937' }}>${closing.toFixed(2)}</span>
               </div>
               <div style={{
-                display: 'flex', justifyContent: 'space-between', padding: '8px 0', marginTop: '4px',
-                borderTop: '2px solid #d1d5db', fontWeight: '700', fontSize: '14px',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 0 2px', marginTop: '6px',
+                borderTop: `2px solid ${diff === 0 ? '#6ee7b7' : diff > 0 ? '#93c5fd' : '#fca5a5'}`,
+                fontWeight: '700', fontSize: '15px',
                 color: diff === 0 ? '#059669' : diff > 0 ? '#2563eb' : '#dc2626'
               }}>
                 <span>Diferencia:</span>
                 <span>
-                  {diff === 0 ? 'Cuadrado — Excelente cierre' : diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
+                  {diff === 0 ? 'Cuadrado' : diff > 0 ? `+$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`}
                 </span>
               </div>
+              {diff === 0 && (
+                <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '11px', color: '#059669', fontWeight: '500' }}>
+                  Excelente cierre. Todo cuadra perfectamente.
+                </div>
+              )}
             </div>
 
             {/* Notes */}
@@ -245,19 +261,22 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t bg-gray-50 flex gap-2">
+        <div className="p-4 border-t bg-gray-50 rounded-b-2xl flex gap-2">
           <button
             onClick={downloadReport}
             disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 text-sm font-medium disabled:opacity-50 active:scale-95 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-purple-700 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] transition-all"
           >
-            <Download size={16} />
+            {downloading
+              ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              : <Download size={16} />
+            }
             {downloading ? 'Generando...' : 'Descargar PNG'}
           </button>
           <button
             onClick={sendWhatsApp}
             disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 text-sm font-medium disabled:opacity-50 active:scale-95 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-green-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] transition-all"
           >
             <Send size={16} />
             WhatsApp

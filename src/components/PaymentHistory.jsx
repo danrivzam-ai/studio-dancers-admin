@@ -567,9 +567,9 @@ export default function PaymentHistory({
         {/* Payment List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-12 text-center text-gray-500">
-              <div className="animate-spin text-4xl mb-4">⏳</div>
-              <p>Cargando pagos...</p>
+            <div className="p-12 flex flex-col items-center text-gray-500">
+              <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4" />
+              <p className="text-sm">Cargando pagos...</p>
             </div>
           ) : (
             <div className="divide-y">
