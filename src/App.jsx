@@ -908,7 +908,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   // Si no está autenticado, mostrar página de login (solo para admin normal)
   if (!isRecepcion && !isAuthenticated) {
-    return <LoginPage onLogin={(user) => console.log('Logged in:', user.email)} />
+    return <LoginPage onLogin={() => {}} />
   }
 
   if (!isRecepcion && loading) {
@@ -2536,7 +2536,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       required
                       value={saleForm.customerName}
                       onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
                       placeholder="Nombre del cliente"
                       list="students-list-sale"
                     />
@@ -2556,7 +2556,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         value={productSearch}
                         onChange={(e) => { setProductSearch(e.target.value); setSaleForm(f => ({...f, productId: ''})) }}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full pl-10 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       />
                       {productSearch && (
                         <button type="button" onClick={() => { setProductSearch(''); setSaleForm(f => ({...f, productId: ''})) }}
@@ -2597,7 +2597,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.productId}
                         onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       >
                         <option value="">— Seleccionar —</option>
                         {allProducts.map(product => {
@@ -2691,7 +2691,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={saleForm.date}
                         onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -2699,7 +2699,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.paymentMethod}
                         onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       >
                         <option value="cash">Efectivo</option>
                         <option value="transfer">Transferencia</option>
