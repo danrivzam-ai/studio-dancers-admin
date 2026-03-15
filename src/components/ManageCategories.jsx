@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, Edit2, Trash2, ChevronDown, ChevronUp, RotateCcw, Check, Palette } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, ChevronDown, ChevronUp, RotateCcw, Check, Palette, AlertTriangle } from 'lucide-react'
 import { useCategoryManagement } from '../hooks/useCategoryManagement'
 import Modal from './ui/Modal'
 
@@ -7,6 +7,8 @@ const PRESET_COLORS = [
   '#EF4444', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899',
   '#6366F1', '#10B981', '#6B7280', '#F97316', '#14B8A6'
 ]
+
+const MAX_NAME_LENGTH = 40
 
 const EMPTY_CATEGORY = { name: '', color: '#6B7280', monthly_budget: '', sort_order: '' }
 const EMPTY_SUBCATEGORY = { name: '', category_id: '' }
@@ -29,6 +31,7 @@ export default function ManageCategories({ onClose }) {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [showInactive, setShowInactive] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(null) // { type: 'category'|'subcategory', id, name }
 
   const showMessage = (type, msg) => {
     if (type === 'error') { setError(msg); setTimeout(() => setError(null), 5000) }
@@ -75,10 +78,27 @@ export default function ManageCategories({ onClose }) {
     }
   }
 
-  const handleDeleteCategory = async (id) => {
-    const result = await deleteCategory(id)
-    if (result.success) showMessage('success', 'Categoría desactivada')
-    else showMessage('error', result.error || 'Error al desactivar')
+  const handleDeleteCategory = async (id, name) => {
+    setConfirmDelete({ type: 'category', id, name })
+  }
+
+  const handleDeleteSubcategoryConfirm = (id, name) => {
+    setConfirmDelete({ type: 'subcategory', id, name })
+  }
+
+  const executeDelete = async () => {
+    if (!confirmDelete) return
+    const { type, id } = confirmDelete
+    setConfirmDelete(null)
+    if (type === 'category') {
+      const result = await deleteCategory(id)
+      if (result.success) showMessage('success', 'Categoría desactivada')
+      else showMessage('error', result.error || 'Error al desactivar')
+    } else {
+      const result = await deleteSubcategory(id)
+      if (result.success) showMessage('success', 'Subcategoría desactivada')
+      else showMessage('error', result.error || 'Error al desactivar')
+    }
   }
 
   const handleReactivateCategory = async (id) => {
@@ -122,21 +142,23 @@ export default function ManageCategories({ onClose }) {
     }
   }
 
-  const handleDeleteSubcategory = async (id) => {
-    const result = await deleteSubcategory(id)
-    if (result.success) showMessage('success', 'Subcategoría desactivada')
-    else showMessage('error', result.error || 'Error al desactivar')
-  }
-
   const handleReactivateSubcategory = async (id) => {
     const result = await reactivateSubcategory(id)
     if (result.success) showMessage('success', 'Subcategoría reactivada')
     else showMessage('error', result.error || 'Error al reactivar')
   }
 
+  // Sort by sort_order first, then by name
+  const sortedCategories = [...categories].sort((a, b) => {
+    const orderA = a.sort_order ?? 999
+    const orderB = b.sort_order ?? 999
+    if (orderA !== orderB) return orderA - orderB
+    return (a.name || '').localeCompare(b.name || '')
+  })
+
   const filteredCategories = showInactive
-    ? categories
-    : categories.filter(c => c.active !== false)
+    ? sortedCategories
+    : sortedCategories.filter(c => c.active !== false)
 
   const activeCount = categories.filter(c => c.active !== false).length
   const inactiveCount = categories.filter(c => c.active === false).length
@@ -191,7 +213,7 @@ export default function ManageCategories({ onClose }) {
           {!showCategoryForm && (
             <button
               onClick={() => openCategoryForm()}
-              className="w-full p-4 border-2 border-dashed border-red-300 rounded-xl text-red-600 hover:bg-red-50 hover:border-red-400 transition-colors flex items-center justify-center gap-2 font-medium"
+              className="w-full p-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-600 hover:bg-purple-50 hover:border-purple-400 transition-colors flex items-center justify-center gap-2 font-medium"
             >
               <Plus size={20} />
               Agregar Categoría
@@ -200,7 +222,7 @@ export default function ManageCategories({ onClose }) {
 
           {/* Category form */}
           {showCategoryForm && (
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 p-4 rounded-xl border border-red-200">
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-xl border border-purple-200">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-800">
                   {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
@@ -216,11 +238,13 @@ export default function ManageCategories({ onClose }) {
                   <input
                     type="text"
                     value={categoryForm.name}
-                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                     placeholder="Ej: Pagos a Personal"
+                    maxLength={MAX_NAME_LENGTH}
                     autoFocus
                   />
+                  <p className="text-xs text-gray-400 mt-1 text-right">{categoryForm.name.length}/{MAX_NAME_LENGTH}</p>
                 </div>
 
                 <div>
@@ -259,7 +283,7 @@ export default function ManageCategories({ onClose }) {
                         type="number"
                         value={categoryForm.monthly_budget}
                         onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
-                        className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                        className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                         placeholder="Opcional"
                         min="0"
                         step="0.01"
@@ -272,7 +296,7 @@ export default function ManageCategories({ onClose }) {
                       type="number"
                       value={categoryForm.sort_order}
                       onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                       placeholder="0"
                       min="0"
                     />
@@ -283,7 +307,7 @@ export default function ManageCategories({ onClose }) {
                   <button
                     onClick={handleSaveCategory}
                     disabled={saving}
-                    className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all"
                   >
                     <Check size={18} />
                     {saving ? 'Guardando...' : 'Guardar'}
@@ -335,6 +359,7 @@ export default function ManageCategories({ onClose }) {
                       <p className="text-xs text-gray-500">
                         {activeSubs.length} subcategoría{activeSubs.length !== 1 ? 's' : ''}
                         {cat.monthly_budget ? ` · Presupuesto: $${parseFloat(cat.monthly_budget).toLocaleString()}` : ''}
+                        {cat.sort_order ? ` · Orden: ${cat.sort_order}` : ''}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -348,7 +373,7 @@ export default function ManageCategories({ onClose }) {
                             <Edit2 size={16} />
                           </button>
                           <button
-                            onClick={() => handleDeleteCategory(cat.id)}
+                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
                             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                             title="Desactivar"
                           >
@@ -396,16 +421,17 @@ export default function ManageCategories({ onClose }) {
                         <input
                           type="text"
                           value={subForm.name}
-                          onChange={(e) => setSubForm({ ...subForm, name: e.target.value })}
-                          className="flex-1 px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                          onChange={(e) => setSubForm({ ...subForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
+                          className="flex-1 px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                           placeholder="Nombre de subcategoría"
+                          maxLength={MAX_NAME_LENGTH}
                           autoFocus
                           onKeyDown={(e) => { if (e.key === 'Enter') handleSaveSubcategory(); if (e.key === 'Escape') closeSubForm() }}
                         />
                         <button
                           onClick={handleSaveSubcategory}
                           disabled={saving}
-                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-xl active:scale-95 transition-all disabled:opacity-50"
+                          className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl active:scale-95 transition-all disabled:opacity-50"
                         >
                           <Check size={16} />
                         </button>
@@ -427,7 +453,7 @@ export default function ManageCategories({ onClose }) {
                           <Edit2 size={14} />
                         </button>
                         <button
-                          onClick={() => handleDeleteSubcategory(sub.id)}
+                          onClick={() => handleDeleteSubcategoryConfirm(sub.id, sub.name)}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                           title="Desactivar"
                         >
@@ -473,6 +499,40 @@ export default function ManageCategories({ onClose }) {
           )}
         </div>
       </div>
+
+      {/* Confirmation dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle size={20} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">Desactivar {confirmDelete.type === 'category' ? 'categoría' : 'subcategoría'}</h3>
+                <p className="text-sm text-gray-500">Esta acción se puede revertir</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              ¿Desactivar <strong>"{confirmDelete.name}"</strong>? No se eliminará, solo dejará de estar disponible.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeDelete}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 active:scale-95 transition-all font-medium"
+              >
+                Sí, desactivar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   )
 }
