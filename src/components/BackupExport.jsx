@@ -21,18 +21,22 @@ export default function BackupExport({ settings }) {
         { data: quickPayments, error: e3 },
         { data: expenses, error: e4 },
         { data: sales, error: e5 },
-        { data: categories, error: e6 }
+        { data: categories, error: e6 },
+        { data: salePlans, error: e7 },
+        { data: planPayments, error: e8 }
       ] = await Promise.all([
         supabase.from('students').select('*').order('name'),
         supabase.from('payments').select('*, students(name)').order('payment_date', { ascending: false }),
         supabase.from('quick_payments').select('*').order('payment_date', { ascending: false }),
         supabase.from('expenses').select('*, expense_categories(name), expense_subcategories(name)').is('deleted_at', null).order('expense_date', { ascending: false }),
         supabase.from('sales').select('*').is('deleted_at', null).order('sale_date', { ascending: false }),
-        supabase.from('expense_categories').select('*, expense_subcategories(id, name)').eq('active', true)
+        supabase.from('expense_categories').select('*, expense_subcategories(id, name)').eq('active', true),
+        supabase.from('sale_plans').select('*, sale_plan_payments(id, amount, payment_method, payment_date, installment_number)').order('created_at', { ascending: false }),
+        supabase.from('sale_plan_payments').select('*, sale_plans(customer_name, items)').order('payment_date', { ascending: false })
       ])
 
       // Check for errors
-      const errors = [e1, e2, e3, e4, e5, e6].filter(Boolean)
+      const errors = [e1, e2, e3, e4, e5, e6, e7, e8].filter(Boolean)
       if (errors.length > 0) {
         console.error('Backup errors:', errors)
       }
@@ -180,6 +184,47 @@ export default function BackupExport({ settings }) {
         XLSX.utils.book_append_sheet(wb, ws6, 'Categorías')
       }
 
+      // ── Sheet 7: Planes de Abono ──
+      const plansData = (salePlans || []).map(p => {
+        const items = Array.isArray(p.items) ? p.items.map(i => i.name || i.product_name || '').join(', ') : ''
+        const pagosRealizados = p.sale_plan_payments?.length || 0
+        return {
+          'Cliente': p.customer_name || '',
+          'Cédula': p.customer_cedula_ruc || '',
+          'Artículos': items,
+          'Total': p.total_amount || 0,
+          'Pagado': p.amount_paid || 0,
+          'Saldo': (p.total_amount || 0) - (p.amount_paid || 0),
+          'Estado': p.status === 'paid' ? 'Pagado' : p.status === 'partial' ? 'Parcial' : p.status === 'cancelled' ? 'Cancelado' : 'Pendiente',
+          'Entregado': p.delivered ? 'Sí' : 'No',
+          'N° Abonos': pagosRealizados,
+          'Fecha Creación': p.created_at ? formatDate(p.created_at) : '',
+          'Notas': p.notes || ''
+        }
+      })
+      if (plansData.length > 0) {
+        const ws7 = XLSX.utils.json_to_sheet(plansData)
+        ws7['!cols'] = [
+          { wch: 25 }, { wch: 14 }, { wch: 35 }, { wch: 12 }, { wch: 12 },
+          { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 14 }, { wch: 30 }
+        ]
+        XLSX.utils.book_append_sheet(wb, ws7, 'Planes de Abono')
+      }
+
+      // ── Sheet 8: Abonos Detalle ──
+      const planPayData = (planPayments || []).map(pp => ({
+        'Cliente': pp.sale_plans?.customer_name || '',
+        'N° Cuota': pp.installment_number || '',
+        'Monto': pp.amount || 0,
+        'Método': pp.payment_method || '',
+        'Fecha': pp.payment_date ? formatDate(pp.payment_date) : ''
+      }))
+      if (planPayData.length > 0) {
+        const ws8 = XLSX.utils.json_to_sheet(planPayData)
+        ws8['!cols'] = [{ wch: 25 }, { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 14 }]
+        XLSX.utils.book_append_sheet(wb, ws8, 'Abonos Detalle')
+      }
+
       // Generate file
       const dateStr = new Date().toISOString().split('T')[0]
       const schoolName = (settings?.name || 'Backup').replace(/\s+/g, '_')
@@ -194,7 +239,9 @@ export default function BackupExport({ settings }) {
           pagos: paymentsData.length,
           pagosRapidos: quickData.length,
           egresos: expensesData.length,
-          ventas: salesData.length
+          ventas: salesData.length,
+          planes: plansData.length,
+          abonos: planPayData.length
         }
       })
     } catch (err) {
@@ -255,7 +302,7 @@ export default function BackupExport({ settings }) {
           {result.counts && (
             <div className="text-xs mt-1 space-y-0.5 text-green-600">
               <p>✓ {result.counts.alumnos} alumnos • {result.counts.pagos} pagos • {result.counts.pagosRapidos} pagos rápidos</p>
-              <p>✓ {result.counts.egresos} egresos • {result.counts.ventas} ventas</p>
+              <p>✓ {result.counts.egresos} egresos • {result.counts.ventas} ventas • {result.counts.planes} planes de abono</p>
             </div>
           )}
         </div>
