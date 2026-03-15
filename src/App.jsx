@@ -1885,6 +1885,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                                   Vender
                                 </button>
+                                {product.category !== 'bar' && (
                                 <button
                                   onClick={() => {
                                     setNewPlanPreselect(product)
@@ -1893,6 +1894,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
                                   Abonar
                                 </button>
+                                )}
                               </div>
                             </div>
                           )
