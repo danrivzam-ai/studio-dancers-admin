@@ -2973,6 +2973,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setShowStudentDetail(null)
               openPaymentModal(student)
             }}
+            onEdit={(student) => {
+              setShowStudentDetail(null)
+              handleEdit(student)
+            }}
             onPause={handlePauseStudent}
             onReactivate={reactivateCycle}
             schoolName={settings?.name}

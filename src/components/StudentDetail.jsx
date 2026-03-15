@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
@@ -14,7 +14,7 @@ const METHOD_STYLE = {
 }
 const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, schoolName }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, schoolName }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
@@ -511,6 +511,15 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             >
               Cerrar
             </button>
+            {onEdit && (
+              <button
+                onClick={() => { onClose(); onEdit(student) }}
+                className="px-4 py-3 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 active:scale-95 transition-all"
+                title="Editar alumna"
+              >
+                <Pencil size={18} />
+              </button>
+            )}
             {(student.phone || student.parent_phone || student.payer_phone) && (
               <button
                 onClick={handleWhatsApp}
