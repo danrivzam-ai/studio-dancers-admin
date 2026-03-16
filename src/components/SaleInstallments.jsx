@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
-import { toPng } from 'html-to-image'
+import jsPDF from 'jspdf'
 import {
   Plus, X, ChevronDown, ChevronUp,
   CheckCircle, Clock, AlertCircle, Printer, Trash2, PackageCheck,
   Search, Minus, ClipboardList, Database, Copy, Check,
-  Eye, MessageCircle
+  Eye, MessageCircle, Download
 } from 'lucide-react'
-import ConfirmDialog from './ui/ConfirmDialog'
-import EmptyState from './ui/EmptyState'
 
 const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
 
@@ -31,7 +29,7 @@ function Toast({ msg, type = 'success', onDone }) {
     info:    'bg-purple-600',
   }
   return (
-    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-xl flex items-center gap-2.5 max-w-xs text-center ${colors[type]}`}>
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-5 py-3 rounded-2xl text-white text-sm font-semibold shadow-2xl flex items-center gap-2.5 max-w-xs text-center ${colors[type]}`}>
       {type === 'success' && <CheckCircle size={16} />}
       {type === 'error'   && <AlertCircle size={16} />}
       {msg}
@@ -143,34 +141,52 @@ function StatusBadge({ status }) {
 function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose, schoolName = 'Studio Dancers' }) {
   const receiptRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
 
-  const handleDownload = async () => {
-    if (!receiptRef.current) return
+  const handleDownload = () => {
     setDownloading(true)
     try {
-      const dataUrl = await toPng(receiptRef.current, { pixelRatio: 2, backgroundColor: '#ffffff', cacheBust: true })
-      const filename = `Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.png`
-
-      // Convertir data URL a blob para mejor compatibilidad móvil
-      const res = await fetch(dataUrl)
-      const blob = await res.blob()
-
-      // Intentar compartir en móvil (nativo)
-      if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: 'image/png' })] })) {
-        const file = new File([blob], filename, { type: 'image/png' })
-        await navigator.share({ files: [file], title: 'Comprobante de abono' })
-      } else {
-        // Fallback: descargar con blob URL
-        const blobUrl = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = blobUrl
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+      const W = 80
+      const doc = new jsPDF({ unit: 'mm', format: [W, 180], orientation: 'portrait' })
+      let y = 8
+      const center = (text, fs, bold = false) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+        const lines = doc.splitTextToSize(String(text), W - 8)
+        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+        y += 1
       }
-    } catch (e) { console.error('toPng error:', e) }
+      const row = (left, right, fs = 8) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+        doc.text(String(left), 5, y); doc.text(String(right), W - 5, y, { align: 'right' }); y += fs * 0.44
+      }
+      const dash = () => {
+        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+        doc.setLineDashPattern([], 0); y += 4
+      }
+      center(schoolName, 11, true)
+      center('COMPROBANTE DE ABONO', 9, true)
+      center(`Abono #${installmentNumber}`, 8)
+      center(fmtDate(payment.payment_date), 7)
+      y += 1; dash()
+      row('Cliente:', plan.customer_name)
+      if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
+      const itemsLabel = Array.isArray(plan.items) ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ') : ''
+      if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const lines = doc.splitTextToSize(itemsLabel, W - 10); lines.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
+      y += 1; dash()
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+      doc.text('Abono:', 5, y); doc.text(fmt(payment.amount), W - 5, y, { align: 'right' }); y += 5
+      row('Método:', payment.payment_method)
+      dash()
+      row('Total plan:', fmt(plan.total_amount))
+      row('Total pagado:', fmt(plan.amount_paid))
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold')
+      doc.text('Saldo pendiente:', 5, y); doc.text(fmt(balance), W - 5, y, { align: 'right' }); y += 5
+      if (payment.notes) { dash(); center(payment.notes, 7) }
+      dash(); center('¡Gracias por su preferencia!', 7)
+      doc.internal.pageSize.height = y + 8
+      doc.save(`Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.pdf`)
+      setDownloaded(true); setTimeout(() => setDownloaded(false), 3000)
+    } catch (e) { console.error('PDF error:', e); alert('Error al generar PDF') }
     setDownloading(false)
   }
 
@@ -182,15 +198,16 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
   const total   = parseFloat(plan.total_amount || 0)
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Acciones */}
         <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
           <p className="font-semibold text-gray-700 text-sm">Comprobante de abono</p>
           <div className="flex gap-2">
             <button onClick={handleDownload} disabled={downloading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 disabled:opacity-50">
-              <Printer size={13} /> {downloading ? 'Guardando...' : (navigator.share ? 'Compartir' : 'Descargar PNG')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors ${downloaded ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
+              {downloaded ? <Check size={13} /> : <Download size={13} />}
+              {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar PDF'}
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
               <X size={16} />
@@ -281,7 +298,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden">
+      <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <p className="font-semibold text-gray-800">Registrar abono</p>
@@ -417,24 +434,15 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const [customTotal,    setCustomTotal]    = useState('')
   const [error,          setError]          = useState('')
   const [showStudents,   setShowStudents]   = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState(null) // alumna vinculada
 
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0)
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
 
   const fillFromStudent = (student) => {
-    if (student.is_minor) {
-      setCustomerName(student.parent_name || student.name)
-      setCustomerCedula(student.parent_cedula || '')
-      setCustomerEmail(student.parent_email || '')
-      setCustomerPhone(student.parent_phone || student.phone || '')
-    } else {
-      setCustomerName(student.name)
-      setCustomerCedula(student.cedula || '')
-      setCustomerEmail(student.email || '')
-      setCustomerPhone(student.phone || '')
-    }
-    setSelectedStudent(student)
+    setCustomerName(student.name)
+    setCustomerCedula(student.cedula || '')
+    setCustomerEmail(student.email || '')
+    setCustomerPhone(student.phone || '')
     setStudentSearch('')
     setShowStudents(false)
   }
@@ -487,9 +495,6 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
       customerCedula: customerCedula.trim() || null,
       customerEmail:  customerEmail.trim() || null,
       customerPhone:  customerPhone.trim() || null,
-      studentId:      selectedStudent?.id || null,
-      studentName:    selectedStudent ? selectedStudent.name : null,
-      studentCourse:  selectedStudent?.course_name || null,
       items: cart.map(i => ({
         product_code: i.product.code || i.product.id,
         name:         i.product.name,
@@ -507,7 +512,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 
   return (
     <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
           <p className="font-semibold text-gray-800">Nuevo plan de abonos</p>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
@@ -525,7 +530,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 value={studentSearch}
                 onChange={e => { setStudentSearch(e.target.value); setShowStudents(true) }}
                 onFocus={() => setShowStudents(true)}
-                onBlur={() => setTimeout(() => setShowStudents(false), 250)}
+                onBlur={() => setTimeout(() => setShowStudents(false), 150)}
                 placeholder="Nombre o cédula..."
                 className="flex-1 text-sm outline-none bg-transparent"
               />
@@ -540,7 +545,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <div className="mt-1 border-2 border-purple-200 rounded-xl overflow-hidden bg-white shadow-lg z-10">
                 {filteredStudents.map(s => (
                   <button key={s.id} type="button"
-                    onMouseDown={(e) => { e.preventDefault(); fillFromStudent(s) }}
+                    onMouseDown={() => fillFromStudent(s)}
                     className="w-full px-3 py-2.5 text-left flex justify-between items-center hover:bg-purple-50 border-b last:border-0">
                     <span className="text-sm font-medium text-gray-800">{s.name}</span>
                     {s.cedula && <span className="text-xs text-gray-400 ml-2">{s.cedula}</span>}
@@ -550,35 +555,12 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
             )}
           </div>
 
-          {/* Info alumna seleccionada */}
-          {selectedStudent && (
-            <div className="bg-purple-50 border border-purple-200 rounded-xl px-3 py-2 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-purple-800">
-                  👩‍🎓 {selectedStudent.name}
-                  {selectedStudent.is_minor && <span className="ml-1 text-purple-500">(menor)</span>}
-                </p>
-                {selectedStudent.course_name && (
-                  <p className="text-[10px] text-purple-600">🎓 {selectedStudent.course_name}</p>
-                )}
-              </div>
-              <button type="button" onClick={() => {
-                setSelectedStudent(null)
-                setCustomerName(''); setCustomerCedula(''); setCustomerEmail(''); setCustomerPhone('')
-              }} className="text-purple-400 hover:text-purple-600">
-                <X size={14} />
-              </button>
-            </div>
-          )}
-
           {/* Nombre */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-              {selectedStudent?.is_minor ? 'Nombre del representante *' : 'Nombre completo *'}
-            </label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-              placeholder={selectedStudent?.is_minor ? 'Nombre del representante' : 'Nombre completo'} />
+              placeholder="Nombre completo" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -732,17 +714,56 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
     : ''
   const payments = plan.sale_plan_payments || []
 
-  // Buscar alumna en sistema por student_id o cédula como fallback
-  const linkedStudent = plan.student_id
-    ? students.find(s => s.id === plan.student_id)
-    : plan.customer_cedula_ruc
-      ? students.find(s => (s.cedula || '') === plan.customer_cedula_ruc)
-      : null
+  // Buscar alumna en sistema por cédula para obtener teléfono y curso si el plan no los tiene
+  const linkedStudent = plan.customer_cedula_ruc
+    ? students.find(s => (s.cedula || '') === plan.customer_cedula_ruc)
+    : null
   const effectivePhone = plan.customer_phone || linkedStudent?.phone || ''
-  const effectiveCourse = plan.student_course || linkedStudent?.course_name || ''
-  const effectiveStudentName = plan.student_name || linkedStudent?.name || ''
-  // Mostrar nombre alumna solo si es diferente al customer_name (representante)
-  const showStudentName = effectiveStudentName && effectiveStudentName !== plan.customer_name
+  const effectiveCourse = linkedStudent?.course_name || ''
+
+  const downloadPlanPDF = () => {
+    const W = 80
+    const doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' })
+    let y = 8
+    const center = (text, fs, bold = false) => {
+      doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+      const lines = doc.splitTextToSize(String(text), W - 8)
+      lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+      y += 1
+    }
+    const row = (left, right, fs = 8) => {
+      doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+      doc.text(String(left), 5, y); doc.text(String(right), W - 5, y, { align: 'right' }); y += fs * 0.44
+    }
+    const dash = () => {
+      doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+      doc.setLineDashPattern([], 0); y += 4
+    }
+    center('Studio Dancers', 11, true)
+    center('PLAN DE PAGOS', 9, true)
+    center(fmtDate(plan.created_at?.split('T')[0] || new Date().toISOString().split('T')[0]), 7)
+    y += 1; dash()
+    row('Cliente:', plan.customer_name)
+    if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
+    if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const ls = doc.splitTextToSize(itemsLabel, W - 10); ls.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
+    y += 1; dash()
+    row('Total plan:', fmt(plan.total_amount), 9)
+    row('Total abonado:', fmt(plan.amount_paid), 9)
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+    doc.text('Saldo pendiente:', 5, y); doc.text(fmt(Math.max(0, balance)), W - 5, y, { align: 'right' }); y += 5
+    y += 1
+    if (payments.length > 0) {
+      dash(); center('Historial de abonos', 8, true)
+      ;[...payments].sort((a, b) => a.installment_number - b.installment_number).forEach(p => {
+        row(`Abono #${p.installment_number} (${p.payment_method}):`, fmt(p.amount))
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal')
+        doc.text(fmtDate(p.payment_date), 8, y); y += 3.5
+      })
+    }
+    dash(); center('¡Gracias por su preferencia!', 7)
+    doc.internal.pageSize.height = y + 8
+    doc.save(`Plan_${plan.customer_name.replace(/\s+/g, '_')}.pdf`)
+  }
 
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
@@ -750,13 +771,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-800 text-sm truncate">{plan.customer_name}</p>
-            {showStudentName && (
-              <p className="text-xs text-purple-600 font-medium truncate">{effectiveStudentName}</p>
-            )}
             <p className="text-xs text-gray-500 mt-0.5 truncate">{itemsLabel}</p>
-            {effectiveCourse && (
-              <p className="text-[10px] text-gray-400 truncate">{effectiveCourse}</p>
-            )}
           </div>
           <StatusBadge status={plan.status} />
         </div>
@@ -876,7 +891,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               ) : (
                 <button onClick={() => { setEditingTotal(true); setNewTotal(plan.total_amount) }}
                   className="flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-800 font-medium">
-                  Corregir precio total
+                  ✏ Corregir precio total
                 </button>
               )}
             </div>
@@ -899,13 +914,13 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
       {/* ─── Modal de detalle ─────────────────────────────── */}
       {showDetail && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4"
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowDetail(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden"
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
             onClick={e => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-purple-700 text-white">
+            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white">
               <p className="font-semibold text-sm">Detalle del plan</p>
               <button onClick={() => setShowDetail(false)}
                 className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
@@ -918,36 +933,28 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
                 {/* Datos del cliente */}
                 <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente / Representante</p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente</p>
                   <p className="font-bold text-gray-800">{plan.customer_name}</p>
                   {plan.customer_cedula_ruc && (
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
                   )}
                   {effectivePhone && (
-                    <p className="text-sm text-gray-500 mt-0.5">{effectivePhone}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">📱 {effectivePhone}</p>
                   )}
                   {plan.customer_email && (
-                    <p className="text-sm text-gray-500 mt-0.5">{plan.customer_email}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">✉️ {plan.customer_email}</p>
+                  )}
+                  {effectiveCourse && (
+                    <p className="text-xs mt-1.5 px-2 py-1 bg-purple-50 text-purple-700 rounded-lg font-medium inline-block">
+                      🎓 {effectiveCourse}
+                    </p>
                   )}
                 </div>
-
-                {/* Alumna y curso */}
-                {(showStudentName || effectiveCourse) && (
-                  <div className="bg-purple-50 rounded-xl p-3">
-                    <p className="text-xs text-purple-400 uppercase tracking-wide font-semibold mb-1">Alumna</p>
-                    {showStudentName && (
-                      <p className="text-sm font-semibold text-purple-800">👩‍🎓 {effectiveStudentName}</p>
-                    )}
-                    {effectiveCourse && (
-                      <p className="text-xs text-purple-600 mt-0.5">🎓 {effectiveCourse}</p>
-                    )}
-                  </div>
-                )}
 
                 {/* Artículos */}
                 {Array.isArray(plan.items) && plan.items.length > 0 && (
                   <div className="border-t pt-3">
-                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Artículos</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Artículos</p>
                     {plan.items.map((item, i) => (
                       <div key={i} className="flex justify-between text-sm py-0.5">
                         <span className="text-gray-700">{item.name}{item.quantity > 1 ? ` ×${item.quantity}` : ''}</span>
@@ -983,7 +990,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                 {/* Historial de abonos */}
                 {payments.length > 0 && (
                   <div className="border-t pt-3">
-                    <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2">Historial de abonos</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-2">Historial de abonos</p>
                     {[...payments]
                       .sort((a, b) => a.installment_number - b.installment_number)
                       .map(pmt => (
@@ -1002,11 +1009,16 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               </div>
             </div>
 
-            {/* Footer: botón WhatsApp */}
+            {/* Footer: descarga + WhatsApp */}
             <div className="p-4 border-t bg-gray-50 space-y-2">
+              <button onClick={downloadPlanPDF}
+                className="flex items-center justify-center gap-2 w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                <Download size={16} />
+                Descargar resumen PDF
+              </button>
               {effectivePhone ? (
                 <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
                   <MessageCircle size={16} />
                   {balance > 0 ? 'Enviar recordatorio por WhatsApp' : 'Enviar mensaje por WhatsApp'}
                 </a>
@@ -1124,7 +1136,7 @@ export default function SaleInstallments({
       {!dbError && (
         <>
           {/* Resumen */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
               <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
@@ -1145,7 +1157,7 @@ export default function SaleInstallments({
               {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)}
                   className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
-                    ${tab === key ? 'bg-white shadow-sm text-purple-700' : 'text-gray-500 hover:text-gray-700'}`}>
+                    ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
                   {label}
                 </button>
               ))}
@@ -1160,10 +1172,12 @@ export default function SaleInstallments({
           {loading ? (
             <div className="text-center py-10 text-gray-400 text-sm">Cargando planes...</div>
           ) : visiblePlans.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title={tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
-            />
+            <div className="text-center py-10">
+              <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-400 text-sm">
+                {tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
               {visiblePlans.map(plan => (
@@ -1216,25 +1230,45 @@ export default function SaleInstallments({
         />
       )}
 
-      <ConfirmDialog
-        isOpen={!!confirmCancel}
-        onClose={() => setConfirmCancel(null)}
-        onConfirm={() => handleCancel(confirmCancel)}
-        icon={Trash2}
-        title="¿Cancelar este plan?"
-        description="Los abonos registrados no se eliminarán del historial."
-        confirmLabel="Sí, cancelar"
-      />
+      {confirmCancel && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
+            <Trash2 size={32} className="mx-auto text-red-400 mb-3" />
+            <p className="font-semibold text-gray-800 mb-1">¿Cancelar este plan?</p>
+            <p className="text-xs text-gray-500 mb-5">Los abonos registrados no se eliminarán del historial.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmCancel(null)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300">
+                No, volver
+              </button>
+              <button onClick={() => handleCancel(confirmCancel)}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600">
+                Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <ConfirmDialog
-        isOpen={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={() => handleDelete(confirmDelete)}
-        icon={Trash2}
-        title="¿Eliminar este plan?"
-        description="Esta acción es permanente y no se puede deshacer."
-        confirmLabel="Sí, eliminar"
-      />
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
+            <Trash2 size={32} className="mx-auto text-red-600 mb-3" />
+            <p className="font-semibold text-gray-800 mb-1">¿Eliminar este plan?</p>
+            <p className="text-xs text-gray-500 mb-5">Esta acción es permanente y no se puede deshacer. Solo es posible porque no tiene abonos registrados.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300">
+                No, volver
+              </button>
+              <button onClick={() => handleDelete(confirmDelete)}
+                className="flex-1 py-2.5 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-800">
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (

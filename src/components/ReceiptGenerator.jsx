@@ -1,63 +1,30 @@
 import { useRef, useEffect, useState } from 'react'
-import { toPng } from 'html-to-image'
-import { X, Download, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import jsPDF from 'jspdf'
+import { X, Download, Send, Check } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
-import { useToast } from './Toast'
-import InvoiceButton from './InvoiceButton'
-import Modal from './ui/Modal'
 
 export default function ReceiptGenerator({
   payment,
   student,
   settings,
-  onClose,
-  onSendApiComprobante,   // (payment, student, course, receiptNumber) => Promise<{success, error}>
+  onClose
 }) {
   const receiptRef = useRef(null)
-  const toast = useToast()
-  const [logoBase64, setLogoBase64] = useState(null)
-  const [waStatus, setWaStatus] = useState(null) // null | 'sending' | 'sent' | 'manual'
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
 
-  // Pre-load logo as base64 for image capture (avoids cross-origin issues)
+  // Cerrar con Escape
   useEffect(() => {
-    const tryLoadAsBase64 = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas')
-            canvas.width = img.naturalWidth
-            canvas.height = img.naturalHeight
-            const ctx = canvas.getContext('2d')
-            ctx.drawImage(img, 0, 0)
-            resolve(canvas.toDataURL('image/png'))
-          } catch {
-            resolve(null)
-          }
-        }
-        img.onerror = () => resolve(null)
-        img.src = url
-      })
-    }
-
-    const loadLogo = async () => {
-      if (!settings?.logo_url) return
-      // Try the configured URL first
-      let base64 = await tryLoadAsBase64(settings.logo_url)
-      // If it fails (CORS), fallback to local logo
-      if (!base64 && settings.logo_url !== '/logo.png') {
-        base64 = await tryLoadAsBase64('/logo.png')
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose()
       }
-      setLogoBase64(base64)
     }
-
-    loadLogo()
-  }, [settings?.logo_url])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   // Calcular información de saldos
   const coursePrice = course?.price || 0
@@ -68,53 +35,111 @@ export default function ReceiptGenerator({
   const hasBalance = (isProgram || isRecurring) && balance > 0
   const isPartialPayment = payment?.isPartialPayment || payment?.paymentStatus === 'partial' || (isRecurring && totalPaid > 0 && totalPaid < coursePrice)
 
-  const downloadReceipt = async () => {
-    if (!receiptRef.current) return
+  const [downloading, setDownloading] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
 
+  const downloadReceipt = () => {
+    setDownloading(true)
     try {
-      // First attempt with filter to skip problematic external images
-      let dataUrl
-      try {
-        dataUrl = await toPng(receiptRef.current, {
-          quality: 1,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          cacheBust: true,
-          skipFonts: true
-        })
-      } catch {
-        // If first attempt fails, retry filtering out images that aren't base64
-        dataUrl = await toPng(receiptRef.current, {
-          quality: 1,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          skipFonts: true,
-          filter: (node) => {
-            // Skip img elements with external URLs (non-base64)
-            if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) {
-              return false
-            }
-            return true
-          }
-        })
+      const W = 80
+      const doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' })
+      let y = 8
+
+      const schoolName = settings?.name || 'Studio Dancers'
+      const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
+      const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
+
+      const center = (text, fs, bold = false) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+        const lines = doc.splitTextToSize(String(text), W - 8)
+        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+        y += 1
+      }
+      const row = (left, right, fs = 8) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+        doc.text(String(left), 5, y)
+        doc.text(String(right), W - 5, y, { align: 'right' })
+        y += fs * 0.44
+      }
+      const dashedLine = () => {
+        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+        doc.setLineDashPattern([], 0); y += 4
       }
 
-      const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
-      const customerName = student?.name || 'Cliente'
-      const link = document.createElement('a')
-      link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
-      link.href = dataUrl
-      link.click()
+      // Cabecera
+      center(schoolName, 11, true)
+      if (settings?.address) center(settings.address, 7)
+      if (settings?.phone) center(`Tel: ${settings.phone}`, 7)
+      if (settings?.ruc) center(`RUC: ${settings.ruc}`, 7)
+      y += 1; dashedLine()
+      center('COMPROBANTE DE PAGO', 9, true)
+      if (isReprint) center('*** REIMPRESIÓN ***', 7)
+      center(`N° ${receiptNumber}`, 8, true)
+      center(`Fecha: ${formatDate(payment.payment_date)}`, 7)
+      y += 1; dashedLine()
+
+      // Datos cliente
+      row(isQuickPayment ? 'Cliente:' : 'Alumno:', student.name, 8)
+      if (student.cedula) row('Cédula:', student.cedula, 8)
+      row(isQuickPayment ? 'Clase:' : 'Curso:', courseName, 8)
+      if (!isQuickPayment) row('Período:', getMonthName(payment.payment_date), 8)
+      if (!isQuickPayment && student.payer_name && student.payer_name !== student.name && student.payer_name !== student.parent_name) {
+        y += 1; dashedLine()
+        row('Comprobante a:', student.payer_name, 8)
+        if (student.payer_cedula) row('Cédula/RUC:', student.payer_cedula, 8)
+      }
+      y += 1; dashedLine()
+
+      // Monto
+      if (payment.discount?.hasDiscount) {
+        row('Precio regular:', `$${parseFloat(payment.discount.originalPrice).toFixed(2)}`, 8)
+        row('Descuento:', `-$${parseFloat(payment.discount.discountAmount).toFixed(2)}`, 8)
+      }
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+      doc.text('Monto pagado:', 5, y)
+      doc.text(`$${parseFloat(payment.amount).toFixed(2)}`, W - 5, y, { align: 'right' })
+      y += 5
+      row('Forma de pago:', payment.payment_method, 8)
+      if (payment.bank_name) row('Banco:', payment.bank_name, 8)
+      if (payment.transfer_receipt) row('N° Transferencia:', payment.transfer_receipt, 8)
+      y += 1; dashedLine()
+
+      // Saldo (programas / paquetes con abono parcial)
+      if ((isProgram || (isRecurring && isPartialPayment)) && coursePrice > 0) {
+        center('Estado de cuenta del ciclo', 7, true)
+        row('Precio ciclo:', `$${coursePrice.toFixed(2)}`, 8)
+        row('Abonado:', `$${totalPaid.toFixed(2)}`, 8)
+        row('Saldo:', `$${balance.toFixed(2)}`, 8)
+        y += 1; dashedLine()
+      }
+
+      // Próximo cobro (mensuales/paquetes)
+      if (!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date) {
+        center('Próximo cobro', 7)
+        center(formatDate(student.next_payment_date), 9, true)
+        y += 1; dashedLine()
+      }
+
+      // Footer
+      center('¡Gracias por su preferencia!', 7)
+      if (settings?.email) center(settings.email, 7)
+
+      // Ajustar altura del documento al contenido
+      const pageHeight = y + 8
+      doc.internal.pageSize.height = pageHeight
+
+      doc.save(`Comprobante_${receiptNumber}_${(student?.name || 'Cliente').replace(/\s+/g, '_')}.pdf`)
+      setDownloaded(true)
+      setTimeout(() => setDownloaded(false), 3000)
     } catch (err) {
-      console.error('Error generating receipt:', err)
-      toast.error('Error al generar. Intenta de nuevo o usa captura de pantalla.')
+      console.error('Error generating receipt PDF:', err)
+      alert('Error al generar el comprobante. Inténtalo de nuevo.')
+    } finally {
+      setDownloading(false)
     }
   }
 
-  const sendWhatsApp = async () => {
-    // Primero descargar la imagen
-    await downloadReceipt()
-
+  const sendWhatsApp = () => {
     const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
     const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
 
@@ -123,57 +148,31 @@ export default function ReceiptGenerator({
     if (isProgram || (isRecurring && isPartialPayment)) {
       if (balance > 0) {
         balanceInfo = `
-💳 Saldo pendiente: $${balance.toFixed(2)}`
+💳 *Saldo pendiente: $${balance.toFixed(2)}*`
       } else {
         balanceInfo = isProgram ? `
-✅ Programa completamente pagado` : `
-✅ Ciclo completamente pagado`
+✅ *Programa PAGADO en su totalidad*` : `
+✅ *Ciclo PAGADO*`
       }
     }
 
-    const nextPaymentLine = !isQuickPayment &&
-      (course?.priceType === 'mes' || course?.priceType === 'paquete') &&
-      student.next_payment_date
-        ? `\n\uD83D\uDCC6 Pr\u00f3ximo cobro: ${formatDate(student.next_payment_date)}`
-        : ''
+    const message = `Hola ${student.name}, adjunto su comprobante de pago.
 
-    const isRepresentante = student.is_minor !== false
-    const paymentHeader = isRepresentante
-      ? `El pago de ${student.name} qued\u00f3 registrado.`
-      : 'Su pago qued\u00f3 registrado.'
+📋 *Comprobante N° ${receiptNumber}*
+💰 Monto pagado: $${parseFloat(payment.amount).toFixed(2)}
+📅 Fecha: ${formatDate(payment.payment_date)}
+📚 ${isQuickPayment ? 'Clase' : 'Curso'}: ${courseName}${balanceInfo}
+${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date ? `
+📆 Próximo cobro: *${formatDate(student.next_payment_date)}*` : ''}
 
-    const message = `Hola \uD83D\uDE0A
-${paymentHeader}
-Aqu\u00ed est\u00e1 su comprobante:
+¡Gracias por su preferencia!
+🩰 ${settings.name}`
 
-\uD83D\uDCCB Comprobante N\u00b0 ${receiptNumber}
-\uD83D\uDCB0 Monto: $${parseFloat(payment.amount).toFixed(2)}
-\uD83D\uDCC5 Fecha: ${formatDate(payment.payment_date)}
-\uD83D\uDCDA ${isQuickPayment ? 'Clase' : 'Curso'}: ${courseName}${balanceInfo}${nextPaymentLine}
-
-Gracias por confiar en nosotros \uD83E\uDE70
-
-${settings.name}`
-
-    // ── Intentar envío automático via Meta API ──────────────────────────────
-    if (onSendApiComprobante && student?.phone) {
-      setWaStatus('sending')
-      const apiResult = await onSendApiComprobante(payment, student, course, receiptNumber)
-      if (apiResult?.success) {
-        setWaStatus('sent')
-        // Template enviado automáticamente → no abrir wa.me (evitar duplicado)
-        setTimeout(() => setWaStatus(null), 5000)
-        return
-      }
-      // Si la API falla, caer en el flujo manual (wa.me)
-      setWaStatus('manual')
-      setTimeout(() => setWaStatus(null), 4000)
-    }
-
-    // ── Fallback: abrir WhatsApp web con mensaje pre-llenado ────────────────
+    // Limpiar número de teléfono
     const phone = student.phone?.replace(/\D/g, '') || ''
     const phoneWithCode = phone.startsWith('0') ? `593${phone.slice(1)}` : phone
 
+    // Abrir WhatsApp
     const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
   }
@@ -181,15 +180,21 @@ ${settings.name}`
   if (!payment || !student) return null
 
   return (
-    <Modal isOpen={true} onClose={onClose} ariaLabel="Comprobante de Pago">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      onClick={(e) => {
+        // Cerrar al hacer clic fuera del modal
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-purple-700 text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
           <button
             onClick={onClose}
-            aria-label="Cerrar"
             className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
+            title="Cerrar (Esc)"
           >
             <X size={20} />
           </button>
@@ -204,9 +209,9 @@ ${settings.name}`
           >
             {/* School Header */}
             <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-              {(logoBase64 || settings.logo_url) ? (
+              {settings.logo_url ? (
                 <img
-                  src={logoBase64 || settings.logo_url}
+                  src={settings.logo_url}
                   alt="Logo"
                   className="h-12 max-w-[150px] mx-auto mb-2 object-contain"
                   onError={(e) => {
@@ -228,7 +233,7 @@ ${settings.name}`
               <h2 className="text-lg font-bold text-gray-800">COMPROBANTE DE PAGO</h2>
               {isReprint && (
                 <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full mb-1 font-semibold">
-                  REIMPRESIÓN
+                  📋 REIMPRESIÓN
                 </span>
               )}
               {isQuickPayment && (
@@ -307,7 +312,7 @@ ${settings.name}`
             {(isProgram || (isRecurring && isPartialPayment)) && (
               <div className={`rounded-xl p-3 mb-4 ${hasBalance ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
                 <p className="text-sm font-semibold text-center mb-2">
-                  {hasBalance ? 'Estado de Cuenta del Ciclo' : (isProgram ? 'Programa Pagado' : 'Ciclo Pagado')}
+                  {hasBalance ? '📊 Estado de Cuenta del Ciclo' : (isProgram ? '✅ Programa Pagado' : '✅ Ciclo Pagado')}
                 </p>
                 <div className="grid grid-cols-3 gap-2 text-center text-sm">
                   <div>
@@ -384,50 +389,26 @@ ${settings.name}`
           <div className="flex gap-3 mb-3">
             <button
               onClick={downloadReceipt}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all"
+              disabled={downloading}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl active:scale-95 transition-all disabled:cursor-not-allowed ${
+                downloaded
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60'
+              }`}
             >
-              <Download size={20} />
-              Descargar
+              {downloaded ? <Check size={20} /> : <Download size={20} />}
+              {downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar PDF'}
             </button>
             {student.phone && (
               <button
                 onClick={sendWhatsApp}
-                disabled={waStatus === 'sending'}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all"
               >
                 <Send size={20} />
-                {waStatus === 'sending' ? 'Enviando...' : 'WhatsApp'}
+                WhatsApp
               </button>
             )}
           </div>
-
-          {/* Toast de estado de envío API */}
-          {waStatus === 'sent' && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-              <CheckCircle size={16} />
-              <span>Comprobante enviado autom\u00e1ticamente por WhatsApp</span>
-            </div>
-          )}
-          {waStatus === 'manual' && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
-              <AlertCircle size={16} />
-              <span>API no disponible \u2014 enviado por WhatsApp Web</span>
-            </div>
-          )}
-
-          {/* Botón Generar Factura Electrónica */}
-          {!isQuickPayment && (
-            <div className="mt-2">
-              <InvoiceButton
-                payment={payment}
-                student={student}
-                courseName={course?.name}
-                settings={settings}
-                logoBase64={logoBase64}
-              />
-            </div>
-          )}
-
           <button
             onClick={onClose}
             className="w-full px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl active:scale-95 transition-all text-sm"
@@ -436,6 +417,6 @@ ${settings.name}`
           </button>
         </div>
       </div>
-    </Modal>
+    </div>
   )
 }
