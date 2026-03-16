@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { toPng } from 'html-to-image'
+import jsPDF from 'jspdf'
 import {
   Plus, X, ChevronDown, ChevronUp,
   CheckCircle, Clock, AlertCircle, Printer, Trash2, PackageCheck,
   Search, Minus, ClipboardList, Database, Copy, Check,
-  Eye, MessageCircle
+  Eye, MessageCircle, Download
 } from 'lucide-react'
 
 const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
@@ -141,17 +141,52 @@ function StatusBadge({ status }) {
 function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose, schoolName = 'Studio Dancers' }) {
   const receiptRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
 
-  const handleDownload = async () => {
-    if (!receiptRef.current) return
+  const handleDownload = () => {
     setDownloading(true)
     try {
-      const dataUrl = await toPng(receiptRef.current, { pixelRatio: 2, backgroundColor: '#ffffff' })
-      const link = document.createElement('a')
-      link.download = `Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.png`
-      link.href = dataUrl
-      link.click()
-    } catch (e) { console.error('toPng error:', e) }
+      const W = 80
+      const doc = new jsPDF({ unit: 'mm', format: [W, 180], orientation: 'portrait' })
+      let y = 8
+      const center = (text, fs, bold = false) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+        const lines = doc.splitTextToSize(String(text), W - 8)
+        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+        y += 1
+      }
+      const row = (left, right, fs = 8) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+        doc.text(String(left), 5, y); doc.text(String(right), W - 5, y, { align: 'right' }); y += fs * 0.44
+      }
+      const dash = () => {
+        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+        doc.setLineDashPattern([], 0); y += 4
+      }
+      center(schoolName, 11, true)
+      center('COMPROBANTE DE ABONO', 9, true)
+      center(`Abono #${installmentNumber}`, 8)
+      center(fmtDate(payment.payment_date), 7)
+      y += 1; dash()
+      row('Cliente:', plan.customer_name)
+      if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
+      const itemsLabel = Array.isArray(plan.items) ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ') : ''
+      if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const lines = doc.splitTextToSize(itemsLabel, W - 10); lines.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
+      y += 1; dash()
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+      doc.text('Abono:', 5, y); doc.text(fmt(payment.amount), W - 5, y, { align: 'right' }); y += 5
+      row('Método:', payment.payment_method)
+      dash()
+      row('Total plan:', fmt(plan.total_amount))
+      row('Total pagado:', fmt(plan.amount_paid))
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold')
+      doc.text('Saldo pendiente:', 5, y); doc.text(fmt(balance), W - 5, y, { align: 'right' }); y += 5
+      if (payment.notes) { dash(); center(payment.notes, 7) }
+      dash(); center('¡Gracias por su preferencia!', 7)
+      doc.internal.pageSize.height = y + 8
+      doc.save(`Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.pdf`)
+      setDownloaded(true); setTimeout(() => setDownloaded(false), 3000)
+    } catch (e) { console.error('PDF error:', e); alert('Error al generar PDF') }
     setDownloading(false)
   }
 
@@ -170,8 +205,9 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
           <p className="font-semibold text-gray-700 text-sm">Comprobante de abono</p>
           <div className="flex gap-2">
             <button onClick={handleDownload} disabled={downloading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-semibold hover:bg-purple-700 disabled:opacity-50">
-              <Printer size={13} /> {downloading ? 'Guardando...' : 'Descargar PNG'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors ${downloaded ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
+              {downloaded ? <Check size={13} /> : <Download size={13} />}
+              {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar PDF'}
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
               <X size={16} />
@@ -685,6 +721,50 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
   const effectivePhone = plan.customer_phone || linkedStudent?.phone || ''
   const effectiveCourse = linkedStudent?.course_name || ''
 
+  const downloadPlanPDF = () => {
+    const W = 80
+    const doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' })
+    let y = 8
+    const center = (text, fs, bold = false) => {
+      doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+      const lines = doc.splitTextToSize(String(text), W - 8)
+      lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+      y += 1
+    }
+    const row = (left, right, fs = 8) => {
+      doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+      doc.text(String(left), 5, y); doc.text(String(right), W - 5, y, { align: 'right' }); y += fs * 0.44
+    }
+    const dash = () => {
+      doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+      doc.setLineDashPattern([], 0); y += 4
+    }
+    center('Studio Dancers', 11, true)
+    center('PLAN DE PAGOS', 9, true)
+    center(fmtDate(plan.created_at?.split('T')[0] || new Date().toISOString().split('T')[0]), 7)
+    y += 1; dash()
+    row('Cliente:', plan.customer_name)
+    if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
+    if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const ls = doc.splitTextToSize(itemsLabel, W - 10); ls.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
+    y += 1; dash()
+    row('Total plan:', fmt(plan.total_amount), 9)
+    row('Total abonado:', fmt(plan.amount_paid), 9)
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+    doc.text('Saldo pendiente:', 5, y); doc.text(fmt(Math.max(0, balance)), W - 5, y, { align: 'right' }); y += 5
+    y += 1
+    if (payments.length > 0) {
+      dash(); center('Historial de abonos', 8, true)
+      ;[...payments].sort((a, b) => a.installment_number - b.installment_number).forEach(p => {
+        row(`Abono #${p.installment_number} (${p.payment_method}):`, fmt(p.amount))
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal')
+        doc.text(fmtDate(p.payment_date), 8, y); y += 3.5
+      })
+    }
+    dash(); center('¡Gracias por su preferencia!', 7)
+    doc.internal.pageSize.height = y + 8
+    doc.save(`Plan_${plan.customer_name.replace(/\s+/g, '_')}.pdf`)
+  }
+
   return (
     <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
       <div className="p-4">
@@ -929,11 +1009,16 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               </div>
             </div>
 
-            {/* Footer: botón WhatsApp */}
+            {/* Footer: descarga + WhatsApp */}
             <div className="p-4 border-t bg-gray-50 space-y-2">
+              <button onClick={downloadPlanPDF}
+                className="flex items-center justify-center gap-2 w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                <Download size={16} />
+                Descargar resumen PDF
+              </button>
               {effectivePhone ? (
                 <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
                   <MessageCircle size={16} />
                   {balance > 0 ? 'Enviar recordatorio por WhatsApp' : 'Enviar mensaje por WhatsApp'}
                 </a>

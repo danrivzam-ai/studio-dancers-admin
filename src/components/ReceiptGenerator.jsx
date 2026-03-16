@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
-import { toPng } from 'html-to-image'
-import { X, Download, Send } from 'lucide-react'
+import jsPDF from 'jspdf'
+import { X, Download, Send, Check } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
@@ -11,47 +11,9 @@ export default function ReceiptGenerator({
   onClose
 }) {
   const receiptRef = useRef(null)
-  const [logoBase64, setLogoBase64] = useState(null)
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
-
-  // Pre-load logo as base64 for image capture (avoids cross-origin issues)
-  useEffect(() => {
-    const tryLoadAsBase64 = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas')
-            canvas.width = img.naturalWidth
-            canvas.height = img.naturalHeight
-            const ctx = canvas.getContext('2d')
-            ctx.drawImage(img, 0, 0)
-            resolve(canvas.toDataURL('image/png'))
-          } catch {
-            resolve(null)
-          }
-        }
-        img.onerror = () => resolve(null)
-        img.src = url
-      })
-    }
-
-    const loadLogo = async () => {
-      if (!settings?.logo_url) return
-      // Try the configured URL first
-      let base64 = await tryLoadAsBase64(settings.logo_url)
-      // If it fails (CORS), fallback to local logo
-      if (!base64 && settings.logo_url !== '/logo.png') {
-        base64 = await tryLoadAsBase64('/logo.png')
-      }
-      setLogoBase64(base64)
-    }
-
-    loadLogo()
-  }, [settings?.logo_url])
 
   // Cerrar con Escape
   useEffect(() => {
@@ -73,53 +35,111 @@ export default function ReceiptGenerator({
   const hasBalance = (isProgram || isRecurring) && balance > 0
   const isPartialPayment = payment?.isPartialPayment || payment?.paymentStatus === 'partial' || (isRecurring && totalPaid > 0 && totalPaid < coursePrice)
 
-  const downloadReceipt = async () => {
-    if (!receiptRef.current) return
+  const [downloading, setDownloading] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
 
+  const downloadReceipt = () => {
+    setDownloading(true)
     try {
-      // First attempt with filter to skip problematic external images
-      let dataUrl
-      try {
-        dataUrl = await toPng(receiptRef.current, {
-          quality: 1,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          cacheBust: true,
-          skipFonts: true
-        })
-      } catch {
-        // If first attempt fails, retry filtering out images that aren't base64
-        dataUrl = await toPng(receiptRef.current, {
-          quality: 1,
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          skipFonts: true,
-          filter: (node) => {
-            // Skip img elements with external URLs (non-base64)
-            if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) {
-              return false
-            }
-            return true
-          }
-        })
+      const W = 80
+      const doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' })
+      let y = 8
+
+      const schoolName = settings?.name || 'Studio Dancers'
+      const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
+      const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
+
+      const center = (text, fs, bold = false) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
+        const lines = doc.splitTextToSize(String(text), W - 8)
+        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
+        y += 1
+      }
+      const row = (left, right, fs = 8) => {
+        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
+        doc.text(String(left), 5, y)
+        doc.text(String(right), W - 5, y, { align: 'right' })
+        y += fs * 0.44
+      }
+      const dashedLine = () => {
+        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
+        doc.setLineDashPattern([], 0); y += 4
       }
 
-      const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
-      const customerName = student?.name || 'Cliente'
-      const link = document.createElement('a')
-      link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
-      link.href = dataUrl
-      link.click()
+      // Cabecera
+      center(schoolName, 11, true)
+      if (settings?.address) center(settings.address, 7)
+      if (settings?.phone) center(`Tel: ${settings.phone}`, 7)
+      if (settings?.ruc) center(`RUC: ${settings.ruc}`, 7)
+      y += 1; dashedLine()
+      center('COMPROBANTE DE PAGO', 9, true)
+      if (isReprint) center('*** REIMPRESIÓN ***', 7)
+      center(`N° ${receiptNumber}`, 8, true)
+      center(`Fecha: ${formatDate(payment.payment_date)}`, 7)
+      y += 1; dashedLine()
+
+      // Datos cliente
+      row(isQuickPayment ? 'Cliente:' : 'Alumno:', student.name, 8)
+      if (student.cedula) row('Cédula:', student.cedula, 8)
+      row(isQuickPayment ? 'Clase:' : 'Curso:', courseName, 8)
+      if (!isQuickPayment) row('Período:', getMonthName(payment.payment_date), 8)
+      if (!isQuickPayment && student.payer_name && student.payer_name !== student.name && student.payer_name !== student.parent_name) {
+        y += 1; dashedLine()
+        row('Comprobante a:', student.payer_name, 8)
+        if (student.payer_cedula) row('Cédula/RUC:', student.payer_cedula, 8)
+      }
+      y += 1; dashedLine()
+
+      // Monto
+      if (payment.discount?.hasDiscount) {
+        row('Precio regular:', `$${parseFloat(payment.discount.originalPrice).toFixed(2)}`, 8)
+        row('Descuento:', `-$${parseFloat(payment.discount.discountAmount).toFixed(2)}`, 8)
+      }
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
+      doc.text('Monto pagado:', 5, y)
+      doc.text(`$${parseFloat(payment.amount).toFixed(2)}`, W - 5, y, { align: 'right' })
+      y += 5
+      row('Forma de pago:', payment.payment_method, 8)
+      if (payment.bank_name) row('Banco:', payment.bank_name, 8)
+      if (payment.transfer_receipt) row('N° Transferencia:', payment.transfer_receipt, 8)
+      y += 1; dashedLine()
+
+      // Saldo (programas / paquetes con abono parcial)
+      if ((isProgram || (isRecurring && isPartialPayment)) && coursePrice > 0) {
+        center('Estado de cuenta del ciclo', 7, true)
+        row('Precio ciclo:', `$${coursePrice.toFixed(2)}`, 8)
+        row('Abonado:', `$${totalPaid.toFixed(2)}`, 8)
+        row('Saldo:', `$${balance.toFixed(2)}`, 8)
+        y += 1; dashedLine()
+      }
+
+      // Próximo cobro (mensuales/paquetes)
+      if (!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date) {
+        center('Próximo cobro', 7)
+        center(formatDate(student.next_payment_date), 9, true)
+        y += 1; dashedLine()
+      }
+
+      // Footer
+      center('¡Gracias por su preferencia!', 7)
+      if (settings?.email) center(settings.email, 7)
+
+      // Ajustar altura del documento al contenido
+      const pageHeight = y + 8
+      doc.internal.pageSize.height = pageHeight
+
+      doc.save(`Comprobante_${receiptNumber}_${(student?.name || 'Cliente').replace(/\s+/g, '_')}.pdf`)
+      setDownloaded(true)
+      setTimeout(() => setDownloaded(false), 3000)
     } catch (err) {
-      console.error('Error generating receipt:', err)
-      alert('Error al generar. Intenta de nuevo o usa captura de pantalla.')
+      console.error('Error generating receipt PDF:', err)
+      alert('Error al generar el comprobante. Inténtalo de nuevo.')
+    } finally {
+      setDownloading(false)
     }
   }
 
-  const sendWhatsApp = async () => {
-    // Primero descargar la imagen
-    await downloadReceipt()
-
+  const sendWhatsApp = () => {
     const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
     const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
 
@@ -189,9 +209,9 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
           >
             {/* School Header */}
             <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-              {(logoBase64 || settings.logo_url) ? (
+              {settings.logo_url ? (
                 <img
-                  src={logoBase64 || settings.logo_url}
+                  src={settings.logo_url}
                   alt="Logo"
                   className="h-12 max-w-[150px] mx-auto mb-2 object-contain"
                   onError={(e) => {
@@ -369,10 +389,15 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
           <div className="flex gap-3 mb-3">
             <button
               onClick={downloadReceipt}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all"
+              disabled={downloading}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl active:scale-95 transition-all disabled:cursor-not-allowed ${
+                downloaded
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60'
+              }`}
             >
-              <Download size={20} />
-              Descargar
+              {downloaded ? <Check size={20} /> : <Download size={20} />}
+              {downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar PDF'}
             </button>
             {student.phone && (
               <button
