@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { getTodayEC } from '../lib/dateUtils'
 
 export function useSalePlans() {
   const [plans, setPlans]     = useState([])
@@ -33,18 +32,16 @@ export function useSalePlans() {
   useEffect(() => { fetchPlans() }, [fetchPlans])
 
   // ── Crear nuevo plan ─────────────────────────────────────────────────────
-  const createPlan = async ({ customerName, customerCedula, customerEmail, customerPhone, items, totalAmount, notes, studentId, studentName, studentCourse }) => {
+  const createPlan = async ({ studentName, customerName, customerCedula, customerEmail, customerPhone, items, totalAmount, notes }) => {
     try {
       const { data, error } = await supabase
         .from('sale_plans')
         .insert({
+          student_name:        studentName?.trim() || null,
           customer_name:       customerName.trim(),
           customer_cedula_ruc: customerCedula?.trim() || null,
           customer_email:      customerEmail?.trim() || null,
           customer_phone:      customerPhone?.trim() || null,
-          student_id:          studentId || null,
-          student_name:        studentName?.trim() || null,
-          student_course:      studentCourse?.trim() || null,
           items,
           total_amount:        totalAmount,
           amount_paid:         0,
@@ -87,7 +84,7 @@ export function useSalePlans() {
           plan_id:            planId,
           amount:             parseFloat(amount),
           payment_method:     paymentMethod,
-          payment_date:       getTodayEC(),
+          payment_date:       new Date().toISOString().split('T')[0],
           installment_number: installmentNo,
           notes:              notes?.trim() || null
         })

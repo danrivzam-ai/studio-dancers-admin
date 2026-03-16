@@ -423,6 +423,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
 // ─── Modal: Nuevo plan ─────────────────────────────────────────────────────────
 function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading, preselect = null }) {
+  const [studentName,    setStudentName]    = useState('')
   const [customerName,   setCustomerName]   = useState('')
   const [customerCedula, setCustomerCedula] = useState('')
   const [customerEmail,  setCustomerEmail]  = useState('')
@@ -439,10 +440,17 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   const total     = customTotal ? parseFloat(customTotal) : cartTotal
 
   const fillFromStudent = (student) => {
-    setCustomerName(student.name)
-    setCustomerCedula(student.cedula || '')
+    // Alumna: siempre el nombre del estudiante
+    setStudentName(student.name)
+    // Pagador: representante si es menor, la misma alumna si es adulta
+    const payer = student.parent_name || student.payer_name || ''
+    setCustomerName(payer || student.name)
+    // Cédula del representante/pagador o de la alumna
+    const payerCedula = student.payer_cedula || ''
+    setCustomerCedula(payerCedula || student.cedula || '')
     setCustomerEmail(student.email || '')
-    setCustomerPhone(student.phone || '')
+    // Teléfono: del representante primero, luego alumna
+    setCustomerPhone(student.parent_phone || student.payer_phone || student.phone || '')
     setStudentSearch('')
     setShowStudents(false)
   }
@@ -487,11 +495,12 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
 
   const handleSubmit = () => {
     setError('')
-    if (!customerName.trim()) { setError('Ingresa el nombre del cliente'); return }
+    if (!customerName.trim() && !studentName.trim()) { setError('Ingresa el nombre del cliente o alumna'); return }
     if (cart.length === 0)    { setError('Agrega al menos un artículo'); return }
     if (!total || total <= 0) { setError('El total debe ser mayor a 0'); return }
     onConfirm({
-      customerName:   customerName.trim(),
+      studentName:    studentName.trim() || null,
+      customerName:   customerName.trim() || studentName.trim(),
       customerCedula: customerCedula.trim() || null,
       customerEmail:  customerEmail.trim() || null,
       customerPhone:  customerPhone.trim() || null,
@@ -555,12 +564,25 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
             )}
           </div>
 
-          {/* Nombre */}
+          {/* Nombre de la alumna */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+              Nombre de la alumna *
+            </label>
+            <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)}
+              className="w-full px-3 py-2.5 border-2 border-purple-200 rounded-xl text-sm focus:outline-none focus:border-purple-500 bg-purple-50"
+              placeholder="Nombre completo de la alumna" />
+          </div>
+
+          {/* Nombre del pagador / representante */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+              Pagador / Representante
+              <span className="text-gray-400 font-normal ml-1">(si es diferente a la alumna)</span>
+            </label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
-              placeholder="Nombre completo" />
+              placeholder="Nombre del representante o pagador" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -743,7 +765,12 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
     center('PLAN DE PAGOS', 9, true)
     center(fmtDate(plan.created_at?.split('T')[0] || new Date().toISOString().split('T')[0]), 7)
     y += 1; dash()
-    row('Cliente:', plan.customer_name)
+    if (plan.student_name) row('Alumna:', plan.student_name, 9)
+    if (plan.student_name && plan.customer_name && plan.student_name !== plan.customer_name) {
+      row('Representante:', plan.customer_name)
+    } else {
+      row('Cliente:', plan.customer_name)
+    }
     if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
     if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const ls = doc.splitTextToSize(itemsLabel, W - 10); ls.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
     y += 1; dash()
@@ -770,7 +797,14 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-800 text-sm truncate">{plan.customer_name}</p>
+            <p className="font-semibold text-gray-800 text-sm truncate">
+              {plan.student_name || plan.customer_name}
+            </p>
+            {plan.student_name && plan.customer_name && plan.student_name !== plan.customer_name && (
+              <p className="text-xs text-purple-600 font-medium truncate mt-0.5">
+                👤 Rep: {plan.customer_name}
+              </p>
+            )}
             <p className="text-xs text-gray-500 mt-0.5 truncate">{itemsLabel}</p>
           </div>
           <StatusBadge status={plan.status} />
@@ -933,8 +967,18 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
 
                 {/* Datos del cliente */}
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Cliente</p>
-                  <p className="font-bold text-gray-800">{plan.customer_name}</p>
+                  {/* Nombre de la alumna */}
+                  {plan.student_name && (
+                    <div className="mb-2">
+                      <p className="text-[10px] text-purple-500 uppercase tracking-wide font-semibold mb-0.5">Alumna</p>
+                      <p className="font-bold text-gray-900 text-base">{plan.student_name}</p>
+                    </div>
+                  )}
+                  {/* Pagador / representante */}
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">
+                    {plan.student_name && plan.student_name !== plan.customer_name ? 'Pagador / Representante' : 'Cliente'}
+                  </p>
+                  <p className="font-semibold text-gray-800">{plan.customer_name}</p>
                   {plan.customer_cedula_ruc && (
                     <p className="text-sm text-gray-500 mt-0.5">CI/RUC: {plan.customer_cedula_ruc}</p>
                   )}
