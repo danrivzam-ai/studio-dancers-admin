@@ -1,21 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload, History, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
+import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload, History, ArrowUpCircle, ArrowDownCircle, Clock, ChevronDown, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
-// Tipos de items
+// Tipos de items — Taller añadido como subtipo de programa corto
 const ITEM_TYPES = [
   { id: 'course', name: 'Curso Regular', icon: BookOpen, color: 'purple' },
   { id: 'program', name: 'Programa', icon: Calendar, color: 'orange' },
+  { id: 'workshop', name: 'Taller', icon: Sparkles, color: 'pink' },
   { id: 'product', name: 'Producto', icon: ShoppingBag, color: 'green' },
 ]
 
-const PRICE_TYPES = [
+// Solo para cursos regulares
+const COURSE_PRICE_TYPES = [
   { id: 'mes', name: 'Mensual' },
   { id: 'paquete', name: 'Paquete de clases' },
   { id: 'clase', name: 'Por clase' },
-  { id: 'programa', name: 'Pago único' },
+]
+
+// Categorías de producto por defecto (se complementan con las que existan en BD)
+const DEFAULT_PRODUCT_CATEGORIES = [
+  { key: 'entradas', label: 'Entradas' },
+  { key: 'vestuario', label: 'Vestuario' },
+  { key: 'uniformes', label: 'Uniformes' },
+  { key: 'bar', label: 'Bar' },
 ]
 
 const DAYS_OF_WEEK = [
@@ -105,6 +114,7 @@ export default function ManageItems({
     }
   }, [errorMessage])
 
+  const [showExtras, setShowExtras] = useState(false)
   const [formData, setFormData] = useState({
     type: 'course',
     name: '',
@@ -112,6 +122,8 @@ export default function ManageItems({
     ageMin: 3,
     ageMax: 99,
     schedule: '',
+    timeStart: '',
+    timeEnd: '',
     price: '',
     priceType: 'mes',
     allowsInstallments: false,
@@ -122,8 +134,21 @@ export default function ManageItems({
     classesPerCycle: '',
     imageUrl: '',
     benefits: '',
-    requirements: ''
+    requirements: '',
+    workshopDuration: '',
   })
+
+  // Derive dynamic product categories from existing products
+  const productCategories = (() => {
+    const existing = new Set(products.map(p => p.category).filter(Boolean))
+    const cats = DEFAULT_PRODUCT_CATEGORIES.filter(c => true) // always show defaults
+    existing.forEach(key => {
+      if (!cats.find(c => c.key === key)) {
+        cats.push({ key, label: key.charAt(0).toUpperCase() + key.slice(1) })
+      }
+    })
+    return cats
+  })()
 
   const resetForm = () => {
     setFormData({
@@ -133,6 +158,8 @@ export default function ManageItems({
       ageMin: 3,
       ageMax: 99,
       schedule: '',
+      timeStart: '',
+      timeEnd: '',
       price: '',
       priceType: 'mes',
       allowsInstallments: false,
@@ -143,9 +170,11 @@ export default function ManageItems({
       classesPerCycle: '',
       imageUrl: '',
       benefits: '',
-      requirements: ''
+      requirements: '',
+      workshopDuration: '',
     })
     setShowForm(false)
+    setShowExtras(false)
     setEditingItem(null)
   }
 
@@ -165,7 +194,10 @@ export default function ManageItems({
     setFormData({
       ...formData,
       type,
-      priceType: type === 'course' ? 'mes' : type === 'program' ? 'programa' : 'programa'
+      // Cursos: mensual por defecto. Programas/Talleres: pago único automático
+      priceType: type === 'course' ? 'mes' : 'programa',
+      // Talleres no permiten cuotas
+      allowsInstallments: type === 'workshop' ? false : formData.allowsInstallments,
     })
   }
 
@@ -187,13 +219,21 @@ export default function ManageItems({
       })
     } else {
       const ageGroup = AGE_GROUPS.find(g => g.ageMin === (item.ageMin || item.age_min) && g.ageMax === (item.ageMax || item.age_max))?.id || 'custom'
+      // Detect type: workshop is detected from description tag, program from priceType
+      const workshopMatch = (item.description || '').match(/\[taller:(.+?)\]/)
+      const parsedWorkshopDuration = workshopMatch ? workshopMatch[1] : ''
+      const itemType = workshopMatch ? 'workshop' : item.priceType === 'programa' ? 'program' : 'course'
+      // Try to parse time from schedule string (e.g. "17:00 - 18:00" or "Lunes y Miércoles 17:00 - 18:00")
+      const timeMatch = (item.schedule || '').match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/)
       setFormData({
-        type: item.priceType === 'programa' ? 'program' : item.priceType === 'paquete' ? 'course' : 'course',
+        type: itemType,
         name: item.name,
         ageGroup,
         ageMin: item.ageMin || item.age_min || 3,
         ageMax: item.ageMax || item.age_max || 99,
         schedule: item.schedule || '',
+        timeStart: item.timeStart || (timeMatch ? timeMatch[1] : ''),
+        timeEnd: item.timeEnd || (timeMatch ? timeMatch[2] : ''),
         price: item.price.toString(),
         priceType: item.priceType,
         allowsInstallments: item.allowsInstallments || false,
@@ -203,8 +243,11 @@ export default function ManageItems({
         classesPerCycle: item.classesPerCycle || item.classesPerPackage || '',
         imageUrl: item.imageUrl || '',
         benefits: item.benefits || '',
-        requirements: item.requirements || ''
+        requirements: item.requirements || '',
+        workshopDuration: parsedWorkshopDuration,
       })
+      // Show extras if item has image/benefits/requirements
+      if (item.imageUrl || item.benefits || item.requirements) setShowExtras(true)
     }
     setEditingItem(item)
     setShowForm(true)
@@ -230,6 +273,17 @@ export default function ManageItems({
       }
       toast.success(editingItem ? 'Producto actualizado' : 'Producto creado')
     } else {
+      // Build schedule string from structured fields
+      const dayNames = formData.classDays.length > 0
+        ? formData.classDays.map(d => DAYS_OF_WEEK.find(dw => dw.id === d)?.name).filter(Boolean).join(', ')
+        : ''
+      const timeRange = formData.timeStart && formData.timeEnd
+        ? `${formData.timeStart} - ${formData.timeEnd}`
+        : ''
+      const builtSchedule = [dayNames, timeRange].filter(Boolean).join(' · ')
+      // Use built schedule if we have structured data, otherwise fall back to free text
+      const finalSchedule = builtSchedule || formData.schedule
+
       const courseData = {
         id: editingItem?.id || `${formData.type}-${Date.now()}`,
         code: editingItem?.code || editingItem?.id || `${formData.type}-${Date.now()}`,
@@ -239,23 +293,27 @@ export default function ManageItems({
         name: formData.name,
         ageMin: formData.ageMin,
         ageMax: formData.ageMax,
-        schedule: formData.schedule,
+        schedule: finalSchedule,
         price: parseFloat(formData.price),
-        priceType: formData.priceType,
-        allowsInstallments: formData.allowsInstallments,
+        priceType: formData.type === 'course' ? formData.priceType : 'programa',
+        allowsInstallments: formData.type === 'workshop' ? false : formData.allowsInstallments,
         installmentCount: formData.allowsInstallments ? formData.installmentCount : 1,
         classDays: formData.classDays.length > 0 ? formData.classDays : null,
         classesPerCycle: formData.classesPerCycle ? parseInt(formData.classesPerCycle) : null,
         imageUrl: formData.imageUrl || null,
         benefits: formData.benefits || null,
-        requirements: formData.requirements || null
+        requirements: formData.requirements || null,
+        // workshopDuration se persiste en description (columna que sí existe en BD)
+        description: formData.type === 'workshop' && formData.workshopDuration
+          ? `[taller:${formData.workshopDuration}]`
+          : (editingItem?.description || null),
       }
       const result = await onSaveCourse(courseData, !!editingItem)
       if (!result.success) {
         setErrorMessage(result.error || 'Error al guardar')
         return
       }
-      const typeLabel = formData.type === 'program' ? 'Programa' : 'Curso'
+      const typeLabel = formData.type === 'workshop' ? 'Taller' : formData.type === 'program' ? 'Programa' : 'Curso'
       toast.success(editingItem ? `${typeLabel} actualizado` : `${typeLabel} creado`)
     }
 
@@ -356,9 +414,11 @@ export default function ManageItems({
     setAdjustDirection('add')
   }
 
-  // Separar cursos regulares de programas
-  const regularCourses = courses.filter(c => c.priceType !== 'programa')
-  const programs = courses.filter(c => c.priceType === 'programa')
+  // Separar cursos regulares de programas/talleres
+  const isWorkshopItem = (c) => (c.description || '').includes('[taller:')
+  const regularCourses = courses.filter(c => c.priceType !== 'programa' && !isWorkshopItem(c))
+  const programs = courses.filter(c => c.priceType === 'programa' && !isWorkshopItem(c))
+  const workshops = courses.filter(c => isWorkshopItem(c))
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar cursos y productos">
@@ -397,92 +457,68 @@ export default function ManageItems({
         )}
 
         {/* Tabs */}
-        <div role="tablist" aria-label="Tipo de item" className="grid grid-cols-3 border-b bg-gray-50 text-sm sm:text-base">
-          <button
-            role="tab"
-            aria-selected={activeTab === 'courses'}
-            aria-controls="panel-courses"
-            onClick={() => setActiveTab('courses')}
-            className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all ${
-              activeTab === 'courses'
-                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <BookOpen size={16} />
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-semibold">Cursos</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'courses' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-500'}`}>
-                {regularCourses.length}
-              </span>
-            </div>
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'programs'}
-            aria-controls="panel-programs"
-            onClick={() => setActiveTab('programs')}
-            className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all border-x border-gray-200 ${
-              activeTab === 'programs'
-                ? 'text-orange-600 border-b-2 border-orange-600 bg-white'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <Calendar size={16} />
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-semibold">Programas</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'programs' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-500'}`}>
-                {programs.length}
-              </span>
-            </div>
-          </button>
-          <button
-            role="tab"
-            aria-selected={activeTab === 'products'}
-            aria-controls="panel-products"
-            onClick={() => setActiveTab('products')}
-            className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2.5 transition-all ${
-              activeTab === 'products'
-                ? 'text-green-600 border-b-2 border-green-600 bg-white'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            <ShoppingBag size={16} />
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-semibold">Productos</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${activeTab === 'products' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>
-                {products.length}
-              </span>
-            </div>
-          </button>
+        <div role="tablist" aria-label="Tipo de item" className="flex border-b bg-gray-50 text-sm">
+          {[
+            { key: 'courses', label: 'Cursos', count: regularCourses.length, Icon: BookOpen, color: 'purple' },
+            { key: 'programs', label: 'Programas', count: programs.length, Icon: Calendar, color: 'orange' },
+            { key: 'workshops', label: 'Talleres', count: workshops.length, Icon: Sparkles, color: 'pink' },
+            { key: 'products', label: 'Productos', count: products.length, Icon: ShoppingBag, color: 'green' },
+          ].map((tab, i) => {
+            const active = activeTab === tab.key
+            const colorMap = {
+              purple: { text: 'text-purple-600', border: 'border-purple-600', badge: 'bg-purple-100 text-purple-700' },
+              orange: { text: 'text-orange-600', border: 'border-orange-600', badge: 'bg-orange-100 text-orange-700' },
+              pink:   { text: 'text-pink-600',   border: 'border-pink-600',   badge: 'bg-pink-100 text-pink-700' },
+              green:  { text: 'text-green-600',  border: 'border-green-600',  badge: 'bg-green-100 text-green-700' },
+            }
+            const c = colorMap[tab.color]
+            return (
+              <button
+                key={tab.key}
+                role="tab"
+                aria-selected={active}
+                aria-controls={`panel-${tab.key}`}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 px-1 py-2.5 transition-all ${
+                  active ? `${c.text} border-b-2 ${c.border} bg-white` : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                } ${i > 0 ? 'border-l border-gray-200' : ''}`}
+              >
+                <tab.Icon size={15} />
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-semibold">{tab.label}</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${active ? c.badge : 'bg-gray-200 text-gray-500'}`}>
+                    {tab.count}
+                  </span>
+                </div>
+              </button>
+            )
+          })}
         </div>
 
         {/* Content */}
         <div ref={contentRef} className="flex-1 overflow-y-auto p-4">
           {/* Add Button */}
-          {!showForm && (
-            <button
-              onClick={() => {
-                setFormData(prev => ({
-                  ...prev,
-                  type: activeTab === 'products' ? 'product' : activeTab === 'programs' ? 'program' : 'course'
-                }))
-                setShowForm(true)
-              }}
-              className={`w-full mb-4 p-4 border-2 border-dashed rounded-xl transition-all flex items-center justify-center gap-2 ${
-                activeTab === 'products'
-                  ? 'border-green-300 text-green-600 hover:border-green-400 hover:bg-green-50'
-                  : activeTab === 'programs'
-                    ? 'border-orange-300 text-orange-600 hover:border-orange-400 hover:bg-orange-50'
-                    : 'border-purple-300 text-purple-600 hover:border-purple-400 hover:bg-purple-50'
-              }`}
-            >
-              <Plus size={20} />
-              <span className="font-medium">
-                Agregar {activeTab === 'products' ? 'Producto' : activeTab === 'programs' ? 'Programa' : 'Curso'}
-              </span>
-            </button>
-          )}
+          {!showForm && (() => {
+            const tabConfig = {
+              courses:   { type: 'course',  label: 'Curso',     border: 'border-purple-300', text: 'text-purple-600', hover: 'hover:border-purple-400 hover:bg-purple-50' },
+              programs:  { type: 'program', label: 'Programa',  border: 'border-orange-300', text: 'text-orange-600', hover: 'hover:border-orange-400 hover:bg-orange-50' },
+              workshops: { type: 'workshop',label: 'Taller',    border: 'border-pink-300',   text: 'text-pink-600',   hover: 'hover:border-pink-400 hover:bg-pink-50' },
+              products:  { type: 'product', label: 'Producto',  border: 'border-green-300',  text: 'text-green-600',  hover: 'hover:border-green-400 hover:bg-green-50' },
+            }
+            const cfg = tabConfig[activeTab] || tabConfig.courses
+            return (
+              <button
+                onClick={() => {
+                  handleTypeChange(cfg.type)
+                  setShowForm(true)
+                }}
+                className={`w-full mb-4 p-4 border-2 border-dashed rounded-xl transition-all flex items-center justify-center gap-2 ${cfg.border} ${cfg.text} ${cfg.hover}`}
+              >
+                <Plus size={20} />
+                <span className="font-medium">Agregar {cfg.label}</span>
+              </button>
+            )
+          })()}
 
           {/* Form */}
           {showForm && (
@@ -491,12 +527,14 @@ export default function ManageItems({
                 <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                   {formData.type === 'product' ? (
                     <ShoppingBag size={18} className="text-green-600" />
+                  ) : formData.type === 'workshop' ? (
+                    <Sparkles size={18} className="text-pink-600" />
                   ) : formData.type === 'program' ? (
                     <Calendar size={18} className="text-orange-600" />
                   ) : (
                     <BookOpen size={18} className="text-purple-600" />
                   )}
-                  {editingItem ? 'Editar' : 'Nuevo'} {formData.type === 'product' ? 'Producto' : formData.type === 'program' ? 'Programa' : 'Curso'}
+                  {editingItem ? 'Editar' : 'Nuevo'} {formData.type === 'product' ? 'Producto' : formData.type === 'workshop' ? 'Taller' : formData.type === 'program' ? 'Programa' : 'Curso'}
                 </h3>
                 <button
                   type="button"
@@ -507,35 +545,28 @@ export default function ManageItems({
                 </button>
               </div>
 
-              {/* Tipo (solo para cursos/programas) */}
+              {/* Tipo (solo para cursos/programas/talleres) */}
               {activeTab !== 'products' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange('course')}
-                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-                        formData.type === 'course'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <BookOpen size={18} />
-                      Curso Regular
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange('program')}
-                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-                        formData.type === 'program'
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <Calendar size={18} />
-                      Programa
-                    </button>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'course', label: 'Curso', Icon: BookOpen, activeClass: 'border-purple-500 bg-purple-50 text-purple-700' },
+                      { id: 'program', label: 'Programa', Icon: Calendar, activeClass: 'border-orange-500 bg-orange-50 text-orange-700' },
+                      { id: 'workshop', label: 'Taller', Icon: Sparkles, activeClass: 'border-pink-500 bg-pink-50 text-pink-700' },
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => handleTypeChange(opt.id)}
+                        className={`p-2.5 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          formData.type === opt.id ? opt.activeClass : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                      >
+                        <opt.Icon size={16} />
+                        {opt.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -562,24 +593,6 @@ export default function ManageItems({
                       <Users size={14} className="inline mr-1" />
                       Rango de edad
                     </label>
-                    {/* Quick-fill presets */}
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {AGE_GROUPS.map(group => (
-                        <button
-                          key={group.id}
-                          type="button"
-                          onClick={() => handleAgeGroupChange(group.id)}
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                            formData.ageGroup === group.id
-                              ? 'bg-purple-600 text-white border-purple-600'
-                              : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400'
-                          }`}
-                        >
-                          {group.name}
-                        </button>
-                      ))}
-                    </div>
-                    {/* Manual min / max */}
                     <div className="flex gap-3">
                       <div className="flex-1">
                         <label className="text-xs text-gray-500 mb-1 block">Edad mínima</label>
@@ -606,57 +619,82 @@ export default function ManageItems({
                     </div>
                   </div>
 
-                  {/* Horario */}
+                  {/* Días de clase — siempre visible */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Horario</label>
-                    <input
-                      type="text"
-                      value={formData.schedule}
-                      onChange={(e) => setFormData({...formData, schedule: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
-                      placeholder="Ej: Lunes y Miércoles 17:00 - 18:00"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Calendar size={14} className="inline mr-1" />
+                      Días de clase
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {DAYS_OF_WEEK.map(day => {
+                        const isSelected = formData.classDays.includes(day.id)
+                        return (
+                          <button
+                            key={day.id}
+                            type="button"
+                            onClick={() => {
+                              const newDays = isSelected
+                                ? formData.classDays.filter(d => d !== day.id)
+                                : [...formData.classDays, day.id].sort((a, b) => a - b)
+                              setFormData({ ...formData, classDays: newDays })
+                            }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border-2 ${
+                              isSelected
+                                ? 'border-purple-500 bg-purple-100 text-purple-700'
+                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                            }`}
+                          >
+                            {day.short}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
 
-                  {/* Días de clase (para mes y paquete) */}
-                  {(formData.priceType === 'mes' || formData.priceType === 'paquete') && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        <Calendar size={14} className="inline mr-1" />
-                        Días de clase
-                      </label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {DAYS_OF_WEEK.map(day => {
-                          const isSelected = formData.classDays.includes(day.id)
-                          return (
-                            <button
-                              key={day.id}
-                              type="button"
-                              onClick={() => {
-                                const newDays = isSelected
-                                  ? formData.classDays.filter(d => d !== day.id)
-                                  : [...formData.classDays, day.id].sort((a, b) => a - b)
-                                setFormData({ ...formData, classDays: newDays })
-                              }}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border-2 ${
-                                isSelected
-                                  ? 'border-purple-500 bg-purple-100 text-purple-700'
-                                  : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
-                              }`}
-                            >
-                              {day.short}
-                            </button>
-                          )
-                        })}
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Selecciona los días en que se imparte la clase. El sistema calculará automáticamente cuándo toca el próximo pago.
+                  {/* Horario estructurado */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Clock size={14} className="inline mr-1" />
+                      Horario
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={formData.timeStart}
+                        onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                      />
+                      <span className="text-gray-400 text-sm">a</span>
+                      <input
+                        type="time"
+                        value={formData.timeEnd}
+                        onChange={(e) => setFormData({...formData, timeEnd: e.target.value})}
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                      />
+                    </div>
+                    {formData.classDays.length > 0 && formData.timeStart && formData.timeEnd && (
+                      <p className="text-xs text-purple-500 mt-1.5 bg-purple-50 px-2.5 py-1 rounded-lg">
+                        {formData.classDays.map(d => DAYS_OF_WEEK.find(dw => dw.id === d)?.short).filter(Boolean).join(', ')} · {formData.timeStart} - {formData.timeEnd}
                       </p>
+                    )}
+                  </div>
+
+                  {/* Duración del taller */}
+                  {formData.type === 'workshop' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Duración del taller</label>
+                      <input
+                        type="text"
+                        value={formData.workshopDuration}
+                        onChange={(e) => setFormData({...formData, workshopDuration: e.target.value})}
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        placeholder="Ej: 1 día, 1 semana, 3 sesiones"
+                      />
                     </div>
                   )}
 
-                  {/* Clases por ciclo */}
-                  {(formData.priceType === 'mes' || formData.priceType === 'paquete') && formData.classDays.length > 0 && (
+                  {/* Clases por ciclo — solo para cursos mensuales/paquete */}
+                  {formData.type === 'course' && (formData.priceType === 'mes' || formData.priceType === 'paquete') && formData.classDays.length > 0 && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Clases por ciclo
@@ -671,7 +709,7 @@ export default function ManageItems({
                         placeholder={`Ej: ${formData.classDays.length * 4}`}
                       />
                       <p className="text-xs text-gray-400 mt-1">
-                        Cuántas clases completa un ciclo de pago. Ej: MTJ = 8 clases, Sáb = 4 clases.
+                        Cuántas clases completa un ciclo. Ej: L-M-J = 12, Sáb = 4.
                       </p>
                     </div>
                   )}
@@ -692,7 +730,8 @@ export default function ManageItems({
                     className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                   />
                 </div>
-                {formData.type !== 'product' && (
+                {/* Solo cursos muestran selector de tipo de precio */}
+                {formData.type === 'course' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de precio</label>
                     <select
@@ -700,10 +739,19 @@ export default function ManageItems({
                       onChange={(e) => setFormData({...formData, priceType: e.target.value})}
                       className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                     >
-                      {PRICE_TYPES.map(pt => (
+                      {COURSE_PRICE_TYPES.map(pt => (
                         <option key={pt.id} value={pt.id}>{pt.name}</option>
                       ))}
                     </select>
+                  </div>
+                )}
+                {/* Programas y talleres: mostrar badge de "Pago único" */}
+                {(formData.type === 'program' || formData.type === 'workshop') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de precio</label>
+                    <div className="px-4 py-2.5 border-2 border-gray-100 rounded-xl bg-gray-50 text-sm text-gray-500">
+                      Pago único
+                    </div>
                   </div>
                 )}
                 {formData.type === 'product' && (
@@ -721,7 +769,7 @@ export default function ManageItems({
                 )}
               </div>
 
-              {/* Categoría (solo productos) */}
+              {/* Categoría (solo productos) — dinámicas */}
               {formData.type === 'product' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
@@ -731,15 +779,14 @@ export default function ManageItems({
                     className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                   >
                     <option value="">Sin categoría</option>
-                    <option value="entradas">Entradas</option>
-                    <option value="vestuario">Vestuario</option>
-                    <option value="uniformes">Uniformes</option>
-                    <option value="bar">Bar</option>
+                    {productCategories.map(cat => (
+                      <option key={cat.key} value={cat.key}>{cat.label}</option>
+                    ))}
                   </select>
                 </div>
               )}
 
-              {/* Abonos (solo para programas) */}
+              {/* Abonos (solo para programas, no talleres) */}
               {formData.type === 'program' && (
                 <div className="p-3 bg-orange-50 rounded-xl border border-orange-200">
                   <label className="flex items-center gap-2">
@@ -767,14 +814,31 @@ export default function ManageItems({
                 </div>
               )}
 
-              {/* Imagen, Beneficios, Requisitos (solo cursos/programas) */}
+              {/* Detalles adicionales — colapsable (solo cursos/programas/talleres) */}
               {formData.type !== 'product' && (
                 <>
+                  <button
+                    type="button"
+                    onClick={() => setShowExtras(!showExtras)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 transition-all"
+                  >
+                    <span className="font-medium flex items-center gap-1.5">
+                      <ImageIcon size={14} />
+                      Detalles adicionales
+                      {(formData.imageUrl || formData.benefits || formData.requirements) && (
+                        <span className="w-2 h-2 rounded-full bg-purple-500" />
+                      )}
+                    </span>
+                    <ChevronDown size={16} className={`transition-transform ${showExtras ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showExtras && (
+                  <div className="space-y-4 pl-1">
                   {/* Imagen del curso */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <ImageIcon size={14} className="inline mr-1" />
-                      Imagen del curso
+                      Imagen
                     </label>
                     {formData.imageUrl && (
                       <div className="mb-2 relative">
@@ -858,6 +922,8 @@ export default function ManageItems({
                       rows={3}
                     />
                   </div>
+                  </div>
+                  )}
                 </>
               )}
 
@@ -875,9 +941,11 @@ export default function ManageItems({
                   className={`flex-1 px-4 py-2.5 text-white rounded-xl flex items-center justify-center gap-2 font-medium active:scale-95 transition-all ${
                     formData.type === 'product'
                       ? 'bg-green-600 hover:bg-green-700'
-                      : formData.type === 'program'
-                        ? 'bg-orange-600 hover:bg-orange-700'
-                        : 'bg-purple-600 hover:bg-purple-700'
+                      : formData.type === 'workshop'
+                        ? 'bg-pink-600 hover:bg-pink-700'
+                        : formData.type === 'program'
+                          ? 'bg-orange-600 hover:bg-orange-700'
+                          : 'bg-purple-600 hover:bg-purple-700'
                   }`}
                 >
                   <Save size={18} />
@@ -925,6 +993,28 @@ export default function ManageItems({
                     type="program"
                     onEdit={() => handleEdit(program)}
                     onDelete={() => handleDeleteRequest(program)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Lista de Talleres */}
+          {activeTab === 'workshops' && (
+            <div className="space-y-3">
+              {workshops.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Sparkles size={48} className="mx-auto mb-3 opacity-30" />
+                  <p>No hay talleres registrados</p>
+                </div>
+              ) : (
+                workshops.map(workshop => (
+                  <ItemCard
+                    key={workshop.id}
+                    item={workshop}
+                    type="workshop"
+                    onEdit={() => handleEdit(workshop)}
+                    onDelete={() => handleDeleteRequest(workshop)}
                   />
                 ))
               )}
@@ -1207,15 +1297,18 @@ export default function ManageItems({
 // Componente de tarjeta de item
 function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }) {
   const isProduct = type === 'product'
-  const isProgram = type === 'program' || item.priceType === 'programa'
+  const isWorkshop = type === 'workshop' || (item.description || '').includes('[taller:')
+  const isProgram = !isWorkshop && (type === 'program' || item.priceType === 'programa')
 
   const colors = isProduct
     ? { border: 'border-green-200', bg: 'bg-green-50', icon: 'text-green-600', badge: 'bg-green-100 text-green-700' }
-    : isProgram
-      ? { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' }
-      : { border: 'border-purple-200', bg: 'bg-purple-50', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700' }
+    : isWorkshop
+      ? { border: 'border-pink-200', bg: 'bg-pink-50', icon: 'text-pink-600', badge: 'bg-pink-100 text-pink-700' }
+      : isProgram
+        ? { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' }
+        : { border: 'border-purple-200', bg: 'bg-purple-50', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700' }
 
-  const Icon = isProduct ? ShoppingBag : isProgram ? Calendar : BookOpen
+  const Icon = isProduct ? ShoppingBag : isWorkshop ? Sparkles : isProgram ? Calendar : BookOpen
 
   return (
     <div className={`p-4 rounded-xl border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-all`}>
@@ -1245,6 +1338,15 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
                   {item.classesPerCycle && ` • ${item.classesPerCycle} clases/ciclo`}
                 </p>
               )}
+              {isWorkshop && (() => {
+                const m = (item.description || '').match(/\[taller:(.+?)\]/)
+                return m ? (
+                  <p className="text-xs text-pink-600 mt-0.5">
+                    <Clock size={10} className="inline mr-1" />
+                    Duración: {m[1]}
+                  </p>
+                ) : null
+              })()}
             </div>
           )}
 
@@ -1299,9 +1401,11 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
             className={`p-2.5 rounded-xl active:scale-95 transition-all ${
               isProduct
                 ? 'text-green-600 hover:bg-green-100'
-                : isProgram
-                  ? 'text-orange-600 hover:bg-orange-100'
-                  : 'text-purple-600 hover:bg-purple-100'
+                : isWorkshop
+                  ? 'text-pink-600 hover:bg-pink-100'
+                  : isProgram
+                    ? 'text-orange-600 hover:bg-orange-100'
+                    : 'text-purple-600 hover:bg-purple-100'
             }`}
             title="Editar"
             aria-label={`Editar ${item.name}`}

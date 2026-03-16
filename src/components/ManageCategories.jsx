@@ -5,7 +5,8 @@ import Modal from './ui/Modal'
 
 const PRESET_COLORS = [
   '#EF4444', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899',
-  '#6366F1', '#10B981', '#6B7280', '#F97316', '#14B8A6'
+  '#6366F1', '#10B981', '#6B7280', '#F97316', '#14B8A6',
+  '#0EA5E9', '#D946EF'
 ]
 
 const MAX_NAME_LENGTH = 40
@@ -213,112 +214,121 @@ export default function ManageCategories({ onClose }) {
           {!showCategoryForm && (
             <button
               onClick={() => openCategoryForm()}
-              className="w-full p-4 border-2 border-dashed border-purple-300 rounded-xl text-purple-600 hover:bg-purple-50 hover:border-purple-400 transition-colors flex items-center justify-center gap-2 font-medium"
+              className="w-full py-3 border border-dashed border-gray-300 rounded-xl text-gray-400 hover:text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center justify-center gap-2 text-sm"
             >
-              <Plus size={20} />
-              Agregar Categoría
+              <Plus size={16} />
+              Nueva categoría
             </button>
           )}
 
           {/* Category form */}
           {showCategoryForm && (
-            <div className="bg-white p-4 rounded-xl border-2 border-purple-200 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-800 text-sm">
+            <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-purple-800 text-sm">
                   {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                 </h3>
-                <button onClick={closeCategoryForm} className="p-1 hover:bg-gray-100 rounded-lg active:scale-95 transition-all">
-                  <X size={16} className="text-gray-400" />
+                <button onClick={closeCategoryForm} className="p-1.5 hover:bg-purple-100 rounded-lg active:scale-95 transition-all">
+                  <X size={16} className="text-purple-400" />
                 </button>
               </div>
 
               <div className="space-y-3">
-                {/* Row 1: Color + Name */}
-                <div className="flex gap-2 items-start">
-                  <div className="relative flex-shrink-0 pt-0.5">
-                    <button
-                      type="button"
-                      className="w-9 h-9 rounded-full border-2 border-gray-200 hover:border-purple-400 transition-all shadow-sm"
-                      style={{ backgroundColor: categoryForm.color }}
-                      onClick={() => document.getElementById('cat-color-picker').click()}
-                      title="Cambiar color"
-                    />
-                    <input
-                      id="cat-color-picker"
-                      type="color"
-                      value={categoryForm.color}
-                      onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={categoryForm.name}
-                      onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
-                      placeholder="Nombre de la categoría *"
-                      maxLength={MAX_NAME_LENGTH}
-                      autoFocus
-                    />
+                {/* Name */}
+                <input
+                  type="text"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                  placeholder="Nombre de la categoría *"
+                  maxLength={MAX_NAME_LENGTH}
+                  autoFocus
+                />
+
+                {/* Color picker inline */}
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Color</label>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    {PRESET_COLORS.map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setCategoryForm({ ...categoryForm, color })}
+                        className={`w-7 h-7 rounded-full transition-all ${
+                          categoryForm.color === color
+                            ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
+                            : 'hover:scale-110'
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="w-7 h-7 rounded-full border-2 border-dashed border-gray-300 hover:border-purple-400 transition-all flex items-center justify-center text-gray-400 text-xs"
+                        onClick={() => document.getElementById('cat-color-picker').click()}
+                        title="Color personalizado"
+                      >
+                        +
+                      </button>
+                      <input
+                        id="cat-color-picker"
+                        type="color"
+                        value={categoryForm.color}
+                        onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Color presets */}
-                <div className="flex gap-1.5 flex-wrap">
-                  {PRESET_COLORS.map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setCategoryForm({ ...categoryForm, color })}
-                      className={`w-6 h-6 rounded-full border-2 transition-all ${
-                        categoryForm.color === color
-                          ? 'border-gray-800 scale-110 shadow-md'
-                          : 'border-transparent hover:border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-
-                {/* Row 2: Budget + Order */}
+                {/* Budget + Order */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Presupuesto mensual</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={categoryForm.monthly_budget}
+                        onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                        placeholder="$ Opcional"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 mb-1 block">Orden</label>
                     <input
                       type="number"
-                      value={categoryForm.monthly_budget}
-                      onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
-                      className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
-                      placeholder="Presupuesto"
+                      value={categoryForm.sort_order}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                      placeholder="0, 1, 2..."
                       min="0"
-                      step="0.01"
                     />
                   </div>
-                  <input
-                    type="number"
-                    value={categoryForm.sort_order}
-                    onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm"
-                    placeholder="Orden (0, 1, 2...)"
-                    min="0"
-                  />
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={closeCategoryForm}
-                    className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                    className="px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-white transition-colors text-sm"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSaveCategory}
-                    disabled={saving}
-                    className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
+                    disabled={saving || !categoryForm.name.trim()}
+                    className="flex-1 flex items-center justify-center gap-2 bg-purple-700 hover:bg-purple-800 text-white px-4 py-2.5 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
                   >
-                    <Check size={16} />
+                    {saving ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Check size={16} />
+                    )}
                     {saving ? 'Guardando...' : editingCategory ? 'Actualizar' : 'Crear categoría'}
                   </button>
                 </div>
@@ -340,152 +350,137 @@ export default function ManageCategories({ onClose }) {
             const isActive = cat.active !== false
 
             return (
-              <div key={cat.id} className={`rounded-xl border-2 transition-all ${
-                isActive ? 'border-gray-200 hover:shadow-md' : 'border-gray-100 bg-gray-50 opacity-70'
+              <div key={cat.id} className={`rounded-xl border transition-all ${
+                isActive ? 'border-gray-200 hover:border-gray-300' : 'border-gray-100 bg-gray-50 opacity-60'
               }`}>
                 {/* Category header */}
-                <div className="p-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="w-5 h-5 rounded-full flex-shrink-0 border border-black/10"
-                      style={{ backgroundColor: cat.color || '#6B7280' }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className={`font-semibold truncate ${isActive ? 'text-gray-800' : 'text-gray-400 line-through'}`}>
-                          {cat.name}
-                        </h4>
-                        {!isActive && (
-                          <span className="px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-500">Inactiva</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {activeSubs.length} subcategoría{activeSubs.length !== 1 ? 's' : ''}
-                        {cat.monthly_budget ? ` · Presupuesto: $${parseFloat(cat.monthly_budget).toLocaleString()}` : ''}
-                        {cat.sort_order ? ` · Orden: ${cat.sort_order}` : ''}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {isActive ? (
-                        <>
-                          <button
-                            onClick={() => openCategoryForm(cat)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
-                            title="Editar"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                            title="Desactivar"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
-                            title="Subcategorías"
-                          >
-                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleReactivateCategory(cat.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm text-green-700 bg-green-50 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
-                          title="Reactivar"
-                        >
-                          <RotateCcw size={14} />
-                          Reactivar
-                        </button>
-                      )}
-                    </div>
+                <button
+                  type="button"
+                  className="w-full p-3.5 flex items-center gap-3 text-left"
+                  onClick={() => isActive && setExpandedCategory(isExpanded ? null : cat.id)}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat.color || '#6B7280' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className={`font-semibold text-sm truncate ${isActive ? 'text-gray-800' : 'text-gray-400 line-through'}`}>
+                      {cat.name}
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {activeSubs.length} subcategoría{activeSubs.length !== 1 ? 's' : ''}
+                      {cat.monthly_budget ? ` · $${parseFloat(cat.monthly_budget).toLocaleString()}/mes` : ''}
+                    </p>
                   </div>
-                </div>
+                  {isActive ? (
+                    <div className="flex items-center gap-0.5">
+                      <span
+                        role="button"
+                        onClick={(e) => { e.stopPropagation(); openCategoryForm(cat) }}
+                        className="p-2 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-lg active:scale-95 transition-all"
+                        title="Editar"
+                      >
+                        <Edit2 size={15} />
+                      </span>
+                      <span
+                        role="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat.id, cat.name) }}
+                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg active:scale-95 transition-all"
+                        title="Desactivar"
+                      >
+                        <Trash2 size={15} />
+                      </span>
+                      <ChevronDown size={16} className={`text-gray-300 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
+                  ) : (
+                    <span
+                      role="button"
+                      onClick={() => handleReactivateCategory(cat.id)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-lg active:scale-95 transition-all"
+                    >
+                      <RotateCcw size={12} />
+                      Reactivar
+                    </span>
+                  )}
+                </button>
 
                 {/* Subcategories (expanded) */}
                 {isExpanded && isActive && (
-                  <div className="border-t border-gray-100 bg-gray-50/50 p-3 space-y-2">
-                    {/* Add subcategory button */}
-                    {showSubForm !== cat.id && (
-                      <button
-                        onClick={() => openSubForm(cat.id)}
-                        className="w-full p-2 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:bg-white hover:border-gray-400 transition-all flex items-center justify-center gap-1 text-sm"
-                      >
-                        <Plus size={16} />
-                        Agregar Subcategoría
-                      </button>
+                  <div className="border-t border-gray-100 px-3.5 pb-3 pt-2 space-y-1.5">
+                    {/* Active subcategories */}
+                    {activeSubs.map(sub => (
+                      <div key={sub.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 group transition-colors">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                        <span className="flex-1 text-sm text-gray-600">{sub.name}</span>
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openSubForm(cat.id, sub)}
+                            className="p-1.5 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-lg active:scale-95 transition-all"
+                            title="Editar"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSubcategoryConfirm(sub.id, sub.name)}
+                            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg active:scale-95 transition-all"
+                            title="Desactivar"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Inactive subcategories */}
+                    {showInactive && inactiveSubs.length > 0 && inactiveSubs.map(sub => (
+                      <div key={sub.id} className="flex items-center gap-2 px-3 py-2 rounded-lg opacity-50">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-200 flex-shrink-0" />
+                        <span className="flex-1 text-sm text-gray-400 line-through">{sub.name}</span>
+                        <button
+                          onClick={() => handleReactivateSubcategory(sub.id)}
+                          className="text-xs text-green-600 hover:text-green-700 px-2 py-1 hover:bg-green-50 rounded-lg transition-all"
+                        >
+                          Reactivar
+                        </button>
+                      </div>
+                    ))}
+
+                    {activeSubs.length === 0 && showSubForm !== cat.id && (
+                      <p className="text-center text-xs text-gray-400 py-3">Sin subcategorías</p>
                     )}
 
                     {/* Subcategory form */}
-                    {showSubForm === cat.id && (
-                      <div className="flex gap-2 items-center bg-white p-2 rounded-xl border border-gray-200">
+                    {showSubForm === cat.id ? (
+                      <div className="flex gap-2 items-center pt-1">
                         <input
                           type="text"
                           value={subForm.name}
                           onChange={(e) => setSubForm({ ...subForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                          className="flex-1 px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                          placeholder="Nombre de subcategoría"
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                          placeholder="Nueva subcategoría"
                           maxLength={MAX_NAME_LENGTH}
                           autoFocus
                           onKeyDown={(e) => { if (e.key === 'Enter') handleSaveSubcategory(); if (e.key === 'Escape') closeSubForm() }}
                         />
                         <button
                           onClick={handleSaveSubcategory}
-                          disabled={saving}
-                          className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl active:scale-95 transition-all disabled:opacity-50"
+                          disabled={saving || !subForm.name.trim()}
+                          className="p-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg active:scale-95 transition-all disabled:opacity-50"
                         >
-                          <Check size={16} />
+                          <Check size={15} />
                         </button>
-                        <button onClick={closeSubForm} className="p-2 bg-gray-200 hover:bg-gray-300 rounded-xl active:scale-95 transition-all">
-                          <X size={16} />
+                        <button onClick={closeSubForm} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg active:scale-95 transition-all">
+                          <X size={15} />
                         </button>
                       </div>
-                    )}
-
-                    {/* Active subcategories */}
-                    {activeSubs.map(sub => (
-                      <div key={sub.id} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-gray-200">
-                        <span className="flex-1 text-sm text-gray-700">{sub.name}</span>
-                        <button
-                          onClick={() => openSubForm(cat.id, sub)}
-                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
-                          title="Editar"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSubcategoryConfirm(sub.id, sub.name)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                          title="Desactivar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
-
-                    {/* Inactive subcategories */}
-                    {showInactive && inactiveSubs.length > 0 && (
-                      <>
-                        <p className="text-xs text-gray-400 pt-1">Inactivas:</p>
-                        {inactiveSubs.map(sub => (
-                          <div key={sub.id} className="flex items-center gap-2 bg-gray-100 p-2.5 rounded-xl border border-gray-200 opacity-60">
-                            <span className="flex-1 text-sm text-gray-400 line-through">{sub.name}</span>
-                            <button
-                              onClick={() => handleReactivateSubcategory(sub.id)}
-                              className="flex items-center gap-1 px-2 py-1 text-xs text-green-700 bg-green-50 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
-                            >
-                              <RotateCcw size={12} />
-                              Reactivar
-                            </button>
-                          </div>
-                        ))}
-                      </>
-                    )}
-
-                    {activeSubs.length === 0 && showSubForm !== cat.id && (
-                      <p className="text-center text-sm text-gray-400 py-2">Sin subcategorías activas</p>
+                    ) : (
+                      <button
+                        onClick={() => openSubForm(cat.id)}
+                        className="w-full py-2 text-xs text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Plus size={14} />
+                        Agregar subcategoría
+                      </button>
                     )}
                   </div>
                 )}
