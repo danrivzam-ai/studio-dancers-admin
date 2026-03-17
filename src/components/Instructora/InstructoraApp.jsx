@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 // SECURITY WARNING: bcryptjs runs client-side. Password hashing should be server-side.
 // TODO: Migrate to Supabase Edge Function for password change operations.
 import bcrypt from 'bcryptjs'
@@ -147,6 +147,15 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
 // ── App principal ────────────────────────────────────────────────────────────
 export default function InstructoraApp() {
   const [instructor, setInstructor] = useState(() => readSession())
+
+  // Defensa: si hay sesión de Supabase Auth de un shadow user del portal, cerrarla
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.app_metadata?.portal_role === 'alumna') {
+        supabase.auth.signOut()
+      }
+    })
+  }, [])
 
   const handleLogin = (data) => {
     setInstructor(data)

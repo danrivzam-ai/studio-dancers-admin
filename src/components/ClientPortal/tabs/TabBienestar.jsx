@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import DOMPurify from 'dompurify'
 import { getBienestar } from '../../../lib/adultas'
 
 export const CATEGORIA_CFG = {
@@ -20,13 +21,13 @@ const FILTROS = [
 ]
 
 function formatMarkdown(text) {
-  // Renderizado básico de markdown: negritas, listas, saltos de línea
-  return text
+  const raw = text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/^### (.+)$/gm, '<h4 class="font-bold text-gray-800 mt-3 mb-1">$1</h4>')
     .replace(/^## (.+)$/gm,  '<h3 class="font-bold text-gray-800 mt-3 mb-1 text-base">$1</h3>')
     .replace(/^- (.+)$/gm,   '<li class="ml-4 list-disc text-gray-700">$1</li>')
     .replace(/\n/g, '<br />')
+  return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ['strong', 'h3', 'h4', 'li', 'br'], ALLOWED_ATTR: ['class'] })
 }
 
 function BienestarCard({ item, expanded, onToggle }) {

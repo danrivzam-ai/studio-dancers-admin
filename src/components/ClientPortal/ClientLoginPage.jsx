@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Eye, EyeOff, Lock } from 'lucide-react'
-import { clientLogin, savePortalAuth } from '../../lib/adultas'
+import { clientLogin, savePortalAuth, setPortalSession } from '../../lib/adultas'
 
 export default function ClientLoginPage({ onLogin }) {
   const [cedula, setCedula] = useState('')
@@ -16,21 +16,23 @@ export default function ClientLoginPage({ onLogin }) {
     setLoading(true)
     setError('')
 
-    const { data, error: rpcError } = await clientLogin(cedula.trim(), phone4.trim())
+    const { data, session, error: loginError } = await clientLogin(cedula.trim(), phone4.trim())
 
-    if (rpcError) {
-      setError('Ocurrió un error. Intenta de nuevo.')
+    if (loginError || !data || data.length === 0) {
+      const msg = loginError?.status === 429
+        ? 'Demasiados intentos. Espera 10 minutos e intenta de nuevo.'
+        : 'No encontramos tu información. Verifica tu cédula y los últimos 4 dígitos de tu teléfono.'
+      setError(msg)
       setLoading(false)
       return
     }
 
-    if (!data || data.length === 0) {
-      setError('No encontramos tu información. Verifica tu cédula y los últimos 4 dígitos de tu teléfono.')
-      setLoading(false)
-      return
+    // Establecer sesión JWT real en el cliente Supabase
+    if (session) {
+      await setPortalSession(session)
     }
 
-    // Si hay un solo alumno, entrar directo. Si hay varios, seleccionar.
+    // Guardar datos de sesión como caché para RPCs
     const auth = {
       cedula: cedula.trim(),
       phone4: phone4.trim(),

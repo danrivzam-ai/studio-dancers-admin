@@ -3,6 +3,7 @@ import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail } from 'lucide-rea
 import BackupExport from './BackupExport'
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
+import { hashPin, verifyPin } from '../lib/pinUtils'
 
 export default function SettingsModal({
   settings,
@@ -87,13 +88,16 @@ export default function SettingsModal({
     }
   }
 
-  const handlePinChange = () => {
+  const handlePinChange = async () => {
     setPinError('')
 
     // Si ya hay PIN configurado, verificar el actual
-    if (formData.security_pin && currentPinInput !== formData.security_pin) {
-      setPinError('PIN actual incorrecto')
-      return
+    if (formData.security_pin) {
+      const valid = await verifyPin(currentPinInput, formData.security_pin)
+      if (!valid) {
+        setPinError('PIN actual incorrecto')
+        return
+      }
     }
 
     // Validar nuevo PIN
@@ -107,8 +111,9 @@ export default function SettingsModal({
       return
     }
 
-    // Actualizar PIN
-    setFormData({ ...formData, security_pin: newPin })
+    // Actualizar PIN (hasheado)
+    const hashed = await hashPin(newPin)
+    setFormData({ ...formData, security_pin: hashed })
     setChangingPin(false)
     setCurrentPinInput('')
     setNewPin('')
@@ -116,8 +121,9 @@ export default function SettingsModal({
     setPinError('')
   }
 
-  const handleRemovePin = () => {
-    if (currentPinInput !== formData.security_pin) {
+  const handleRemovePin = async () => {
+    const valid = await verifyPin(currentPinInput, formData.security_pin)
+    if (!valid) {
       setPinError('PIN actual incorrecto')
       return
     }

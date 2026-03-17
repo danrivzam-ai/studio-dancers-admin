@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import bcrypt from 'bcryptjs'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -32,10 +33,26 @@ export default function RecepcionLogin({ onLogin }) {
       return
     }
 
-    if (password !== data.password) {
+    // Support both bcrypt-hashed and legacy plaintext passwords
+    const isBcrypt = data.password?.startsWith('$2')
+    const valid = isBcrypt
+      ? await bcrypt.compare(password, data.password)
+      : password === data.password
+
+    if (!valid) {
       setError('Usuario o contraseña incorrectos')
       setLoading(false)
       return
+    }
+
+    // Auto-migrate legacy plaintext password to bcrypt
+    if (!isBcrypt) {
+      try {
+        const hashed = await bcrypt.hash(password, 10)
+        await supabase.from('receptionists').update({ password: hashed }).eq('id', data.id)
+      } catch (e) {
+        console.error('[RecepcionLogin] Auto-migrate password failed:', e)
+      }
     }
 
     sessionStorage.setItem('recepcion_auth', '1')

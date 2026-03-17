@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
+import { sanitizeError } from '../lib/errorUtils'
 import { Plus, Edit2, Trash2, Eye, EyeOff, X, Shield, Check } from 'lucide-react'
 import Modal from './ui/Modal'
 
@@ -37,7 +39,7 @@ export default function ReceptionistManager() {
   }
 
   const openEdit = (r) => {
-    setForm({ name: r.name, username: r.username, password: r.password, active: r.active })
+    setForm({ name: r.name, username: r.username, password: '', active: r.active })
     setEditingId(r.id)
     setShowPw(false)
     setError('')
@@ -46,7 +48,8 @@ export default function ReceptionistManager() {
 
   const handleSave = async (e) => {
     e.preventDefault()
-    if (!form.name.trim() || !form.username.trim() || !form.password.trim()) {
+    const needsPassword = !editingId || form.password.trim()
+    if (!form.name.trim() || !form.username.trim() || (!editingId && !form.password.trim())) {
       setError('Todos los campos son requeridos')
       return
     }
@@ -56,8 +59,10 @@ export default function ReceptionistManager() {
       const payload = {
         name: form.name.trim(),
         username: form.username.trim().toLowerCase(),
-        password: form.password.trim(),
         active: form.active
+      }
+      if (needsPassword) {
+        payload.password = await bcrypt.hash(form.password.trim(), 10)
       }
       if (editingId) {
         const { error: err } = await supabase.from('receptionists').update(payload).eq('id', editingId)
@@ -69,7 +74,7 @@ export default function ReceptionistManager() {
       await fetchReceptionists()
       setShowForm(false)
     } catch (err) {
-      setError(err.message.includes('unique') ? 'Ese nombre de usuario ya existe' : err.message)
+      setError(err.message?.includes('unique') ? 'Ese nombre de usuario ya existe' : sanitizeError(err))
     } finally {
       setSaving(false)
     }
@@ -230,8 +235,8 @@ export default function ReceptionistManager() {
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                     className="flex-1 px-4 py-3 bg-transparent outline-none text-sm min-w-0"
-                    placeholder="Contraseña de acceso"
-                    required
+                    placeholder={editingId ? 'Dejar vacío para no cambiar' : 'Contraseña de acceso'}
+                    required={!editingId}
                   />
                   <button
                     type="button"

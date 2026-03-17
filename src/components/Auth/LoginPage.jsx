@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { sanitizeError } from '../../lib/errorUtils'
 import Modal from '../ui/Modal'
 
 export default function LoginPage({ onLogin }) {
@@ -38,9 +39,7 @@ export default function LoginPage({ onLogin }) {
         onLogin(data.user)
       }
     } catch (err) {
-      setError(err.message === 'Invalid login credentials'
-        ? 'Email o contraseña incorrectos'
-        : err.message)
+      setError(sanitizeError(err, 'Email o contraseña incorrectos'))
     } finally {
       setLoading(false)
     }
@@ -58,7 +57,7 @@ export default function LoginPage({ onLogin }) {
       if (error) throw error
       setResetSent(true)
     } catch (err) {
-      setError(err.message || 'No se pudo enviar el enlace. Verifica el correo.')
+      setError(sanitizeError(err, 'No se pudo enviar el enlace. Verifica el correo.'))
     } finally {
       setLoading(false)
     }

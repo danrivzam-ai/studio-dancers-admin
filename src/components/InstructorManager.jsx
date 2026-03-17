@@ -8,6 +8,7 @@ import {
 // TODO: Migrate to Supabase Edge Function for instructor password management.
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
+import { sanitizeError } from '../lib/errorUtils'
 import { syncToMailerLite } from '../lib/mailerlite'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
@@ -104,7 +105,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       }
       setInstructorRhythms(rmap)
     } catch (err) {
-      setError('Error al cargar instructoras: ' + err.message)
+      setError(sanitizeError(err, 'Error al cargar instructoras'))
     } finally {
       setLoading(false)
     }
@@ -225,7 +226,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       await fetchAll()
       closeForm()
     } catch (err) {
-      setFormError('Error: ' + err.message)
+      setFormError(sanitizeError(err))
     } finally {
       setSaving(false)
     }
@@ -242,7 +243,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       setInstructors(prev => prev.map(i => i.id === inst.id ? { ...i, active: !i.active } : i))
       setSuccess(`${inst.name} ${!inst.active ? 'activada' : 'desactivada'}`)
     } catch (err) {
-      setError('Error: ' + err.message)
+      setError(sanitizeError(err))
     }
   }
 
@@ -298,7 +299,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       if (error && error.code !== '42P01') throw error
       setScheduleSlots(data || [])
     } catch (err) {
-      setError('Error al cargar horario: ' + err.message)
+      setError(sanitizeError(err, 'Error al cargar horario'))
     } finally {
       setLoadingSlots(false)
     }
@@ -374,7 +375,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       setSlotForm(emptySlotForm)
       setEditingSlotId(null)
     } catch (err) {
-      setError('Error: ' + err.message)
+      setError(sanitizeError(err))
     } finally {
       setSavingSlot(false)
     }
@@ -384,7 +385,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
     // Si se estaba editando este slot, cerrar el form
     if (editingSlotId === slotId) { setShowSlotForm(false); setSlotForm(emptySlotForm); setEditingSlotId(null) }
     const { error } = await supabase.from('instructor_schedule').delete().eq('id', slotId)
-    if (error) { setError('Error al eliminar: ' + error.message); return }
+    if (error) { setError(sanitizeError(error, 'Error al eliminar')); return }
     setScheduleSlots(prev => prev.filter(s => s.id !== slotId))
   }
 
@@ -409,7 +410,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       setSuccess('Cursos actualizados')
       closeCoursePanel()
     } catch (err) {
-      setError('Error al guardar cursos: ' + err.message)
+      setError(sanitizeError(err, 'Error al guardar cursos'))
     } finally {
       setSavingCourses(false)
     }

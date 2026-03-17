@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, ArrowLeftRight, Trash2, AlertTriangle, Check, Clock, Building2, ArrowUpCircle, ArrowDownCircle, HandCoins } from 'lucide-react'
 import { useCashMovements } from '../hooks/useCashMovements'
 import { formatDate } from '../lib/dateUtils'
+import { sanitizeError } from '../lib/errorUtils'
 import Modal from './ui/Modal'
 import EmptyState from './ui/EmptyState'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -129,7 +130,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
         setErrorMessage('Error: ' + result.error)
       }
     } catch (err) {
-      setErrorMessage('Error: ' + err.message)
+      setErrorMessage(sanitizeError(err))
     } finally {
       setSubmitting(false)
     }

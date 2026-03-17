@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Lock, Shield } from 'lucide-react'
 import Modal from './ui/Modal'
+import { verifyPin } from '../lib/pinUtils'
 
 export default function PinPromptModal({
   isOpen,
@@ -14,11 +15,12 @@ export default function PinPromptModal({
   const [error, setError] = useState('')
   const [attempts, setAttempts] = useState(0)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (pin === requiredPin) {
+    const valid = await verifyPin(pin, requiredPin)
+    if (valid) {
       setPin('')
       setAttempts(0)
       onSuccess()

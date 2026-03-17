@@ -3,6 +3,7 @@ import { X, DollarSign, TrendingUp, TrendingDown, Clock, CheckCircle, AlertCircl
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { formatDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
 import CashCloseReport from './CashCloseReport'
 import Modal from './ui/Modal'
@@ -188,7 +189,7 @@ export default function CashRegister({ onClose, settings }) {
       toast.success('Caja abierta correctamente')
     } catch (err) {
       console.error('Error opening register:', err)
-      toast.error('Error: ' + err.message)
+      toast.error(sanitizeError(err))
     }
   }
 
@@ -222,7 +223,7 @@ export default function CashRegister({ onClose, settings }) {
       toast.success('Caja reabierta. Puedes ajustar el monto de apertura y volver a cerrar.')
     } catch (err) {
       console.error('Error reopening register:', err)
-      toast.error('Error: ' + err.message)
+      toast.error(sanitizeError(err))
     }
   }
 
@@ -246,7 +247,7 @@ export default function CashRegister({ onClose, settings }) {
       toast.success('Monto de apertura actualizado')
     } catch (err) {
       console.error('Error updating opening:', err)
-      toast.error('Error: ' + err.message)
+      toast.error(sanitizeError(err))
     }
   }
 
@@ -284,7 +285,7 @@ export default function CashRegister({ onClose, settings }) {
       toast.success('Caja cerrada correctamente')
     } catch (err) {
       console.error('Error closing register:', err)
-      toast.error('Error: ' + err.message)
+      toast.error(sanitizeError(err))
     }
   }
 

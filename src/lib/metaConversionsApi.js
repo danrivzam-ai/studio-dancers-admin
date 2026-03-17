@@ -1,22 +1,14 @@
 /**
  * metaConversionsApi.js
- * Envía eventos de conversión a Meta via Conversions API (server-side events).
+ * Envía eventos de conversión a Meta via Edge Function (server-side).
+ * El access token NUNCA se expone al frontend.
  * Patrón fire-and-forget: nunca lanza excepciones, no bloquea el flujo principal.
- *
- * Fase 1: Evento "Lead" al registrar alumna nueva.
- *
- * Docs: https://developers.facebook.com/docs/marketing-api/conversions-api
  */
 
-const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID
-const ACCESS_TOKEN = import.meta.env.VITE_META_CAPI_TOKEN
-const API_VERSION = 'v21.0'
-const ENDPOINT = `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events`
+import { supabase } from './supabase'
 
 /**
  * Hashea un valor con SHA-256 (requerido por Meta CAPI).
- * @param {string} value
- * @returns {Promise<string>} hex-encoded hash
  */
 async function sha256(value) {
   if (!value) return null
@@ -28,8 +20,6 @@ async function sha256(value) {
 
 /**
  * Formatea teléfono ecuatoriano a formato E.164 sin el +
- * Meta requiere: código país + número, sin espacios ni símbolos
- * Ejemplo: 0991234567 → 593991234567
  */
 function normalizePhone(phone) {
   if (!phone) return null
@@ -41,7 +31,6 @@ function normalizePhone(phone) {
 
 /**
  * Separa un nombre completo en nombre y apellido.
- * Meta espera fn (first name) y ln (last name) por separado.
  */
 function splitName(fullName) {
   if (!fullName) return { fn: null, ln: null }
@@ -52,13 +41,10 @@ function splitName(fullName) {
 
 /**
  * Construye los user_data hasheados para Meta CAPI.
- * Escoge datos del representante si es menor, o de la alumna si es adulta.
  */
 async function buildUserData(studentData) {
   const isMinor = studentData.is_minor || studentData.isMinor
 
-  // Si es menor → datos del representante (quien vio el anuncio)
-  // Si es adulta → datos de la alumna
   const phone = isMinor
     ? (studentData.parent_phone || studentData.parentPhone)
     : studentData.phone
@@ -97,129 +83,70 @@ async function buildUserData(studentData) {
 }
 
 /**
- * Envía un evento Lead a Meta Conversions API.
- * Se llama al registrar una alumna nueva.
- * Fire-and-forget: no lanza excepciones.
- *
- * @param {Object} studentData - Datos de la alumna (del formulario o de la BD)
- * @param {string} [eventId] - ID único del evento (para deduplicación). Usar el student.id
- * @returns {Promise<{success: boolean, error?: string}>}
+ * Envía un evento a Meta via la Edge Function meta-capi.
  */
-export async function sendLeadEvent(studentData, eventId) {
+async function sendEvent(eventName, userData, customData, eventId) {
   try {
-    if (!PIXEL_ID || !ACCESS_TOKEN) {
-      console.warn('[Meta CAPI] Missing PIXEL_ID or ACCESS_TOKEN — skipping event')
-      return { success: false, error: 'Missing config' }
-    }
-
-    const userData = await buildUserData(studentData)
-
-    // Verificar que hay al menos un dato de contacto para matching
-    if (!userData.ph && !userData.em) {
-      console.warn('[Meta CAPI] No phone or email available — skipping event')
-      return { success: false, error: 'No contact data for matching' }
-    }
-
-    const payload = {
-      data: [
-        {
-          event_name: 'Lead',
-          event_time: Math.floor(Date.now() / 1000),
-          action_source: 'physical_store',
-          event_id: eventId || `lead_${Date.now()}`,
-          user_data: userData,
-          custom_data: {
-            content_name: 'Registro de alumna',
-            content_category: studentData.is_minor || studentData.isMinor
-              ? 'menor_con_representante'
-              : 'adulta',
-          },
-        },
-      ],
-    }
-
-    const res = await fetch(`${ENDPOINT}?access_token=${ACCESS_TOKEN}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    const { data, error } = await supabase.functions.invoke('meta-capi', {
+      body: {
+        event_name: eventName,
+        event_id: eventId,
+        user_data: userData,
+        custom_data: customData,
+      },
     })
 
-    const result = await res.json()
-
-    if (!res.ok) {
-      console.error('[Meta CAPI] Error:', result)
-      return { success: false, error: result.error?.message || 'API error' }
+    if (error) {
+      console.error(`[Meta CAPI] Edge function error:`, error)
+      return { success: false, error: 'Edge function error' }
     }
 
-    console.log('[Meta CAPI] Lead event sent:', result)
-    return { success: true }
+    console.log(`[Meta CAPI] ${eventName} event sent:`, data)
+    return { success: data?.success || false }
   } catch (err) {
-    console.error('[Meta CAPI] Failed to send event:', err)
+    console.error(`[Meta CAPI] Failed to send ${eventName} event:`, err)
     return { success: false, error: err.message }
   }
 }
 
 /**
- * Envía un evento Purchase a Meta Conversions API.
- * Se llama al registrar un pago de alumna.
- * Fire-and-forget: no lanza excepciones.
- *
- * @param {Object} studentData - Datos de la alumna
- * @param {Object} paymentData - Datos del pago { amount, paymentMethod, paymentId, courseName }
- * @returns {Promise<{success: boolean, error?: string}>}
+ * Envía un evento Lead a Meta Conversions API.
+ * Se llama al registrar una alumna nueva.
  */
-export async function sendPurchaseEvent(studentData, paymentData) {
-  try {
-    if (!PIXEL_ID || !ACCESS_TOKEN) {
-      console.warn('[Meta CAPI] Missing PIXEL_ID or ACCESS_TOKEN — skipping event')
-      return { success: false, error: 'Missing config' }
-    }
+export async function sendLeadEvent(studentData, eventId) {
+  const userData = await buildUserData(studentData)
 
-    const userData = await buildUserData(studentData)
-
-    if (!userData.ph && !userData.em) {
-      console.warn('[Meta CAPI] No phone or email available — skipping event')
-      return { success: false, error: 'No contact data for matching' }
-    }
-
-    const payload = {
-      data: [
-        {
-          event_name: 'Purchase',
-          event_time: Math.floor(Date.now() / 1000),
-          action_source: 'physical_store',
-          event_id: `purchase_${paymentData.paymentId || Date.now()}`,
-          user_data: userData,
-          custom_data: {
-            currency: 'USD',
-            value: parseFloat(paymentData.amount) || 0,
-            content_name: paymentData.courseName || 'Pago de mensualidad',
-            content_category: studentData.is_minor || studentData.isMinor
-              ? 'menor_con_representante'
-              : 'adulta',
-          },
-        },
-      ],
-    }
-
-    const res = await fetch(`${ENDPOINT}?access_token=${ACCESS_TOKEN}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-
-    const result = await res.json()
-
-    if (!res.ok) {
-      console.error('[Meta CAPI] Error:', result)
-      return { success: false, error: result.error?.message || 'API error' }
-    }
-
-    console.log('[Meta CAPI] Purchase event sent:', result)
-    return { success: true }
-  } catch (err) {
-    console.error('[Meta CAPI] Failed to send Purchase event:', err)
-    return { success: false, error: err.message }
+  if (!userData.ph && !userData.em) {
+    console.warn('[Meta CAPI] No phone or email available — skipping event')
+    return { success: false, error: 'No contact data for matching' }
   }
+
+  return sendEvent('Lead', userData, {
+    content_name: 'Registro de alumna',
+    content_category: studentData.is_minor || studentData.isMinor
+      ? 'menor_con_representante'
+      : 'adulta',
+  }, eventId || `lead_${Date.now()}`)
 }
 
+/**
+ * Envía un evento Purchase a Meta Conversions API.
+ * Se llama al registrar un pago de alumna.
+ */
+export async function sendPurchaseEvent(studentData, paymentData) {
+  const userData = await buildUserData(studentData)
+
+  if (!userData.ph && !userData.em) {
+    console.warn('[Meta CAPI] No phone or email available — skipping event')
+    return { success: false, error: 'No contact data for matching' }
+  }
+
+  return sendEvent('Purchase', userData, {
+    currency: 'USD',
+    value: parseFloat(paymentData.amount) || 0,
+    content_name: paymentData.courseName || 'Pago de mensualidad',
+    content_category: studentData.is_minor || studentData.isMinor
+      ? 'menor_con_representante'
+      : 'adulta',
+  }, `purchase_${paymentData.paymentId || Date.now()}`)
+}

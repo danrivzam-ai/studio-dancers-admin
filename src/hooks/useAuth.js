@@ -42,8 +42,10 @@ export function useAuth() {
           console.error('Error getting session:', error)
         }
 
-        setSession(session)
-        setUser(session?.user ?? null)
+        // Shadow users del portal de alumnas NO deben acceder al admin
+        const isPortalUser = session?.user?.app_metadata?.portal_role === 'alumna'
+        setSession(isPortalUser ? null : session)
+        setUser(isPortalUser ? null : session?.user ?? null)
       } catch (err) {
         console.error('Auth error:', err)
       } finally {
@@ -57,8 +59,10 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event)
-        setSession(session)
-        setUser(session?.user ?? null)
+        // Shadow users del portal de alumnas NO deben acceder al admin
+        const isPortalUser = session?.user?.app_metadata?.portal_role === 'alumna'
+        setSession(isPortalUser ? null : session)
+        setUser(isPortalUser ? null : session?.user ?? null)
         setLoading(false)
       }
     )

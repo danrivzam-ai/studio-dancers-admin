@@ -18,6 +18,7 @@ import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
+import { sanitizeError } from './lib/errorUtils'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -754,7 +755,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       refreshIncome()
     } catch (err) {
       console.error('Error en pago rápido:', err)
-      toast.error(err.message)
+      toast.error(sanitizeError(err))
     }
   }
 
@@ -2816,10 +2817,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onAdjustStock={adjustStock}
             onGetInventoryMovements={getInventoryMovements}
             onClose={() => setShowManageItems(false)}
-            onRequestPin={(pin) => {
-              // Verificar PIN
-              if (!settings.security_pin) return true // Si no hay PIN configurado, permitir
-              return pin === settings.security_pin
+            onRequestPin={async (pin) => {
+              if (!settings.security_pin) return true
+              const { verifyPin } = await import('./lib/pinUtils')
+              return verifyPin(pin, settings.security_pin)
             }}
           />
         )}

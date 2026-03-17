@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, DollarSign, TrendingDown, Trash2, Banknote, Smartphone, CreditCard, AlertTriangle, Check, Clock } from 'lucide-react'
 import { useExpenses } from '../hooks/useExpenses'
 import { formatDate } from '../lib/dateUtils'
+import { sanitizeError } from '../lib/errorUtils'
 import Modal from './ui/Modal'
 import EmptyState from './ui/EmptyState'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -101,7 +102,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         setErrorMessage('Error: ' + result.error)
       }
     } catch (err) {
-      setErrorMessage('Error: ' + err.message)
+      setErrorMessage(sanitizeError(err))
     } finally {
       setSubmitting(false)
     }
