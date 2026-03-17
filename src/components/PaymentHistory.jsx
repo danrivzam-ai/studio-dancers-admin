@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { X, Calendar, Search, FileText, Printer, DollarSign, Filter, ChevronDown, ChevronUp, Ban, Lock, AlertTriangle, Zap, ShoppingBag } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
+import { verifyPin } from '../lib/pinUtils'
+import { sanitizeError } from '../lib/errorUtils'
 import { formatDate, formatDateForInput, calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, getTodayEC, getNowEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import Modal from './ui/Modal'
@@ -166,7 +168,8 @@ export default function PaymentHistory({
       setVoidError('No hay PIN configurado. Ve a Configuración para crear uno.')
       return
     }
-    if (voidPin !== settings.security_pin) {
+    const valid = await verifyPin(voidPin, settings.security_pin)
+    if (!valid) {
       setVoidError('PIN incorrecto')
       setVoidPin('')
       return
@@ -235,7 +238,7 @@ export default function PaymentHistory({
 
       closeVoidModal()
     } catch (err) {
-      setVoidError('Error: ' + err.message)
+      setVoidError(sanitizeError(err))
     } finally {
       setVoidLoading(false)
     }

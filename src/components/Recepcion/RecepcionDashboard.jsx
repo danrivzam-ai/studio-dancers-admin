@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, X, Plus, LogOut, User, Phone, CreditCard, ChevronRight, AlertCircle, CheckCircle2, Clock, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { sanitizeError } from '../../lib/errorUtils'
 import { getCourseById, ALL_COURSES } from '../../lib/courses'
 import { getDaysUntilDue, getTodayEC } from '../../lib/dateUtils'
 import PaymentModal from '../PaymentModal'
@@ -60,7 +61,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
       created_at:     new Date().toISOString(),
     })
     setSaving(false)
-    if (err) { setError(err.message); return }
+    if (err) { setError(sanitizeError(err)); return }
     onCreated()
     onClose()
   }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import bcrypt from 'bcryptjs'
 import { Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
@@ -32,7 +33,8 @@ export default function RecepcionLogin({ onLogin }) {
       return
     }
 
-    if (password !== data.password) {
+    const valid = await bcrypt.compare(password, data.password)
+    if (!valid) {
       setError('Usuario o contraseña incorrectos')
       setLoading(false)
       return

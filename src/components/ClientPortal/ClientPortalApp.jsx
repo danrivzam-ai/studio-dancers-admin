@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getPortalAuth, savePortalAuth, clearPortalAuth } from '../../lib/adultas'
+import { getPortalAuth, savePortalAuth, clearPortalAuth, getPortalSession, signOutPortal } from '../../lib/adultas'
 import { COURSES } from '../../lib/courses'
 import ClientLoginPage from './ClientLoginPage'
 import AdultDashboard from './AdultDashboard'
@@ -26,16 +26,30 @@ export default function ClientPortalApp() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Restaurar sesión guardada
-    const saved = getPortalAuth()
-    if (saved) {
-      setAuth(saved)
-      // Si solo hay un alumno, seleccionarlo automáticamente
-      if (saved.students?.length === 1) {
-        setSelectedStudent(saved.students[0])
+    // Restaurar sesión: verificar JWT válido + datos en caché
+    const restoreSession = async () => {
+      const session = await getPortalSession()
+      const saved = getPortalAuth()
+
+      // Verificar que la sesión sea de un usuario del portal (no admin)
+      const isPortalSession = session?.user?.app_metadata?.portal_role === 'alumna'
+
+      if (session && isPortalSession && saved) {
+        // JWT válido de portal + datos en caché → restaurar
+        setAuth(saved)
+        if (saved.students?.length === 1) {
+          setSelectedStudent(saved.students[0])
+        }
+      } else {
+        // Sin sesión válida de portal → limpiar todo
+        if (saved) clearPortalAuth()
+        if (session && !isPortalSession) {
+          // Sesión de admin u otro tipo → no cerrarla, solo ignorarla
+        }
       }
+      setReady(true)
     }
-    setReady(true)
+    restoreSession()
   }, [])
 
   const handleLogin = (authData) => {
@@ -45,7 +59,8 @@ export default function ClientPortalApp() {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOutPortal()
     clearPortalAuth()
     setAuth(null)
     setSelectedStudent(null)

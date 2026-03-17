@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { X, AlertTriangle, Trash2, Ban, Lock } from 'lucide-react'
 import Modal from './ui/Modal'
+import { verifyPin } from '../lib/pinUtils'
+import { sanitizeError } from '../lib/errorUtils'
 
 export default function DeleteConfirmModal({
   isOpen,
@@ -22,10 +24,13 @@ export default function DeleteConfirmModal({
     e.preventDefault()
     setError('')
 
-    if (requiredPin && pin !== requiredPin) {
-      setError('PIN incorrecto')
-      setPin('')
-      return
+    if (requiredPin) {
+      const valid = await verifyPin(pin, requiredPin)
+      if (!valid) {
+        setError('PIN incorrecto')
+        setPin('')
+        return
+      }
     }
 
     setLoading(true)
@@ -34,7 +39,7 @@ export default function DeleteConfirmModal({
       setPin('')
       onClose()
     } catch (err) {
-      setError('Error: ' + err.message)
+      setError(sanitizeError(err))
     } finally {
       setLoading(false)
     }

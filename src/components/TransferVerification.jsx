@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2 } from 'lucide-react'
 import { formatDate } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
+import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -100,7 +101,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       onSubmitted()
     } catch (err) {
       console.error('Manual transfer error:', err)
-      setError('Error al registrar: ' + err.message)
+      setError(sanitizeError(err, 'Error al registrar'))
     } finally {
       setLoading(false)
     }
@@ -257,7 +258,7 @@ export default function TransferVerification({
       await onApprove(request.id)
     } catch (err) {
       console.error('Error approving:', err)
-      toast.error('Error al aprobar: ' + err.message)
+      toast.error(sanitizeError(err, 'Error al aprobar'))
     } finally {
       setProcessing(null)
     }
@@ -271,7 +272,7 @@ export default function TransferVerification({
       setRejectingId(null)
       setRejectReason('')
     } catch (err) {
-      toast.error('Error al rechazar: ' + err.message)
+      toast.error(sanitizeError(err, 'Error al rechazar'))
     } finally {
       setProcessing(null)
     }

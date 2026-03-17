@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Check, User, Users, CreditCard, Search, UserCheck, Gift } from 'lucide-react'
 import { getTodayEC } from '../lib/dateUtils'
+import { validateStudentForm } from '../lib/validators'
 import Modal from './ui/Modal'
 
 // Reusable labeled input component
@@ -129,13 +130,20 @@ export default function StudentForm({
   }, [formData.age])
 
   const [submitting, setSubmitting] = useState(false)
+  const [validationErrors, setValidationErrors] = useState([])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (submitting) return
+    const errors = validateStudentForm(formData)
+    if (errors.length > 0) {
+      setValidationErrors(errors)
+      return
+    }
+    setValidationErrors([])
     setSubmitting(true)
     await onSubmit(formData)
-    setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
+    setSubmitting(false)
   }
 
   const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
@@ -156,6 +164,13 @@ export default function StudentForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {validationErrors.length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+              {validationErrors.map((err, i) => (
+                <p key={i} className="text-red-700 text-xs">{err}</p>
+              ))}
+            </div>
+          )}
           {/* Toggle Menor / Adulto */}
           <div className="flex rounded-xl overflow-hidden border-2 border-purple-200">
             <button

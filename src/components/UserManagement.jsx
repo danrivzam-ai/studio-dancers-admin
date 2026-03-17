@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, UserPlus, Trash2, Shield, User, Eye, Mail, Check, AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { sanitizeError } from '../lib/errorUtils'
 import { ROLES } from '../hooks/useAuth'
 import Modal from './ui/Modal'
 
@@ -88,7 +89,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
       fetchUsers()
     } catch (err) {
       console.error('Error adding user:', err)
-      setError('Error al agregar usuario: ' + err.message)
+      setError(sanitizeError(err, 'Error al agregar usuario'))
     }
   }
 

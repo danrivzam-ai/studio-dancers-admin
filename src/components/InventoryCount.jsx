@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { X, ClipboardCheck, Download, AlertTriangle, CheckCircle, MinusCircle } from 'lucide-react'
 import { toPng } from 'html-to-image'
+import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -77,7 +78,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
       toast.success(`Inventario ajustado: ${adjusted} producto${adjusted !== 1 ? 's' : ''} actualizado${adjusted !== 1 ? 's' : ''}`)
       setSubmitted(true)
     } catch (err) {
-      toast.error('Error al ajustar inventario: ' + err.message)
+      toast.error(sanitizeError(err, 'Error al ajustar inventario'))
     } finally {
       setSubmitting(false)
     }

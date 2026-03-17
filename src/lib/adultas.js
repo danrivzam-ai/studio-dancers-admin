@@ -21,13 +21,51 @@ export function clearPortalAuth() {
   sessionStorage.removeItem(PORTAL_AUTH_KEY)
 }
 
-// ── Login del cliente (cédula + últimos 4 del teléfono) ──────────
+// ── Login del cliente vía Edge Function (server-side) ────────────
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+
 export async function clientLogin(cedula, phone4) {
-  const { data, error } = await supabase.rpc('rpc_client_login', {
-    p_cedula: cedula.trim(),
-    p_phone_last4: phone4.trim()
-  })
-  return { data: data || [], error }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/auth-alumna`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cedula: cedula.trim(), phone4: phone4.trim() })
+    })
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      return { data: [], session: null, error: { message: errBody.error || 'unauthorized', status: res.status } }
+    }
+
+    const json = await res.json()
+    return {
+      data: json.students || [],
+      session: {
+        access_token: json.access_token,
+        refresh_token: json.refresh_token,
+        expires_in: json.expires_in
+      },
+      error: null
+    }
+  } catch {
+    return { data: [], session: null, error: { message: 'network_error' } }
+  }
+}
+
+// ── Establecer sesión JWT en Supabase client ─────────────────────
+export async function setPortalSession({ access_token, refresh_token }) {
+  return supabase.auth.setSession({ access_token, refresh_token })
+}
+
+// ── Verificar si hay sesión JWT válida ───────────────────────────
+export async function getPortalSession() {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session
+}
+
+// ── Cerrar sesión JWT ────────────────────────────────────────────
+export async function signOutPortal() {
+  await supabase.auth.signOut()
 }
 
 // ── Bienestar: piezas publicadas (con paginación) ────────────────

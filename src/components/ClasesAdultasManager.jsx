@@ -3,6 +3,7 @@ import { Calendar, Plus, Pencil, Check, X } from 'lucide-react'
 import {
   getCursos, getCiclos, createCiclo, closeCiclo, updateCiclo, getAllActiveCiclos
 } from '../lib/adultas-admin'
+import { sanitizeError } from '../lib/errorUtils'
 import { getTodayEC } from '../lib/adultas'
 import { useToast } from './Toast'
 
@@ -110,7 +111,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
     })
     setSaving(false)
     if (!error) { setShowForm(false); onCicloCreated() }
-    else toast.error('Error al crear ciclo: ' + error.message)
+    else toast.error(sanitizeError(error, 'Error al crear ciclo'))
   }
 
   const handleClose = async () => {
@@ -119,7 +120,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
     setSaving(false)
     setConfirmClose(false)
     if (!error) onCicloClosed()
-    else toast.error('Error al cerrar ciclo: ' + error.message)
+    else toast.error(sanitizeError(error, 'Error al cerrar ciclo'))
   }
 
   const handleSaveObjetivo = async () => {
@@ -127,7 +128,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
     const { error } = await updateCiclo(activeCiclo.id, { objetivoCiclo: objetivoEdit })
     setSaving(false)
     if (!error) { setEditObjetivo(false); onCicloUpdated() }
-    else toast.error('Error al guardar: ' + error.message)
+    else toast.error(sanitizeError(error, 'Error al guardar'))
   }
 
   return (

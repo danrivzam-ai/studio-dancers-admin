@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, Plus, Edit2, Trash2, Save, Package, BookOpen, Calendar, ShoppingBag, AlertTriangle, Users, PackagePlus, ImageIcon, Upload, History, ArrowUpCircle, ArrowDownCircle, Clock, ChevronDown, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -383,7 +384,7 @@ export default function ManageItems({
         setErrorMessage(result.error || 'Error al actualizar stock')
       }
     } catch (err) {
-      setErrorMessage(err.message)
+      setErrorMessage(sanitizeError(err))
     } finally {
       setAdjustLoading(false)
     }
