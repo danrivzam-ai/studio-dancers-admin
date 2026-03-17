@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import jsPDF from 'jspdf'
+import { toPng } from 'html-to-image'
 import { X, Download, Send, Check } from 'lucide-react'
 import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
@@ -38,102 +38,37 @@ export default function ReceiptGenerator({
   const [downloading, setDownloading] = useState(false)
   const [downloaded, setDownloaded] = useState(false)
 
-  const downloadReceipt = () => {
+  const downloadReceipt = async () => {
+    if (!receiptRef.current) return
     setDownloading(true)
     try {
-      const W = 80
-      const doc = new jsPDF({ unit: 'mm', format: [W, 220], orientation: 'portrait' })
-      let y = 8
-
-      const schoolName = settings?.name || 'Studio Dancers'
+      // Captura el comprobante visual como PNG (ideal para compartir por WhatsApp)
+      // Si hay imágenes externas (logo con CORS), se omiten con el filtro
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+        skipFonts: true,
+        filter: (node) => {
+          // Omitir imágenes externas que causan error CORS
+          if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) {
+            return false
+          }
+          return true
+        }
+      })
       const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
-      const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
-
-      const center = (text, fs, bold = false) => {
-        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
-        const lines = doc.splitTextToSize(String(text), W - 8)
-        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
-        y += 1
-      }
-      const row = (left, right, fs = 8) => {
-        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
-        doc.text(String(left), 5, y)
-        doc.text(String(right), W - 5, y, { align: 'right' })
-        y += fs * 0.44
-      }
-      const dashedLine = () => {
-        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
-        doc.setLineDashPattern([], 0); y += 4
-      }
-
-      // Cabecera
-      center(schoolName, 11, true)
-      if (settings?.address) center(settings.address, 7)
-      if (settings?.phone) center(`Tel: ${settings.phone}`, 7)
-      if (settings?.ruc) center(`RUC: ${settings.ruc}`, 7)
-      y += 1; dashedLine()
-      center('COMPROBANTE DE PAGO', 9, true)
-      if (isReprint) center('*** REIMPRESIÓN ***', 7)
-      center(`N° ${receiptNumber}`, 8, true)
-      center(`Fecha: ${formatDate(payment.payment_date)}`, 7)
-      y += 1; dashedLine()
-
-      // Datos cliente
-      row(isQuickPayment ? 'Cliente:' : 'Alumno:', student.name, 8)
-      if (student.cedula) row('Cédula:', student.cedula, 8)
-      row(isQuickPayment ? 'Clase:' : 'Curso:', courseName, 8)
-      if (!isQuickPayment) row('Período:', getMonthName(payment.payment_date), 8)
-      if (!isQuickPayment && student.payer_name && student.payer_name !== student.name && student.payer_name !== student.parent_name) {
-        y += 1; dashedLine()
-        row('Comprobante a:', student.payer_name, 8)
-        if (student.payer_cedula) row('Cédula/RUC:', student.payer_cedula, 8)
-      }
-      y += 1; dashedLine()
-
-      // Monto
-      if (payment.discount?.hasDiscount) {
-        row('Precio regular:', `$${parseFloat(payment.discount.originalPrice).toFixed(2)}`, 8)
-        row('Descuento:', `-$${parseFloat(payment.discount.discountAmount).toFixed(2)}`, 8)
-      }
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
-      doc.text('Monto pagado:', 5, y)
-      doc.text(`$${parseFloat(payment.amount).toFixed(2)}`, W - 5, y, { align: 'right' })
-      y += 5
-      row('Forma de pago:', payment.payment_method, 8)
-      if (payment.bank_name) row('Banco:', payment.bank_name, 8)
-      if (payment.transfer_receipt) row('N° Transferencia:', payment.transfer_receipt, 8)
-      y += 1; dashedLine()
-
-      // Saldo (programas / paquetes con abono parcial)
-      if ((isProgram || (isRecurring && isPartialPayment)) && coursePrice > 0) {
-        center('Estado de cuenta del ciclo', 7, true)
-        row('Precio ciclo:', `$${coursePrice.toFixed(2)}`, 8)
-        row('Abonado:', `$${totalPaid.toFixed(2)}`, 8)
-        row('Saldo:', `$${balance.toFixed(2)}`, 8)
-        y += 1; dashedLine()
-      }
-
-      // Próximo cobro (mensuales/paquetes)
-      if (!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date) {
-        center('Próximo cobro', 7)
-        center(formatDate(student.next_payment_date), 9, true)
-        y += 1; dashedLine()
-      }
-
-      // Footer
-      center('¡Gracias por su preferencia!', 7)
-      if (settings?.email) center(settings.email, 7)
-
-      // Ajustar altura del documento al contenido
-      const pageHeight = y + 8
-      doc.internal.pageSize.height = pageHeight
-
-      doc.save(`Comprobante_${receiptNumber}_${(student?.name || 'Cliente').replace(/\s+/g, '_')}.pdf`)
+      const customerName = student?.name || 'Cliente'
+      const link = document.createElement('a')
+      link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
+      link.href = dataUrl
+      link.click()
       setDownloaded(true)
       setTimeout(() => setDownloaded(false), 3000)
     } catch (err) {
-      console.error('Error generating receipt PDF:', err)
-      alert('Error al generar el comprobante. Inténtalo de nuevo.')
+      console.error('Error generando comprobante PNG:', err)
+      alert('Error al generar el comprobante. Intenta de nuevo o usa captura de pantalla.')
     } finally {
       setDownloading(false)
     }
@@ -397,7 +332,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               }`}
             >
               {downloaded ? <Check size={20} /> : <Download size={20} />}
-              {downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar PDF'}
+              {downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar imagen'}
             </button>
             {student.phone && (
               <button
