@@ -183,7 +183,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Acciones */}
-        <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
+        <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
           <p className="font-semibold text-gray-700 text-sm">Comprobante de abono</p>
           <div className="flex gap-2">
             <button onClick={handleDownload} disabled={downloading}
@@ -504,7 +504,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
   return (
     <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-white w-full sm:max-w-md rounded-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-        <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
+        <div className="flex items-center justify-between p-6 border-b shrink-0">
           <p className="font-semibold text-gray-800">Nuevo plan de abonos</p>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
         </div>
@@ -515,7 +515,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Buscar alumna en sistema</label>
             <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-purple-400 bg-white">
-              <Search size={14} className="text-gray-400 shrink-0" />
+              <Search size={16} className="text-gray-400 shrink-0" />
               <input
                 type="text"
                 value={studentSearch}
@@ -527,8 +527,8 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               />
               {studentSearch && (
                 <button type="button" onMouseDown={() => { setStudentSearch(''); setShowStudents(false) }}
-                  className="text-gray-300 hover:text-gray-500 shrink-0">
-                  <X size={14} />
+                  className="p-1 text-gray-300 hover:text-gray-500 shrink-0">
+                  <X size={16} />
                 </button>
               )}
             </div>
@@ -586,14 +586,14 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Artículos *</label>
             <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-purple-400 bg-white">
-              <Search size={14} className="text-gray-400 shrink-0" />
+              <Search size={16} className="text-gray-400 shrink-0" />
               <input type="text" value={productSearch} onChange={e => setProductSearch(e.target.value)}
                 placeholder="Buscar y agregar artículo..."
                 className="flex-1 text-base outline-none bg-transparent" />
               {productSearch && (
                 <button type="button" onMouseDown={() => setProductSearch('')}
-                  className="text-gray-300 hover:text-gray-500 shrink-0">
-                  <X size={14} />
+                  className="p-1 text-gray-300 hover:text-gray-500 shrink-0">
+                  <X size={16} />
                 </button>
               )}
             </div>
@@ -671,9 +671,9 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           {error && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">{error}</p>}
         </div>
 
-        <div className="px-5 py-4 border-t bg-white shrink-0">
+        <div className="px-6 py-4 border-t bg-white shrink-0">
           <button type="button" onClick={handleSubmit} disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-700 disabled:opacity-50 transition-all">
+            className="w-full py-3 rounded-xl bg-purple-600 text-white font-semibold text-base hover:bg-purple-700 disabled:opacity-50 transition-all">
             {loading ? 'Guardando...' : `Crear plan · ${total > 0 ? fmt(total) : '$--'}`}
           </button>
         </div>
@@ -1166,8 +1166,8 @@ export default function SaleInstallments({
               <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
             </div>
-            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4 text-center">
-              <p className="text-2xl font-bold text-amber-700">{fmt(totalDebt)}</p>
+            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4 text-center overflow-hidden">
+              <p className="text-lg font-bold text-amber-700 truncate">{fmt(totalDebt)}</p>
               <p className="text-xs text-amber-600 mt-0.5">Por cobrar</p>
             </div>
             <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
@@ -1181,7 +1181,7 @@ export default function SaleInstallments({
             <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
               {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
                 <button key={key} onClick={() => setTab(key)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
                     ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
                   {label}
                 </button>
