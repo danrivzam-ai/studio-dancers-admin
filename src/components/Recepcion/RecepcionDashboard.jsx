@@ -72,7 +72,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Nueva alumna">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><Plus size={16} /></div>
             <h3 className="font-semibold text-base">Nueva alumna</h3>
@@ -82,7 +82,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-3 overflow-y-auto max-h-[70vh]">
+        <form onSubmit={handleSubmit} className="p-6 space-y-3 overflow-y-auto max-h-[70vh]">
           {/* Nombre */}
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Nombre completo *</label>
@@ -167,12 +167,12 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
 
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving || !form.name.trim() || !form.course_id}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50 active:scale-95 transition-all"
+              className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50 active:scale-95 transition-all"
               style={{ background: PURPLE }}>
               {saving ? 'Registrando...' : 'Registrar alumna'}
             </button>
             <button type="button" onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
+              className="px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
               Cancelar
             </button>
           </div>
@@ -231,7 +231,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle alumna">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><User size={16} /></div>
             <h3 className="font-semibold text-base">Detalle alumna</h3>
@@ -241,7 +241,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-6 space-y-4">
           {/* Nombre + estado */}
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
@@ -290,7 +290,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
           </div>
 
           <button onClick={() => { onClose(); onPago() }}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white"
+            className="w-full py-3 rounded-xl text-sm font-semibold text-white"
             style={{ background: PURPLE }}>
             <span className="flex items-center justify-center gap-2">
               <CreditCard size={15} /> Registrar pago

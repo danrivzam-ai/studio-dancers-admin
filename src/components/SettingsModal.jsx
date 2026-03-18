@@ -258,7 +258,7 @@ export default function SettingsModal({
                       max={15}
                       value={formData.grace_days}
                       onChange={(e) => setFormData({...formData, grace_days: parseInt(e.target.value) || 0})}
-                      className="w-16 px-2 py-2.5 border-2 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none transition-all text-center text-base font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días después del vencimiento</span>
                   </div>
@@ -283,7 +283,7 @@ export default function SettingsModal({
                       max={60}
                       value={formData.mora_days}
                       onChange={(e) => setFormData({...formData, mora_days: parseInt(e.target.value) || 20})}
-                      className="w-16 px-2 py-2.5 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-400 outline-none transition-all text-center text-base font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-red-200 rounded-xl focus:ring-2 focus:ring-red-300 focus:border-red-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días sin pagar</span>
                   </div>
@@ -307,7 +307,7 @@ export default function SettingsModal({
                       max={180}
                       value={formData.auto_inactive_days}
                       onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 60})}
-                      className="w-16 px-2 py-2.5 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 focus:border-slate-400 outline-none transition-all text-center text-base font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-300 focus:border-slate-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días sin pagar</span>
                   </div>
@@ -467,7 +467,7 @@ export default function SettingsModal({
                   <p className="text-red-500 text-xs text-center">{pinError}</p>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -477,7 +477,7 @@ export default function SettingsModal({
                       setConfirmPin('')
                       setPinError('')
                     }}
-                    className="flex-1 px-3 py-2 border text-gray-600 rounded-xl text-sm active:scale-95 transition-all"
+                    className="flex-1 px-3 py-3 border text-gray-600 rounded-xl text-sm active:scale-95 transition-all"
                   >
                     Cancelar
                   </button>
@@ -485,7 +485,7 @@ export default function SettingsModal({
                     <button
                       type="button"
                       onClick={handleRemovePin}
-                      className="px-3 py-2 bg-red-100 text-red-700 rounded-xl text-sm active:scale-95 transition-all"
+                      className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-sm active:scale-95 transition-all"
                     >
                       Quitar PIN
                     </button>
@@ -493,7 +493,7 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handlePinChange}
-                    className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-xl text-sm active:scale-95 transition-all"
+                    className="flex-1 px-3 py-3 bg-purple-600 text-white rounded-xl text-sm active:scale-95 transition-all"
                   >
                     Guardar PIN
                   </button>

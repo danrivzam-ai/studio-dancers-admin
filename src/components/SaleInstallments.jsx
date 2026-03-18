@@ -180,7 +180,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
   const total   = parseFloat(plan.total_amount || 0)
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         {/* Acciones */}
         <div className="flex justify-between items-center px-4 py-3 border-b bg-gray-50">
@@ -279,8 +279,8 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="relative bg-white w-full sm:max-w-sm rounded-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <p className="font-semibold text-gray-800">Registrar abono</p>
@@ -289,7 +289,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Saldo actual */}
           <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex justify-between items-center">
             <div>
@@ -353,7 +353,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
 
         {/* ── Paso de confirmación ──────────────────────────────────── */}
         {confirmStep && (
-          <div className="absolute inset-0 bg-white rounded-t-3xl sm:rounded-2xl flex flex-col p-5 gap-4 z-10">
+          <div className="absolute inset-0 bg-white rounded-2xl sm:rounded-2xl flex flex-col p-6 gap-4 z-10">
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Check size={22} className="text-purple-600" />
@@ -502,14 +502,14 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
     : []
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white w-full sm:max-w-md rounded-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b shrink-0">
           <p className="font-semibold text-gray-800">Nuevo plan de abonos</p>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl"><X size={18} /></button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-5 space-y-4">
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">
 
           {/* Buscar alumna (autocompletar) */}
           <div>
@@ -944,7 +944,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             </div>
 
             <div className="overflow-y-auto max-h-[70vh]">
-              <div className="p-4 space-y-4">
+              <div className="p-6 space-y-4">
 
                 {/* Datos del cliente */}
                 <div>
@@ -1037,13 +1037,13 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             {/* Footer: descarga + WhatsApp */}
             <div className="p-4 border-t bg-gray-50 space-y-2">
               <button onClick={downloadPlanPDF}
-                className="flex items-center justify-center gap-2 w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                className="flex items-center justify-center gap-2 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
                 <Download size={16} />
                 Descargar resumen PDF
               </button>
               {effectivePhone ? (
                 <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
                   <MessageCircle size={16} />
                   {balance > 0 ? 'Enviar recordatorio por WhatsApp' : 'Enviar mensaje por WhatsApp'}
                 </a>
@@ -1256,7 +1256,7 @@ export default function SaleInstallments({
       )}
 
       {confirmCancel && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
             <Trash2 size={32} className="mx-auto text-red-400 mb-3" />
             <p className="font-semibold text-gray-800 mb-1">¿Cancelar este plan?</p>
@@ -1276,7 +1276,7 @@ export default function SaleInstallments({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-6 text-center">
             <Trash2 size={32} className="mx-auto text-red-600 mb-3" />
             <p className="font-semibold text-gray-800 mb-1">¿Eliminar este plan?</p>

@@ -169,7 +169,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
               <div className="flex gap-1 items-center">
                 <input autoFocus value={objetivoEdit} onChange={e => setObjetivoEdit(e.target.value)}
                   placeholder="Objetivo del ciclo"
-                  className="flex-1 border border-purple-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-4 focus:ring-purple-100" />
+                  className="flex-1 border-2 border-purple-300 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:ring-4 focus:ring-purple-100" />
                 <button onClick={handleSaveObjetivo} disabled={saving}
                   className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 transition-colors">
                   <Check size={14} />
@@ -200,17 +200,17 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
               <div className="flex gap-2 items-center flex-wrap">
                 <span className="text-sm text-gray-600">¿Cerrar ciclo {activeCiclo.numero_ciclo}?</span>
                 <button onClick={handleClose} disabled={saving}
-                  className="px-3 py-1.5 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 active:scale-95 transition-all">
+                  className="px-3 py-3 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 active:scale-95 transition-all">
                   {saving ? '...' : 'Confirmar'}
                 </button>
                 <button onClick={() => setConfirmClose(false)}
-                  className="px-3 py-1.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
+                  className="px-3 py-3 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all">
                   Cancelar
                 </button>
               </div>
             ) : (
               <button onClick={() => setConfirmClose(true)}
-                className="px-3 py-1.5 rounded-xl text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 whitespace-nowrap active:scale-95 transition-all">
+                className="px-3 py-3 rounded-xl text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 whitespace-nowrap active:scale-95 transition-all">
                 Cerrar ciclo
               </button>
             )}
@@ -225,7 +225,7 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
 
       {!activeCiclo && !showForm && (
         <button onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl text-white mt-2 active:scale-95 transition-all"
+          className="flex items-center gap-1.5 text-sm font-medium px-3 py-3 rounded-xl text-white mt-2 active:scale-95 transition-all"
           style={{ background: PURPLE }}>
           <Plus size={14} /> Nuevo ciclo
         </button>
@@ -263,12 +263,12 @@ function CicloSection({ course, ciclos, onCicloCreated, onCicloClosed, onCicloUp
           </div>
           <div className="flex gap-2">
             <button type="submit" disabled={saving}
-              className="px-4 py-1.5 rounded-xl text-sm font-medium text-white disabled:opacity-50 active:scale-95 transition-all"
+              className="px-4 py-3 rounded-xl text-sm font-medium text-white disabled:opacity-50 active:scale-95 transition-all"
               style={{ background: PURPLE }}>
               {saving ? 'Creando...' : 'Crear ciclo'}
             </button>
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-1.5 rounded-xl text-sm font-medium text-gray-600 bg-white border active:scale-95 transition-all">
+              className="px-4 py-3 rounded-xl text-sm font-medium text-gray-600 bg-white border active:scale-95 transition-all">
               Cancelar
             </button>
           </div>

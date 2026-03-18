@@ -150,7 +150,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Movimientos de caja">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-purple-700 text-white">
+        <div className="p-6 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -232,7 +232,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
 
         {/* Tab: Registrar */}
         {activeTab === 'register' && (
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Tipo de movimiento */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

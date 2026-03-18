@@ -933,13 +933,13 @@ export default function ManageItems({
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-4 py-2.5 text-white rounded-xl flex items-center justify-center gap-2 font-medium active:scale-95 transition-all ${
+                  className={`flex-1 px-4 py-3 text-white rounded-xl flex items-center justify-center gap-2 font-medium active:scale-95 transition-all ${
                     formData.type === 'product'
                       ? 'bg-green-600 hover:bg-green-700'
                       : formData.type === 'workshop'
@@ -1051,7 +1051,7 @@ export default function ManageItems({
         <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
           >
             Cerrar
           </button>
@@ -1078,7 +1078,7 @@ export default function ManageItems({
           const needsDirection = reason?.direction === null
 
           return (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
                 <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
                   <div>
@@ -1197,14 +1197,14 @@ export default function ManageItems({
                     <button
                       type="button"
                       onClick={() => setStockModal(null)}
-                      className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+                      className="flex-1 px-3 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
                       disabled={!isValid || adjustLoading}
-                      className={`flex-1 px-3 py-2.5 rounded-xl font-medium text-sm text-white flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all ${
+                      className={`flex-1 px-3 py-3 rounded-xl font-medium text-sm text-white flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all ${
                         direction === 'subtract' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'
                       }`}
                     >
@@ -1223,7 +1223,7 @@ export default function ManageItems({
 
         {/* Inventory History Modal */}
         {historyModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] flex flex-col">
               <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
                 <div>
@@ -1282,7 +1282,7 @@ export default function ManageItems({
               <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
                 <button
                   onClick={() => { setHistoryModal(null); setHistoryData([]) }}
-                  className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
                 >
                   Cerrar
                 </button>
@@ -1442,7 +1442,7 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1484,13 +1484,13 @@ function DeleteConfirmModal({ itemName, itemType, onConfirm, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
+              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium active:scale-95 transition-all"
+              className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium active:scale-95 transition-all"
             >
               Eliminar
             </button>

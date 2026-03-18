@@ -2533,7 +2533,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-5 border-b flex items-center justify-between shrink-0">
+              <div className="p-6 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <ShoppingBag size={20} className="text-green-600" />
                   <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
@@ -2544,7 +2544,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               <form onSubmit={handleSaleSubmit} className="flex flex-col flex-1 overflow-hidden">
-                <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
 
                   {/* Cliente */}
                   <div>
@@ -2729,7 +2729,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
 
                 {/* Footer con botones */}
-                <div className="p-5 border-t flex gap-3 shrink-0">
+                <div className="p-6 border-t flex gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}
@@ -3103,7 +3103,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               {/* Footer */}
-              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
+              <div className="p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
                 <p className="text-xs text-gray-400 hidden sm:block shrink-0">
                   {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
                 </p>
@@ -3250,7 +3250,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {showBalanceAlerts && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
+              <div className="p-6 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white/20 rounded-xl">
@@ -3266,7 +3266,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto p-6 space-y-3">
                 {studentsWithBalance.map(s => {
                   const isMinor = s.is_minor !== false
                   const waPhone = isMinor ? (s.payer_phone || s.parent_phone || s.phone) : s.phone
@@ -3378,7 +3378,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
 
-                <div className="p-4 space-y-4">
+                <div className="p-6 space-y-4">
                   {/* Datos alumno */}
                   <div>
                     <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Alumno/a</p>
@@ -3423,7 +3423,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t bg-gray-50 space-y-2">
+                <div className="p-6 border-t bg-gray-50 space-y-2">
                   {waLink ? (
                     <a href={waLink} target="_blank" rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">

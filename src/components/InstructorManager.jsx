@@ -865,7 +865,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
             {/* Header modal */}
-            <div className="flex items-center justify-between px-6 py-4 bg-purple-700 text-white rounded-t-2xl">
+            <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
               <h3 className="font-bold flex items-center gap-2">
                 <div className="bg-white/20 p-2 rounded-xl"><GraduationCap size={18} /></div>
                 {editing ? 'Editar Instructora' : 'Nueva Instructora'}
@@ -876,7 +876,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             </div>
 
             <form onSubmit={handleSave} autoComplete="off" className="flex flex-col flex-1 min-h-0">
-              <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Nombre */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre completo *</label>
@@ -1044,14 +1044,14 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl active:scale-95 transition-all"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl active:scale-95 transition-all"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl active:scale-95 transition-all"
                 >
                   {saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear instructora'}
                 </button>

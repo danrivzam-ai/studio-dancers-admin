@@ -283,7 +283,7 @@ export default function PaymentModal({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Registrar pago">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 sm:p-6 flex flex-col bg-purple-700 text-white rounded-t-2xl">
+        <div className="p-6 flex flex-col bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">
@@ -299,7 +299,7 @@ export default function PaymentModal({
               <X size={20} />
             </button>
           </div>
-          <p className="text-sm text-white/70 mt-1 ml-1">
+          <p className="text-sm text-white/70 mt-2 ml-1">
             Comprobante N° {receiptNumber}
           </p>
         </div>
@@ -419,7 +419,7 @@ export default function PaymentModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Payment Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -823,14 +823,14 @@ export default function PaymentModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all"
+              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !formData.amount || parseFloat(formData.amount) <= 0 || (formData.paymentMethod === 'transferencia' && (!formData.bankId || !formData.transferReceipt))}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Check size={20} />
               {loading ? 'Procesando...' : 'Confirmar Pago'}
@@ -891,11 +891,11 @@ export default function PaymentModal({
             </div>
             <div className="flex gap-3 mt-auto pt-2">
               <button type="button" onClick={() => setConfirmStep(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all">
+                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
                 ← Editar
               </button>
               <button type="button" onClick={handleConfirm} disabled={loading}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-2xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
                 <Check size={20} />
                 {loading ? 'Procesando...' : 'Sí, registrar'}
               </button>

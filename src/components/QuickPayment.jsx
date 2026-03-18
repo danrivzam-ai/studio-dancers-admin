@@ -136,7 +136,7 @@ export default function QuickPayment({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Pago r\u00e1pido">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-purple-700 text-white">
+        <div className="p-6 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={24} />
@@ -150,7 +150,7 @@ export default function QuickPayment({
               <X size={20} />
             </button>
           </div>
-          <p className="text-sm text-white/80 mt-1">
+          <p className="text-sm text-white/80 mt-2">
             Para clases diarias sin registrar alumno
           </p>
         </div>
@@ -403,14 +403,14 @@ export default function QuickPayment({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all"
+              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !formData.customerName || !formData.amount}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-2xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Check size={20} />
               {loading ? 'Procesando...' : 'Cobrar'}
@@ -464,11 +464,11 @@ export default function QuickPayment({
             </div>
             <div className="flex gap-3 mt-auto pt-2">
               <button type="button" onClick={() => setConfirmStep(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all">
+                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
                 ← Editar
               </button>
               <button type="button" onClick={handleConfirm} disabled={loading}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-2xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
                 <Check size={20} />
                 {loading ? 'Procesando...' : 'Sí, cobrar'}
               </button>

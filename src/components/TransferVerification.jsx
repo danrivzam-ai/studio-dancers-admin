@@ -120,7 +120,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <select
         value={studentId}
         onChange={(e) => setStudentId(e.target.value)}
-        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
       >
         <option value="">Seleccionar alumna...</option>
         {students.map(s => (
@@ -138,14 +138,14 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+            className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
             placeholder="Monto"
           />
         </div>
         <select
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
-          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
         >
           <option value="">Banco...</option>
           {BANKS.map(b => (
@@ -161,7 +161,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
           type="text"
           value={receiptNumber}
           onChange={(e) => setReceiptNumber(e.target.value)}
-          className="w-full pl-8 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+          className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
           placeholder="N° Comprobante"
         />
       </div>
@@ -191,7 +191,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
         type="text"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
-        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
         placeholder="Nota (opcional)"
       />
 
@@ -200,7 +200,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+        className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
       >
         {loading ? 'Registrando...' : (
           <><Upload size={14} /> Registrar transferencia</>
@@ -294,7 +294,7 @@ export default function TransferVerification({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Verificar transferencias">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-2xl">
+        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -465,7 +465,7 @@ export default function TransferVerification({
                           <button
                             onClick={() => handleApprove(req)}
                             disabled={processing === req.id}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
+                            className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
                           >
                             <CheckCircle size={14} />
                             {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
@@ -473,7 +473,7 @@ export default function TransferVerification({
                           <button
                             onClick={() => setRejectingId(req.id)}
                             disabled={processing === req.id}
-                            className="px-3 py-2 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
+                            className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
                           >
                             <XCircle size={14} />
                           </button>
@@ -488,10 +488,10 @@ export default function TransferVerification({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
           >
             Cerrar
           </button>

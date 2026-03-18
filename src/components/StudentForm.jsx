@@ -154,7 +154,7 @@ export default function StudentForm({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Formulario de alumno">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-purple-700 text-white z-10 rounded-t-2xl">
+        <div className="p-6 flex items-center justify-between sticky top-0 bg-purple-700 text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
@@ -163,7 +163,7 @@ export default function StudentForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {validationErrors.length > 0 && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
               {validationErrors.map((err, i) => (
@@ -204,7 +204,7 @@ export default function StudentForm({
             <h3 className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-1.5">
               <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <LabeledInput label="Nombre completo" required>
                 <input
                   type="text"
@@ -351,7 +351,7 @@ export default function StudentForm({
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Nombre" required>
                     <input
@@ -421,7 +421,7 @@ export default function StudentForm({
             </label>
 
             {formData.isCourtesy && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Categoría" required>
                     <select
@@ -466,7 +466,7 @@ export default function StudentForm({
             </label>
 
             {formData.hasDifferentPayer && (
-              <div className="mt-3 space-y-2 bg-green-50 rounded-xl p-2">
+              <div className="mt-3 space-y-3 bg-green-50 rounded-xl p-2">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Nombre" required>
                     <input
@@ -514,7 +514,7 @@ export default function StudentForm({
           </div>
 
           {/* CURSO y REGISTRO */}
-          <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+          <div className="bg-gray-50 rounded-xl p-3 space-y-3">
             <h3 className="text-sm font-semibold text-gray-800">Curso y Registro</h3>
             <LabeledInput label="Curso" required>
               <select
@@ -594,18 +594,18 @@ export default function StudentForm({
           </div>
 
           {/* BOTONES */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
+              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-medium text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <>

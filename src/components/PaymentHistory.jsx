@@ -799,10 +799,10 @@ export default function PaymentHistory({
         </div>
 
         {/* Footer */}
-        <div className="p-2 sm:p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
+            className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
           >
             Cerrar
           </button>
@@ -811,7 +811,7 @@ export default function PaymentHistory({
 
       {/* Modal de Anulación */}
       {voidModal.show && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs sm:w-80">
             <div className="px-4 py-3 border-b bg-red-50 rounded-t-2xl flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -870,18 +870,18 @@ export default function PaymentHistory({
               </div>
 
               {/* Botones */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={closeVoidModal}
-                  className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
+                  className="flex-1 px-3 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={voidLoading || voidPin.length < 4}
-                  className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
+                  className={`flex-1 px-3 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
                     voidLoading || voidPin.length < 4
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-red-600 hover:bg-red-700 text-white'

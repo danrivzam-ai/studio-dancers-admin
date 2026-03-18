@@ -121,7 +121,7 @@ export default function AuditLog({ onClose }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Registro de auditoría">
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-purple-700 text-white p-5">
+        <div className="bg-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Log de Auditoria</h2>
@@ -193,7 +193,7 @@ export default function AuditLog({ onClose }) {
             <button
               onClick={handleFilter}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-3 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
             >
               <Search size={14} />
               Buscar
@@ -310,7 +310,7 @@ export default function AuditLog({ onClose }) {
               <button
                 onClick={() => loadMore(filters)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
+                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
               >
                 {loading ? 'Cargando...' : 'Cargar mas'}
               </button>

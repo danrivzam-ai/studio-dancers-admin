@@ -55,7 +55,7 @@ export default function DeleteConfirmModal({
     <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={`Confirmar ${actionLabel.toLowerCase()}`}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
         {/* Header */}
-        <div className={`px-4 py-3 border-b rounded-t-2xl flex items-center justify-between ${
+        <div className={`px-5 py-4 border-b rounded-t-2xl flex items-center justify-between ${
           isVoid ? 'bg-amber-50' : 'bg-red-50'
         }`}>
           <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export default function DeleteConfirmModal({
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-4">
+        <form onSubmit={handleSubmit} className="p-6">
           <div className="text-center mb-3">
             <p className="text-xs text-gray-500">
               {isVoid
@@ -106,18 +106,18 @@ export default function DeleteConfirmModal({
           )}
 
           {/* Botones */}
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
+              className="flex-1 px-3 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-sm font-semibold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || (requiredPin && pin.length < 4)}
-              className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
+              className={`flex-1 px-3 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-1 shadow-sm transition-all active:scale-95 ${
                 loading || (requiredPin && pin.length < 4)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : isVoid

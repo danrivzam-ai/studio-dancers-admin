@@ -168,7 +168,7 @@ export default function ManageCategories({ onClose }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar categorías">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-purple-700 text-white p-5">
+        <div className="bg-purple-700 text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Palette size={24} />
@@ -312,17 +312,17 @@ export default function ManageCategories({ onClose }) {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-3 pt-1">
                   <button
                     onClick={closeCategoryForm}
-                    className="px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-white transition-colors text-sm"
+                    className="px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-white transition-colors text-sm"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSaveCategory}
                     disabled={saving || !categoryForm.name.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 bg-purple-700 hover:bg-purple-800 text-white px-4 py-2.5 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
+                    className="flex-1 flex items-center justify-center gap-2 bg-purple-700 hover:bg-purple-800 text-white px-4 py-3 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
                   >
                     {saving ? (
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -456,7 +456,7 @@ export default function ManageCategories({ onClose }) {
                           type="text"
                           value={subForm.name}
                           onChange={(e) => setSubForm({ ...subForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                          className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                           placeholder="Nueva subcategoría"
                           maxLength={MAX_NAME_LENGTH}
                           autoFocus
@@ -514,16 +514,16 @@ export default function ManageCategories({ onClose }) {
             <p className="text-sm text-gray-600 mb-5">
               ¿Desactivar <strong>"{confirmDelete.name}"</strong>? No se eliminará, solo dejará de estar disponible.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium"
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium"
               >
                 Cancelar
               </button>
               <button
                 onClick={executeDelete}
-                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 active:scale-95 transition-all font-medium"
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 active:scale-95 transition-all font-medium"
               >
                 Sí, desactivar
               </button>

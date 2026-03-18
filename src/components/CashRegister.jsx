@@ -312,7 +312,7 @@ export default function CashRegister({ onClose, settings }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Caja registradora">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-5 border-b bg-purple-700 text-white">
+        <div className="p-6 border-b bg-purple-700 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -542,7 +542,7 @@ export default function CashRegister({ onClose, settings }) {
             {!cashRegister && isToday && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                 <h3 className="font-semibold text-yellow-800 mb-3">Abrir Caja</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Monto de apertura (efectivo inicial)
@@ -614,7 +614,7 @@ export default function CashRegister({ onClose, settings }) {
             {cashRegister?.status === 'open' && isToday && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                 <h3 className="font-semibold text-green-800 mb-3">Cerrar Caja</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* Desglose del cuadre */}
                   <div className="bg-white rounded-xl p-3 space-y-1">
                     <div className="flex justify-between text-sm">
@@ -794,14 +794,14 @@ export default function CashRegister({ onClose, settings }) {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => setShowCloseReport(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all text-sm font-medium"
                     >
                       <Download size={16} />
                       Descargar Reporte
                     </button>
                     <button
                       onClick={() => setShowCloseReport(true)}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all text-sm font-medium"
                     >
                       <Send size={16} />
                       WhatsApp

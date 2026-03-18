@@ -51,7 +51,7 @@ export default function PinPromptModal({
     <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={title}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs">
         {/* Header */}
-        <div className="px-4 py-3 bg-purple-700 text-white rounded-t-2xl">
+        <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">
@@ -97,18 +97,18 @@ export default function PinPromptModal({
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-3 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+              className="flex-1 px-3 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={pin.length < 4 || attempts >= 3}
-              className="flex-1 px-3 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all"
+              className="flex-1 px-3 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all"
             >
               Verificar
             </button>
