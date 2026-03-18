@@ -205,7 +205,7 @@ export default function ReceptionistManager() {
                   type="text"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-sm"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-base"
                   placeholder="Ej: Gabriela Suárez"
                   required
                   autoFocus
@@ -218,7 +218,7 @@ export default function ReceptionistManager() {
                   type="text"
                   value={form.username}
                   onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-sm"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-base"
                   placeholder="ej: gabriela.suarez"
                   autoCapitalize="none"
                   required
@@ -234,16 +234,16 @@ export default function ReceptionistManager() {
                     type={showPw ? 'text' : 'password'}
                     value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    className="flex-1 px-4 py-3 bg-transparent outline-none text-sm min-w-0"
+                    className="flex-1 px-4 py-3 bg-transparent outline-none text-base min-w-0"
                     placeholder={editingId ? 'Dejar vacío para no cambiar' : 'Contraseña de acceso'}
                     required={!editingId}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="px-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
+                    className="px-3 py-2 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
                   >
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
@@ -262,14 +262,14 @@ export default function ReceptionistManager() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-base font-medium hover:bg-gray-50 active:scale-95 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-95 transition-all btn-primary-gradient"
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-base font-semibold disabled:opacity-50 active:scale-95 transition-all"
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}
                 </button>
@@ -291,13 +291,13 @@ export default function ReceptionistManager() {
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 active:scale-95 transition-all"
+                className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl text-base font-medium hover:bg-gray-50 active:scale-95 transition-all"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all"
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-base font-semibold active:scale-95 transition-all"
               >
                 Eliminar
               </button>
