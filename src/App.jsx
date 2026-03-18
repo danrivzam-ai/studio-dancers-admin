@@ -2567,18 +2567,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <div className="bg-gray-50 rounded-xl p-4 space-y-4">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
-                    <div className="relative">
-                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 transition-all">
+                      <Search size={16} className="text-gray-400 shrink-0" />
                       <input
                         type="text"
                         value={productSearch}
                         onChange={(e) => { setProductSearch(e.target.value); setSaleForm(f => ({...f, productId: ''})) }}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-10 pr-10 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="flex-1 min-w-0 text-base outline-none bg-transparent"
                       />
                       {productSearch && (
                         <button type="button" onClick={() => { setProductSearch(''); setSaleForm(f => ({...f, productId: ''})) }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600">
+                          className="p-1 text-gray-400 hover:text-gray-600 shrink-0">
                           <X size={16} />
                         </button>
                       )}
