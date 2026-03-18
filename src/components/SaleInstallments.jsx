@@ -1166,8 +1166,8 @@ export default function SaleInstallments({
               <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
             </div>
-            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-4 text-center overflow-hidden">
-              <p className="text-lg font-bold text-amber-700 truncate">{fmt(totalDebt)}</p>
+            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-3 text-center">
+              <p className="text-base sm:text-xl font-bold text-amber-700">{fmt(totalDebt)}</p>
               <p className="text-xs text-amber-600 mt-0.5">Por cobrar</p>
             </div>
             <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
