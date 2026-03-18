@@ -247,14 +247,14 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 Monto *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-base">$</span>
                 <input
                   type="number"
                   min="0.01"
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
                   placeholder="0.00"
                   required
                 />
