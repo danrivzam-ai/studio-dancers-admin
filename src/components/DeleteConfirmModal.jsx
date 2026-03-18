@@ -62,7 +62,7 @@ export default function DeleteConfirmModal({
             <AlertTriangle className={isVoid ? 'text-amber-500' : 'text-red-500'} size={18} />
             <span className={`font-medium text-sm ${isVoid ? 'text-amber-700' : 'text-red-700'}`}>{actionLabel}</span>
           </div>
-          <button onClick={handleClose} aria-label="Cerrar" className={`p-1 rounded-xl active:scale-95 transition-all ${
+          <button onClick={handleClose} aria-label="Cerrar" className={`p-2 rounded-xl active:scale-95 transition-all ${
             isVoid ? 'hover:bg-amber-100' : 'hover:bg-red-100'
           }`}>
             <X size={16} className={isVoid ? 'text-amber-500' : 'text-red-500'} />

@@ -485,7 +485,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => { setDateFrom(e.target.value); setActivePreset(null) }}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   />
                 </div>
                 <div>
@@ -494,7 +494,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateTo}
                     onChange={(e) => { setDateTo(e.target.value); setActivePreset(null) }}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   />
                 </div>
                 <div>
@@ -502,7 +502,7 @@ export default function PaymentHistory({
                   <select
                     value={viewType}
                     onChange={(e) => setViewType(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   >
                     <option value="all">Todos</option>
                     <option value="students">Alumnos</option>
@@ -513,19 +513,19 @@ export default function PaymentHistory({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
-                  <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-2 py-1.5 bg-white transition-all">
+                  <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2.5 bg-white transition-all">
                     <Search className="text-purple-400 shrink-0" size={14} />
                     <input
                       type="text"
                       placeholder="Nombre, cédula..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full text-sm outline-none bg-transparent"
+                      className="w-full text-base outline-none bg-transparent"
                     />
                     {searchTerm && (
                       <button
                         onClick={() => setSearchTerm('')}
-                        className="p-0.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                         title="Limpiar búsqueda"
                       >
                         <X size={14} />
@@ -818,7 +818,7 @@ export default function PaymentHistory({
                 <AlertTriangle className="text-red-500" size={18} />
                 <span className="font-medium text-red-700 text-sm">Anular Comprobante</span>
               </div>
-              <button onClick={closeVoidModal} className="p-1 hover:bg-red-100 rounded-xl active:scale-95 transition-all" aria-label="Cerrar">
+              <button onClick={closeVoidModal} className="p-2 hover:bg-red-100 rounded-xl active:scale-95 transition-all" aria-label="Cerrar">
                 <X size={16} className="text-red-500" />
               </button>
             </div>
@@ -841,7 +841,7 @@ export default function PaymentHistory({
                   type="text"
                   value={voidReason}
                   onChange={(e) => setVoidReason(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                   placeholder="Motivo de anulación..."
                 />
               </div>
@@ -860,7 +860,7 @@ export default function PaymentHistory({
                     setVoidPin(e.target.value.replace(/\D/g, ''))
                     setVoidError('')
                   }}
-                  className={`w-full px-3 py-2 border-2 rounded-xl text-center text-lg tracking-widest transition-all ${
+                  className={`w-full px-3 py-2.5 border-2 rounded-xl text-center text-lg tracking-widest transition-all ${
                     voidError ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="••••"

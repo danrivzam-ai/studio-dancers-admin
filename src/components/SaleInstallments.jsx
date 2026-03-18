@@ -191,7 +191,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
               {downloaded ? <Check size={13} /> : <Download size={13} />}
               {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar PDF'}
             </button>
-            <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-lg">
               <X size={16} />
             </button>
           </div>
@@ -335,7 +335,7 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nota (opcional)</label>
             <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400"
               placeholder="Observación..." />
           </div>
 
@@ -523,7 +523,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
                 onFocus={() => setShowStudents(true)}
                 onBlur={() => setTimeout(() => setShowStudents(false), 150)}
                 placeholder="Nombre o cédula..."
-                className="flex-1 text-sm outline-none bg-transparent"
+                className="flex-1 text-base outline-none bg-transparent"
               />
               {studentSearch && (
                 <button type="button" onMouseDown={() => { setStudentSearch(''); setShowStudents(false) }}
@@ -552,7 +552,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               Nombre de la alumna *
             </label>
             <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)}
-              className="w-full px-3 py-2.5 border-2 border-purple-200 rounded-xl text-sm focus:outline-none focus:border-purple-500 bg-purple-50"
+              className="w-full px-3 py-2.5 border-2 border-purple-200 rounded-xl text-base focus:outline-none focus:border-purple-500 bg-purple-50"
               placeholder="Nombre completo de la alumna" />
           </div>
 
@@ -563,7 +563,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <span className="text-gray-400 font-normal ml-1">(si es diferente a la alumna)</span>
             </label>
             <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400"
               placeholder="Nombre del representante o pagador" />
           </div>
 
@@ -571,13 +571,13 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Cédula / RUC</label>
               <input type="text" value={customerCedula} onChange={e => setCustomerCedula(e.target.value)}
-                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400"
                 placeholder="0912345678" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">WhatsApp</label>
               <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)}
-                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+                className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400"
                 placeholder="0991234567" />
             </div>
           </div>
@@ -589,7 +589,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <Search size={14} className="text-gray-400 shrink-0" />
               <input type="text" value={productSearch} onChange={e => setProductSearch(e.target.value)}
                 placeholder="Buscar y agregar artículo..."
-                className="flex-1 text-sm outline-none bg-transparent" />
+                className="flex-1 text-base outline-none bg-transparent" />
               {productSearch && (
                 <button type="button" onMouseDown={() => setProductSearch('')}
                   className="text-gray-300 hover:text-gray-500 shrink-0">
@@ -654,7 +654,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
               <span className="text-gray-400 font-medium text-sm shrink-0">$</span>
               <input type="number" step="0.01" min="0.01" value={customTotal}
                 onChange={e => setCustomTotal(e.target.value)}
-                className="flex-1 text-sm outline-none bg-transparent"
+                className="flex-1 text-base outline-none bg-transparent"
                 placeholder="0.00" />
             </div>
             <p className="text-xs text-gray-400 mt-1">Se llena automáticamente al seleccionar el artículo. Puedes ajustarlo si hay descuento.</p>
@@ -664,7 +664,7 @@ function NewPlanModal({ allProducts, students = [], onConfirm, onClose, loading,
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nota (opcional)</label>
             <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-400"
               placeholder="Ej: Uniforme show de mayo, talla M..." />
           </div>
 
@@ -880,7 +880,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                     <span className="text-gray-500 font-medium text-sm shrink-0">$</span>
                     <input type="number" step="0.01" min="0.01" value={newTotal}
                       onChange={e => { setNewTotal(e.target.value); setEditError('') }}
-                      className="flex-1 text-sm outline-none bg-transparent"
+                      className="flex-1 text-base outline-none bg-transparent"
                       placeholder={fmt(plan.total_amount)} autoFocus />
                   </div>
                   {editError && <p className="text-xs text-red-600">{editError}</p>}
@@ -938,7 +938,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white">
               <p className="font-semibold text-sm">Detalle del plan</p>
               <button onClick={() => setShowDetail(false)}
-                className="p-1.5 hover:bg-white/20 rounded-xl transition-colors">
+                className="p-2 hover:bg-white/20 rounded-xl transition-colors">
                 <X size={16} />
               </button>
             </div>

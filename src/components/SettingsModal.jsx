@@ -165,7 +165,7 @@ export default function SettingsModal({
               required
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
               placeholder="Escuela de Danza"
             />
           </div>
@@ -178,7 +178,7 @@ export default function SettingsModal({
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({...formData, address: e.target.value})}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
               placeholder="Alborada - Guayaquil"
             />
           </div>
@@ -192,7 +192,7 @@ export default function SettingsModal({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
                 placeholder="0999..."
               />
             </div>
@@ -204,7 +204,7 @@ export default function SettingsModal({
                 type="text"
                 value={formData.ruc}
                 onChange={(e) => setFormData({...formData, ruc: e.target.value})}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
                 placeholder="0912345678001"
               />
             </div>
@@ -218,7 +218,7 @@ export default function SettingsModal({
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
               placeholder="escuela@email.com"
             />
           </div>
@@ -258,7 +258,7 @@ export default function SettingsModal({
                       max={15}
                       value={formData.grace_days}
                       onChange={(e) => setFormData({...formData, grace_days: parseInt(e.target.value) || 0})}
-                      className="w-16 px-2 py-1.5 border-2 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none transition-all text-center text-sm font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-amber-200 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días después del vencimiento</span>
                   </div>
@@ -283,7 +283,7 @@ export default function SettingsModal({
                       max={60}
                       value={formData.mora_days}
                       onChange={(e) => setFormData({...formData, mora_days: parseInt(e.target.value) || 20})}
-                      className="w-16 px-2 py-1.5 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-400 outline-none transition-all text-center text-sm font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-300 focus:border-red-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días sin pagar</span>
                   </div>
@@ -307,7 +307,7 @@ export default function SettingsModal({
                       max={180}
                       value={formData.auto_inactive_days}
                       onChange={(e) => setFormData({...formData, auto_inactive_days: parseInt(e.target.value) || 60})}
-                      className="w-16 px-2 py-1.5 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 focus:border-slate-400 outline-none transition-all text-center text-sm font-bold"
+                      className="w-16 px-2 py-2.5 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-slate-300 focus:border-slate-400 outline-none transition-all text-center text-base font-bold"
                     />
                     <span className="text-xs text-gray-500">días sin pagar</span>
                   </div>
@@ -419,7 +419,7 @@ export default function SettingsModal({
                         setCurrentPinInput(e.target.value.replace(/\D/g, ''))
                         setPinError('')
                       }}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all text-base"
                       placeholder="••••"
                     />
                   </div>
@@ -439,7 +439,7 @@ export default function SettingsModal({
                       setNewPin(e.target.value.replace(/\D/g, ''))
                       setPinError('')
                     }}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all text-base"
                     placeholder="••••"
                   />
                 </div>
@@ -458,7 +458,7 @@ export default function SettingsModal({
                       setConfirmPin(e.target.value.replace(/\D/g, ''))
                       setPinError('')
                     }}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all"
+                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-center tracking-widest outline-none transition-all text-base"
                     placeholder="••••"
                   />
                 </div>
@@ -519,7 +519,7 @@ export default function SettingsModal({
                     type={showApiKey ? 'text' : 'password'}
                     value={formData.mailerlite_api_key}
                     onChange={(e) => setFormData({...formData, mailerlite_api_key: e.target.value})}
-                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 pr-10 text-sm outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 pr-10 text-base outline-none transition-all"
                     placeholder="eyJ0eXAiOiJKV1QiLCJhbGciOi..."
                   />
                   <button
@@ -538,7 +538,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.mailerlite_group_id}
                   onChange={(e) => setFormData({...formData, mailerlite_group_id: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-base outline-none transition-all"
                   placeholder="123456789"
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo MailerLite donde se agregan padres y alumnas.</p>
@@ -549,7 +549,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.mailerlite_instructors_group_id}
                   onChange={(e) => setFormData({...formData, mailerlite_instructors_group_id: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-sm outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-base outline-none transition-all"
                   placeholder="987654321"
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo MailerLite para la automatización de Bienvenida Instructoras.</p>

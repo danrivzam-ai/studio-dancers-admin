@@ -341,7 +341,7 @@ export default function CashRegister({ onClose, settings }) {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+              className="flex-1 px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
             />
             <button
               onClick={() => fetchDayData(selectedDate)}
@@ -555,7 +555,7 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={openingAmount}
                         onChange={(e) => setOpeningAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
+                        className="w-full pl-8 pr-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -568,7 +568,7 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
+                      className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
                       placeholder="Observaciones..."
                     />
                   </div>
@@ -595,7 +595,7 @@ export default function CashRegister({ onClose, settings }) {
                       step="0.01"
                       value={openingAmount}
                       onChange={(e) => setOpeningAmount(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-sm"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-base"
                     />
                   </div>
                   {parseFloat(openingAmount) !== parseFloat(cashRegister.opening_amount) && (
@@ -668,7 +668,7 @@ export default function CashRegister({ onClose, settings }) {
                         step="0.01"
                         value={closingAmount}
                         onChange={(e) => setClosingAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                        className="w-full pl-8 pr-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -710,7 +710,7 @@ export default function CashRegister({ onClose, settings }) {
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                      className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
                       placeholder="Observaciones del cierre..."
                     />
                   </div>
@@ -733,7 +733,7 @@ export default function CashRegister({ onClose, settings }) {
                   {isToday && (
                     <button
                       onClick={handleReopenRegister}
-                      className="text-xs px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium active:scale-95 transition-all"
+                      className="text-sm px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium active:scale-95 transition-all"
                     >
                       Reabrir Caja
                     </button>

@@ -164,7 +164,7 @@ export default function AuditLog({ onClose }) {
                 value={dateFrom}
                 max={dateTo}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all"
+                className="px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base outline-none transition-all"
               />
             </div>
             <div>
@@ -174,7 +174,7 @@ export default function AuditLog({ onClose }) {
                 value={dateTo}
                 max={today}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm outline-none transition-all"
+                className="px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base outline-none transition-all"
               />
             </div>
             <div>
@@ -182,7 +182,7 @@ export default function AuditLog({ onClose }) {
               <select
                 value={filterTable}
                 onChange={(e) => setFilterTable(e.target.value)}
-                className="px-3 py-1.5 border-2 border-gray-200 rounded-xl text-sm bg-white outline-none transition-all"
+                className="px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base bg-white outline-none transition-all"
               >
                 <option value="">Todos</option>
                 {Object.entries(TABLE_LABELS).map(([key, label]) => (

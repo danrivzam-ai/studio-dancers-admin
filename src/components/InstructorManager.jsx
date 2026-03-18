@@ -472,7 +472,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           <button
             key={val}
             onClick={() => setFilterActive(val)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium active:scale-95 transition-all ${
+            className={`px-3 py-2 rounded-xl text-sm font-medium active:scale-95 transition-all ${
               filterActive === val
                 ? 'bg-purple-600 text-white'
                 : 'bg-white border border-gray-200 text-gray-600 hover:bg-purple-50'
@@ -555,7 +555,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                 <div className="flex gap-2 pt-1 border-t border-gray-100">
                   <button
                     onClick={() => isCoursePanelOpen ? closeCoursePanel() : openCoursePanel(inst.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
                       isCoursePanelOpen ? 'bg-purple-600 text-white' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
                     }`}
                   >
@@ -565,7 +565,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   </button>
                   <button
                     onClick={() => isSchedulePanelOpen ? closeSchedulePanel() : openSchedulePanel(inst.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
                       isSchedulePanelOpen ? 'bg-blue-600 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
                     }`}
                   >
@@ -579,14 +579,14 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEdit(inst)}
-                    className="flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
                   >
                     <Edit2 size={13} />
                     Editar
                   </button>
                   <button
                     onClick={() => toggleActive(inst)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl active:scale-95 transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
                       inst.active
                         ? 'bg-amber-50 hover:bg-amber-100 text-amber-600'
                         : 'bg-green-50 hover:bg-green-100 text-green-600'
@@ -597,7 +597,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   </button>
                   <button
                     onClick={() => openDelete(inst)}
-                    className="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 active:scale-95 transition-all"
+                    className="flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 active:scale-95 transition-all"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -643,13 +643,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       <button
                         onClick={saveCourses}
                         disabled={savingCourses}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-xl active:scale-95 transition-all"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-xl active:scale-95 transition-all"
                       >
                         {savingCourses ? 'Guardando…' : 'Guardar cursos'}
                       </button>
                       <button
                         onClick={closeCoursePanel}
-                        className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
+                        className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
                       >
                         Cancelar
                       </button>
@@ -708,7 +708,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                       ? (setShowSlotForm(false), setSlotForm(emptySlotForm), setEditingSlotId(null))
                                       : startEditSlot(slot)
                                     }
-                                    className={`p-1 rounded-lg transition-all ${
+                                    className={`p-2 rounded-lg transition-all ${
                                       isEditing
                                         ? 'text-blue-600 bg-blue-200 hover:bg-blue-300'
                                         : 'text-gray-400 hover:text-blue-600 hover:bg-blue-100'
@@ -719,7 +719,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   </button>
                                   <button
                                     onClick={() => deleteSlot(slot.id)}
-                                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                     title="Eliminar"
                                   >
                                     <Trash2 size={12} />
@@ -734,7 +734,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                         {!showSlotForm ? (
                           <button
                             onClick={() => { setEditingSlotId(null); setSlotForm(emptySlotForm); setShowSlotForm(true) }}
-                            className="w-full flex items-center justify-center gap-1 text-xs font-medium py-1.5 rounded-xl border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 transition-all"
+                            className="w-full flex items-center justify-center gap-1 text-sm font-medium py-2 rounded-xl border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 transition-all"
                           >
                             <Plus size={12} />
                             Agregar clase
@@ -760,7 +760,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                     group_name: f.group_name ? f.group_name : courseName,
                                   }))
                                 }}
-                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                               >
                                 <option value="">— Sin vincular —</option>
                                 {allCourses.map(c => (
@@ -775,7 +775,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 <select
                                   value={slotForm.day_of_week}
                                   onChange={e => setSlotForm(f => ({ ...f, day_of_week: e.target.value }))}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                                 >
                                   {[1,2,3,4,5,6,7].map(d => (
                                     <option key={d} value={d}>{DAY_NAMES[d]}</option>
@@ -789,7 +789,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   value={slotForm.group_name}
                                   onChange={e => setSlotForm(f => ({ ...f, group_name: e.target.value }))}
                                   placeholder="ej: Dance Kids"
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                                 />
                               </div>
                             </div>
@@ -801,7 +801,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_start}
                                   onChange={e => setSlotForm(f => ({ ...f, time_start: e.target.value }))}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                                 />
                               </div>
                               <div>
@@ -810,7 +810,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_end}
                                   onChange={e => setSlotForm(f => ({ ...f, time_end: e.target.value }))}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                                 />
                               </div>
                             </div>
@@ -822,7 +822,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 value={slotForm.notes}
                                 onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="ej: Sala principal"
-                                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
                               />
                             </div>
 
@@ -830,13 +830,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                               <button
                                 onClick={saveSlot}
                                 disabled={savingSlot}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium py-1.5 rounded-lg active:scale-95 transition-all"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg active:scale-95 transition-all"
                               >
                                 {savingSlot ? 'Guardando…' : editingSlotId ? 'Actualizar' : 'Guardar clase'}
                               </button>
                               <button
                                 onClick={() => { setShowSlotForm(false); setSlotForm(emptySlotForm); setEditingSlotId(null) }}
-                                className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                                className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
                               >
                                 Cancelar
                               </button>
@@ -846,7 +846,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
 
                         <button
                           onClick={closeSchedulePanel}
-                          className="w-full mt-2 text-xs text-gray-400 hover:text-gray-600 py-1 transition-all"
+                          className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2 transition-all"
                         >
                           Cerrar
                         </button>
@@ -867,10 +867,10 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             {/* Header modal */}
             <div className="flex items-center justify-between px-6 py-4 bg-purple-700 text-white rounded-t-2xl">
               <h3 className="font-bold flex items-center gap-2">
-                <div className="bg-white/20 p-1.5 rounded-xl"><GraduationCap size={18} /></div>
+                <div className="bg-white/20 p-2 rounded-xl"><GraduationCap size={18} /></div>
                 {editing ? 'Editar Instructora' : 'Nueva Instructora'}
               </h3>
-              <button onClick={closeForm} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+              <button onClick={closeForm} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                 <X size={20} />
               </button>
             </div>
@@ -886,7 +886,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="Ej: María García"
                   autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 />
               </div>
 
@@ -899,7 +899,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, cedula: e.target.value })}
                   placeholder="Ej: 0912345678"
                   autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">La instructora usa su cédula para iniciar sesión</p>
               </div>
@@ -916,7 +916,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   placeholder="instructora@email.com"
                   autoComplete="off"
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">Opcional — se agrega al segmento de bienvenida automáticamente</p>
               </div>
@@ -932,7 +932,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       onChange={e => setForm({ ...form, password: e.target.value })}
                       placeholder="Mínimo 6 caracteres"
                       autoComplete="new-password"
-                      className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                      className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                     />
                     <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -963,7 +963,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                           value={form.password}
                           onChange={e => setForm({ ...form, password: e.target.value })}
                           placeholder="Nueva contraseña"
-                          className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                          className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                         />
                         <button type="button" onClick={() => setShowNewPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                           {showNewPass ? <EyeOff size={15} /> : <Eye size={15} />}

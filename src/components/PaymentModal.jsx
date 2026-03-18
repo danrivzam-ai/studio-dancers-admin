@@ -570,7 +570,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={discountValue}
                       onChange={(e) => handleDiscountValueChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-sm"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-base"
                       placeholder={discountType === 'percent' ? 'Ej: 10' : 'Ej: 5.00'}
                     />
                   </div>
@@ -596,7 +596,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={customFinalPrice}
                       onChange={(e) => handleCustomFinalPriceChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-sm"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-base"
                       placeholder="Ej: 30.00"
                     />
                   </div>
@@ -658,7 +658,7 @@ export default function PaymentModal({
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
-                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
               />
             </div>
           </div>
@@ -741,7 +741,7 @@ export default function PaymentModal({
                   required
                   value={formData.bankId}
                   onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
                 >
                   <option value="">Seleccionar banco</option>
                   {BANKS.map(bank => (
@@ -759,7 +759,7 @@ export default function PaymentModal({
                   required
                   value={formData.transferReceipt}
                   onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
                   placeholder="Ingrese número de comprobante"
                 />
               </div>
@@ -774,7 +774,7 @@ export default function PaymentModal({
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
               rows={2}
               placeholder="Observaciones del pago..."
             />

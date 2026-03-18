@@ -228,7 +228,7 @@ export default function ManageCategories({ onClose }) {
                 <h3 className="font-semibold text-purple-800 text-sm">
                   {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                 </h3>
-                <button onClick={closeCategoryForm} className="p-1.5 hover:bg-purple-100 rounded-lg active:scale-95 transition-all">
+                <button onClick={closeCategoryForm} className="p-2 hover:bg-purple-100 rounded-lg active:scale-95 transition-all">
                   <X size={16} className="text-purple-400" />
                 </button>
               </div>
@@ -239,7 +239,7 @@ export default function ManageCategories({ onClose }) {
                   type="text"
                   value={categoryForm.name}
                   onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
                   placeholder="Nombre de la categoría *"
                   maxLength={MAX_NAME_LENGTH}
                   autoFocus
@@ -291,7 +291,7 @@ export default function ManageCategories({ onClose }) {
                         type="number"
                         value={categoryForm.monthly_budget}
                         onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
                         placeholder="$ Opcional"
                         min="0"
                         step="0.01"
@@ -304,7 +304,7 @@ export default function ManageCategories({ onClose }) {
                       type="number"
                       value={categoryForm.sort_order}
                       onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
-                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-sm bg-white"
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
                       placeholder="0, 1, 2..."
                       min="0"
                     />
@@ -456,7 +456,7 @@ export default function ManageCategories({ onClose }) {
                           type="text"
                           value={subForm.name}
                           onChange={(e) => setSubForm({ ...subForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                          className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                           placeholder="Nueva subcategoría"
                           maxLength={MAX_NAME_LENGTH}
                           autoFocus
@@ -476,7 +476,7 @@ export default function ManageCategories({ onClose }) {
                     ) : (
                       <button
                         onClick={() => openSubForm(cat.id)}
-                        className="w-full py-2 text-xs text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        className="w-full px-3 py-2 text-sm text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
                         <Plus size={14} />
                         Agregar subcategoría

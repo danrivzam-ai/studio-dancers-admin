@@ -603,7 +603,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMin}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMin: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                         />
                       </div>
                       <div className="flex-1">
@@ -614,7 +614,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMax}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMax: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -663,14 +663,14 @@ export default function ManageItems({
                         type="time"
                         value={formData.timeStart}
                         onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                       />
                       <span className="text-gray-400 text-sm">a</span>
                       <input
                         type="time"
                         value={formData.timeEnd}
                         onChange={(e) => setFormData({...formData, timeEnd: e.target.value})}
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
                       />
                     </div>
                     {formData.classDays.length > 0 && formData.timeStart && formData.timeEnd && (
@@ -808,7 +808,7 @@ export default function ManageItems({
                         max="12"
                         value={formData.installmentCount}
                         onChange={(e) => setFormData({...formData, installmentCount: parseInt(e.target.value)})}
-                        className="w-16 px-2 py-1 border border-orange-300 rounded-xl text-center bg-white outline-none transition-all"
+                        className="w-16 px-3 py-2.5 border border-orange-300 rounded-xl text-center bg-white outline-none transition-all"
                       />
                     </div>
                   )}
@@ -906,7 +906,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.benefits}
                       onChange={(e) => setFormData({...formData, benefits: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-sm outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-base outline-none transition-all"
                       placeholder="Un beneficio por línea&#10;Ej: Mejora la postura&#10;Aumenta la flexibilidad"
                       rows={3}
                     />
@@ -918,7 +918,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.requirements}
                       onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-sm outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-base outline-none transition-all"
                       placeholder="Un requisito por línea&#10;Ej: Zapatillas de media punta&#10;Ropa ajustada"
                       rows={3}
                     />
@@ -1107,7 +1107,7 @@ export default function ManageItems({
                         const r = ADJUST_REASONS.find(r => r.id === e.target.value)
                         if (r?.direction) setAdjustDirection(r.direction)
                       }}
-                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:border-purple-400 outline-none transition-all"
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:border-purple-400 outline-none transition-all"
                     >
                       <optgroup label="Entrada (+)">
                         {ADJUST_REASONS.filter(r => r.direction === 'add').map(r => (
@@ -1187,7 +1187,7 @@ export default function ManageItems({
                       type="text"
                       value={adjustNotes}
                       onChange={(e) => setAdjustNotes(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:border-purple-400 outline-none transition-all"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:border-purple-400 outline-none transition-all"
                       placeholder="Ej: Compra proveedor, conteo físico..."
                     />
                   </div>

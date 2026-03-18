@@ -279,7 +279,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg"
+                  className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg"
                   placeholder="0.00"
                   required
                 />
@@ -296,7 +296,7 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
                   type="text"
                   value={formData.bank}
                   onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                   placeholder="Nombre del banco"
                 />
               </div>

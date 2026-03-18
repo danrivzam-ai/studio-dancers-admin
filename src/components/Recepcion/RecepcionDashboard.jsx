@@ -88,7 +88,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Nombre completo *</label>
             <input required value={form.name} onChange={e => set('name', e.target.value)}
               placeholder="Nombre de la alumna"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
           </div>
 
           {/* Cédula + Edad */}
@@ -97,13 +97,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
               <label className="text-xs font-medium text-gray-600 block mb-1">Cédula</label>
               <input value={form.cedula} onChange={e => set('cedula', e.target.value)}
                 placeholder="0000000000"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Edad</label>
               <input type="number" min={1} max={99} value={form.age} onChange={e => set('age', e.target.value)}
                 placeholder="Años"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
             </div>
           </div>
 
@@ -112,7 +112,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono</label>
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               placeholder="09xxxxxxxx"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
           </div>
 
           {/* Es menor */}
@@ -128,13 +128,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
                 <label className="text-xs font-medium text-gray-600 block mb-1">Nombre del representante *</label>
                 <input value={form.parent_name} onChange={e => set('parent_name', e.target.value)}
                   placeholder="Nombre completo"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono del representante</label>
                 <input value={form.parent_phone} onChange={e => set('parent_phone', e.target.value)}
                   placeholder="09xxxxxxxx"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
               </div>
             </div>
           )}
@@ -143,7 +143,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Curso *</label>
             <select required value={form.course_id} onChange={e => set('course_id', e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all">
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all">
               <option value="">— Selecciona un curso —</option>
               {ACTIVE_COURSES.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -156,7 +156,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Notas (opcional)</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
               placeholder="Observaciones adicionales..."
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none resize-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none resize-none transition-all" />
           </div>
 
           {error && (
@@ -388,7 +388,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nombre, cédula o representante..."
-              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}

@@ -231,7 +231,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 <select
                   value={formData.subcategoryId}
                   onChange={(e) => setFormData({ ...formData, subcategoryId: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 >
                   <option value="">Seleccionar...</option>
                   {subcategories.map(sub => (
@@ -254,7 +254,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg"
+                  className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg"
                   placeholder="0.00"
                   required
                 />
@@ -296,7 +296,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 placeholder="Describe el gasto..."
                 rows={2}
                 required
@@ -312,7 +312,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.provider}
                 onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 placeholder="Nombre del proveedor (opcional)"
               />
             </div>
@@ -326,7 +326,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.receiptNumber}
                 onChange={(e) => setFormData({ ...formData, receiptNumber: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 placeholder="Número de comprobante (opcional)"
               />
             </div>
@@ -340,7 +340,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
                 type="text"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
                 placeholder="Observaciones adicionales (opcional)"
               />
             </div>

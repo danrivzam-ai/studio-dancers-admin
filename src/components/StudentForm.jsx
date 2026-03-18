@@ -146,9 +146,9 @@ export default function StudentForm({
     setSubmitting(false)
   }
 
-  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
-  const inputClassBlue = "w-full px-3 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
-  const inputClassGreen = "w-full px-3 py-2 text-sm border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
+  const inputClass = "w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+  const inputClassBlue = "w-full px-3 py-2.5 text-base border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+  const inputClassGreen = "w-full px-3 py-2.5 text-base border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Formulario de alumno">
@@ -158,7 +158,7 @@ export default function StudentForm({
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
-          <button onClick={onClose} aria-label="Cerrar" className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+          <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
@@ -322,7 +322,7 @@ export default function StudentForm({
                       onFocus={() => setParentDropdown(true)}
                       onBlur={() => setTimeout(() => setParentDropdown(false), 150)}
                       placeholder="Buscar representante existente…"
-                      className="flex-1 min-w-0 text-xs bg-transparent focus:outline-none placeholder-blue-300"
+                      className="flex-1 min-w-0 text-base bg-transparent focus:outline-none placeholder-blue-300"
                     />
                   </div>
                   {parentDropdown && filteredParents.length > 0 && (

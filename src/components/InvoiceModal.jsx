@@ -140,7 +140,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.name}
                     onChange={e => handleBuyerChange('name', e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                     placeholder="Nombre del comprador"
                   />
                 </div>
@@ -153,7 +153,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                       type="text"
                       value={buyerData.idNumber}
                       onChange={e => handleBuyerChange('idNumber', e.target.value)}
-                      className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                      className="w-full border rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                       placeholder="Identificación"
                     />
                   </div>
@@ -172,7 +172,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="email"
                     value={buyerData.email}
                     onChange={e => handleBuyerChange('email', e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                     placeholder="correo@ejemplo.com"
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.phone}
                     onChange={e => handleBuyerChange('phone', e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                     placeholder="09XXXXXXXX"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.address}
                     onChange={e => handleBuyerChange('address', e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
                     placeholder="Dirección del comprador"
                   />
                 </div>
