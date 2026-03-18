@@ -194,7 +194,7 @@ export default function ReceptionistManager() {
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="px-6 pt-6 pb-7 space-y-5">
+            <form onSubmit={handleSave} className="p-6 space-y-5">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{error}</div>
               )}
@@ -258,7 +258,7 @@ export default function ReceptionistManager() {
                 <span className="text-sm text-gray-700">Cuenta activa</span>
               </label>
 
-              <div className="flex gap-3 pt-1">
+              <div className="flex gap-3 pt-3 border-t border-gray-100 mt-2">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
