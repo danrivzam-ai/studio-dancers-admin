@@ -548,14 +548,14 @@ export default function CashRegister({ onClose, settings }) {
                       Monto de apertura (efectivo inicial)
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-base">$</span>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={openingAmount}
                         onChange={(e) => setOpeningAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
+                        className="w-full pl-10 pr-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -588,14 +588,14 @@ export default function CashRegister({ onClose, settings }) {
                 <h4 className="text-sm font-semibold text-amber-800 mb-2">Monto de apertura</h4>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-base">$</span>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={openingAmount}
                       onChange={(e) => setOpeningAmount(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all text-base"
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-base"
                     />
                   </div>
                   {parseFloat(openingAmount) !== parseFloat(cashRegister.opening_amount) && (
@@ -661,14 +661,14 @@ export default function CashRegister({ onClose, settings }) {
                       Efectivo real en caja
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-base">$</span>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={closingAmount}
                         onChange={(e) => setClosingAmount(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                        className="w-full pl-10 pr-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                         placeholder="0.00"
                       />
                     </div>
