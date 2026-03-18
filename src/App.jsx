@@ -1024,42 +1024,42 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <Plus size={18} />
                 <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <ShoppingBag size={18} />
                 <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <Zap size={18} />
                 <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <TrendingDown size={18} />
                 <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <ArrowLeftRight size={18} />
                 <span>Movimiento</span>
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
               >
                 <History size={18} />
                 <span>Historial</span>
@@ -1678,19 +1678,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                                 setTimeout(() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null), 800)
                               }}
-                              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-base font-medium py-3 rounded-xl transition-colors"
                             >
                               <MessageCircle size={15} /> Abrir WhatsApp
                             </button>
                             <button
                               onClick={() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null)}
-                              className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
+                              className="px-3 py-3 rounded-xl border border-gray-200 text-base text-gray-600 hover:bg-gray-50"
                             >
                               Saltar
                             </button>
                             <button
                               onClick={() => setReminderQueueIdx(null)}
-                              className="px-3 py-2.5 rounded-xl border border-red-200 text-sm text-red-500 hover:bg-red-50"
+                              className="px-3 py-3 rounded-xl border border-red-200 text-base text-red-500 hover:bg-red-50"
                               aria-label="Detener modo secuencial"
                             >
                               <X size={14} />
@@ -1734,7 +1734,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       {reminderQueueIdx === null && (
                         <button
                           onClick={() => setReminderQueueIdx(0)}
-                          className="w-full flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl border border-green-300 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
+                          className="w-full flex items-center justify-center gap-2 mt-1 py-3 rounded-xl border border-green-300 text-green-700 text-base font-medium hover:bg-green-50 transition-colors"
                         >
                           <Send size={14} /> Enviar a todos en secuencia
                         </button>
@@ -2554,7 +2554,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       required
                       value={saleForm.customerName}
                       onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
                       placeholder="Nombre del cliente"
                       list="students-list-sale"
                     />
@@ -2567,7 +2567,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <div className="bg-gray-50 rounded-xl p-4 space-y-4">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
-                    <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 transition-all">
+                    <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
                       <Search size={16} className="text-gray-400 shrink-0" />
                       <input
                         type="text"
@@ -2615,7 +2615,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.productId}
                         onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white outline-none transition-all"
                       >
                         <option value="">— Seleccionar —</option>
                         {allProducts.map(product => {
@@ -2709,7 +2709,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={saleForm.date}
                         onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -2717,7 +2717,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.paymentMethod}
                         onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
                       >
                         <option value="cash">Efectivo</option>
                         <option value="transfer">Transferencia</option>

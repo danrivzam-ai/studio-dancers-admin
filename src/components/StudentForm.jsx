@@ -147,8 +147,8 @@ export default function StudentForm({
   }
 
   const inputClass = "w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
-  const inputClassBlue = "w-full px-3 py-2.5 text-base border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
-  const inputClassGreen = "w-full px-3 py-2.5 text-base border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
+  const inputClassBlue = "w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+  const inputClassGreen = "w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Formulario de alumno">

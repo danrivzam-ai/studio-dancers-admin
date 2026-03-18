@@ -140,7 +140,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.name}
                     onChange={e => handleBuyerChange('name', e.target.value)}
-                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Nombre del comprador"
                   />
                 </div>
@@ -153,7 +153,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                       type="text"
                       value={buyerData.idNumber}
                       onChange={e => handleBuyerChange('idNumber', e.target.value)}
-                      className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                      className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="Identificación"
                     />
                   </div>
@@ -172,7 +172,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="email"
                     value={buyerData.email}
                     onChange={e => handleBuyerChange('email', e.target.value)}
-                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="correo@ejemplo.com"
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.phone}
                     onChange={e => handleBuyerChange('phone', e.target.value)}
-                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="09XXXXXXXX"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                     type="text"
                     value={buyerData.address}
                     onChange={e => handleBuyerChange('address', e.target.value)}
-                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400"
+                    className="w-full border-2 rounded-xl px-3 py-2.5 text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     placeholder="Dirección del comprador"
                   />
                 </div>
@@ -299,7 +299,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                       // TODO Fase B: envío por email
                       alert('El envío por email estará disponible cuando se conecte con el SRI.')
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition text-base"
                   >
                     <Send className="w-4 h-4" />
                     Enviar por Email
@@ -330,14 +330,14 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
             <>
               <button
                 onClick={onClose}
-                className="flex-1 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 transition text-sm"
+                className="flex-1 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 transition text-base"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleGenerate}
                 disabled={loading || !buyerData.name.trim()}
-                className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                 Generar Factura
@@ -347,7 +347,7 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
           {(step === 'done' || step === 'error') && (
             <button
               onClick={onClose}
-              className="flex-1 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 transition text-sm"
+              className="flex-1 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 transition text-base"
             >
               Cerrar
             </button>

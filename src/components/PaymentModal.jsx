@@ -570,7 +570,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={discountValue}
                       onChange={(e) => handleDiscountValueChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-base"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base"
                       placeholder={discountType === 'percent' ? 'Ej: 10' : 'Ej: 5.00'}
                     />
                   </div>
@@ -596,7 +596,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={customFinalPrice}
                       onChange={(e) => handleCustomFinalPriceChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none transition-all text-base"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base"
                       placeholder="Ej: 30.00"
                     />
                   </div>

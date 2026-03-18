@@ -760,7 +760,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                     group_name: f.group_name ? f.group_name : courseName,
                                   }))
                                 }}
-                                className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                               >
                                 <option value="">— Sin vincular —</option>
                                 {allCourses.map(c => (
@@ -775,7 +775,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 <select
                                   value={slotForm.day_of_week}
                                   onChange={e => setSlotForm(f => ({ ...f, day_of_week: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                                 >
                                   {[1,2,3,4,5,6,7].map(d => (
                                     <option key={d} value={d}>{DAY_NAMES[d]}</option>
@@ -789,7 +789,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   value={slotForm.group_name}
                                   onChange={e => setSlotForm(f => ({ ...f, group_name: e.target.value }))}
                                   placeholder="ej: Dance Kids"
-                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                                 />
                               </div>
                             </div>
@@ -801,7 +801,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_start}
                                   onChange={e => setSlotForm(f => ({ ...f, time_start: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                                 />
                               </div>
                               <div>
@@ -810,7 +810,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_end}
                                   onChange={e => setSlotForm(f => ({ ...f, time_end: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                                 />
                               </div>
                             </div>
@@ -822,7 +822,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 value={slotForm.notes}
                                 onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="ej: Sala principal"
-                                className="w-full text-base border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
                               />
                             </div>
 
@@ -830,13 +830,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                               <button
                                 onClick={saveSlot}
                                 disabled={savingSlot}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg active:scale-95 transition-all"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-base font-medium py-3 rounded-xl active:scale-95 transition-all"
                               >
                                 {savingSlot ? 'Guardando…' : editingSlotId ? 'Actualizar' : 'Guardar clase'}
                               </button>
                               <button
                                 onClick={() => { setShowSlotForm(false); setSlotForm(emptySlotForm); setEditingSlotId(null) }}
-                                className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg active:scale-95 transition-all"
+                                className="px-3 py-3 text-base text-gray-500 hover:bg-gray-100 rounded-xl active:scale-95 transition-all"
                               >
                                 Cancelar
                               </button>
