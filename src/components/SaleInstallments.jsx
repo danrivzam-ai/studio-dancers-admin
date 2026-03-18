@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { toPng } from 'html-to-image'
 import jsPDF from 'jspdf'
 import {
   Plus, X, ChevronDown, ChevronUp,
@@ -143,51 +144,32 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
   const [downloading, setDownloading] = useState(false)
   const [downloaded, setDownloaded] = useState(false)
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    if (!receiptRef.current) return
     setDownloading(true)
     try {
-      const W = 80
-      const doc = new jsPDF({ unit: 'mm', format: [W, 180], orientation: 'portrait' })
-      let y = 8
-      const center = (text, fs, bold = false) => {
-        doc.setFontSize(fs); doc.setFont('helvetica', bold ? 'bold' : 'normal')
-        const lines = doc.splitTextToSize(String(text), W - 8)
-        lines.forEach(l => { doc.text(l, W / 2, y, { align: 'center' }); y += fs * 0.42 })
-        y += 1
-      }
-      const row = (left, right, fs = 8) => {
-        doc.setFontSize(fs); doc.setFont('helvetica', 'normal')
-        doc.text(String(left), 5, y); doc.text(String(right), W - 5, y, { align: 'right' }); y += fs * 0.44
-      }
-      const dash = () => {
-        doc.setLineDashPattern([1, 1], 0); doc.line(4, y, W - 4, y)
-        doc.setLineDashPattern([], 0); y += 4
-      }
-      center(schoolName, 11, true)
-      center('COMPROBANTE DE ABONO', 9, true)
-      center(`Abono #${installmentNumber}`, 8)
-      center(fmtDate(payment.payment_date), 7)
-      y += 1; dash()
-      row('Cliente:', plan.customer_name)
-      if (plan.customer_cedula_ruc) row('Cédula/RUC:', plan.customer_cedula_ruc)
-      const itemsLabel = Array.isArray(plan.items) ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ') : ''
-      if (itemsLabel) { doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.text('Concepto:', 5, y); y += 3; const lines = doc.splitTextToSize(itemsLabel, W - 10); lines.forEach(l => { doc.text(l, 5, y); y += 3.5 }) }
-      y += 1; dash()
-      doc.setFontSize(10); doc.setFont('helvetica', 'bold')
-      doc.text('Abono:', 5, y); doc.text(fmt(payment.amount), W - 5, y, { align: 'right' }); y += 5
-      row('Método:', payment.payment_method)
-      dash()
-      row('Total plan:', fmt(plan.total_amount))
-      row('Total pagado:', fmt(plan.amount_paid))
-      doc.setFontSize(9); doc.setFont('helvetica', 'bold')
-      doc.text('Saldo pendiente:', 5, y); doc.text(fmt(balance), W - 5, y, { align: 'right' }); y += 5
-      if (payment.notes) { dash(); center(payment.notes, 7) }
-      dash(); center('¡Gracias por su preferencia!', 7)
-      doc.internal.pageSize.height = y + 8
-      doc.save(`Abono_${plan.customer_name.replace(/\s+/g, '_')}_${installmentNumber}.pdf`)
-      setDownloaded(true); setTimeout(() => setDownloaded(false), 3000)
-    } catch (e) { console.error('PDF error:', e); alert('Error al generar PDF') }
-    setDownloading(false)
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        skipFonts: true,
+        filter: (node) => {
+          if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) return false
+          return true
+        }
+      })
+      const link = document.createElement('a')
+      link.download = `Abono_${(plan.student_name || plan.customer_name).replace(/\s+/g, '_')}_${installmentNumber}.png`
+      link.href = dataUrl
+      link.click()
+      setDownloaded(true)
+      setTimeout(() => setDownloaded(false), 3000)
+    } catch (e) {
+      console.error('toPng error:', e)
+      alert('Error al generar la imagen. Intenta de nuevo.')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const itemsLabel = Array.isArray(plan.items)
@@ -788,8 +770,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
       })
     }
     dash(); center('¡Gracias por su preferencia!', 7)
-    doc.internal.pageSize.height = y + 8
-    doc.save(`Plan_${plan.customer_name.replace(/\s+/g, '_')}.pdf`)
+    doc.save(`Plan_${(plan.student_name || plan.customer_name).replace(/\s+/g, '_')}.pdf`)
   }
 
   return (
