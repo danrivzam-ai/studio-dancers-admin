@@ -313,9 +313,14 @@ export function useStudents() {
         pause_date: null
       }
 
-      // Fidelidad: incrementar meses consecutivos al completar un pago mensual/paquete
+      // Fidelidad: racha se mantiene solo si el pago es puntual (mismo día o antes).
+      // Pago tardío (daysLate > 0) → racha se resetea a 1 (este mes inicia nueva racha).
       if ((isMonthly || isPackage) && newPaymentStatus === 'paid') {
-        updateFields.consecutive_months = (parseInt(student?.consecutive_months) || 0) + 1
+        if (daysLate > 0) {
+          updateFields.consecutive_months = 1   // rompe racha, empieza desde este pago
+        } else {
+          updateFields.consecutive_months = (parseInt(student?.consecutive_months) || 0) + 1
+        }
       }
 
       // Para programas mantener total_program_price (ajustado por descuento si aplica)
