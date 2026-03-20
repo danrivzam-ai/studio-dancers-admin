@@ -1,5 +1,6 @@
-import { X, Download } from 'lucide-react'
-import jsPDF from 'jspdf'
+import { useRef, useState } from 'react'
+import { toPng } from 'html-to-image'
+import { X, Download, Check } from 'lucide-react'
 
 const PAYMENT_LABELS = {
   cash: 'Efectivo',
@@ -8,89 +9,35 @@ const PAYMENT_LABELS = {
 }
 
 export default function SaleReceipt({ receipt, schoolName, onClose }) {
+  const receiptRef = useRef(null)
+  const [downloading, setDownloading] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    if (!receiptRef.current) return
+    setDownloading(true)
     try {
-      const doc = new jsPDF({ unit: 'mm', format: [80, 200], orientation: 'portrait' })
-      const W = 80
-      let y = 8
-
-      const center = (text, fontSize, bold = false) => {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', bold ? 'bold' : 'normal')
-        doc.text(text, W / 2, y, { align: 'center' })
-        y += fontSize * 0.45
-      }
-      const line = (dashed = false) => {
-        dashed
-          ? doc.setLineDashPattern([1, 1], 0)
-          : doc.setLineDashPattern([], 0)
-        doc.line(4, y, W - 4, y)
-        y += 4
-      }
-      const row = (left, right, fontSize = 8) => {
-        doc.setFontSize(fontSize)
-        doc.setFont('helvetica', 'normal')
-        doc.text(left, 5, y)
-        doc.text(right, W - 5, y, { align: 'right' })
-        y += fontSize * 0.45
-      }
-
-      // Cabecera
-      center(schoolName || 'Studio Dancers', 11, true)
-      y += 1
-      center('Comprobante de Venta', 7)
-      y += 1
-      line(true)
-      center(receipt.receiptNumber || '', 7)
-      center(receipt.date ? receipt.date.split('-').reverse().join('/') : '', 7)
-      y += 1
-      line(true)
-
-      // Cliente
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      doc.text('Cliente:', 5, y)
-      doc.setFont('helvetica', 'bold')
-      const clientLines = doc.splitTextToSize(receipt.customerName || '-', W - 30)
-      doc.text(clientLines, W - 5, y, { align: 'right' })
-      y += Math.max(clientLines.length * 3.5, 4)
-      line(true)
-
-      // Ítems
-      for (const item of receipt.items) {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(8)
-        const nameLines = doc.splitTextToSize(item.productName || '-', W - 10)
-        doc.text(nameLines, 5, y)
-        y += nameLines.length * 3.5
-        row(`  $${parseFloat(item.unitPrice).toFixed(2)} × ${item.quantity}`,
-            `$${(parseFloat(item.unitPrice) * parseInt(item.quantity)).toFixed(2)}`, 8)
-        y += 1
-      }
-
-      line(false)
-      y += 1
-      // Total
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.text('TOTAL', 5, y)
-      doc.setTextColor(22, 163, 74)
-      doc.text(`$${parseFloat(receipt.total).toFixed(2)}`, W - 5, y, { align: 'right' })
-      doc.setTextColor(0, 0, 0)
-      y += 4
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.text(PAYMENT_LABELS[receipt.paymentMethod] || receipt.paymentMethod || '', W - 5, y, { align: 'right' })
-      y += 6
-      line(true)
-      center('¡Gracias por tu compra!', 7)
-      center(schoolName || 'Studio Dancers', 7)
-
-      doc.save(`comprobante-${receipt.receiptNumber || 'venta'}.pdf`)
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        skipFonts: true,
+        filter: (node) => {
+          if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) return false
+          return true
+        }
+      })
+      const link = document.createElement('a')
+      link.download = `Comprobante-Venta-${receipt.receiptNumber || 'SN'}.png`
+      link.href = dataUrl
+      link.click()
+      setDownloaded(true)
+      setTimeout(() => setDownloaded(false), 3000)
     } catch (err) {
-      console.error('Error generando PDF:', err)
-      alert('No se pudo generar el comprobante. Intenta de nuevo.')
+      console.error('Error generando comprobante PNG:', err)
+      alert('Error al generar la imagen. Intenta de nuevo.')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -109,10 +56,11 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
           <div className="flex items-center gap-1">
             <button
               onClick={handleDownload}
-              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
-              title="Descargar imagen"
+              disabled={downloading}
+              className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all disabled:opacity-60"
+              title={downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar imagen'}
             >
-              <Download size={18} />
+              {downloaded ? <Check size={18} /> : <Download size={18} />}
             </button>
             <button
               onClick={onClose}
@@ -126,6 +74,7 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
         {/* Ticket imprimible */}
         <div className="p-4">
           <div
+            ref={receiptRef}
             className="bg-white border border-gray-200 rounded-xl p-5 font-mono text-sm"
             style={{ minWidth: 280 }}
           >

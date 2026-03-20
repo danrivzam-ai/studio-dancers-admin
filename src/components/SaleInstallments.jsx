@@ -189,7 +189,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
             <button onClick={handleDownload} disabled={downloading}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors ${downloaded ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
               {downloaded ? <Check size={13} /> : <Download size={13} />}
-              {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar PDF'}
+              {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar imagen'}
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg">
               <X size={16} />
