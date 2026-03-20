@@ -313,9 +313,10 @@ export function useStudents() {
         pause_date: null
       }
 
-      // Fidelidad: racha se mantiene solo si el pago es puntual (mismo día o antes).
-      // Pago tardío (daysLate > 0) → racha se resetea a 1 (este mes inicia nueva racha).
-      if ((isMonthly || isPackage) && newPaymentStatus === 'paid') {
+      // Fidelidad: solo aplica a cursos de adultas con pago mensual.
+      // Pago puntual → incrementa racha. Pago tardío → resetea a 1 (este mes inicia nueva racha).
+      const isAdultas = course?.category === 'adultas'
+      if (isAdultas && isMonthly && newPaymentStatus === 'paid') {
         if (daysLate > 0) {
           updateFields.consecutive_months = 1   // rompe racha, empieza desde este pago
         } else {
