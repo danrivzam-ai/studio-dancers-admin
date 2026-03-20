@@ -67,7 +67,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{
-      background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+      background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
     }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-6">

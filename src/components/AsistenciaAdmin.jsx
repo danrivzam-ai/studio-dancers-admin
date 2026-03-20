@@ -180,7 +180,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
                         <div className="flex items-center gap-3">
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                            style={{ background: 'linear-gradient(135deg, #7B2D8E, #4c1d95)' }}
+                            style={{ background: 'linear-gradient(135deg, #6b2145, #551735)' }}
                           >
                             {student.name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                           </div>

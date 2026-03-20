@@ -47,7 +47,7 @@ export default function ClientLoginPage({ onLogin }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4"
-      style={{ background: 'linear-gradient(160deg, #7B2D8E 0%, #5a1a6e 50%, #3a0d4a 100%)' }}
+      style={{ background: 'linear-gradient(160deg, #551735 0%, #6b2145 50%, #3d0f26 100%)' }}
     >
       {/* Logo y nombre */}
       <div className="text-center mb-8">
@@ -67,8 +67,8 @@ export default function ClientLoginPage({ onLogin }) {
         <div className="px-1 pt-1">
           <div className="rounded-xl px-6 py-5" style={{ background: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%)' }}>
             <div className="flex items-center justify-center gap-2 mb-1">
-              <Lock size={16} style={{ color: '#7B2D8E' }} />
-              <p className="font-semibold text-sm" style={{ color: '#7B2D8E' }}>Ingresa con tus datos</p>
+              <Lock size={16} style={{ color: '#551735' }} />
+              <p className="font-semibold text-sm" style={{ color: '#551735' }}>Ingresa con tus datos</p>
             </div>
             <p className="text-center text-xs text-gray-500">
               Usa la cédula y los últimos 4 dígitos del teléfono que diste al inscribirte
@@ -132,7 +132,7 @@ export default function ClientLoginPage({ onLogin }) {
             disabled={loading || cedula.length < 6 || phone4.length !== 4}
             className="w-full py-3.5 rounded-xl font-semibold text-white text-base active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: 'linear-gradient(135deg, #7B2D8E 0%, #5a1a6e 100%)',
+              background: 'linear-gradient(135deg, #551735 0%, #6b2145 100%)',
               boxShadow: '0 4px 15px rgba(123,45,142,0.35)'
             }}
           >

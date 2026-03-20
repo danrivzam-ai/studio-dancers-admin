@@ -875,7 +875,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center overflow-hidden relative" style={{
-        background: 'linear-gradient(135deg, #5a1a3a 0%, #6b21a8 50%, #7e22ce 100%)'
+        background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
       }}>
         {/* Decorative ambient circles */}
         <div className="absolute w-64 h-64 rounded-full opacity-[0.07]" style={{

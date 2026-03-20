@@ -64,7 +64,7 @@ export default function InstructoraLogin({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{
-      background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+      background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
     }}>
       <div className="w-full max-w-md">
         {/* Logo y título */}
@@ -150,8 +150,8 @@ export default function InstructoraLogin({ onLogin }) {
               disabled={loading}
               className="w-full py-3.5 rounded-xl font-semibold text-white active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed outline-none"
               style={{
-                background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)',
-                boxShadow: '0 4px 15px rgba(147, 51, 234, 0.4)'
+                background: 'linear-gradient(135deg, #6b2145 0%, #551735 100%)',
+                boxShadow: '0 4px 15px rgba(126, 45, 85, 0.4)'
               }}
             >
               {loading ? (

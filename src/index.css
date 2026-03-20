@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+@theme {
+  /* Remap purple → guinda brand palette */
+  --color-purple-50:  #fdf2f7;
+  --color-purple-100: #f9e8f0;
+  --color-purple-200: #f0c4d8;
+  --color-purple-300: #e8b4cc;
+  --color-purple-400: #c07a9a;
+  --color-purple-500: #9e4a72;
+  --color-purple-600: #7e2d55;
+  --color-purple-700: #6b2145;
+  --color-purple-800: #551735;
+  --color-purple-900: #3d0f26;
+  --color-purple-950: #2a0a1a;
+}
+
 /* =============================================
    Studio Dancers - Professional UI Design
    ============================================= */
@@ -13,17 +28,17 @@
 }
 
 :root {
-  /* Color Palette - Professional Dance Studio */
-  --primary-50: #faf5ff;
-  --primary-100: #f3e8ff;
-  --primary-200: #e9d5ff;
-  --primary-300: #d8b4fe;
-  --primary-400: #c084fc;
-  --primary-500: #a855f7;
-  --primary-600: #9333ea;
-  --primary-700: #7e22ce;
-  --primary-800: #6b21a8;
-  --primary-900: #581c87;
+  /* Color Palette - Studio Dancers Brand (Guinda) */
+  --primary-50: #fdf2f7;
+  --primary-100: #f9e8f0;
+  --primary-200: #f0c4d8;
+  --primary-300: #e8b4cc;
+  --primary-400: #c07a9a;
+  --primary-500: #9e4a72;
+  --primary-600: #7e2d55;
+  --primary-700: #6b2145;
+  --primary-800: #551735;
+  --primary-900: #3d0f26;
 
   --accent-50: #fdf2f8;
   --accent-100: #fce7f3;

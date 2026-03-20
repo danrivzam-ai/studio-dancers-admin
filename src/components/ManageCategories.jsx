@@ -4,7 +4,7 @@ import { useCategoryManagement } from '../hooks/useCategoryManagement'
 import Modal from './ui/Modal'
 
 const PRESET_COLORS = [
-  '#EF4444', '#F59E0B', '#8B5CF6', '#06B6D4', '#EC4899',
+  '#EF4444', '#F59E0B', '#9e4a72', '#06B6D4', '#EC4899',
   '#6366F1', '#10B981', '#6B7280', '#F97316', '#14B8A6',
   '#0EA5E9', '#D946EF'
 ]

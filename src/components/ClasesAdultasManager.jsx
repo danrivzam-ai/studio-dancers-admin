@@ -7,7 +7,7 @@ import { sanitizeError } from '../lib/errorUtils'
 import { getTodayEC } from '../lib/adultas'
 import { useToast } from './Toast'
 
-const PURPLE = '#7B2D8E'
+const PURPLE = '#6b2145'
 
 function normalizeClassDays(raw) {
   if (!raw) return []

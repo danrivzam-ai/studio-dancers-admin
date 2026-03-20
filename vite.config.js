@@ -13,8 +13,8 @@ export default defineConfig({
         description: 'Panel de administración Studio Dancers',
         start_url: '/',
         display: 'standalone',
-        background_color: '#5a1a3a',
-        theme_color: '#7B2D8E',
+        background_color: '#551735',
+        theme_color: '#551735',
         orientation: 'portrait',
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

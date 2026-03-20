@@ -7,7 +7,7 @@ import { getDaysUntilDue, getTodayEC } from '../../lib/dateUtils'
 import PaymentModal from '../PaymentModal'
 import Modal from '../ui/Modal'
 
-const PURPLE = '#7B2D8E'
+const PURPLE = '#6b2145'
 const GREEN  = '#2A9D8F'
 
 // ── Helpers ───────────────────────────────────────────────────────

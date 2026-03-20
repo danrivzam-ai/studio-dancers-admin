@@ -66,7 +66,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
           <div className="flex items-center gap-3">
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-              style={{ background: 'linear-gradient(135deg, #9333ea, #be185d)' }}
+              style={{ background: 'linear-gradient(135deg, #7e2d55, #551735)' }}
             >
               {instructor.name.charAt(0).toUpperCase()}
             </div>
@@ -90,7 +90,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
 
         {/* Bienvenida */}
         <div className="rounded-2xl p-6 text-white" style={{
-          background: 'linear-gradient(135deg, #9333ea 0%, #7e22ce 60%, #be185d 100%)'
+          background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
         }}>
           <p className="text-purple-200 text-sm mb-1">¡Bienvenida de vuelta!</p>
           <h1 className="text-2xl font-bold mb-1">{firstName} 🎉</h1>

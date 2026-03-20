@@ -145,7 +145,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <div className="text-white py-10 px-4 text-center" style={{ background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)' }}>
+      <div className="text-white py-10 px-4 text-center" style={{ background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)' }}>
         <img
           src="/logo-cream.png"
           alt="Studio Dancers"

@@ -78,7 +78,7 @@ export default function ClientPortalApp() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(160deg, #7B2D8E 0%, #3a0d4a 100%)' }}
+        style={{ background: 'linear-gradient(160deg, #551735 0%, #3d0f26 100%)' }}
       >
         <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin" />
       </div>
@@ -117,7 +117,7 @@ function StudentSelector({ students, onSelect, onLogout }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4"
-      style={{ background: 'linear-gradient(160deg, #7B2D8E 0%, #3a0d4a 100%)' }}
+      style={{ background: 'linear-gradient(160deg, #551735 0%, #3d0f26 100%)' }}
     >
       <img
         src="/logo-white.png"
