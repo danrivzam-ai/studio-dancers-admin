@@ -7,7 +7,7 @@ function LabeledInput({ label, required, children }) {
   return (
     <div>
       <label className="block text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+        {label}{required && <span className="text-red-500 ml-0.5 text-xs font-bold">*</span>}
       </label>
       {children}
     </div>
