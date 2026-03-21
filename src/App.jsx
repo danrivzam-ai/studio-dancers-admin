@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, AlertTriangle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck, Banknote, Smartphone, Ban
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, MonitorPlay, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck, Banknote, Smartphone, Ban
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -41,12 +41,12 @@ import SaleReceipt from './components/SaleReceipt'
 import SaleInstallments from './components/SaleInstallments'
 import InventoryCount from './components/InventoryCount'
 import { useSalePlans } from './hooks/useSalePlans'
-import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import CobranzaReport from './components/CobranzaReport'
 import MonthlyClose from './components/MonthlyClose'
+import AdminClasesPanel from './components/ClasesOnline/AdminClasesPanel'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
@@ -1124,7 +1124,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
-            { id: 'gallery', icon: Images, label: 'Galería' },
+            { id: 'clases', icon: MonitorPlay, label: 'Clases Online', adminOnly: true },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
@@ -2306,11 +2306,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <DailyReport cashRegister={todayRegister} />
         )}
 
-        {/* Gallery Tab */}
-        {activeTab === 'gallery' && (
-          <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-            <GalleryManager />
-          </div>
+        {/* Clases Online Tab */}
+        {activeTab === 'clases' && (
+          <AdminClasesPanel />
         )}
 
         {/* ── Área Académica ── */}
