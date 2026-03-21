@@ -65,19 +65,22 @@ export function useStudents() {
         parent_phone: studentData.parentPhone || null,
         parent_email: studentData.parentEmail || null,
         parent_address: studentData.parentAddress || null,
-        // Datos del pagador (si es diferente)
-        payer_name: studentData.hasDifferentPayer
-          ? studentData.payerName
-          : (studentData.parentName || studentData.name || null),
-        payer_cedula: studentData.hasDifferentPayer
-          ? studentData.payerCedula
-          : (studentData.parentCedula || studentData.cedula || null),
-        payer_phone: studentData.hasDifferentPayer
-          ? studentData.payerPhone
-          : (studentData.parentPhone || studentData.phone || null),
-        payer_address: studentData.hasDifferentPayer
-          ? studentData.payerAddress
-          : null,
+        // Datos de facturación
+        payer_name: studentData.billingFromRep
+          ? (studentData.parentName || studentData.name || null)
+          : (studentData.payerName || studentData.parentName || studentData.name || null),
+        payer_cedula: studentData.billingFromRep
+          ? (studentData.parentCedula || studentData.cedula || null)
+          : (studentData.payerCedula || studentData.parentCedula || studentData.cedula || null),
+        payer_phone: studentData.billingFromRep
+          ? (studentData.parentPhone || studentData.phone || null)
+          : (studentData.payerPhone || studentData.parentPhone || studentData.phone || null),
+        payer_email: studentData.billingFromRep
+          ? (studentData.parentEmail || studentData.email || null)
+          : (studentData.payerEmail || studentData.parentEmail || studentData.email || null),
+        payer_address: studentData.billingFromRep
+          ? (studentData.parentAddress || null)
+          : (studentData.payerAddress || null),
         // Curso
         course_id: studentData.courseId,
         enrollment_date: formatDateForInput(enrollmentDate),
@@ -137,18 +140,22 @@ export function useStudents() {
         parent_phone: studentData.parentPhone || null,
         parent_email: studentData.parentEmail || null,
         parent_address: studentData.parentAddress || null,
-        payer_name: studentData.hasDifferentPayer
-          ? studentData.payerName
-          : (studentData.parentName || studentData.name || null),
-        payer_cedula: studentData.hasDifferentPayer
-          ? studentData.payerCedula
-          : (studentData.parentCedula || studentData.cedula || null),
-        payer_phone: studentData.hasDifferentPayer
-          ? studentData.payerPhone
-          : (studentData.parentPhone || studentData.phone || null),
-        payer_address: studentData.hasDifferentPayer
-          ? studentData.payerAddress
-          : null,
+        // Datos de facturación
+        payer_name: studentData.billingFromRep
+          ? (studentData.parentName || studentData.name || null)
+          : (studentData.payerName || studentData.parentName || studentData.name || null),
+        payer_cedula: studentData.billingFromRep
+          ? (studentData.parentCedula || studentData.cedula || null)
+          : (studentData.payerCedula || studentData.parentCedula || studentData.cedula || null),
+        payer_phone: studentData.billingFromRep
+          ? (studentData.parentPhone || studentData.phone || null)
+          : (studentData.payerPhone || studentData.parentPhone || studentData.phone || null),
+        payer_email: studentData.billingFromRep
+          ? (studentData.parentEmail || studentData.email || null)
+          : (studentData.payerEmail || studentData.parentEmail || studentData.email || null),
+        payer_address: studentData.billingFromRep
+          ? (studentData.parentAddress || null)
+          : (studentData.payerAddress || null),
         course_id: studentData.courseId,
         monthly_fee: coursePrice,
         notes: studentData.notes || null,
@@ -330,9 +337,15 @@ export function useStudents() {
         pause_date: null
       }
 
-      // Fidelidad: incrementar meses consecutivos al completar un pago mensual/paquete
-      if ((isMonthly || isPackage) && newPaymentStatus === 'paid') {
-        updateFields.consecutive_months = (parseInt(student?.consecutive_months) || 0) + 1
+      // Fidelidad: solo aplica a cursos de adultas con pago mensual.
+      // Pago puntual → incrementa racha. Pago tardío → resetea a 1 (este mes inicia nueva racha).
+      const isAdultas = course?.category === 'adultas'
+      if (isAdultas && isMonthly && newPaymentStatus === 'paid') {
+        if (daysLate > 0) {
+          updateFields.consecutive_months = 1   // rompe racha, empieza desde este pago
+        } else {
+          updateFields.consecutive_months = (parseInt(student?.consecutive_months) || 0) + 1
+        }
       }
 
       // Para programas mantener total_program_price (ajustado por descuento si aplica)

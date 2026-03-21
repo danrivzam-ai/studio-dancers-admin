@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Check, User, Users, CreditCard, Search, UserCheck, Gift } from 'lucide-react'
+import { X, Check, User, Users, CreditCard, Search, UserCheck } from 'lucide-react'
 import { getTodayEC } from '../lib/dateUtils'
-import { validateStudentForm } from '../lib/validators'
-import Modal from './ui/Modal'
 
 // Reusable labeled input component
 function LabeledInput({ label, required, children }) {
@@ -77,12 +75,10 @@ export default function StudentForm({
     isMinor: true,
     parentName: '', parentCedula: '', parentPhone: '', parentEmail: '', parentAddress: '',
     hasDifferentPayer: false,
-    payerName: '', payerCedula: '', payerPhone: '', payerAddress: '',
+    billingFromRep: true,
+    payerName: '', payerCedula: '', payerPhone: '', payerAddress: '', payerEmail: '',
     courseId: '', notes: '',
-    enrollmentDate: getTodayEC(),
-    isCourtesy: false,
-    courtesyCategory: '',
-    courtesyEndDate: ''
+    enrollmentDate: getTodayEC()
   })
 
   useEffect(() => {
@@ -105,16 +101,15 @@ export default function StudentForm({
         parentEmail: student.parent_email || '',
         parentAddress: student.parent_address || '',
         hasDifferentPayer: hasPayer,
+        billingFromRep: !hasPayer && (student.is_minor !== false),
         payerName: student.payer_name || '',
         payerCedula: student.payer_cedula || '',
         payerPhone: student.payer_phone || '',
         payerAddress: student.payer_address || '',
+        payerEmail: student.payer_email || '',
         courseId: student.course_id || '',
         notes: student.notes || '',
-        enrollmentDate: student.enrollment_date || getTodayEC(),
-        isCourtesy: student.is_courtesy || false,
-        courtesyCategory: student.courtesy_category || '',
-        courtesyEndDate: student.courtesy_end_date || ''
+        enrollmentDate: student.enrollment_date || getTodayEC()
       })
     }
   }, [student])
@@ -130,47 +125,33 @@ export default function StudentForm({
   }, [formData.age])
 
   const [submitting, setSubmitting] = useState(false)
-  const [validationErrors, setValidationErrors] = useState([])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (submitting) return
-    const errors = validateStudentForm(formData)
-    if (errors.length > 0) {
-      setValidationErrors(errors)
-      return
-    }
-    setValidationErrors([])
     setSubmitting(true)
     await onSubmit(formData)
-    setSubmitting(false)
+    setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
-  const inputClass = "w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
-  const inputClassBlue = "w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-  const inputClassGreen = "w-full px-4 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+  const inputClassBlue = "w-full px-3 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+  const inputClassGreen = "w-full px-3 py-2 text-sm border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
 
   return (
-    <Modal isOpen={true} onClose={onClose} ariaLabel="Formulario de alumno">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-6 flex items-center justify-between sticky top-0 bg-purple-700 text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
-          <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
+          <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {validationErrors.length > 0 && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-              {validationErrors.map((err, i) => (
-                <p key={i} className="text-red-700 text-xs">{err}</p>
-              ))}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Toggle Menor / Adulto */}
           <div className="flex rounded-xl overflow-hidden border-2 border-purple-200">
             <button
@@ -204,7 +185,7 @@ export default function StudentForm({
             <h3 className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-1.5">
               <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <LabeledInput label="Nombre completo" required>
                 <input
                   type="text"
@@ -322,7 +303,7 @@ export default function StudentForm({
                       onFocus={() => setParentDropdown(true)}
                       onBlur={() => setTimeout(() => setParentDropdown(false), 150)}
                       placeholder="Buscar representante existente…"
-                      className="flex-1 min-w-0 text-base bg-transparent focus:outline-none placeholder-blue-300"
+                      className="flex-1 min-w-0 text-xs bg-transparent focus:outline-none placeholder-blue-300"
                     />
                   </div>
                   {parentDropdown && filteredParents.length > 0 && (
@@ -351,7 +332,7 @@ export default function StudentForm({
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Nombre" required>
                     <input
@@ -407,114 +388,110 @@ export default function StudentForm({
             </div>
           )}
 
-          {/* CORTESÍA */}
-          <div className={`border-2 rounded-xl p-3 transition-all ${formData.isCourtesy ? 'border-amber-300 bg-amber-50/50' : 'border-gray-100'}`}>
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.isCourtesy}
-                onChange={(e) => setFormData({...formData, isCourtesy: e.target.checked, courtesyCategory: e.target.checked ? 'invitado' : '', courtesyEndDate: ''})}
-                className="w-3.5 h-3.5 text-amber-600 rounded"
-              />
-              <Gift size={12} className="text-amber-600" />
-              Pase de cortesía
-            </label>
+          {/* DATOS DE FACTURACIÓN */}
+          {(() => {
+            const isMinor = formData.isMinor
+            const useRep  = isMinor && formData.billingFromRep
 
-            {formData.isCourtesy && (
-              <div className="mt-3 space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <LabeledInput label="Categoría" required>
-                    <select
-                      required
-                      value={formData.courtesyCategory}
-                      onChange={(e) => setFormData({...formData, courtesyCategory: e.target.value})}
-                      className={inputClass}
-                    >
-                      <option value="invitado">Invitado</option>
-                      <option value="influencer">Influencer</option>
-                      <option value="vip">VIP</option>
-                    </select>
-                  </LabeledInput>
-                  <LabeledInput label="Acceso hasta">
-                    <input
-                      type="date"
-                      value={formData.courtesyEndDate}
-                      onChange={(e) => setFormData({...formData, courtesyEndDate: e.target.value})}
-                      className={inputClass}
-                      placeholder="Indefinido"
-                    />
-                  </LabeledInput>
+            // Cuando "usar representante" está activo, mostramos los campos del rep
+            const billingName    = useRep ? formData.parentName    : formData.payerName
+            const billingCedula  = useRep ? formData.parentCedula  : formData.payerCedula
+            const billingPhone   = useRep ? formData.parentPhone   : formData.payerPhone
+            const billingEmail   = useRep ? formData.parentEmail   : formData.payerEmail
+            const billingAddress = useRep ? formData.parentAddress : formData.payerAddress
+
+            const setPayerField = (field, val) => setFormData(prev => ({ ...prev, [field]: val }))
+
+            return (
+              <div className="bg-green-50 border-2 border-green-100 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-green-800 flex items-center gap-1.5">
+                    <CreditCard size={14} /> Datos de Facturación
+                  </h3>
+                  {isMinor && (
+                    <label className="flex items-center gap-1.5 text-xs text-green-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={formData.billingFromRep}
+                        onChange={(e) => setFormData(prev => ({ ...prev, billingFromRep: e.target.checked }))}
+                        className="w-3.5 h-3.5 text-green-600 rounded"
+                      />
+                      Usar datos del representante
+                    </label>
+                  )}
                 </div>
-                <p className="text-[10px] text-amber-600">
-                  Sin fecha = acceso indefinido. No generará registros financieros.
-                </p>
-              </div>
-            )}
-          </div>
 
-          {/* PAGADOR DIFERENTE */}
-          <div className="border-2 border-gray-100 rounded-xl p-3">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={formData.hasDifferentPayer}
-                onChange={(e) => setFormData({...formData, hasDifferentPayer: e.target.checked})}
-                className="w-3.5 h-3.5 text-green-600 rounded"
-              />
-              <CreditCard size={12} />
-              Comprobante a otra persona
-            </label>
-
-            {formData.hasDifferentPayer && (
-              <div className="mt-3 space-y-3 bg-green-50 rounded-xl p-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <LabeledInput label="Nombre" required>
+                <div className="space-y-2">
+                  <LabeledInput label="Nombre / Razón social">
                     <input
                       type="text"
-                      required={formData.hasDifferentPayer}
-                      value={formData.payerName}
-                      onChange={(e) => setFormData({...formData, payerName: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="Nombre completo"
+                      value={billingName}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerName', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                      placeholder="Nombre completo o empresa"
                     />
                   </LabeledInput>
-                  <LabeledInput label="Cédula / RUC" required>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <LabeledInput label="Cédula / RUC" required={!isMinor}>
+                      <input
+                        type="text"
+                        required={!isMinor}
+                        value={billingCedula}
+                        disabled={useRep}
+                        onChange={(e) => setPayerField('payerCedula', e.target.value)}
+                        className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                        placeholder="0912345678"
+                      />
+                    </LabeledInput>
+                    <LabeledInput label="Teléfono">
+                      <input
+                        type="tel"
+                        value={billingPhone}
+                        disabled={useRep}
+                        onChange={(e) => setPayerField('payerPhone', e.target.value)}
+                        className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                        placeholder="09XXXXXXXX"
+                      />
+                    </LabeledInput>
+                  </div>
+
+                  <LabeledInput label="Email de facturación" required={!isMinor}>
                     <input
-                      type="text"
-                      required={formData.hasDifferentPayer}
-                      value={formData.payerCedula}
-                      onChange={(e) => setFormData({...formData, payerCedula: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="0912345678"
+                      type="email"
+                      required={!isMinor}
+                      value={billingEmail}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerEmail', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                      placeholder="correo@email.com"
                     />
                   </LabeledInput>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <LabeledInput label="Teléfono">
-                    <input
-                      type="tel"
-                      value={formData.payerPhone}
-                      onChange={(e) => setFormData({...formData, payerPhone: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="09XXXXXXXX"
-                    />
-                  </LabeledInput>
+
                   <LabeledInput label="Dirección">
                     <input
                       type="text"
-                      value={formData.payerAddress || ''}
-                      onChange={(e) => setFormData({...formData, payerAddress: e.target.value})}
-                      className={inputClassGreen}
+                      value={billingAddress}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerAddress', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                       placeholder="Dirección"
                     />
                   </LabeledInput>
                 </div>
+
+                {isMinor && formData.billingFromRep && (
+                  <p className="text-[10px] text-green-600 mt-2">
+                    El comprobante se emitirá a nombre del representante registrado.
+                  </p>
+                )}
               </div>
-            )}
-          </div>
+            )
+          })()}
 
           {/* CURSO y REGISTRO */}
-          <div className="bg-gray-50 rounded-xl p-3 space-y-3">
+          <div className="bg-gray-50 rounded-xl p-3 space-y-2">
             <h3 className="text-sm font-semibold text-gray-800">Curso y Registro</h3>
             <LabeledInput label="Curso" required>
               <select
@@ -594,18 +571,18 @@ export default function StudentForm({
           </div>
 
           {/* BOTONES */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 active:scale-95 transition-all font-medium text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <>
@@ -625,6 +602,6 @@ export default function StudentForm({
           </div>
         </form>
       </div>
-    </Modal>
+    </div>
   )
 }
