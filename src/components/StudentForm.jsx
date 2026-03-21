@@ -75,7 +75,8 @@ export default function StudentForm({
     isMinor: true,
     parentName: '', parentCedula: '', parentPhone: '', parentEmail: '', parentAddress: '',
     hasDifferentPayer: false,
-    payerName: '', payerCedula: '', payerPhone: '', payerAddress: '',
+    billingFromRep: true,
+    payerName: '', payerCedula: '', payerPhone: '', payerAddress: '', payerEmail: '',
     courseId: '', notes: '',
     enrollmentDate: getTodayEC()
   })
@@ -100,10 +101,12 @@ export default function StudentForm({
         parentEmail: student.parent_email || '',
         parentAddress: student.parent_address || '',
         hasDifferentPayer: hasPayer,
+        billingFromRep: !hasPayer && (student.is_minor !== false),
         payerName: student.payer_name || '',
         payerCedula: student.payer_cedula || '',
         payerPhone: student.payer_phone || '',
         payerAddress: student.payer_address || '',
+        payerEmail: student.payer_email || '',
         courseId: student.course_id || '',
         notes: student.notes || '',
         enrollmentDate: student.enrollment_date || getTodayEC()
@@ -385,66 +388,107 @@ export default function StudentForm({
             </div>
           )}
 
-          {/* PAGADOR DIFERENTE */}
-          <div className="border-2 border-gray-100 rounded-xl p-3">
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
-              <input
-                type="checkbox"
-                checked={formData.hasDifferentPayer}
-                onChange={(e) => setFormData({...formData, hasDifferentPayer: e.target.checked})}
-                className="w-3.5 h-3.5 text-green-600 rounded"
-              />
-              <CreditCard size={12} />
-              Comprobante a otra persona
-            </label>
+          {/* DATOS DE FACTURACIÓN */}
+          {(() => {
+            const isMinor = formData.isMinor
+            const useRep  = isMinor && formData.billingFromRep
 
-            {formData.hasDifferentPayer && (
-              <div className="mt-3 space-y-2 bg-green-50 rounded-xl p-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <LabeledInput label="Nombre" required>
-                    <input
-                      type="text"
-                      required={formData.hasDifferentPayer}
-                      value={formData.payerName}
-                      onChange={(e) => setFormData({...formData, payerName: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="Nombre completo"
-                    />
-                  </LabeledInput>
-                  <LabeledInput label="Cédula / RUC" required>
-                    <input
-                      type="text"
-                      required={formData.hasDifferentPayer}
-                      value={formData.payerCedula}
-                      onChange={(e) => setFormData({...formData, payerCedula: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="0912345678"
-                    />
-                  </LabeledInput>
+            // Cuando "usar representante" está activo, mostramos los campos del rep
+            const billingName    = useRep ? formData.parentName    : formData.payerName
+            const billingCedula  = useRep ? formData.parentCedula  : formData.payerCedula
+            const billingPhone   = useRep ? formData.parentPhone   : formData.payerPhone
+            const billingEmail   = useRep ? formData.parentEmail   : formData.payerEmail
+            const billingAddress = useRep ? formData.parentAddress : formData.payerAddress
+
+            const setPayerField = (field, val) => setFormData(prev => ({ ...prev, [field]: val }))
+
+            return (
+              <div className="bg-green-50 border-2 border-green-100 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-green-800 flex items-center gap-1.5">
+                    <CreditCard size={14} /> Datos de Facturación
+                  </h3>
+                  {isMinor && (
+                    <label className="flex items-center gap-1.5 text-xs text-green-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={formData.billingFromRep}
+                        onChange={(e) => setFormData(prev => ({ ...prev, billingFromRep: e.target.checked }))}
+                        className="w-3.5 h-3.5 text-green-600 rounded"
+                      />
+                      Usar datos del representante
+                    </label>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <LabeledInput label="Teléfono">
+
+                <div className="space-y-2">
+                  <LabeledInput label="Nombre / Razón social">
                     <input
-                      type="tel"
-                      value={formData.payerPhone}
-                      onChange={(e) => setFormData({...formData, payerPhone: e.target.value})}
-                      className={inputClassGreen}
-                      placeholder="09XXXXXXXX"
+                      type="text"
+                      value={billingName}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerName', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                      placeholder="Nombre completo o empresa"
                     />
                   </LabeledInput>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <LabeledInput label="Cédula / RUC" required={!isMinor}>
+                      <input
+                        type="text"
+                        required={!isMinor}
+                        value={billingCedula}
+                        disabled={useRep}
+                        onChange={(e) => setPayerField('payerCedula', e.target.value)}
+                        className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                        placeholder="0912345678"
+                      />
+                    </LabeledInput>
+                    <LabeledInput label="Teléfono">
+                      <input
+                        type="tel"
+                        value={billingPhone}
+                        disabled={useRep}
+                        onChange={(e) => setPayerField('payerPhone', e.target.value)}
+                        className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                        placeholder="09XXXXXXXX"
+                      />
+                    </LabeledInput>
+                  </div>
+
+                  <LabeledInput label="Email de facturación" required={!isMinor}>
+                    <input
+                      type="email"
+                      required={!isMinor}
+                      value={billingEmail}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerEmail', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
+                      placeholder="correo@email.com"
+                    />
+                  </LabeledInput>
+
                   <LabeledInput label="Dirección">
                     <input
                       type="text"
-                      value={formData.payerAddress || ''}
-                      onChange={(e) => setFormData({...formData, payerAddress: e.target.value})}
-                      className={inputClassGreen}
+                      value={billingAddress}
+                      disabled={useRep}
+                      onChange={(e) => setPayerField('payerAddress', e.target.value)}
+                      className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                       placeholder="Dirección"
                     />
                   </LabeledInput>
                 </div>
+
+                {isMinor && formData.billingFromRep && (
+                  <p className="text-[10px] text-green-600 mt-2">
+                    El comprobante se emitirá a nombre del representante registrado.
+                  </p>
+                )}
               </div>
-            )}
-          </div>
+            )
+          })()}
 
           {/* CURSO y REGISTRO */}
           <div className="bg-gray-50 rounded-xl p-3 space-y-2">
