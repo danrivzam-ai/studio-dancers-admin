@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, AlertTriangle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck, Banknote, Smartphone, Ban
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, MonitorPlay, Lock, ClipboardCheck, Banknote, Smartphone, Ban
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -48,6 +48,7 @@ import ClasesAdultasManager from './components/ClasesAdultasManager'
 import CobranzaReport from './components/CobranzaReport'
 import MonthlyClose from './components/MonthlyClose'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
+import AdminClasesPanel from './components/ClasesOnline/AdminClasesPanel'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
@@ -1126,6 +1127,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
+            { id: 'clases', icon: MonitorPlay, label: 'Clases Online', adminOnly: true },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
            .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
@@ -2497,6 +2499,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
 
+
+        {/* Clases Online Tab */}
+        {activeTab === 'clases' && (
+          <AdminClasesPanel />
+        )}
 
         {/* Recepcionistas Tab */}
         {activeTab === 'recepcionistas' && (
