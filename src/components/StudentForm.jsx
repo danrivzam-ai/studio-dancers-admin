@@ -76,6 +76,7 @@ export default function StudentForm({
     parentName: '', parentCedula: '', parentPhone: '', parentEmail: '', parentAddress: '',
     hasDifferentPayer: false,
     billingFromRep: true,
+    billingFromSelf: true,
     payerName: '', payerCedula: '', payerPhone: '', payerAddress: '', payerEmail: '',
     courseId: '', notes: '',
     enrollmentDate: getTodayEC()
@@ -102,6 +103,7 @@ export default function StudentForm({
         parentAddress: student.parent_address || '',
         hasDifferentPayer: hasPayer,
         billingFromRep: !hasPayer && (student.is_minor !== false),
+        billingFromSelf: !hasPayer && (student.is_minor === false),
         payerName: student.payer_name || '',
         payerCedula: student.payer_cedula || '',
         payerPhone: student.payer_phone || '',
@@ -390,16 +392,18 @@ export default function StudentForm({
 
           {/* DATOS DE FACTURACIÓN */}
           {(() => {
-            const isMinor = formData.isMinor
-            const useRep  = isMinor && formData.billingFromRep
+            const isMinor   = formData.isMinor
+            const useRep    = isMinor  && formData.billingFromRep
+            const useSelf   = !isMinor && formData.billingFromSelf
 
-            // Cuando "usar representante" está activo, mostramos los campos del rep
-            const billingName    = useRep ? formData.parentName    : formData.payerName
-            const billingCedula  = useRep ? formData.parentCedula  : formData.payerCedula
-            const billingPhone   = useRep ? formData.parentPhone   : formData.payerPhone
-            const billingEmail   = useRep ? formData.parentEmail   : formData.payerEmail
-            const billingAddress = useRep ? formData.parentAddress : formData.payerAddress
+            // Fuente de datos según modo
+            const billingName    = useRep  ? formData.parentName    : useSelf ? formData.name        : formData.payerName
+            const billingCedula  = useRep  ? formData.parentCedula  : useSelf ? formData.cedula      : formData.payerCedula
+            const billingPhone   = useRep  ? formData.parentPhone   : useSelf ? formData.phone       : formData.payerPhone
+            const billingEmail   = useRep  ? formData.parentEmail   : useSelf ? formData.email       : formData.payerEmail
+            const billingAddress = useRep  ? formData.parentAddress : useSelf ? formData.address     : formData.payerAddress
 
+            const disabled = useRep || useSelf
             const setPayerField = (field, val) => setFormData(prev => ({ ...prev, [field]: val }))
 
             return (
@@ -408,7 +412,7 @@ export default function StudentForm({
                   <h3 className="text-sm font-semibold text-green-800 flex items-center gap-1.5">
                     <CreditCard size={14} /> Datos de Facturación
                   </h3>
-                  {isMinor && (
+                  {isMinor ? (
                     <label className="flex items-center gap-1.5 text-xs text-green-700 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -418,6 +422,16 @@ export default function StudentForm({
                       />
                       Usar datos del representante
                     </label>
+                  ) : (
+                    <label className="flex items-center gap-1.5 text-xs text-green-700 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={formData.billingFromSelf}
+                        onChange={(e) => setFormData(prev => ({ ...prev, billingFromSelf: e.target.checked }))}
+                        className="w-3.5 h-3.5 text-green-600 rounded"
+                      />
+                      Usar mis datos
+                    </label>
                   )}
                 </div>
 
@@ -426,7 +440,7 @@ export default function StudentForm({
                     <input
                       type="text"
                       value={billingName}
-                      disabled={useRep}
+                      disabled={disabled}
                       onChange={(e) => setPayerField('payerName', e.target.value)}
                       className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                       placeholder="Nombre completo o empresa"
@@ -439,7 +453,7 @@ export default function StudentForm({
                         type="text"
                         required={!isMinor}
                         value={billingCedula}
-                        disabled={useRep}
+                        disabled={disabled}
                         onChange={(e) => setPayerField('payerCedula', e.target.value)}
                         className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                         placeholder="0912345678"
@@ -449,7 +463,7 @@ export default function StudentForm({
                       <input
                         type="tel"
                         value={billingPhone}
-                        disabled={useRep}
+                        disabled={disabled}
                         onChange={(e) => setPayerField('payerPhone', e.target.value)}
                         className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                         placeholder="09XXXXXXXX"
@@ -457,12 +471,11 @@ export default function StudentForm({
                     </LabeledInput>
                   </div>
 
-                  <LabeledInput label="Email de facturación" required={!isMinor}>
+                  <LabeledInput label="Email de facturación">
                     <input
                       type="email"
-                      required={!isMinor}
                       value={billingEmail}
-                      disabled={useRep}
+                      disabled={disabled}
                       onChange={(e) => setPayerField('payerEmail', e.target.value)}
                       className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                       placeholder="correo@email.com"
@@ -473,7 +486,7 @@ export default function StudentForm({
                     <input
                       type="text"
                       value={billingAddress}
-                      disabled={useRep}
+                      disabled={disabled}
                       onChange={(e) => setPayerField('payerAddress', e.target.value)}
                       className={`${inputClassGreen} disabled:opacity-60 disabled:bg-green-100`}
                       placeholder="Dirección"
