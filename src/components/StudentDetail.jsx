@@ -126,7 +126,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const handleWhatsApp = () => {
     const phone = student.payer_phone || student.parent_phone || student.phone
     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
-    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers'))
+    const isAdult = (course?.ageMin ?? 0) >= 18
+    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers', 5, 20, isAdult))
   }
 
   return (
@@ -134,7 +135,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col">
 
         {/* ── Header ── */}
-        <div className="text-white rounded-t-2xl shrink-0 bg-purple-700" style={{ padding: '36px 20px 16px' }}>
+        <div className="text-white rounded-t-2xl shrink-0 bg-[#551735]" style={{ padding: '36px 20px 16px' }}>
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">

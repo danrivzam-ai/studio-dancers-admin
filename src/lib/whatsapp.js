@@ -135,7 +135,7 @@ Por favor contáctanos para coordinar tu pago y retomar las clases.
 
 /**
  * Mensaje Adult-A — Recordatorio previo para adultas (ciclo próximo a vencer).
- * Sin mencionar "mensualidad" — habla de "ciclo de clases".
+ * Lenguaje de renovación: tu ciclo actual está por terminar, renueva para seguir.
  */
 export const buildMessageAdultReminder = (student, courseName, settings) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
@@ -144,16 +144,17 @@ export const buildMessageAdultReminder = (student, courseName, settings) => {
   const bankLine = buildBankLine(settings)
 
   return `Hola ${student.name} 👋
-Te recordamos que tu ciclo de clases en *${courseName}* vence el *${dueDate}*.
+Tu ciclo actual de *${courseName}* está por finalizar. Tu última clase de este ciclo es el *${dueDate}*.
 
-💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+Para que tus clases continúen sin interrupción, renueva tu próximo ciclo:
+💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
-Renueva a tiempo para continuar en clases sin interrupciones 🩰
-${schoolName}`
+Envíanos tu comprobante por aquí y ¡listo!
+🩰 ${schoolName}`
 }
 
 /**
- * Mensaje Adult-B — Ciclo vencido para adultas (ya no puede asistir hasta renovar).
+ * Mensaje Adult-B — Ciclo vencido para adultas (ya finalizó, debe renovar para retomar).
  * Sin "mora" ni "suspensión" — lenguaje de renovación voluntaria.
  */
 export const buildMessageAdultExpired = (student, courseName, daysOverdue, settings) => {
@@ -163,13 +164,12 @@ export const buildMessageAdultExpired = (student, courseName, daysOverdue, setti
   const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
 
   return `Hola ${student.name},
-Tu ciclo de clases en *${courseName}* venció hace *${daysText}*.
+Tu ciclo de *${courseName}* finalizó hace *${daysText}*. Para retomar tus clases, solo necesitas renovar tu inscripción al nuevo ciclo.
 
-Para retomar las clases, renueva tu inscripción cuando quieras 😊
-💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
+💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
-¡Te esperamos! 🩰
-${schoolName}`
+Escríbenos para coordinar tu regreso 😊
+🩰 ${schoolName}`
 }
 
 /**
