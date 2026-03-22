@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       manifest: {
         name: 'Studio Dancers Admin',
-        short_name: 'Dancers Admin',
+        short_name: 'Admin',
         description: 'Panel de administración Studio Dancers',
         start_url: '/',
         display: 'standalone',
