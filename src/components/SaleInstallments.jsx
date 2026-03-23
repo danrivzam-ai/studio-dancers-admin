@@ -206,8 +206,16 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
           </div>
 
           <div className="space-y-1.5 mb-4 text-xs font-mono">
+            {plan.student_name && plan.student_name !== plan.customer_name && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Alumna:</span>
+                <span className="font-semibold text-right ml-4">{plan.student_name}</span>
+              </div>
+            )}
             <div className="flex justify-between">
-              <span className="text-gray-500">Cliente:</span>
+              <span className="text-gray-500">
+                {plan.student_name && plan.student_name !== plan.customer_name ? 'Representante:' : 'Cliente:'}
+              </span>
               <span className="font-semibold text-right ml-4">{plan.customer_name}</span>
             </div>
             {plan.customer_cedula_ruc && (
