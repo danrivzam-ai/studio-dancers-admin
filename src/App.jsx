@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  Plus, Users, Calendar, DollarSign, AlertCircle, AlertTriangle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, MonitorPlay, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, ClipboardCheck, Banknote, Smartphone, Ban
+  Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -18,7 +18,6 @@ import { ALL_COURSES } from './lib/courses'
 import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
-import { sanitizeError } from './lib/errorUtils'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
@@ -39,20 +38,18 @@ import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import SaleInstallments from './components/SaleInstallments'
-import InventoryCount from './components/InventoryCount'
 import { useSalePlans } from './hooks/useSalePlans'
+import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
 import CobranzaReport from './components/CobranzaReport'
 import MonthlyClose from './components/MonthlyClose'
-import AdminClasesPanel from './components/ClasesOnline/AdminClasesPanel'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
-import { useToast } from './components/Toast'
 import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
@@ -78,37 +75,34 @@ function StudentAvatar({ student, isCamp }) {
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
-  const { sales, voidedSales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
+  const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
-  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, getInventoryMovements } = useItems()
+  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock } = useItems()
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
   const { activePlans, paidPlans, totalDebt, loading: plansLoading, dbError: plansDbError, refresh: refreshPlans, createPlan, registerPayment: registerPlanPayment, cancelPlan, deletePlan, updatePlanTotal, markDelivered } = useSalePlans()
   const { kpis, loading: kpisLoading, fetchKPIs } = useFinancialKPIs()
-  const toast = useToast()
 
   // Helper: enriquecer curso con datos hardcodeados si faltan classDays/classesPerCycle
   // Resuelve el caso donde class_days es NULL en Supabase (migración v14 no ejecutada o datos viejos)
   const enrichCourse = (course) => {
     if (!course) return null
-    // Normalizar price_type → priceType si falta
-    const base = course.priceType ? course : { ...course, priceType: course.price_type }
-    if (base.classDays && base.classDays.length > 0) return base
+    if (course.classDays && course.classDays.length > 0) return course
     // 1. Match exacto por id/code en cursos hardcodeados
-    const hardcoded = ALL_COURSES.find(c => c.id === base.code || c.id === base.id)
+    const hardcoded = ALL_COURSES.find(c => c.id === course.code || c.id === course.id)
     if (hardcoded) {
-      return { ...base, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage, priceType: base.priceType || hardcoded.priceType }
+      return { ...course, classDays: hardcoded.classDays, classesPerCycle: hardcoded.classesPerCycle, classesPerPackage: hardcoded.classesPerPackage }
     }
     // 2. Match por patrón: cursos custom de sábados (ej: sabados-intensivos-adultos)
-    const key = (base.code || base.id || '').toLowerCase()
-    const name = (base.name || '').toLowerCase()
+    const key = (course.code || course.id || '').toLowerCase()
+    const name = (course.name || '').toLowerCase()
     if (key.includes('sabados') || key.includes('sabado') || name.includes('sábado') || name.includes('sabado')) {
-      return { ...base, classDays: [6], classesPerPackage: base.classesPerPackage || 4 }
+      return { ...course, classDays: [6], classesPerPackage: course.classesPerPackage || 4 }
     }
-    return base
+    return course
   }
 
   const [activeTab, setActiveTab] = useState('students')
@@ -121,7 +115,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showSettings, setShowSettings] = useState(false)
   const [showExport, setShowExport] = useState(false)
   const [showManageItems, setShowManageItems] = useState(false)
-  const [showInventoryCount, setShowInventoryCount] = useState(false)
   const [showQuickPayment, setShowQuickPayment] = useState(false)
   const [showPaymentHistory, setShowPaymentHistory] = useState(false)
   const [editingStudent, setEditingStudent] = useState(null)
@@ -148,7 +141,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
   const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
-  const [saleSubmitting, setSaleSubmitting] = useState(false)
 
   // Tablón de anuncios
   const [announcements, setAnnouncements] = useState([])
@@ -304,6 +296,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   const [saleForm, setSaleForm] = useState({
     customerName: '',
+    program: '',
     productId: '',
     quantity: 1,
     date: getTodayEC(),
@@ -521,7 +514,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       resetForm()
     } else {
-      toast.error(result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -538,7 +531,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const totalRequested = alreadyInCart + qty
 
     if (product.stock !== null && product.stock !== undefined && product.stock < totalRequested) {
-      toast.warning(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
+      alert(`Stock insuficiente. Disponible: ${product.stock}, Ya en carrito: ${alreadyInCart}, Solicitado: ${qty}`)
       return
     }
 
@@ -554,16 +547,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Registrar venta completa (todos los ítems del carrito)
   const handleSaleSubmit = async (e) => {
     e.preventDefault()
-    if (saleSubmitting) return
     if (cartItems.length === 0) {
-      toast.warning('Agrega al menos un artículo al carrito')
+      alert('Agrega al menos un artículo al carrito')
       return
     }
 
-    setSaleSubmitting(true)
-    try {
     const result = await createSaleGroup({
       customerName: saleForm.customerName,
+      program: saleForm.program || null,
       items: cartItems,
       date: saleForm.date,
       notes: saleForm.notes,
@@ -583,6 +574,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setLastSaleReceipt({
         receiptNumber: result.receiptNumber,
         customerName: saleForm.customerName,
+        program: saleForm.program || null,
         items: cartItems,
         total: cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
         date: saleForm.date,
@@ -592,13 +584,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       // Reset
       setCartItems([])
       setProductSearch('')
-      setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
+      setSaleForm({ customerName: '', program: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
-      toast.error(result.error)
-    }
-    } finally {
-      setSaleSubmitting(false)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -637,7 +626,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         }
       }
     } else {
-      toast.error(result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -755,7 +744,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       refreshIncome()
     } catch (err) {
       console.error('Error en pago rápido:', err)
-      toast.error(sanitizeError(err))
+      alert('Error: ' + err.message)
     }
   }
 
@@ -773,7 +762,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setShowForm(false)
       setEditingStudent(null)
     } else {
-      toast.error(result.error)
+      alert('Error: ' + result.error)
     }
   }
 
@@ -832,20 +821,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     if (student.is_paused) {
       const result = await unpauseStudent(student.id)
       if (!result.success) {
-        toast.error(result.error)
+        alert('Error: ' + result.error)
       }
     } else {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
-        toast.warning('Solo se pueden pausar alumnos con clases mensuales o por paquete')
+        alert('Solo se pueden pausar alumnos con clases mensuales o por paquete')
         return
       }
       if (confirm(`¿Pausar 1 clase para ${student.name}?\nSe extenderá la fecha de pago.`)) {
         const result = await pauseStudent(student.id)
         if (result.success) {
-          toast.success(`Pausa activada para ${student.name}. Se agregaron ${result.daysAdded} días al ciclo.`)
+          alert(`Pausa activada para ${student.name}.\nSe agregaron ${result.daysAdded} días al ciclo.`)
         } else {
-          toast.error(result.error)
+          alert('Error: ' + result.error)
         }
       }
     }
@@ -874,33 +863,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center overflow-hidden relative" style={{
-        background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
       }}>
-        {/* Decorative ambient circles */}
-        <div className="absolute w-64 h-64 rounded-full opacity-[0.07]" style={{
-          background: 'radial-gradient(circle, white 0%, transparent 70%)',
-          top: '10%', left: '-8%',
-        }} />
-        <div className="absolute w-48 h-48 rounded-full opacity-[0.05]" style={{
-          background: 'radial-gradient(circle, white 0%, transparent 70%)',
-          bottom: '15%', right: '-5%',
-        }} />
+        <div className="text-center">
+          {/* Spinner animado */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+          </div>
 
-        <div className="text-center relative z-10">
-          <img
-            src="/logo2.png"
-            alt="Studio Dancers"
-            className="w-40 mx-auto mb-8 animate-splash-reveal animate-splash-glow"
-            style={{ opacity: 0.95 }}
-          />
-          <p className="text-white/50 text-xs mb-6 animate-splash-text tracking-widest uppercase">
-            Preparando tu espacio
-          </p>
-          <div className="animate-splash-bar">
-            <div className="loading-bar-container">
-              <div className="loading-bar"></div>
-            </div>
+          {/* Texto */}
+          <p className="text-white/80 text-sm mb-6">Cargando...</p>
+
+          {/* Barra de carga */}
+          <div className="loading-bar-container">
+            <div className="loading-bar"></div>
           </div>
         </div>
       </div>
@@ -909,7 +886,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   // Si no está autenticado, mostrar página de login (solo para admin normal)
   if (!isRecepcion && !isAuthenticated) {
-    return <LoginPage onLogin={() => {}} />
+    return <LoginPage onLogin={(user) => console.log('Logged in:', user.email)} />
   }
 
   if (!isRecepcion && loading) {
@@ -917,12 +894,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       <div className="min-h-screen flex items-center justify-center" style={{
         background: 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #fff7ed 100%)'
       }}>
-        <div className="text-center animate-fade-in">
-          <img
-            src="/logo2.png"
-            alt="Studio Dancers"
-            className="w-32 mx-auto mb-5 animate-pulse-slow"
-          />
+        <div className="text-center">
+          {/* Spinner animado */}
+          <div className="mb-5 flex justify-center">
+            <div className="w-14 h-14 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          </div>
+
+          {/* Texto */}
           <h2 className="text-purple-800 text-lg font-semibold mb-1">Cargando datos</h2>
           <p className="text-purple-400 text-sm">Un momento por favor...</p>
         </div>
@@ -934,7 +912,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
-        <div className="text-center mb-3 animate-fade-in">
+        <div className="text-center mb-3">
           <img
             src="/logo2.png"
             alt="Studio Dancers"
@@ -966,15 +944,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <span className="hidden sm:inline">{isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}</span>
             </button>
 
-            {/* Centro: Nombre + saludo */}
+            {/* Centro: Nombre */}
             <div className="text-center flex-1 min-w-0 px-2">
               <h1 className="text-base sm:text-xl md:text-2xl font-bold text-purple-800 truncate">{settings.name}</h1>
-              <p className="text-gray-400 text-xs hidden sm:block truncate">
-                {(() => {
-                  const h = new Date().getHours()
-                  return h < 12 ? 'Buenos días' : h < 18 ? 'Buenas tardes' : 'Buenas noches'
-                })()}{user?.email ? ` · ${user.email.split('@')[0]}` : ''}
-              </p>
+              <p className="text-gray-400 text-xs hidden md:block truncate">{settings.address}</p>
             </div>
 
             {/* Derecha: Configuración y Logout */}
@@ -991,7 +964,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   }}
                   className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                   title="Configuración"
-                  aria-label="Configuración"
                 >
                   <Settings size={20} />
                 </button>
@@ -1011,7 +983,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 }}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                 title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
-                aria-label="Cerrar sesión"
               >
                 <LogOut size={20} />
               </button>
@@ -1024,44 +995,44 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
-                <Plus size={18} />
+                <Plus size={20} />
                 <span>Alumno</span>
               </button>
               <button
                 onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
-                <ShoppingBag size={18} />
+                <ShoppingBag size={20} />
                 <span>Venta</span>
               </button>
               <button
                 onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
-                <Zap size={18} />
+                <Zap size={20} />
                 <span>Pago</span>
               </button>
               <button
                 onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
-                <TrendingDown size={18} />
+                <TrendingDown size={20} />
                 <span>Egreso</span>
               </button>
               <button
                 onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
-                <ArrowLeftRight size={18} />
+                <ArrowLeftRight size={20} />
                 <span>Movimiento</span>
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
               >
-                <History size={18} />
+                <History size={20} />
                 <span>Historial</span>
               </button>
             </div>
@@ -1124,7 +1095,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
-            { id: 'clases', icon: MonitorPlay, label: 'Clases Online', adminOnly: true },
+            { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
@@ -1145,9 +1116,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
-                    tab.countColor === 'red'
-                      ? 'bg-red-500 text-white'
-                      : activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
+                    activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {tab.count}
                   </span>
@@ -1161,12 +1130,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowCashRegister(true) } }}
-            role="button"
-            tabIndex={0}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all border-t-2 border-green-400"
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 border-green-400"
             title="Ver cuadre de caja"
-            aria-label="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-green-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1174,11 +1139,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">{hideIncome ? '$•••••' : `$${todayIncome.toFixed(2)}`}</p>
+                  <p className={`text-xl sm:text-2xl font-bold text-green-600 truncate transition-all ${hideIncome ? 'blur-md select-none' : ''}`}>${todayIncome.toFixed(2)}</p>
                   <button
                     onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
                     className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
-                    aria-label={hideIncome ? 'Mostrar ingresos' : 'Ocultar ingresos'}
                   >
                     {hideIncome ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
@@ -1194,12 +1158,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setFilterPayment(target)
               setShowStudentListModal(true)
             }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const target = moraStudents.length > 0 ? 'mora' : urgentCount > 0 ? 'overdue' : 'upcoming'; setFilterPayment(target); setShowStudentListModal(true) } }}
-            role="button"
-            tabIndex={0}
-            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all border-t-2 ${
-              moraStudents.length > 0 ? 'border-rose-600' :
-              urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
+            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
+              moraStudents.length > 0 ? 'border-rose-600 animate-pulse-urgent' :
+              urgentCount > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'
             }`}
             title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
@@ -1215,7 +1176,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {moraStudents.length > 0 ? (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-rose-700">{moraStudents.length}</p>
-                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas</p>
+                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas 🚫</p>
                   </>
                 ) : urgentCount > 0 ? (
                   <>
@@ -1242,8 +1203,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           >
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-[10px] text-gray-400 font-medium shrink-0">MES</span>
-              <span className="text-sm font-bold ml-1 text-gray-800">
-                {hideIncome ? '$•••' : `$${kpis.incomeC.toFixed(0)}`}
+              <span className={`text-sm font-bold ml-1 ${hideIncome ? 'blur-sm select-none' : 'text-gray-800'}`}>
+                ${kpis.incomeC.toFixed(0)}
               </span>
               {kpis.trend !== null && (
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1 shrink-0 ${
@@ -1258,8 +1219,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="h-4 w-px bg-gray-200 shrink-0" />
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-[10px] text-gray-400 font-medium shrink-0">GASTOS</span>
-              <span className="text-sm font-bold ml-1 text-gray-700">
-                {hideIncome ? '$•••' : `$${kpis.expensesC.toFixed(0)}`}
+              <span className={`text-sm font-bold ml-1 text-gray-700 ${hideIncome ? 'blur-sm select-none' : ''}`}>
+                ${kpis.expensesC.toFixed(0)}
               </span>
             </div>
             <div className="h-4 w-px bg-gray-200 shrink-0" />
@@ -1306,7 +1267,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onClick={() => setSearchTerm('')}
                 className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                 title="Limpiar búsqueda"
-                aria-label="Limpiar búsqueda"
               >
                 <X size={16} />
               </button>
@@ -1322,7 +1282,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-purple-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-purple-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
@@ -1338,7 +1298,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-amber-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-amber-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
@@ -1356,7 +1316,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-orange-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-orange-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
@@ -1374,7 +1334,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-sm p-3 sm:p-5 hover:shadow-md transition-all border-t-2 border-slate-300"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-slate-300"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
@@ -1394,15 +1354,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {moraStudents.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('mora'); setShowStudentListModal(true) } }}
-                role="button"
-                tabIndex={0}
                 className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-rose-800 flex items-center gap-2">
                     <AlertCircle size={18} />
-                    Suspendidas — No pueden asistir
+                    🚫 Suspendidas — No pueden asistir
                   </h3>
                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">
                     {moraStudents.length} alumna{moraStudents.length !== 1 ? 's' : ''}
@@ -1426,10 +1383,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">{days}d mora</span>
                         <button
-                          onClick={e => { e.stopPropagation(); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title={`Enviar aviso de suspensión a ${contactRelation}`}
-                          aria-label={`Enviar aviso de suspensión a ${contactRelation}`}
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1449,9 +1405,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {overduePayments.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('overdue'); setShowStudentListModal(true) } }}
-                role="button"
-                tabIndex={0}
                 className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1481,10 +1434,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         </div>
                         <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
-                          aria-label="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1504,9 +1456,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {inactiveStudents.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('inactive'); setShowStudentListModal(true) } }}
-                role="button"
-                tabIndex={0}
                 className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1545,9 +1494,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
               <div
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFilterPayment('upcoming'); setShowStudentListModal(true) } }}
-                role="button"
-                tabIndex={0}
                 className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1579,10 +1525,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {days === 0 ? 'Hoy' : `${days}d`}
                         </span>
                         <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { toast.warning('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
+                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18)) }}
                           className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
                           title="Enviar recordatorio WhatsApp"
-                          aria-label="Enviar recordatorio WhatsApp"
                         >
                           <MessageCircle size={13} />
                         </button>
@@ -1602,9 +1547,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {studentsWithBalance.length > 0 && (
               <div
                 onClick={() => setShowBalanceAlerts(true)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowBalanceAlerts(true) } }}
-                role="button"
-                tabIndex={0}
                 className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -1672,26 +1614,25 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
-                                if (!phone) { toast.warning('Sin teléfono registrado'); return }
+                                if (!phone) { alert('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
                                 openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                                 setTimeout(() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null), 800)
                               }}
-                              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-base font-medium py-3 rounded-xl transition-colors"
+                              className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
                             >
                               <MessageCircle size={15} /> Abrir WhatsApp
                             </button>
                             <button
                               onClick={() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null)}
-                              className="px-3 py-3 rounded-xl border border-gray-200 text-base text-gray-600 hover:bg-gray-50"
+                              className="px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
                             >
                               Saltar
                             </button>
                             <button
                               onClick={() => setReminderQueueIdx(null)}
-                              className="px-3 py-3 rounded-xl border border-red-200 text-base text-red-500 hover:bg-red-50"
-                              aria-label="Detener modo secuencial"
+                              className="px-3 py-2.5 rounded-xl border border-red-200 text-sm text-red-500 hover:bg-red-50"
                             >
                               <X size={14} />
                             </button>
@@ -1717,12 +1658,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             <button
                               onClick={() => {
                                 const phone = s.payer_phone || s.parent_phone || s.phone
-                                if (!phone) { toast.warning('Sin teléfono registrado'); return }
+                                if (!phone) { alert('Sin teléfono registrado'); return }
                                 openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
                               title="Enviar recordatorio"
-                              aria-label="Enviar recordatorio WhatsApp"
                             >
                               <MessageCircle size={15} />
                             </button>
@@ -1734,7 +1674,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       {reminderQueueIdx === null && (
                         <button
                           onClick={() => setReminderQueueIdx(0)}
-                          className="w-full flex items-center justify-center gap-2 mt-1 py-3 rounded-xl border border-green-300 text-green-700 text-base font-medium hover:bg-green-50 transition-colors"
+                          className="w-full flex items-center justify-center gap-2 mt-1 py-2.5 rounded-xl border border-green-300 text-green-700 text-sm font-medium hover:bg-green-50 transition-colors"
                         >
                           <Send size={14} /> Enviar a todos en secuencia
                         </button>
@@ -1749,8 +1689,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {overduePayments.length === 0 && inactiveStudents.length === 0 && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length === 0 && studentsWithBalance.length === 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 text-center">
                 <Check size={32} className="mx-auto mb-2 text-green-500" />
-                <p className="font-medium text-green-800">Todo al día</p>
-                <p className="text-sm text-green-600 mt-1">No hay cobros pendientes. Buen trabajo del equipo.</p>
+                <p className="font-medium text-green-800">¡Todo al día!</p>
+                <p className="text-sm text-green-600 mt-1">No hay cobros pendientes ni saldos por cobrar</p>
               </div>
             )}
           </>
@@ -1773,39 +1713,48 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           })
           const filteredTotal = filteredSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
-
-          // Subtotales por método de pago
-          const methodTotals = filteredSales.reduce((acc, s) => {
-            const m = s.payment_method || 'cash'
-            acc[m] = (acc[m] || 0) + (parseFloat(s.total) || 0)
-            return acc
-          }, {})
-          const METHOD_LABELS = { cash: { label: 'Efectivo', icon: 'banknote', color: 'text-green-700 bg-green-50' }, transfer: { label: 'Transfer.', icon: 'smartphone', color: 'text-blue-700 bg-blue-50' }, card: { label: 'Tarjeta', icon: 'card', color: 'text-purple-700 bg-purple-50' } }
-
-          // Ventas anuladas filtradas por el mismo periodo
-          const filteredVoided = voidedSales.filter(s => {
-            if (salesDateFilter === 'today') return s.sale_date === todayStr
-            if (salesDateFilter === 'week') {
-              const d = new Date(s.sale_date + 'T12:00:00')
-              return (todayDate - d) / 86400000 <= 6
-            }
-            if (salesDateFilter === 'month') {
-              return s.sale_date.startsWith(todayStr.slice(0, 7))
-            }
-            return true
-          })
-
           return (
-          <div className="space-y-4 pb-20">
-
-          {/* ─── 1. CATÁLOGO — card propio ─── */}
+          <div className="space-y-4">
           <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-semibold text-gray-800">Ventas de Artículos</h2>
+                  <p className="text-sm text-gray-500">
+                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
+                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[
+                  { value: 'today', label: 'Hoy' },
+                  { value: 'week', label: '7 días' },
+                  { value: 'month', label: 'Este mes' },
+                  { value: 'all', label: 'Todo' },
+                ].map(f => (
+                  <button
+                    key={f.value}
+                    onClick={() => setSalesDateFilter(f.value)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      salesDateFilter === f.value
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Catálogo por categoría */}
             {(() => {
               const CATS = [
-                { key: 'entradas',  label: 'Entradas' },
-                { key: 'vestuario', label: 'Vestuario' },
-                { key: 'uniformes', label: 'Uniformes' },
-                { key: 'bar',       label: 'Bar' },
+                { key: 'entradas',  label: 'Entradas',  emoji: '🎟️' },
+                { key: 'vestuario', label: 'Vestuario', emoji: '👗' },
+                { key: 'uniformes', label: 'Uniformes', emoji: '📦' },
+                { key: 'bar',       label: 'Bar',       emoji: '🥤' },
               ]
               const catKeys = CATS.map(c => c.key)
               const categorized = CATS.map(cat => ({
@@ -1813,7 +1762,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 products: allProducts.filter(p => p.category === cat.key)
               })).filter(c => c.products.length > 0)
               const otros = allProducts.filter(p => !catKeys.includes(p.category))
-              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', products: otros })
+              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
 
               const toggleCat = (key) => setCollapsedCats(prev => {
                 const next = new Set(prev)
@@ -1821,44 +1770,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 return next
               })
 
-              const lowStockProducts = allProducts.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 3 && p.active !== false)
-
               return (
-                <div className="p-4 space-y-2">
+                <div className="p-4 border-b space-y-2">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
                       <Tag size={15} /> Catálogo
                     </h3>
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => setShowInventoryCount(true)}
-                        className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
-                        <ClipboardCheck size={13} /> Conteo
+                    {isAdmin && (
+                      <button onClick={() => setShowManageItems(true)}
+                        className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
+                        <Package size={13} /> Gestionar
                       </button>
-                      {isAdmin && (
-                        <button onClick={() => setShowManageItems(true)}
-                          className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
-                          <Package size={13} /> Gestionar
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
-
-                  {/* Alerta de stock bajo */}
-                  {lowStockProducts.length > 0 && (
-                    <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl mb-2">
-                      <p className="text-xs font-semibold text-amber-700 mb-1">
-                        <AlertTriangle size={12} className="inline mr-1" />
-                        {lowStockProducts.length} producto{lowStockProducts.length > 1 ? 's' : ''} con stock bajo
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {lowStockProducts.map(p => (
-                          <span key={p.id || p.code} className={`text-[11px] px-2 py-0.5 rounded-full ${p.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {p.name}: {p.stock === 0 ? 'Agotado' : `${p.stock} uds`}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   {categorized.map(cat => {
                     const collapsed = collapsedCats.has(cat.key)
                     return (
@@ -1866,7 +1790,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <button type="button" onClick={() => toggleCat(cat.key)}
                         className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors">
                         <span className="text-sm font-semibold text-gray-700">
-                          {cat.label}
+                          {cat.emoji} {cat.label}
                           <span className="ml-2 text-xs font-normal text-gray-400">{cat.products.length} {cat.products.length === 1 ? 'artículo' : 'artículos'}</span>
                         </span>
                         <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} />
@@ -1903,7 +1827,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                                   Vender
                                 </button>
-                                {product.category !== 'bar' && (
                                 <button
                                   onClick={() => {
                                     setNewPlanPreselect(product)
@@ -1912,7 +1835,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
                                   Abonar
                                 </button>
-                                )}
                               </div>
                             </div>
                           )
@@ -1926,59 +1848,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
               )
             })()}
-          </div>
 
-          {/* ─── 2. HISTORIAL DE VENTAS — card propio ─── */}
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="font-semibold text-gray-800">Historial de Ventas</h2>
-                  <p className="text-sm text-gray-500">
-                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
-                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {[
-                  { value: 'today', label: 'Hoy' },
-                  { value: 'week', label: '7 días' },
-                  { value: 'month', label: 'Este mes' },
-                  { value: 'all', label: 'Todo' },
-                ].map(f => (
-                  <button
-                    key={f.value}
-                    onClick={() => setSalesDateFilter(f.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      salesDateFilter === f.value
-                        ? 'bg-green-600 text-white shadow-sm'
-                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-              {/* Subtotales por método de pago */}
-              {filteredSales.length > 0 && Object.keys(methodTotals).length > 0 && (
-                <div className="flex gap-2 flex-wrap mt-3 pt-3 border-t border-gray-200">
-                  {Object.entries(methodTotals).map(([method, total]) => {
-                    const meta = METHOD_LABELS[method] || { label: method, color: 'text-gray-700 bg-gray-50' }
-                    return (
-                      <span key={method} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${meta.color}`}>
-                        {method === 'cash' && <Banknote size={12} />}
-                        {method === 'transfer' && <Smartphone size={12} />}
-                        {method === 'card' && <CreditCard size={12} />}
-                        {meta.label}: ${total.toFixed(2)}
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {filteredSales.length === 0 && filteredVoided.length === 0 ? (
+            {filteredSales.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
                 <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
                 <p>{salesDateFilter === 'today' ? 'Sin ventas hoy' : salesDateFilter === 'week' ? 'Sin ventas esta semana' : salesDateFilter === 'month' ? 'Sin ventas este mes' : 'No hay ventas registradas'}</p>
@@ -1990,9 +1861,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
             ) : (
-              <>
               <div className="divide-y">
                 {(() => {
+                  // Agrupar ventas: agrupadas por sale_group_id, o individuales (null)
                   const groups = []
                   const seen = new Set()
                   for (const sale of filteredSales) {
@@ -2007,8 +1878,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   }
                   return groups.map(group => {
                     const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
-                    const pm = group.sale.payment_method || 'cash'
-                    const pmMeta = METHOD_LABELS[pm] || { label: pm, color: 'text-gray-700 bg-gray-50' }
                     return (
                       <div key={group.id} className="p-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-start justify-between gap-3">
@@ -2025,15 +1894,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             ) : (
                               <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
                             )}
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              <p className="text-xs text-gray-500">Cliente: {group.sale.customer_name}</p>
-                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${pmMeta.color}`}>
-                                {pm === 'cash' && <Banknote size={10} />}
-                                {pm === 'transfer' && <Smartphone size={10} />}
-                                {pm === 'card' && <CreditCard size={10} />}
-                                {pmMeta.label}
-                              </span>
-                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}{group.sale.program && <span className="ml-2 text-blue-500">· {group.sale.program}</span>}</p>
                             <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-purple-400">{group.sale.receipt_number}</span>}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -2044,6 +1905,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   setLastSaleReceipt({
                                     receiptNumber: group.sale.receipt_number,
                                     customerName: group.sale.customer_name,
+                                    program: group.sale.program || null,
                                     items: group.items.map(i => ({ productName: i.product_name, quantity: i.quantity, unitPrice: i.unit_price })),
                                     total: groupTotal,
                                     date: group.sale.sale_date,
@@ -2053,19 +1915,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 }}
                                 className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
                                 title="Ver comprobante"
-                                aria-label="Ver comprobante"
                               >
                                 <ScrollText size={16} />
                               </button>
                             )}
-                            <button
-                              onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                              title="Anular venta"
-                              aria-label="Anular venta"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            {!isRecepcion && (
+                              <button
+                                onClick={() => group.items.forEach(i => handleDeleteSale(i))}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2073,57 +1934,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   })
                 })()}
               </div>
-
-              {/* Ventas anuladas */}
-              {filteredVoided.length > 0 && (
-                <div className="border-t-2 border-dashed border-gray-200">
-                  <div className="px-4 py-2.5 bg-red-50/50">
-                    <p className="text-xs font-semibold text-red-400 uppercase tracking-wide flex items-center gap-1.5">
-                      <Ban size={12} /> Anuladas ({filteredVoided.length})
-                    </p>
-                  </div>
-                  <div className="divide-y divide-dashed divide-gray-100">
-                    {(() => {
-                      const vGroups = []
-                      const vSeen = new Set()
-                      for (const sale of filteredVoided) {
-                        if (sale.sale_group_id) {
-                          if (vSeen.has(sale.sale_group_id)) continue
-                          vSeen.add(sale.sale_group_id)
-                          const items = filteredVoided.filter(s => s.sale_group_id === sale.sale_group_id)
-                          vGroups.push({ id: sale.sale_group_id, items, sale })
-                        } else {
-                          vGroups.push({ id: sale.id, items: [sale], sale })
-                        }
-                      }
-                      return vGroups.map(group => {
-                        const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
-                        return (
-                          <div key={group.id} className="px-4 py-3 opacity-50">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 min-w-0">
-                                {group.items.map((item, i) => (
-                                  <p key={i} className="text-sm text-gray-500 line-through">
-                                    {item.product_name} ×{item.quantity}
-                                  </p>
-                                ))}
-                                <p className="text-xs text-gray-400 mt-0.5">Cliente: {group.sale.customer_name}</p>
-                                <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2">{group.sale.receipt_number}</span>}</p>
-                              </div>
-                              <p className="text-sm font-semibold text-red-400 line-through shrink-0">${groupTotal.toFixed(2)}</p>
-                            </div>
-                          </div>
-                        )
-                      })
-                    })()}
-                  </div>
-                </div>
-              )}
-              </>
             )}
           </div>
 
-          {/* ─── 3. VENTAS EN ABONOS — card propio ─── */}
+          {/* Ventas en Abonos */}
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
@@ -2152,16 +1966,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               />
             </div>
           </div>
-
-          {/* FAB — Nueva Venta */}
-          <button
-            onClick={() => setShowSaleForm(true)}
-            className="fixed bottom-20 right-4 z-40 w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center active:scale-95 transition-all"
-            aria-label="Nueva venta"
-          >
-            <ShoppingBag size={22} />
-          </button>
-
           </div>
           )
         })()}
@@ -2202,7 +2006,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {regular.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-2 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="border-t-4 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-purple-700 leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">{course.schedule || 'Sin horario definido'}</p>
                               <div className="flex items-center justify-between mt-3">
@@ -2229,7 +2033,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {programs.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-2 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="border-t-4 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-orange-700 leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">
                                 {(course.ageMin || course.age_min)} - {(course.ageMax || course.age_max)} años
@@ -2285,7 +2089,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-md border-t-2 border-red-400 p-6 text-center">
+            <div className="bg-white rounded-2xl shadow-md border-t-4 border-red-400 p-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
                 <TrendingDown className="text-red-400" size={28} />
               </div>
@@ -2306,9 +2110,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <DailyReport cashRegister={todayRegister} />
         )}
 
-        {/* Clases Online Tab */}
-        {activeTab === 'clases' && (
-          <AdminClasesPanel />
+        {/* Gallery Tab */}
+        {activeTab === 'gallery' && (
+          <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+            <GalleryManager />
+          </div>
         )}
 
         {/* ── Área Académica ── */}
@@ -2388,14 +2194,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:border-purple-500 resize-none outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
@@ -2431,7 +2237,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={announcementForm.expires_at}
                         onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
-                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-400 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -2476,13 +2282,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
-                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all" aria-label="Editar anuncio">
+                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`} aria-label={a.active ? 'Desactivar anuncio' : 'Activar anuncio'}>
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
                           {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
-                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all" aria-label="Eliminar anuncio">
+                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -2528,10 +2334,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-6 border-b flex items-center justify-between shrink-0">
+              <div className="p-5 border-b flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <ShoppingBag size={20} className="text-green-600" />
                   <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
@@ -2542,7 +2348,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               <form onSubmit={handleSaleSubmit} className="flex flex-col flex-1 overflow-hidden">
-                <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div className="p-5 space-y-4 overflow-y-auto flex-1">
 
                   {/* Cliente */}
                   <div>
@@ -2552,7 +2358,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       required
                       value={saleForm.customerName}
                       onChange={(e) => setSaleForm({...saleForm, customerName: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
                       placeholder="Nombre del cliente"
                       list="students-list-sale"
                     />
@@ -2561,23 +2367,38 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </datalist>
                   </div>
 
+                  {/* Programa (opcional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Programa <span className="text-gray-400 font-normal">(opcional)</span></label>
+                    <select
+                      value={saleForm.program}
+                      onChange={(e) => setSaleForm({...saleForm, program: e.target.value})}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                    >
+                      <option value="">— Sin programa —</option>
+                      {allCourses.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Selector de artículo + cantidad + botón agregar */}
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-3 space-y-3">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Agregar artículo</p>
                     {/* Buscador de producto */}
-                    <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-xl px-3 py-2.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
-                      <Search size={16} className="text-gray-400 shrink-0" />
+                    <div className="relative">
+                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       <input
                         type="text"
                         value={productSearch}
                         onChange={(e) => { setProductSearch(e.target.value); setSaleForm(f => ({...f, productId: ''})) }}
                         placeholder="Buscar artículo..."
-                        className="flex-1 min-w-0 text-base outline-none bg-transparent"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       />
                       {productSearch && (
                         <button type="button" onClick={() => { setProductSearch(''); setSaleForm(f => ({...f, productId: ''})) }}
-                          className="p-1 text-gray-400 hover:text-gray-600 shrink-0">
-                          <X size={16} />
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                          <X size={14} />
                         </button>
                       )}
                     </div>
@@ -2613,7 +2434,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.productId}
                         onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       >
                         <option value="">— Seleccionar —</option>
                         {allProducts.map(product => {
@@ -2629,7 +2450,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     )}
                     {/* Fila 2: stepper cantidad + botón agregar */}
                     <div className="flex gap-2">
-                      <div className="flex items-center border-2 border-gray-200 rounded-xl bg-white overflow-hidden">
+                      <div className="flex items-center border rounded-xl bg-white overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setSaleForm(prev => ({ ...prev, quantity: Math.max(1, (prev.quantity || 1) - 1) }))}
@@ -2648,7 +2469,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="button"
                         onClick={handleAddToCart}
                         disabled={!saleForm.productId}
-                        className="flex-1 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
                         <Plus size={15} />
                         Agregar al carrito
@@ -2661,7 +2482,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <div className="border rounded-xl overflow-hidden">
                       <div className="bg-green-50 px-4 py-2 flex items-center justify-between border-b">
                         <span className="text-xs font-semibold text-green-700 uppercase tracking-wide">
-                          Carrito — {cartItems.length} ítem{cartItems.length !== 1 ? 's' : ''}
+                          🛒 Carrito — {cartItems.length} ítem{cartItems.length !== 1 ? 's' : ''}
                         </span>
                       </div>
                       <div className="divide-y">
@@ -2707,7 +2528,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={saleForm.date}
                         onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -2715,7 +2536,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.paymentMethod}
                         onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       >
                         <option value="cash">Efectivo</option>
                         <option value="transfer">Transferencia</option>
@@ -2727,7 +2548,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
 
                 {/* Footer con botones */}
-                <div className="p-6 border-t flex gap-3 shrink-0">
+                <div className="p-5 border-t flex gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}
@@ -2737,11 +2558,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                   <button
                     type="submit"
-                    disabled={cartItems.length === 0 || !saleForm.customerName || saleSubmitting}
+                    disabled={cartItems.length === 0 || !saleForm.customerName}
                     className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
                   >
                     <Check size={18} />
-                    {saleSubmitting ? 'Registrando...' : 'Registrar venta'}
+                    Registrar venta
                   </button>
                 </div>
               </form>
@@ -2813,23 +2634,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onSaveProduct={saveProduct}
             onDeleteProduct={deleteProduct}
             onAdjustStock={adjustStock}
-            onGetInventoryMovements={getInventoryMovements}
             onClose={() => setShowManageItems(false)}
-            onRequestPin={async (pin) => {
-              if (!settings.security_pin) return true
-              const { verifyPin } = await import('./lib/pinUtils')
-              return verifyPin(pin, settings.security_pin)
+            onRequestPin={(pin) => {
+              // Verificar PIN
+              if (!settings.security_pin) return true // Si no hay PIN configurado, permitir
+              return pin === settings.security_pin
             }}
-          />
-        )}
-
-        {/* Inventory Count Modal */}
-        {showInventoryCount && (
-          <InventoryCount
-            products={allProducts}
-            onAdjustStock={adjustStock}
-            onClose={() => setShowInventoryCount(false)}
-            schoolName={settings?.name || settings?.school_name || 'Studio Dancers'}
           />
         )}
 
@@ -2848,9 +2658,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Student List Modal */}
         {showStudentListModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-purple-700 text-white">
+              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -2880,7 +2690,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Search and Filters */}
               <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
                 {/* Fila 1: Búsqueda + Curso */}
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex gap-2">
                   <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2 bg-white transition-all">
                     <Search className="text-gray-400 shrink-0" size={16} />
                     <input
@@ -2902,7 +2712,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 bg-white text-gray-700 w-full sm:max-w-[160px]"
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -3048,7 +2858,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium">Pausado</span>
                                 )}
                                 {paymentStatus.status === 'mora' && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">No puede asistir</span>
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">🚫 No puede asistir</span>
                                 )}
                               </div>
                             </div>
@@ -3079,7 +2889,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
-                                    if (!phone) { toast.warning('Este alumno no tiene teléfono registrado'); return }
+                                    if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
                                     const courseObj = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
                                     const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18)
@@ -3090,6 +2900,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 >
                                   <MessageCircle size={16} />
                                 </button>
+                                <button
+                                  onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                                  title="Editar"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                {!isRecepcion && (
+                                  <button
+                                    onClick={() => handleDelete(student)}
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                                    title="Eliminar"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -3101,7 +2927,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
+              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
                 <p className="text-xs text-gray-400 hidden sm:block shrink-0">
                   {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
                 </p>
@@ -3133,11 +2959,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setShowStudentDetail(null)
               openPaymentModal(student)
             }}
-            onEdit={(student) => {
-              setShowStudentDetail(null)
-              handleEdit(student)
-            }}
-            onPause={handlePauseStudent}
             onReactivate={reactivateCycle}
             schoolName={settings?.name}
           />
@@ -3246,9 +3067,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="p-6 bg-gradient-to-r from-orange-500 to-amber-500">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white/20 rounded-xl">
@@ -3264,7 +3085,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-6 space-y-3">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {studentsWithBalance.map(s => {
                   const isMinor = s.is_minor !== false
                   const waPhone = isMinor ? (s.payer_phone || s.parent_phone || s.phone) : s.phone
@@ -3308,15 +3129,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         <button
                           onClick={() => setDetailBalanceStudent(s)}
                           className="p-1.5 rounded-lg bg-white border border-orange-200 text-orange-500 hover:bg-orange-100 transition-all"
-                          title="Ver detalle"
-                          aria-label="Ver detalle de saldo">
+                          title="Ver detalle">
                           <Eye size={14} />
                         </button>
                         {waLink && (
                           <a href={waLink} target="_blank" rel="noopener noreferrer"
                             className="p-1.5 rounded-lg bg-white border border-green-200 text-green-600 hover:bg-green-50 transition-all"
-                            title="Enviar recordatorio por WhatsApp"
-                            aria-label="Enviar recordatorio por WhatsApp">
+                            title="Enviar recordatorio por WhatsApp">
                             <MessageCircle size={14} />
                           </a>
                         )}
@@ -3362,9 +3181,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
           })() : null
           return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]"
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]"
               onClick={() => setDetailBalanceStudent(null)}>
-              <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
                 onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
@@ -3376,13 +3195,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-4 space-y-4">
                   {/* Datos alumno */}
                   <div>
                     <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Alumno/a</p>
                     <p className="font-bold text-gray-800">{s.name}</p>
                     {s.cedula && <p className="text-sm text-gray-500 mt-0.5">CI: {s.cedula}</p>}
-                    {s.phone && <p className="text-sm text-gray-500 mt-0.5">{s.phone}</p>}
+                    {s.phone && <p className="text-sm text-gray-500 mt-0.5">📱 {s.phone}</p>}
                   </div>
 
                   {/* Representante (si menor) */}
@@ -3393,7 +3212,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       {(s.payer_cedula || s.parent_cedula) && (
                         <p className="text-sm text-gray-500 mt-0.5">CI: {s.payer_cedula || s.parent_cedula}</p>
                       )}
-                      {waPhone && <p className="text-sm text-gray-500 mt-0.5">{waPhone}</p>}
+                      {waPhone && <p className="text-sm text-gray-500 mt-0.5">📱 {waPhone}</p>}
                     </div>
                   )}
 
@@ -3421,7 +3240,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t bg-gray-50 space-y-2">
+                <div className="p-4 border-t bg-gray-50 space-y-2">
                   {waLink ? (
                     <a href={waLink} target="_blank" rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all active:scale-95">
@@ -3484,7 +3303,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       {/* Toast notification for new transfers */}
       {newTransferAlert && (
         <div
-          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
+          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
           onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
         >
           <div className="flex items-start gap-3">

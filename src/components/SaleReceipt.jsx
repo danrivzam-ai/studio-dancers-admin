@@ -94,6 +94,12 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
                 <span>Cliente:</span>
                 <span className="font-semibold text-gray-800 text-right max-w-[60%] break-words">{receipt.customerName}</span>
               </div>
+              {receipt.program && (
+                <div className="flex justify-between text-xs text-gray-600 mt-1">
+                  <span>Programa:</span>
+                  <span className="font-semibold text-gray-800 text-right max-w-[60%] break-words">{receipt.program}</span>
+                </div>
+              )}
             </div>
 
             {/* Ítems */}
