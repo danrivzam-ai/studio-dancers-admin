@@ -67,7 +67,7 @@ export default function PaymentHistory({
       // Abonos de planes de venta (tienda)
       const { data: planData, error: planError } = await supabase
         .from('sale_plan_payments')
-        .select('*, sale_plans(customer_name, customer_cedula_ruc, total_amount, items)')
+        .select('*, sale_plans(customer_name, student_name, customer_cedula_ruc, total_amount, items)')
         .gte('payment_date', dateFrom)
         .lte('payment_date', dateTo)
         .order('payment_date', { ascending: false })
@@ -722,9 +722,24 @@ export default function PaymentHistory({
                         <ShoppingBag size={16} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-sm truncate text-gray-800">
-                          {payment.sale_plans?.customer_name || 'Desconocido'}
+                        {/* Alumna (si difiere del pagador) */}
+                        {payment.sale_plans?.student_name && payment.sale_plans.student_name !== payment.sale_plans?.customer_name && (
+                          <p className="font-medium text-sm truncate text-gray-800">
+                            {payment.sale_plans.student_name}
+                          </p>
+                        )}
+                        <p className={`text-sm truncate ${payment.sale_plans?.student_name && payment.sale_plans.student_name !== payment.sale_plans?.customer_name ? 'text-xs text-gray-500' : 'font-medium text-gray-800'}`}>
+                          {payment.sale_plans?.student_name && payment.sale_plans.student_name !== payment.sale_plans?.customer_name
+                            ? `Rep: ${payment.sale_plans?.customer_name || 'Desconocido'}`
+                            : (payment.sale_plans?.customer_name || 'Desconocido')
+                          }
                         </p>
+                        {/* Curso/programa del plan */}
+                        {payment.sale_plans?.items?.[0]?.name && (
+                          <p className="text-xs text-blue-600 truncate">
+                            {payment.sale_plans.items[0].name}
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500 truncate">
                           Abono #{payment.installment_number} • {formatDate(payment.payment_date)}
                         </p>
