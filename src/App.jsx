@@ -296,6 +296,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   const [saleForm, setSaleForm] = useState({
     customerName: '',
+    program: '',
     productId: '',
     quantity: 1,
     date: getTodayEC(),
@@ -553,6 +554,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
     const result = await createSaleGroup({
       customerName: saleForm.customerName,
+      program: saleForm.program || null,
       items: cartItems,
       date: saleForm.date,
       notes: saleForm.notes,
@@ -572,6 +574,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setLastSaleReceipt({
         receiptNumber: result.receiptNumber,
         customerName: saleForm.customerName,
+        program: saleForm.program || null,
         items: cartItems,
         total: cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
         date: saleForm.date,
@@ -581,7 +584,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       // Reset
       setCartItems([])
       setProductSearch('')
-      setSaleForm({ customerName: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
+      setSaleForm({ customerName: '', program: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
       setShowSaleForm(false)
     } else {
       alert('Error: ' + result.error)
@@ -1891,7 +1894,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             ) : (
                               <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
                             )}
-                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}</p>
+                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}{group.sale.program && <span className="ml-2 text-blue-500">· {group.sale.program}</span>}</p>
                             <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-purple-400">{group.sale.receipt_number}</span>}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -1902,6 +1905,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   setLastSaleReceipt({
                                     receiptNumber: group.sale.receipt_number,
                                     customerName: group.sale.customer_name,
+                                    program: group.sale.program || null,
                                     items: group.items.map(i => ({ productName: i.product_name, quantity: i.quantity, unitPrice: i.unit_price })),
                                     total: groupTotal,
                                     date: group.sale.sale_date,
@@ -2361,6 +2365,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <datalist id="students-list-sale">
                       {students.map(s => <option key={s.id} value={s.name} />)}
                     </datalist>
+                  </div>
+
+                  {/* Programa (opcional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Programa <span className="text-gray-400 font-normal">(opcional)</span></label>
+                    <select
+                      value={saleForm.program}
+                      onChange={(e) => setSaleForm({...saleForm, program: e.target.value})}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                    >
+                      <option value="">— Sin programa —</option>
+                      {allCourses.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Selector de artículo + cantidad + botón agregar */}

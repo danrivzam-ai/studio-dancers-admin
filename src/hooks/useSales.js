@@ -64,7 +64,7 @@ export function useSales() {
   }
 
   // Crear venta multi-item (carrito)
-  const createSaleGroup = async ({ customerName, items, date, notes, paymentMethod }) => {
+  const createSaleGroup = async ({ customerName, program, items, date, notes, paymentMethod }) => {
     try {
       const groupId = crypto.randomUUID()
       const saleDate = date || getTodayEC()
@@ -73,6 +73,7 @@ export function useSales() {
 
       const rows = items.map(item => ({
         customer_name: customerName,
+        program: program || null,
         product_id: item.productId,
         product_name: item.productName,
         quantity: parseInt(item.quantity),
