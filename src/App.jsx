@@ -1149,7 +1149,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 border-green-400"
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 border-green-400"
             title="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
@@ -1177,7 +1177,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setFilterPayment(target)
               setShowStudentListModal(true)
             }}
-            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
+            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 ${
               moraStudents.length > 0 ? 'border-rose-600' :
               adultRenewalStudents.length > 0 ? 'border-amber-500' :
               urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
@@ -1307,7 +1307,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-[#9e4d75]"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 border-[#9e4d75]"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className="bg-[#f9e8f0] p-2 sm:p-3 rounded-xl shrink-0">
@@ -1323,7 +1323,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-amber-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 border-amber-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
@@ -1341,7 +1341,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-orange-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 border-orange-400"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
@@ -1359,7 +1359,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-slate-300"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:border-t-[5px] transition-all border-t-4 border-slate-300"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
                   <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
