@@ -35,11 +35,12 @@ function countDayOccurrences(startStr, endStr, isoDayOfWeek) {
 
 export function buildDetails(slots, fechaInicio, fechaFin, tarifaHora) {
   return slots.map(slot => {
+    const tarifa = slot.tarifa_hora ?? tarifaHora
     const horas_clase = calcHorasClase(slot.time_start, slot.time_end)
     const clases_programadas = countDayOccurrences(fechaInicio, fechaFin, slot.day_of_week)
     const clases_efectivas = clases_programadas
     const horas_trabajadas = +(clases_efectivas * horas_clase).toFixed(2)
-    const monto = +(horas_trabajadas * tarifaHora).toFixed(2)
+    const monto = +(horas_trabajadas * tarifa).toFixed(2)
     return {
       schedule_id: slot.id,
       dia_semana: slot.day_of_week,
@@ -47,6 +48,7 @@ export function buildDetails(slots, fechaInicio, fechaFin, tarifaHora) {
       horario: `${formatTime12(slot.time_start)} – ${formatTime12(slot.time_end)}`,
       group_name: slot.group_name || '',
       horas_clase,
+      tarifa_hora: tarifa,
       clases_programadas,
       canceladas: 0,
       recuperaciones: 0,
@@ -58,10 +60,11 @@ export function buildDetails(slots, fechaInicio, fechaFin, tarifaHora) {
 }
 
 export function recalcDetail(d, tarifaHora) {
+  const tarifa = d.tarifa_hora ?? tarifaHora
   const canceladas = Math.min(d.canceladas, d.clases_programadas)
   const clases_efectivas = Math.max(0, d.clases_programadas - canceladas + d.recuperaciones)
   const horas_trabajadas = +(clases_efectivas * d.horas_clase).toFixed(2)
-  const monto = +(horas_trabajadas * tarifaHora).toFixed(2)
+  const monto = +(horas_trabajadas * tarifa).toFixed(2)
   return { ...d, canceladas, clases_efectivas, horas_trabajadas, monto }
 }
 

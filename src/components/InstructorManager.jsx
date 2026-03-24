@@ -26,7 +26,7 @@ const COURSE_COLORS = [
 const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyrical', 'Ritmos Tropicales']
 
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-const emptySlotForm = { day_of_week: '1', time_start: '08:00', time_end: '09:30', group_name: '', course_id: '', notes: '' }
+const emptySlotForm = { day_of_week: '1', time_start: '08:00', time_end: '09:30', group_name: '', course_id: '', notes: '', tarifa_hora: '' }
 
 const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [], tarifa_hora: '' }
 
@@ -324,6 +324,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       group_name: slot.group_name,
       course_id: slot.course_id || '',
       notes: slot.notes || '',
+      tarifa_hora: slot.tarifa_hora ?? '',
     })
     setEditingSlotId(slot.id)
     setShowSlotForm(true)
@@ -341,6 +342,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         group_name: slotForm.group_name.trim(),
         course_id: slotForm.course_id || null,
         notes: slotForm.notes.trim() || null,
+        tarifa_hora: slotForm.tarifa_hora !== '' ? parseFloat(slotForm.tarifa_hora) : null,
       }
 
       if (editingSlotId) {
@@ -700,6 +702,9 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   {slot.course_id && getCourseInfo(slot.course_id) && (
                                     <p className="text-xs text-gray-400">{getCourseInfo(slot.course_id).name}</p>
                                   )}
+                                  {slot.tarifa_hora != null && (
+                                    <p className="text-xs text-amber-600 font-medium">${slot.tarifa_hora}/h</p>
+                                  )}
                                   {slot.notes && (
                                     <p className="text-xs text-gray-400 italic">{slot.notes}</p>
                                   )}
@@ -817,15 +822,29 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                               </div>
                             </div>
 
-                            <div>
-                              <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
-                              <input
-                                type="text"
-                                value={slotForm.notes}
-                                onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
-                                placeholder="ej: Sala principal"
-                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
-                              />
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Notas (opcional)</label>
+                                <input
+                                  type="text"
+                                  value={slotForm.notes}
+                                  onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
+                                  placeholder="ej: Sala principal"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Tarifa/hora ($) <span className="text-gray-400 font-normal">— opcional</span></label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={slotForm.tarifa_hora}
+                                  onChange={e => setSlotForm(f => ({ ...f, tarifa_hora: e.target.value }))}
+                                  placeholder="Base del instructor"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
+                                />
+                              </div>
                             </div>
 
                             <div className="flex gap-2">
@@ -926,20 +945,17 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
               {/* Tarifa por hora */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  Tarifa por hora <span className="text-gray-400 font-normal">(USD)</span>
+                  Tarifa por hora (USD)
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.50"
-                    value={form.tarifa_hora}
-                    onChange={e => setForm({ ...form, tarifa_hora: e.target.value })}
-                    placeholder="0.00"
-                    className="w-full pl-7 pr-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
-                  />
-                </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.50"
+                  value={form.tarifa_hora}
+                  onChange={e => setForm({ ...form, tarifa_hora: e.target.value })}
+                  placeholder="0.00"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+                />
                 <p className="text-xs text-gray-400 mt-1">Se usa para calcular honorarios automáticamente</p>
               </div>
 
