@@ -369,9 +369,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Alumnos en mora / suspendidas (días moraDays+1 a autoInactiveDays) — NO pueden asistir
   const moraStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const course = getCourseById(s.course_id)
+    const isAdult = (course?.ageMin ?? 0) >= 18
+    if (isAdult) return false // Adultas se muestran aparte como "por renovar"
     const days = getDaysUntilDue(s.next_payment_date)
     const abs  = Math.abs(days)
     return days < 0 && abs > moraDays && abs <= autoInactiveDays
+  })
+
+  // Adultas con ciclo finalizado (vencidas, sin importar días — no usan gracia/mora)
+  const adultRenewalStudents = recurringStudents.filter(s => {
+    if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const course = getCourseById(s.course_id)
+    const isAdult = (course?.ageMin ?? 0) >= 18
+    if (!isAdult) return false
+    const days = getDaysUntilDue(s.next_payment_date)
+    return days < 0 && Math.abs(days) <= autoInactiveDays
   })
 
   // Alumnos inactivos definitivos (días autoInactiveDays+1 en adelante)
@@ -1154,29 +1167,35 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
           <div
             onClick={() => {
-              const target = moraStudents.length > 0 ? 'mora' : urgentCount > 0 ? 'overdue' : 'upcoming'
+              const target = moraStudents.length > 0 ? 'mora' : adultRenewalStudents.length > 0 ? 'overdue' : urgentCount > 0 ? 'overdue' : 'upcoming'
               setFilterPayment(target)
               setShowStudentListModal(true)
             }}
             className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
               moraStudents.length > 0 ? 'border-rose-600' :
+              adultRenewalStudents.length > 0 ? 'border-amber-500' :
               urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
             }`}
-            title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
+            title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : adultRenewalStudents.length > 0 ? 'Ver ciclos por renovar' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
             <div className="flex items-center gap-2 sm:gap-3">
               <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${
-                moraStudents.length > 0 ? 'bg-rose-100' : urgentCount > 0 ? 'bg-red-100' : 'bg-yellow-100'
+                moraStudents.length > 0 ? 'bg-rose-100' : adultRenewalStudents.length > 0 ? 'bg-amber-100' : urgentCount > 0 ? 'bg-red-100' : 'bg-yellow-100'
               }`}>
                 <AlertCircle className={
-                  moraStudents.length > 0 ? 'text-rose-700' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
+                  moraStudents.length > 0 ? 'text-rose-700' : adultRenewalStudents.length > 0 ? 'text-amber-600' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
                 } size={20} />
               </div>
               <div className="min-w-0">
                 {moraStudents.length > 0 ? (
                   <>
                     <p className="text-xl sm:text-2xl font-bold text-rose-700">{moraStudents.length}</p>
-                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas 🚫</p>
+                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas</p>
+                  </>
+                ) : adultRenewalStudents.length > 0 ? (
+                  <>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-700">{adultRenewalStudents.length}</p>
+                    <p className="text-xs sm:text-sm text-amber-600 font-medium">Ciclos por renovar</p>
                   </>
                 ) : urgentCount > 0 ? (
                   <>
@@ -1350,16 +1369,49 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </button>
             </div>
 
-            {/* Alumnas Suspendidas Alert — mora, no pueden asistir */}
+            {/* Adultas — Ciclos por renovar */}
+            {adultRenewalStudents.length > 0 && (
+              <div
+                onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-amber-800 flex items-center gap-2">
+                    <AlertCircle size={18} />
+                    Ciclos finalizados — Pendientes de renovación
+                  </h3>
+                  <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {adultRenewalStudents.length} alumna{adultRenewalStudents.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {adultRenewalStudents.slice(0, 3).map(s => {
+                    const course = enrichCourse(getCourseById(s.course_id))
+                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
+                    return (
+                      <div key={s.id} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-700 truncate">{s.name}</span>
+                        <span className="text-amber-600 text-xs font-medium shrink-0 ml-2">Finalizó hace {days}d</span>
+                      </div>
+                    )
+                  })}
+                  {adultRenewalStudents.length > 3 && (
+                    <p className="text-xs text-amber-500 text-center pt-1">+{adultRenewalStudents.length - 3} más</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Alumnas Suspendidas Alert — mora, no pueden asistir (solo niñas) */}
             {moraStudents.length > 0 && (
               <div
                 onClick={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
-                className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
+                className="bg-rose-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-rose-800 flex items-center gap-2">
                     <AlertCircle size={18} />
-                    🚫 Suspendidas — No pueden asistir
+                    Suspendidas — No pueden asistir
                   </h3>
                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">
                     {moraStudents.length} alumna{moraStudents.length !== 1 ? 's' : ''}

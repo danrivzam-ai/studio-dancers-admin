@@ -478,15 +478,15 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
-    // Adultas: ciclo vencido → no puede asistir, debe renovar (sin mora ni gracia)
+    // Adultas: ciclo finalizado → no puede asistir, debe renovar (sin mora ni gracia)
     if (isAdultCourse) {
       return {
-        status: 'overdue',
-        label: absDays === 1 ? 'Ciclo vencido (1 día)' : `Ciclo vencido (${absDays}d)`,
-        color: 'bg-red-600 text-white ring-1 ring-red-700',
-        colorCode: 'red',
+        status: 'adult_renewal',
+        label: absDays === 1 ? 'Ciclo finalizado (1 día)' : `Ciclo finalizado (${absDays}d)`,
+        color: 'bg-amber-100 text-amber-800 ring-1 ring-amber-300',
+        colorCode: 'amber',
         canAttend: false,
-        priority: 1
+        priority: 3
       }
     }
 

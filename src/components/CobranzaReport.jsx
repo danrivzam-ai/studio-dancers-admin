@@ -22,9 +22,10 @@ function formatDateShort(dateStr) {
   })
 }
 
-const STATUS_ORDER  = ['mora', 'overdue', 'grace', 'upcoming', 'due_today', 'urgent']
+const STATUS_ORDER  = ['mora', 'adult_renewal', 'overdue', 'grace', 'upcoming', 'due_today', 'urgent']
 const STATUS_LABELS = {
-  mora:      'Suspendida',
+  mora:           'Suspendida',
+  adult_renewal:  'Ciclo finalizado',
   overdue:   'Vencida',
   grace:     'En gracia',
   upcoming:  'Próxima',
