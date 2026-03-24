@@ -28,7 +28,7 @@ const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyr
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const emptySlotForm = { day_of_week: '1', time_start: '08:00', time_end: '09:30', group_name: '', course_id: '', notes: '' }
 
-const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [] }
+const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [], tarifa_hora: '' }
 
 export default function InstructorManager({ allCourses = [], securityPin, settings = {} }) {
   const [instructors, setInstructors] = useState([])
@@ -124,7 +124,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   // ── Abrir modal editar ─────────────────────────────────────────────
   const openEdit = (inst) => {
     setEditing(inst)
-    setForm({ name: inst.name, cedula: inst.cedula, email: inst.email || '', password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [] })
+    setForm({ name: inst.name, cedula: inst.cedula, email: inst.email || '', password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [], tarifa_hora: inst.tarifa_hora ?? '' })
     setFormError('')
     setResetPass(false)
     setShowPass(false)
@@ -168,6 +168,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           cedula: form.cedula.trim(),
           email: form.email.trim() || null,
           active: form.active,
+          tarifa_hora: form.tarifa_hora !== '' ? parseFloat(form.tarifa_hora) : null,
         }
         if (resetPass && form.password) {
           updates.password = await bcrypt.hash(form.password, 10)
@@ -193,6 +194,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           password: hashedPassword,
           active: form.active,
           must_change_password: true,
+          tarifa_hora: form.tarifa_hora !== '' ? parseFloat(form.tarifa_hora) : null,
         }).select('id').single()
         if (error) throw error
         instructorId = newInst.id
@@ -919,6 +921,26 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">Opcional — se agrega al segmento de bienvenida automáticamente</p>
+              </div>
+
+              {/* Tarifa por hora */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Tarifa por hora <span className="text-gray-400 font-normal">(USD)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.50"
+                    value={form.tarifa_hora}
+                    onChange={e => setForm({ ...form, tarifa_hora: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Se usa para calcular honorarios automáticamente</p>
               </div>
 
               {/* Contraseña (crear) o reset (editar) */}

@@ -43,6 +43,7 @@ import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
+import HonorariosPanel from './components/HonorariosPanel'
 import CobranzaReport from './components/CobranzaReport'
 import MonthlyClose from './components/MonthlyClose'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
@@ -2198,6 +2199,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 { id: 'instructoras',  icon: GraduationCap, label: 'Instructoras' },
                 { id: 'ciclos',        icon: History,       label: 'Ciclos' },
                 { id: 'reportes',      icon: FileText,      label: 'Reportes de ciclo' },
+                { id: 'honorarios',    icon: DollarSign,    label: 'Honorarios' },
               ].map(sub => {
                 const Icon = sub.icon
                 return (
@@ -2226,6 +2228,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             )}
             {activeAcademicTab === 'reportes' && (
               <ReportesManager />
+            )}
+            {activeAcademicTab === 'honorarios' && (
+              <HonorariosPanel />
             )}
           </div>
         )}
