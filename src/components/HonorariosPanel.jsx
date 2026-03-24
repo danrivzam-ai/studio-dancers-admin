@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
-  Plus, X, ChevronDown, ChevronUp, Printer, Copy, Check, Trash2,
-  DollarSign, Clock, Calendar, MessageSquare, FileText, AlertCircle
+  Plus, X, ChevronDown, ChevronUp, Printer, Check, Trash2,
+  DollarSign, Clock, MessageSquare, FileText, AlertCircle, Layers
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import {
-  useHonorarios, buildDetails, recalcDetail,
-  DAY_NAMES, formatTime12, calcHorasClase
+  useHonorarios, buildDetails, recalcDetail, DAY_NAMES
 } from '../hooks/useHonorarios'
 
 function fmtDate(dateStr) {
@@ -15,56 +14,135 @@ function fmtDate(dateStr) {
   const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
   return `${parseInt(d)} ${months[parseInt(m) - 1]} ${y}`
 }
+function fmtMoney(n) { return `$${Number(n || 0).toFixed(2)}` }
 
-function fmtMoney(n) {
-  return `$${Number(n || 0).toFixed(2)}`
+// ── Genera HTML autocontenido para imprimir ─────────────────────────────────
+function buildComprobantHTML(periodo, instructorName, instructorCedula) {
+  const details = periodo.payment_details || []
+  const rows = details.map((d, i) => `
+    <tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'}">
+      <td style="padding:6px 8px">
+        <strong>${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''}</strong><br/>
+        <span style="color:#666;font-size:11px">${d.horario || ''}</span>
+        ${d.group_name ? `<br/><span style="color:#999;font-size:11px">${d.group_name}</span>` : ''}
+        ${(d.canceladas > 0 || d.recuperaciones > 0) ? `<br/><span style="color:#c25700;font-size:10px">${d.canceladas > 0 ? `-${d.canceladas} cancel.` : ''} ${d.recuperaciones > 0 ? `+${d.recuperaciones} recup.` : ''}</span>` : ''}
+      </td>
+      <td style="text-align:center;padding:6px 4px">${d.clases_efectivas}</td>
+      <td style="text-align:center;padding:6px 4px">${d.horas_clase}h</td>
+      <td style="text-align:center;padding:6px 4px">${d.horas_trabajadas}h</td>
+      <td style="text-align:right;padding:6px 8px;font-weight:600">${fmtMoney(d.monto)}</td>
+    </tr>`).join('')
+
+  return `
+    <div style="font-family:Arial,sans-serif;font-size:13px;max-width:520px;margin:0 auto;padding:16px">
+      <div style="text-align:center;margin-bottom:14px">
+        <h2 style="margin:0;color:#551735;letter-spacing:1px;font-size:16px">STUDIO DANCERS</h2>
+        <p style="margin:4px 0 2px;color:#555;font-size:12px">Comprobante de Pago a Docente</p>
+        <p style="margin:0;color:#999;font-size:11px">N.° ${periodo.numero_comprobante || ''}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;background:#f5f5f5;border-radius:8px">
+        <tr><td style="padding:5px 10px;color:#777;width:110px">Profesora:</td><td style="padding:5px 10px;font-weight:700">${instructorName}</td></tr>
+        ${instructorCedula ? `<tr><td style="padding:4px 10px;color:#777">C.I.:</td><td style="padding:4px 10px">${instructorCedula}</td></tr>` : ''}
+        <tr><td style="padding:4px 10px;color:#777">Período:</td><td style="padding:4px 10px">${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}</td></tr>
+        ${periodo.observaciones ? `<tr><td style="padding:4px 10px;color:#777">Obs.:</td><td style="padding:4px 10px;color:#555">${periodo.observaciones}</td></tr>` : ''}
+        <tr><td style="padding:4px 10px;color:#777">Tarifa:</td><td style="padding:4px 10px">${fmtMoney(periodo.tarifa_hora_snapshot)}/hora</td></tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#551735;color:#fff">
+            <th style="text-align:left;padding:6px 8px">Día / Horario</th>
+            <th style="text-align:center;padding:6px 4px">Clases</th>
+            <th style="text-align:center;padding:6px 4px">Hrs/clase</th>
+            <th style="text-align:center;padding:6px 4px">Total hrs</th>
+            <th style="text-align:right;padding:6px 8px">Monto</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr style="border-top:2px solid #551735;background:#fdf5f9">
+            <td colspan="3" style="padding:7px 8px;font-weight:700;color:#551735">TOTAL</td>
+            <td style="text-align:center;padding:7px 4px;font-weight:700;color:#551735">${periodo.total_horas}h</td>
+            <td style="text-align:right;padding:7px 8px;font-weight:700;color:#551735;font-size:14px">${fmtMoney(periodo.total_pagar)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="margin-top:24px;padding-top:12px;border-top:1px dashed #ccc;display:flex;gap:32px">
+        <div style="flex:1;text-align:center">
+          <div style="border-bottom:1px solid #888;height:32px;margin-bottom:4px"></div>
+          <p style="margin:0;font-size:11px;color:#777">Firma / C.I. Profesora</p>
+        </div>
+        <div style="flex:1;text-align:center">
+          <div style="border-bottom:1px solid #888;height:32px;margin-bottom:4px"></div>
+          <p style="margin:0;font-size:11px;color:#777">Sello Studio Dancers · Fecha</p>
+        </div>
+      </div>
+    </div>`
 }
 
-// ── Comprobante imprimible ──────────────────────────────────────────────────
-function ComprobantePrint({ periodo, instructor, onClose }) {
-  const [copied, setCopied] = useState(false)
+function openPrintWindow(htmlBlocks) {
+  const combined = htmlBlocks.join(`
+    <div style="text-align:center;margin:8px 0;color:#aaa;font-size:18px;letter-spacing:4px">
+      ✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    </div>`)
 
-  const whatsappText = () => {
-    const details = periodo.payment_details || []
-    const lines = details.map(d =>
-      `• ${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''} (${d.horario}) → ${d.clases_efectivas} clases · ${d.horas_trabajadas} h · ${fmtMoney(d.monto)}`
-    ).join('\n')
-    return `🩰 *STUDIO DANCERS — Comprobante de Pago*
-👩‍🏫 *Profesora:* ${instructor.name}
+  const win = window.open('', '_blank', 'width=700,height=900')
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"/>
+    <title>Comprobantes Studio Dancers</title>
+    <style>
+      body { margin: 20px; font-family: Arial, sans-serif; }
+      @media print { body { margin: 10px; } }
+    </style>
+  </head><body>${combined}
+  <script>window.onload = function(){ window.print(); }<\/script>
+  </body></html>`)
+  win.document.close()
+}
+
+// ── WhatsApp text ────────────────────────────────────────────────────────────
+function buildWhatsApp(periodo, instructorName) {
+  const details = periodo.payment_details || []
+  const lines = details.map(d =>
+    `• ${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''} (${d.horario}) → ${d.clases_efectivas} clases · ${d.horas_trabajadas} h · ${fmtMoney(d.monto)}`
+  ).join('\n')
+  return `🩰 *STUDIO DANCERS — Comprobante de Pago*
+👩‍🏫 *Profesora:* ${instructorName}
 📅 *Período:* ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}${periodo.observaciones ? `\n📝 *Obs.:* ${periodo.observaciones}` : ''}
 📋 *Detalle:*
 ${lines}
 ⏱ *Total horas:* ${periodo.total_horas} h
 💵 *TOTAL: ${fmtMoney(periodo.total_pagar)}*
 _Confirma el recibo respondiendo con tu nombre._ ✅`
+}
+
+// ── Comprobante vista ────────────────────────────────────────────────────────
+function ComprobantePrint({ periodo, instructor, onClose }) {
+  const [copied, setCopied] = useState(false)
+  const details = periodo.payment_details || []
+
+  const handlePrint = () => {
+    openPrintWindow([buildComprobantHTML(periodo, instructor.name, instructor.cedula)])
   }
 
   const handleCopyWA = async () => {
-    await navigator.clipboard.writeText(whatsappText())
+    await navigator.clipboard.writeText(buildWhatsApp(periodo, instructor.name))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const details = periodo.payment_details || []
-
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-        {/* Actions header */}
-        <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between gap-2">
+        <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between gap-2 flex-wrap">
           <span className="text-sm font-semibold text-gray-700">Comprobante {periodo.numero_comprobante}</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopyWA}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold transition-all active:scale-95"
-            >
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={handleCopyWA}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
               {copied ? <Check size={13} /> : <MessageSquare size={13} />}
-              {copied ? 'Copiado' : 'Copiar WhatsApp'}
+              {copied ? 'Copiado' : 'WhatsApp'}
             </button>
-            <button
-              onClick={() => window.print()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95"
-            >
+            <button onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
               <Printer size={13} /> Imprimir / PDF
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
@@ -73,52 +151,28 @@ _Confirma el recibo respondiendo con tu nombre._ ✅`
           </div>
         </div>
 
-        {/* Printable receipt */}
-        <div className="overflow-y-auto flex-1 p-6 print:p-4" id="comprobante-print">
-          {/* Header */}
-          <div className="text-center mb-5 print:mb-4">
-            <h1 className="text-xl font-bold text-[#551735] tracking-wide">STUDIO DANCERS</h1>
-            <p className="text-sm text-gray-600 mt-0.5">Comprobante de Pago a Docente</p>
-            <p className="text-xs text-gray-400 mt-0.5">N.° {periodo.numero_comprobante}</p>
+        {/* Preview */}
+        <div className="overflow-y-auto flex-1 p-5">
+          <div className="text-center mb-4">
+            <h2 className="text-lg font-bold text-[#551735] tracking-wide">STUDIO DANCERS</h2>
+            <p className="text-sm text-gray-500">Comprobante de Pago a Docente</p>
+            <p className="text-xs text-gray-400">N.° {periodo.numero_comprobante}</p>
           </div>
-
-          {/* Instructor info */}
-          <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Profesora:</span>
-              <span className="font-semibold">{instructor.name}</span>
-            </div>
-            {instructor.cedula && (
-              <div className="flex justify-between mt-1">
-                <span className="text-gray-500">C.I.:</span>
-                <span className="font-medium">{instructor.cedula}</span>
-              </div>
-            )}
-            <div className="flex justify-between mt-1">
-              <span className="text-gray-500">Período:</span>
-              <span className="font-medium">{fmtDate(periodo.fecha_inicio)} — {fmtDate(periodo.fecha_fin)}</span>
-            </div>
-            {periodo.observaciones && (
-              <div className="flex justify-between mt-1">
-                <span className="text-gray-500">Obs.:</span>
-                <span className="text-right ml-4 text-gray-700">{periodo.observaciones}</span>
-              </div>
-            )}
-            <div className="flex justify-between mt-1">
-              <span className="text-gray-500">Tarifa:</span>
-              <span className="font-medium">{fmtMoney(periodo.tarifa_hora_snapshot)}/hora</span>
-            </div>
+          <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm space-y-1">
+            <div className="flex justify-between"><span className="text-gray-500">Profesora:</span><span className="font-semibold">{instructor.name}</span></div>
+            {instructor.cedula && <div className="flex justify-between"><span className="text-gray-500">C.I.:</span><span>{instructor.cedula}</span></div>}
+            <div className="flex justify-between"><span className="text-gray-500">Período:</span><span className="font-medium">{fmtDate(periodo.fecha_inicio)} — {fmtDate(periodo.fecha_fin)}</span></div>
+            {periodo.observaciones && <div className="flex justify-between"><span className="text-gray-500">Obs.:</span><span className="text-gray-700">{periodo.observaciones}</span></div>}
+            <div className="flex justify-between"><span className="text-gray-500">Tarifa:</span><span>{fmtMoney(periodo.tarifa_hora_snapshot)}/hora</span></div>
           </div>
-
-          {/* Detail table */}
-          <table className="w-full text-xs mb-4 border-collapse">
+          <table className="w-full text-xs border-collapse mb-4">
             <thead>
               <tr className="bg-[#551735] text-white">
-                <th className="text-left px-2 py-1.5 rounded-tl-lg">Día / Horario</th>
+                <th className="text-left px-2 py-1.5">Día / Horario</th>
                 <th className="text-center px-2 py-1.5">Clases</th>
-                <th className="text-center px-2 py-1.5">Hrs/clase</th>
-                <th className="text-center px-2 py-1.5">Total hrs</th>
-                <th className="text-right px-2 py-1.5 rounded-tr-lg">Monto</th>
+                <th className="text-center px-2 py-1.5">Hrs/cl.</th>
+                <th className="text-center px-2 py-1.5">Total h</th>
+                <th className="text-right px-2 py-1.5">Monto</th>
               </tr>
             </thead>
             <tbody>
@@ -126,15 +180,8 @@ _Confirma el recibo respondiendo con tu nombre._ ✅`
                 <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="px-2 py-1.5">
                     <span className="font-semibold">{d.dia_nombre || DAY_NAMES[d.dia_semana]}</span>
-                    <br />
-                    <span className="text-gray-500">{d.horario}</span>
-                    {d.group_name && <span className="text-gray-400"> · {d.group_name}</span>}
-                    {(d.canceladas > 0 || d.recuperaciones > 0) && (
-                      <span className="text-xs text-orange-600 ml-1">
-                        {d.canceladas > 0 && `-${d.canceladas}can`}
-                        {d.recuperaciones > 0 && ` +${d.recuperaciones}rec`}
-                      </span>
-                    )}
+                    <br/><span className="text-gray-400">{d.horario}</span>
+                    {d.group_name && <><br/><span className="text-gray-400">{d.group_name}</span></>}
                   </td>
                   <td className="text-center px-2 py-1.5 font-medium">{d.clases_efectivas}</td>
                   <td className="text-center px-2 py-1.5">{d.horas_clase}h</td>
@@ -145,24 +192,15 @@ _Confirma el recibo respondiendo con tu nombre._ ✅`
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-[#551735] bg-[#fdf5f9]">
-                <td className="px-2 py-2 font-bold text-[#551735]">TOTAL</td>
-                <td colSpan={2}></td>
+                <td colSpan={3} className="px-2 py-2 font-bold text-[#551735]">TOTAL</td>
                 <td className="text-center px-2 py-2 font-bold text-[#551735]">{periodo.total_horas}h</td>
-                <td className="text-right px-2 py-2 font-bold text-[#551735] text-sm">{fmtMoney(periodo.total_pagar)}</td>
+                <td className="text-right px-2 py-2 font-bold text-[#551735]">{fmtMoney(periodo.total_pagar)}</td>
               </tr>
             </tfoot>
           </table>
-
-          {/* Signature lines */}
-          <div className="mt-6 pt-4 border-t border-dashed border-gray-300 grid grid-cols-2 gap-6 text-xs text-gray-500">
-            <div className="text-center">
-              <div className="border-b border-gray-400 mb-1 h-8"></div>
-              <p>Firma / C.I. Profesora</p>
-            </div>
-            <div className="text-center">
-              <div className="border-b border-gray-400 mb-1 h-8"></div>
-              <p>Sello Studio Dancers · Fecha</p>
-            </div>
+          <div className="grid grid-cols-2 gap-6 mt-4 pt-3 border-t border-dashed border-gray-300 text-xs text-gray-400 text-center">
+            <div><div className="h-8 border-b border-gray-400 mb-1"></div>Firma / C.I. Profesora</div>
+            <div><div className="h-8 border-b border-gray-400 mb-1"></div>Sello Studio Dancers · Fecha</div>
           </div>
         </div>
       </div>
@@ -170,9 +208,114 @@ _Confirma el recibo respondiendo con tu nombre._ ✅`
   )
 }
 
-// ── Modal nueva liquidación ──────────────────────────────────────────────────
+// ── Modal hoja combinada ─────────────────────────────────────────────────────
+function MultiPrintModal({ instructors, onClose }) {
+  const [selected, setSelected] = useState({}) // { periodoId: { periodo, instructor } }
+  const [periodosByInst, setPeriodosByInst] = useState({})
+  const [loading, setLoading] = useState(true)
+  const { fetchPeriodosByInstructor } = useHonorarios()
+
+  useEffect(() => {
+    const load = async () => {
+      const map = {}
+      for (const inst of instructors) {
+        const data = await fetchPeriodosByInstructor(inst.id)
+        map[inst.id] = { instructor: inst, periodos: data.slice(0, 5) }
+      }
+      setPeriodosByInst(map)
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  const toggleSelect = (periodoId, periodo, instructor) => {
+    setSelected(prev => {
+      const next = { ...prev }
+      if (next[periodoId]) delete next[periodoId]
+      else next[periodoId] = { periodo, instructor }
+      return next
+    })
+  }
+
+  const handlePrint = () => {
+    const blocks = Object.values(selected).map(({ periodo, instructor }) =>
+      buildComprobantHTML(periodo, instructor.name, instructor.cedula)
+    )
+    if (blocks.length === 0) return
+    openPrintWindow(blocks)
+  }
+
+  const selectedCount = Object.keys(selected).length
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b bg-[#551735] text-white flex items-center justify-between">
+          <div>
+            <h2 className="font-bold flex items-center gap-2"><Layers size={16}/> Hoja combinada</h2>
+            <p className="text-xs text-white/70 mt-0.5">Selecciona los comprobantes a imprimir juntos</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl"><X size={18}/></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-4 space-y-3">
+          {loading ? (
+            <p className="text-center text-gray-400 text-sm py-6">Cargando...</p>
+          ) : Object.values(periodosByInst).map(({ instructor, periodos }) => (
+            <div key={instructor.id}>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">{instructor.name}</p>
+              {periodos.length === 0 ? (
+                <p className="text-xs text-gray-400 pl-2">Sin liquidaciones</p>
+              ) : periodos.map(p => {
+                const isSelected = !!selected[p.id]
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => toggleSelect(p.id, p, instructor)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 mb-1.5 text-left transition-all ${
+                      isSelected
+                        ? 'border-[#6b2145] bg-[#fdf5f9]'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                      isSelected ? 'border-[#6b2145] bg-[#6b2145]' : 'border-gray-300'
+                    }`}>
+                      {isSelected && <Check size={11} className="text-white"/>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-bold text-gray-700">{p.numero_comprobante}</span>
+                      <span className="text-xs text-gray-400 ml-2">{fmtDate(p.fecha_inicio)} — {fmtDate(p.fecha_fin)}</span>
+                    </div>
+                    <span className="text-sm font-bold text-[#551735] shrink-0">{fmtMoney(p.total_pagar)}</span>
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
+        <div className="p-4 border-t bg-gray-50 flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm">
+            Cancelar
+          </button>
+          <button
+            onClick={handlePrint}
+            disabled={selectedCount === 0}
+            className="flex-1 py-2.5 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <Printer size={15}/>
+            Imprimir {selectedCount > 0 ? `(${selectedCount})` : ''}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Modal nueva liquidación ───────────────────────────────────────────────────
 function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
-  const today = new Date().toISOString().slice(0, 10)
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
   const [observaciones, setObservaciones] = useState('')
@@ -181,16 +324,10 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
   const [error, setError] = useState('')
   const { createPeriodo } = useHonorarios()
 
-  // Recalculate whenever dates change
   useEffect(() => {
-    if (!fechaInicio || !fechaFin || fechaFin < fechaInicio) {
-      setDetails([])
-      return
-    }
-    const tarifa = instructor.tarifa_hora || 0
-    const built = buildDetails(scheduleSlots, fechaInicio, fechaFin, tarifa)
-    setDetails(built)
-  }, [fechaInicio, fechaFin, instructor, scheduleSlots])
+    if (!fechaInicio || !fechaFin || fechaFin < fechaInicio) { setDetails([]); return }
+    setDetails(buildDetails(scheduleSlots, fechaInicio, fechaFin, instructor.tarifa_hora || 0))
+  }, [fechaInicio, fechaFin])
 
   const updateDetail = (idx, field, value) => {
     setDetails(prev => {
@@ -207,8 +344,7 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
   const handleSave = async () => {
     if (!fechaInicio || !fechaFin) { setError('Selecciona el período'); return }
     if (details.length === 0) { setError('No hay horario configurado para esta instructora'); return }
-    setSaving(true)
-    setError('')
+    setSaving(true); setError('')
     try {
       const periodo = await createPeriodo({ instructor, fechaInicio, fechaFin, observaciones, details })
       onSaved(periodo)
@@ -222,64 +358,46 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[55]" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[95vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-        {/* Header */}
         <div className="px-5 py-4 border-b bg-[#551735] text-white flex items-center justify-between">
           <div>
             <h2 className="font-bold">Nueva Liquidación</h2>
             <p className="text-xs text-white/70 mt-0.5">{instructor.name} · {fmtMoney(instructor.tarifa_hora)}/h</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
-            <X size={18} />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl"><X size={18}/></button>
         </div>
 
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
-          {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Fecha inicio *</label>
-              <input
-                type="date"
-                value={fechaInicio}
-                onChange={e => setFechaInicio(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
-              />
+              <input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)}
+                className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"/>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Fecha fin *</label>
-              <input
-                type="date"
-                value={fechaFin}
-                min={fechaInicio}
-                onChange={e => setFechaFin(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
-              />
+              <input type="date" value={fechaFin} min={fechaInicio} onChange={e => setFechaFin(e.target.value)}
+                className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"/>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones <span className="text-gray-400 font-normal">(opcional)</span></label>
-            <input
-              type="text"
-              value={observaciones}
-              onChange={e => setObservaciones(e.target.value)}
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones <span className="font-normal text-gray-400">(opcional)</span></label>
+            <input type="text" value={observaciones} onChange={e => setObservaciones(e.target.value)}
               placeholder="Ej: incluye semana de feriados"
-              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
-            />
+              className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"/>
           </div>
 
-          {/* Detail table */}
           {details.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-600 mb-2">Detalle de clases — edita cancelaciones y recuperaciones</p>
+              <p className="text-xs font-semibold text-gray-600 mb-2">Detalle — edita canceladas o recuperaciones si aplica</p>
               <div className="border border-gray-200 rounded-xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 text-gray-500">
-                      <th className="text-left px-3 py-2">Día / Grupo</th>
+                      <th className="text-left px-3 py-2">Día</th>
                       <th className="text-center px-2 py-2">Prog.</th>
-                      <th className="text-center px-2 py-2">−Cancel.</th>
-                      <th className="text-center px-2 py-2">+Recup.</th>
+                      <th className="text-center px-2 py-2 text-red-500">−Can.</th>
+                      <th className="text-center px-2 py-2 text-green-600">+Rec.</th>
                       <th className="text-center px-2 py-2">Efect.</th>
                       <th className="text-right px-2 py-2">Monto</th>
                     </tr>
@@ -290,27 +408,17 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
                         <td className="px-3 py-2">
                           <p className="font-semibold text-gray-800">{d.dia_nombre}</p>
                           <p className="text-gray-400">{d.horario}</p>
-                          {d.group_name && <p className="text-gray-400 truncate max-w-[100px]">{d.group_name}</p>}
                         </td>
-                        <td className="text-center px-2 py-2 text-gray-700">{d.clases_programadas}</td>
-                        <td className="px-1 py-1">
-                          <input
-                            type="number"
-                            min="0"
-                            max={d.clases_programadas}
-                            value={d.canceladas}
+                        <td className="text-center px-2 py-2 text-gray-600">{d.clases_programadas}</td>
+                        <td className="px-1 py-1.5">
+                          <input type="number" min="0" max={d.clases_programadas} value={d.canceladas}
                             onChange={e => updateDetail(i, 'canceladas', e.target.value)}
-                            className="w-12 text-center px-1 py-1 border border-red-200 rounded-lg text-red-700 font-semibold focus:ring-2 focus:ring-red-200 outline-none"
-                          />
+                            className="w-12 text-center px-1 py-1 border border-red-200 rounded-lg text-red-700 font-semibold focus:ring-2 focus:ring-red-200 outline-none"/>
                         </td>
-                        <td className="px-1 py-1">
-                          <input
-                            type="number"
-                            min="0"
-                            value={d.recuperaciones}
+                        <td className="px-1 py-1.5">
+                          <input type="number" min="0" value={d.recuperaciones}
                             onChange={e => updateDetail(i, 'recuperaciones', e.target.value)}
-                            className="w-12 text-center px-1 py-1 border border-green-200 rounded-lg text-green-700 font-semibold focus:ring-2 focus:ring-green-200 outline-none"
-                          />
+                            className="w-12 text-center px-1 py-1 border border-green-200 rounded-lg text-green-700 font-semibold focus:ring-2 focus:ring-green-200 outline-none"/>
                         </td>
                         <td className="text-center px-2 py-2 font-bold text-gray-800">{d.clases_efectivas}</td>
                         <td className="text-right px-2 py-2 font-bold text-[#551735]">{fmtMoney(d.monto)}</td>
@@ -319,7 +427,7 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
                   </tbody>
                   <tfoot>
                     <tr className="border-t-2 border-[#551735] bg-[#fdf5f9]">
-                      <td colSpan={4} className="px-3 py-2 font-bold text-[#551735] text-xs">TOTAL</td>
+                      <td colSpan={4} className="px-3 py-2 font-bold text-[#551735]">TOTAL</td>
                       <td className="text-center px-2 py-2 font-bold text-[#551735]">{totalHoras.toFixed(1)}h</td>
                       <td className="text-right px-2 py-2 font-bold text-[#551735]">{fmtMoney(totalPagar)}</td>
                     </tr>
@@ -331,33 +439,28 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
 
           {fechaInicio && fechaFin && fechaFin >= fechaInicio && details.length === 0 && (
             <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs">
-              <AlertCircle size={14} />
-              Esta instructora no tiene horario configurado. Agrégalo en su perfil primero.
+              <AlertCircle size={14}/>
+              Esta instructora no tiene horario. Agrégalo en su perfil primero.
             </div>
           )}
 
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
-              <AlertCircle size={14} /> {error}
+              <AlertCircle size={14}/> {error}
             </div>
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-4 border-t bg-gray-50 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
-          >
+          <button onClick={onClose}
+            className="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm">
             Cancelar
           </button>
-          <button
-            onClick={handleSave}
+          <button onClick={handleSave}
             disabled={saving || !fechaInicio || !fechaFin || details.length === 0}
-            className="flex-1 py-2.5 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm transition-colors flex items-center justify-center gap-1.5"
-          >
-            <FileText size={15} />
-            {saving ? 'Guardando...' : 'Guardar y generar comprobante'}
+            className="flex-1 py-2.5 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5">
+            <FileText size={15}/>
+            {saving ? 'Guardando...' : 'Guardar y ver comprobante'}
           </button>
         </div>
       </div>
@@ -366,36 +469,23 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
 }
 
 // ── Tarjeta de instructora ────────────────────────────────────────────────────
-function InstructorCard({ instructor, onNewLiquidacion }) {
+function InstructorCard({ instructor }) {
   const [expanded, setExpanded] = useState(false)
   const [periodos, setPeriodos] = useState([])
   const [loadingPeriodos, setLoadingPeriodos] = useState(false)
   const [viewPeriodo, setViewPeriodo] = useState(null)
+  const [showLiquidacion, setShowLiquidacion] = useState(false)
+  const [scheduleSlots, setScheduleSlots] = useState([])
   const { fetchPeriodosByInstructor, deletePeriodo } = useHonorarios()
 
   const loadPeriodos = async () => {
-    if (periodos.length > 0) { setExpanded(e => !e); return }
+    if (periodos.length > 0 || loadingPeriodos) { setExpanded(e => !e); return }
     setLoadingPeriodos(true)
     const data = await fetchPeriodosByInstructor(instructor.id)
     setPeriodos(data)
     setLoadingPeriodos(false)
     setExpanded(true)
   }
-
-  const handleDelete = async (periodoId) => {
-    if (!window.confirm('¿Eliminar esta liquidación?')) return
-    await deletePeriodo(periodoId)
-    setPeriodos(prev => prev.filter(p => p.id !== periodoId))
-  }
-
-  const handleNewSaved = (periodo) => {
-    setPeriodos(prev => [periodo, ...prev])
-    setViewPeriodo(periodo)
-    onNewLiquidacion()
-  }
-
-  const [showLiquidacion, setShowLiquidacion] = useState(false)
-  const [scheduleSlots, setScheduleSlots] = useState([])
 
   const openLiquidacion = async () => {
     const { data } = await supabase
@@ -407,10 +497,21 @@ function InstructorCard({ instructor, onNewLiquidacion }) {
     setShowLiquidacion(true)
   }
 
+  const handleNewSaved = (periodo) => {
+    setPeriodos(prev => [periodo, ...prev])
+    setExpanded(true)
+    setViewPeriodo(periodo)
+  }
+
+  const handleDelete = async (periodoId) => {
+    if (!window.confirm('¿Eliminar esta liquidación? Esta acción no se puede deshacer.')) return
+    await deletePeriodo(periodoId)
+    setPeriodos(prev => prev.filter(p => p.id !== periodoId))
+  }
+
   return (
     <>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Card header */}
         <div className="p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[#f9e8f0] flex items-center justify-center shrink-0">
             <span className="text-[#6b2145] font-bold text-base">{instructor.name?.[0]?.toUpperCase()}</span>
@@ -419,34 +520,27 @@ function InstructorCard({ instructor, onNewLiquidacion }) {
             <p className="font-bold text-gray-900 truncate">{instructor.name}</p>
             <div className="flex items-center gap-3 mt-0.5">
               <span className="text-xs text-[#6b2145] font-semibold flex items-center gap-1">
-                <DollarSign size={11} />
-                {instructor.tarifa_hora ? `${fmtMoney(instructor.tarifa_hora)}/h` : 'Sin tarifa'}
+                <DollarSign size={11}/>
+                {instructor.tarifa_hora ? `${fmtMoney(instructor.tarifa_hora)}/h` : <span className="text-amber-600">Sin tarifa — edita su perfil</span>}
               </span>
-              {instructor.cedula && (
-                <span className="text-xs text-gray-400">C.I. {instructor.cedula}</span>
-              )}
+              {instructor.cedula && <span className="text-xs text-gray-400">C.I. {instructor.cedula}</span>}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={openLiquidacion}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95"
-            >
-              <Plus size={13} /> Nueva liquidación
+            <button onClick={openLiquidacion}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
+              <Plus size={13}/> Nueva liquidación
             </button>
-            <button
-              onClick={loadPeriodos}
+            <button onClick={loadPeriodos}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all"
-              title="Historial"
-            >
+              title="Ver historial">
               {loadingPeriodos
-                ? <Clock size={16} className="animate-spin" />
-                : expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                ? <Clock size={16} className="animate-spin"/>
+                : expanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
             </button>
           </div>
         </div>
 
-        {/* Periodos history */}
         {expanded && (
           <div className="border-t border-gray-100">
             {periodos.length === 0 ? (
@@ -454,32 +548,24 @@ function InstructorCard({ instructor, onNewLiquidacion }) {
             ) : periodos.map(p => (
               <div key={p.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-bold text-gray-700">{p.numero_comprobante}</span>
                     <span className="text-xs text-gray-400">{fmtDate(p.fecha_inicio)} — {fmtDate(p.fecha_fin)}</span>
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-xs text-gray-500 flex items-center gap-0.5">
-                      <Clock size={10} /> {p.total_horas}h
-                    </span>
+                    <span className="text-xs text-gray-500 flex items-center gap-0.5"><Clock size={10}/> {p.total_horas}h</span>
                     <span className="text-sm font-bold text-[#551735]">{fmtMoney(p.total_pagar)}</span>
                     {p.observaciones && <span className="text-xs text-gray-400 truncate">{p.observaciones}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => setViewPeriodo(p)}
-                    className="p-1.5 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-lg transition-all"
-                    title="Ver comprobante"
-                  >
-                    <FileText size={14} />
+                  <button onClick={() => setViewPeriodo(p)}
+                    className="p-1.5 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-lg transition-all" title="Ver comprobante">
+                    <FileText size={14}/>
                   </button>
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Eliminar"
-                  >
-                    <Trash2 size={14} />
+                  <button onClick={() => handleDelete(p.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Eliminar">
+                    <Trash2 size={14}/>
                   </button>
                 </div>
               </div>
@@ -488,7 +574,6 @@ function InstructorCard({ instructor, onNewLiquidacion }) {
         )}
       </div>
 
-      {/* Modals */}
       {showLiquidacion && (
         <LiquidacionModal
           instructor={instructor}
@@ -513,10 +598,9 @@ function InstructorCard({ instructor, onNewLiquidacion }) {
 export default function HonorariosPanel() {
   const [instructors, setInstructors] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showMultiPrint, setShowMultiPrint] = useState(false)
 
-  useEffect(() => {
-    fetchInstructors()
-  }, [])
+  useEffect(() => { fetchInstructors() }, [])
 
   const fetchInstructors = async () => {
     setLoading(true)
@@ -529,58 +613,43 @@ export default function HonorariosPanel() {
     setLoading(false)
   }
 
-  const totalTarifas = instructors.reduce((s, i) => s + (i.tarifa_hora || 0), 0)
-
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <DollarSign size={20} className="text-[#6b2145]" />
+          <DollarSign size={20} className="text-[#6b2145]"/>
           <h2 className="text-lg font-semibold text-gray-800">Honorarios Docentes</h2>
           <span className="text-xs text-gray-400">{instructors.length} instructoras activas</span>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-gray-400">Tarifas por hora</p>
-          <p className="text-sm font-bold text-[#551735]">
-            {instructors.map(i => `${i.name.split(' ')[0]}: ${fmtMoney(i.tarifa_hora)}`).join(' · ')}
-          </p>
-        </div>
+        <button
+          onClick={() => setShowMultiPrint(true)}
+          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-[#fdf5f9] hover:border-[#c98daa] hover:text-[#551735] transition-all text-xs font-medium"
+        >
+          <Layers size={14}/> Hoja combinada
+        </button>
       </div>
 
-      {/* Tip */}
       <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-xs">
-        <AlertCircle size={13} className="shrink-0 mt-0.5" />
+        <AlertCircle size={13} className="shrink-0 mt-0.5"/>
         <span>
-          Para configurar la <strong>tarifa por hora</strong> de cada instructora, ve a la pestaña <strong>Instructoras</strong> y edita su perfil.
-          El horario se configura desde el mismo perfil (botón Horario).
+          Configura la <strong>tarifa/hora</strong> en <strong>Instructoras → Editar perfil</strong>.
+          El horario se gestiona desde el mismo perfil con el botón <strong>Horario</strong>.
         </span>
       </div>
 
-      {/* Instructor cards */}
       {loading ? (
-        <div className="text-center py-10 text-gray-400 text-sm">Cargando instructoras...</div>
+        <p className="text-center text-gray-400 text-sm py-10">Cargando...</p>
       ) : instructors.length === 0 ? (
-        <div className="text-center py-10 text-gray-400 text-sm">No hay instructoras activas</div>
+        <p className="text-center text-gray-400 text-sm py-10">No hay instructoras activas</p>
       ) : (
         <div className="space-y-3">
-          {instructors.map(inst => (
-            <InstructorCard
-              key={inst.id}
-              instructor={inst}
-              onNewLiquidacion={fetchInstructors}
-            />
-          ))}
+          {instructors.map(inst => <InstructorCard key={inst.id} instructor={inst}/>)}
         </div>
       )}
 
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          body > * { display: none !important; }
-          #comprobante-print { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
-        }
-      `}</style>
+      {showMultiPrint && (
+        <MultiPrintModal instructors={instructors} onClose={() => setShowMultiPrint(false)}/>
+      )}
     </div>
   )
 }
