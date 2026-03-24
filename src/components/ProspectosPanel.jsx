@@ -2,20 +2,9 @@ import { useState, useEffect } from 'react'
 import {
   Plus, X, Edit2, Trash2, UserCheck, Search,
   Phone, MessageCircle, ChevronDown, ChevronUp,
-  Instagram, Globe, Users, Loader2
+  Instagram, Globe, Users
 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
 import { useLeads, LEAD_ESTADOS, LEAD_FUENTES } from '../hooks/useLeads'
-
-const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-
-function formatSlotLabel(slot) {
-  const dia  = DAY_NAMES[slot.day_of_week] || ''
-  const h1   = slot.time_start?.substring(0, 5) || ''
-  const h2   = slot.time_end?.substring(0, 5) || ''
-  const grupo = slot.group_name ? ` · ${slot.group_name}` : ''
-  return `${dia} ${h1}–${h2}${grupo}`
-}
 
 const emptyForm = {
   nombre: '', telefono: '', email: '', programa: '', horario_pref: '',
@@ -36,31 +25,17 @@ function fuenteIcon(fuente) {
 /* ── Formulario crear / editar ─────────────────────────────────── */
 function LeadForm({ lead, onSave, onClose, allCourses = [] }) {
   const [form, setForm]       = useState(lead ? { ...emptyForm, ...lead } : { ...emptyForm })
-  const [saving, setSaving]   = useState(false)
-  const [err, setErr]         = useState('')
-  const [slots, setSlots]     = useState([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr]       = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  // Carga los horarios reales del curso seleccionado
-  useEffect(() => {
-    if (!form.programa) { setSlots([]); return }
-    const course = allCourses.find(c => c.name === form.programa)
-    const courseUUID = course?.supabase_id || course?.id
-    if (!courseUUID || courseUUID === course?.code) { setSlots([]); return }
-    setLoadingSlots(true)
-    supabase
-      .from('instructor_schedule')
-      .select('id, day_of_week, time_start, time_end, group_name')
-      .eq('course_id', courseUUID)
-      .order('day_of_week')
-      .order('time_start')
-      .then(({ data }) => {
-        setSlots(data || [])
-        setLoadingSlots(false)
-      })
-  }, [form.programa])
+  // Al elegir un programa, auto-rellena el horario con el schedule del curso
+  const handleProgramaChange = (nombre) => {
+    const course = allCourses.find(c => c.name === nombre)
+    set('programa', nombre)
+    set('horario_pref', course?.schedule || '')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -136,7 +111,7 @@ function LeadForm({ lead, onSave, onClose, allCourses = [] }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Programa de interés</label>
             <select
               value={form.programa}
-              onChange={e => { set('programa', e.target.value); set('horario_pref', '') }}
+              onChange={e => handleProgramaChange(e.target.value)}
               className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] outline-none bg-white"
             >
               <option value="">— Seleccionar —</option>
@@ -146,37 +121,20 @@ function LeadForm({ lead, onSave, onClose, allCourses = [] }) {
             </select>
           </div>
 
-          {/* Horario — carga los slots reales del curso */}
-          {form.programa && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Horario disponible
-                {loadingSlots && <Loader2 size={12} className="inline ml-2 animate-spin text-gray-400" />}
-              </label>
-              {!loadingSlots && slots.length === 0 ? (
-                <input
-                  type="text"
-                  value={form.horario_pref}
-                  onChange={e => set('horario_pref', e.target.value)}
-                  placeholder="ej: Martes y Jueves tarde"
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
-                />
-              ) : (
-                <select
-                  value={form.horario_pref}
-                  onChange={e => set('horario_pref', e.target.value)}
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] outline-none bg-white"
-                  disabled={loadingSlots}
-                >
-                  <option value="">— Seleccionar horario —</option>
-                  {slots.map(s => (
-                    <option key={s.id} value={formatSlotLabel(s)}>{formatSlotLabel(s)}</option>
-                  ))}
-                  <option value="Flexible">Flexible / cualquier horario</option>
-                </select>
-              )}
-            </div>
-          )}
+          {/* Horario — se auto-rellena del curso, editable */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Horario
+              {form.programa && <span className="text-xs text-gray-400 font-normal ml-1">— tomado del curso, editable</span>}
+            </label>
+            <input
+              type="text"
+              value={form.horario_pref}
+              onChange={e => set('horario_pref', e.target.value)}
+              placeholder="ej: Sábados 5:30 - 7:30 PM"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
+            />
+          </div>
 
           {/* Edad + Menor */}
           <div className="grid grid-cols-2 gap-3">
