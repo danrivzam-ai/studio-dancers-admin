@@ -366,7 +366,7 @@
   transition: box-shadow 0.2s ease;
 }
 .kpi-card:hover {
-  box-shadow: 0 8px 30px rgba(85, 23, 53, 0.35);
+  box-shadow: 0 8px 30px rgba(85, 23, 53, 0.2);
 }
 
 /* Loading bar (used in App.jsx loading screen) */
