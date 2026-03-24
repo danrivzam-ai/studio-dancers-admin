@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw, Target
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -50,6 +50,8 @@ import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import { useTransferRequests } from './hooks/useTransferRequests'
+import ProspectosPanel from './components/ProspectosPanel'
+import { useLeads } from './hooks/useLeads'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
 
@@ -130,6 +132,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [retiradasList, setRetiradasList] = useState([])
   const [loadingRetiradas, setLoadingRetiradas] = useState(false)
   const [duplicateWarning, setDuplicateWarning] = useState({ show: false, matches: [], pendingData: null })
+  const [convertingLeadId, setConvertingLeadId] = useState(null)
+  const { convertLead } = useLeads()
   const [showPinPrompt, setShowPinPrompt] = useState(false)
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
@@ -718,6 +722,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     setShowForm(true)
   }
 
+  // Pre-carga StudentForm con datos del lead para matricularlo
+  const handleMatricularLead = (lead) => {
+    setConvertingLeadId(lead.id)
+    setEditingStudent({
+      name: lead.nombre,
+      phone: lead.telefono || '',
+      email: lead.email || '',
+      cedula: '',
+      is_minor: lead.is_minor,
+      representative_name: lead.nombre_rep || '',
+      notes: lead.notas || '',
+    })
+    setActiveTab('students')
+    setShowForm(true)
+  }
+
   // Handler para pago rápido (clase diaria)
   const handleQuickPayment = async (paymentData) => {
     try {
@@ -792,6 +812,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
     if (result.success) {
       syncStudentToMailerLite(formData)
+      // Si venía de un lead, marcarlo como convertido
+      if (convertingLeadId && result.data?.id) {
+        convertLead(convertingLeadId, result.data.id).catch(() => {})
+        setConvertingLeadId(null)
+      }
       setShowForm(false)
       setEditingStudent(null)
       setDuplicateWarning({ show: false, matches: [], pendingData: null })
@@ -1131,6 +1156,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'report', icon: BarChart3, label: 'Reporte' },
             { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
+            { id: 'prospectos', icon: Target, label: 'Prospectos', adminOnly: true },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
            .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
@@ -2378,6 +2404,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
 
+
+        {/* Prospectos Tab */}
+        {activeTab === 'prospectos' && (
+          <ProspectosPanel
+            allCourses={allCourses}
+            onMatricularLead={handleMatricularLead}
+          />
+        )}
 
         {/* Recepcionistas Tab */}
         {activeTab === 'recepcionistas' && (
