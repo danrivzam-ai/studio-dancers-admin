@@ -82,9 +82,7 @@ function buildComprobantHTML(periodo, instructorName, instructorCedula) {
 function openPrintWindow(htmlBlocks) {
   const cutLine = `<div style="text-align:center;margin:6px 0;color:#bbb;font-size:11px;letter-spacing:3px">✂ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>`
   const combined = htmlBlocks.join(cutLine)
-
-  const win = window.open('', '_blank', 'width=720,height=900')
-  win.document.write(`<!DOCTYPE html><html><head>
+  const html = `<!DOCTYPE html><html><head>
     <meta charset="UTF-8"/>
     <title>Comprobantes Studio Dancers</title>
     <style>
@@ -92,10 +90,19 @@ function openPrintWindow(htmlBlocks) {
       * { box-sizing: border-box; }
       body { margin: 0; padding: 0; font-family: Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     </style>
-  </head><body>${combined}
-  <script>window.onload = function(){ window.print(); }<\/script>
-  </body></html>`)
-  win.document.close()
+  </head><body>${combined}</body></html>`
+
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none'
+  document.body.appendChild(iframe)
+  iframe.contentDocument.open()
+  iframe.contentDocument.write(html)
+  iframe.contentDocument.close()
+  iframe.contentWindow.focus()
+  setTimeout(() => {
+    iframe.contentWindow.print()
+    setTimeout(() => document.body.removeChild(iframe), 1000)
+  }, 300)
 }
 
 // ── WhatsApp text ────────────────────────────────────────────────────────────
