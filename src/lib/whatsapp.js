@@ -135,40 +135,45 @@ Por favor contáctanos para coordinar tu pago y retomar las clases.
 
 /**
  * Mensaje Adult-A — Recordatorio previo para adultas (ciclo próximo a vencer).
- * Lenguaje de renovación: tu ciclo actual está por terminar, renueva para seguir.
+ * Lenguaje de renovación con fechas del ciclo.
  */
 export const buildMessageAdultReminder = (student, courseName, settings) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
-  const dueDate = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const cycleEnd = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const cycleStart = student.last_payment_date ? formatDate(student.last_payment_date) : null
   const schoolName = settings?.name || settings || 'Studio Dancers'
   const bankLine = buildBankLine(settings)
+  const cycleLine = cycleStart ? `del *${cycleStart}* al *${cycleEnd}*` : `que finaliza el *${cycleEnd}*`
 
   return `Hola ${student.name} 👋
-Tu ciclo actual de *${courseName}* está por finalizar. Tu última clase de este ciclo es el *${dueDate}*.
+Te recordamos que tu ciclo de clases de *${courseName}* ${cycleLine} está por finalizar.
 
 Para que tus clases continúen sin interrupción, renueva tu próximo ciclo:
 💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
-Envíanos tu comprobante por aquí y ¡listo!
+Envíanos tu comprobante por aquí y listo.
 🩰 ${schoolName}`
 }
 
 /**
  * Mensaje Adult-B — Ciclo vencido para adultas (ya finalizó, debe renovar para retomar).
- * Sin "mora" ni "suspensión" — lenguaje de renovación voluntaria.
+ * Sin "mora" ni "suspensión" — lenguaje de renovación con fechas del ciclo.
  */
 export const buildMessageAdultExpired = (student, courseName, daysOverdue, settings) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
   const schoolName = settings?.name || settings || 'Studio Dancers'
   const bankLine = buildBankLine(settings)
-  const daysText = daysOverdue === 1 ? '1 día' : `${daysOverdue} días`
+  const cycleEnd = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
+  const cycleStart = student.last_payment_date ? formatDate(student.last_payment_date) : null
+  const cycleLine = cycleStart ? `del *${cycleStart}* al *${cycleEnd}*` : `que finalizó el *${cycleEnd}*`
 
   return `Hola ${student.name},
-Tu ciclo de *${courseName}* finalizó hace *${daysText}*. Para retomar tus clases, solo necesitas renovar tu inscripción al nuevo ciclo.
+Tu ciclo de clases de *${courseName}* ${cycleLine} ha finalizado.
 
+Para retomar tus clases, renueva tu inscripción al nuevo ciclo:
 💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
-Escríbenos para coordinar tu regreso 😊
+Escríbenos cuando quieras coordinar tu regreso.
 🩰 ${schoolName}`
 }
 

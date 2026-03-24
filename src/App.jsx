@@ -352,15 +352,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     .sort((a, b) => getDaysUntilDue(a.next_payment_date) - getDaysUntilDue(b.next_payment_date))
 
   // Alumnos en período de gracia (días 1 a graceDays) — pueden asistir
+  // Excluye adultas — no usan período de gracia
   const graceStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const course = getCourseById(s.course_id)
+    if ((course?.ageMin ?? 0) >= 18) return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) <= graceDays
   })
 
   // Alumnos con pago vencido (días graceDays+1 a moraDays) — pueden asistir pero deben pagar
+  // Excluye adultas — ellas van directo a adultRenewalStudents
   const overduePayments = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const course = getCourseById(s.course_id)
+    if ((course?.ageMin ?? 0) >= 18) return false
     const days = getDaysUntilDue(s.next_payment_date)
     const abs  = Math.abs(days)
     return days < 0 && abs > graceDays && abs <= moraDays
