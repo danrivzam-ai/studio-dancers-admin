@@ -74,7 +74,7 @@ function StudentAvatar({ student, isCamp }) {
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
@@ -128,6 +128,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showRetiradasModal, setShowRetiradasModal] = useState(false)
   const [retiradasList, setRetiradasList] = useState([])
   const [loadingRetiradas, setLoadingRetiradas] = useState(false)
+  const [duplicateWarning, setDuplicateWarning] = useState({ show: false, matches: [], pendingData: null })
   const [showPinPrompt, setShowPinPrompt] = useState(false)
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
@@ -771,7 +772,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   // Handler para crear/actualizar estudiante desde StudentForm
-  const handleStudentFormSubmit = async (formData) => {
+  const handleStudentFormSubmit = async (formData, forceCreate = false) => {
+    // Verificar duplicados solo al crear (no al editar)
+    if (!editingStudent && !forceCreate) {
+      const matches = await checkDuplicateStudent(formData.name, formData.cedula)
+      if (matches.length > 0) {
+        setDuplicateWarning({ show: true, matches, pendingData: formData })
+        return
+      }
+    }
+
     let result
     if (editingStudent) {
       result = await updateStudent(editingStudent.id, formData)
@@ -783,6 +793,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       setShowForm(false)
       setEditingStudent(null)
+      setDuplicateWarning({ show: false, matches: [], pendingData: null })
     } else {
       alert('Error: ' + result.error)
     }
@@ -3340,6 +3351,62 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
           )
         })()}
+
+        {/* Modal: Advertencia de alumna duplicada */}
+        {duplicateWarning.show && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <div className="px-5 py-4 border-b bg-amber-50 rounded-t-2xl flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="text-amber-500" size={18} />
+                  <span className="font-semibold text-amber-700 text-sm">Posible duplicado</span>
+                </div>
+                <button onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })} className="p-1.5 hover:bg-amber-100 rounded-xl transition-colors">
+                  <X size={16} className="text-amber-500" />
+                </button>
+              </div>
+              <div className="p-5">
+                <p className="text-sm text-gray-600 mb-3">
+                  Ya existe una alumna con el mismo nombre o cédula:
+                </p>
+                <div className="space-y-2 mb-4">
+                  {duplicateWarning.matches.map(s => {
+                    const course = allCourses.find(c => (c.id || c.code) === s.course_id)
+                    return (
+                      <div key={s.id} className={`flex items-center gap-3 p-3 rounded-xl border ${s.active ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${s.active ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                          {s.name?.[0]?.toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-gray-800">{s.name}</p>
+                          <p className="text-xs text-gray-500">{course?.name || s.course_id || '—'}{s.cedula ? ` · CI: ${s.cedula}` : ''}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {s.active ? 'Activa' : 'Inactiva'}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-gray-400 mb-4">¿Deseas registrarla de todas formas?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}
+                    className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => handleStudentFormSubmit(duplicateWarning.pendingData, true)}
+                    className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors text-sm font-semibold"
+                  >
+                    Registrar de todas formas
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmModal

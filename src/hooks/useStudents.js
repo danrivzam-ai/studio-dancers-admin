@@ -35,6 +35,34 @@ export function useStudents() {
     fetchStudents()
   }, [])
 
+  // Verificar duplicados antes de crear
+  const checkDuplicateStudent = async (name, cedula) => {
+    try {
+      const conditions = []
+      // Coincidencia exacta por nombre (case-insensitive)
+      const { data: byName } = await supabase
+        .from('students')
+        .select('id, name, cedula, course_id, active')
+        .ilike('name', name.trim())
+      if (byName?.length) conditions.push(...byName)
+
+      // Coincidencia por cédula si fue ingresada
+      if (cedula && cedula.trim()) {
+        const { data: byCedula } = await supabase
+          .from('students')
+          .select('id, name, cedula, course_id, active')
+          .eq('cedula', cedula.trim())
+        if (byCedula?.length) conditions.push(...byCedula)
+      }
+
+      // Deduplicar por id
+      const unique = Array.from(new Map(conditions.map(s => [s.id, s])).values())
+      return unique
+    } catch {
+      return []
+    }
+  }
+
   // Crear estudiante
   const createStudent = async (studentData) => {
     try {
@@ -812,6 +840,7 @@ export function useStudents() {
     deleteStudent,
     reactivateStudent,
     fetchInactiveStudents,
+    checkDuplicateStudent,
     registerPayment,
     pauseStudent,
     unpauseStudent,
