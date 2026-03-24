@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import {
-  Plus, X, ChevronDown, ChevronUp, Printer, Check, Trash2,
+  Plus, X, ChevronDown, ChevronUp, Download, Check, Trash2,
   DollarSign, Clock, MessageSquare, FileText, AlertCircle, Layers
 } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { supabase } from '../lib/supabase'
 import {
   useHonorarios, buildDetails, recalcDetail, DAY_NAMES
@@ -16,93 +18,108 @@ function fmtDate(dateStr) {
 }
 function fmtMoney(n) { return `$${Number(n || 0).toFixed(2)}` }
 
-// ── Genera HTML compacto para imprimir ──────────────────────────────────────
-function buildComprobantHTML(periodo, instructorName, instructorCedula) {
-  const details = periodo.payment_details || []
-  const rows = details.map((d, i) => `
-    <tr style="background:${i % 2 === 0 ? '#fff' : '#f7f7f7'}">
-      <td style="padding:3px 6px;font-size:11px">
-        <strong>${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''}</strong>
-        <span style="color:#777"> · ${d.horario || ''}</span>
-        ${d.group_name ? `<span style="color:#aaa;font-size:10px"> · ${d.group_name}</span>` : ''}
-        ${(d.canceladas > 0 || d.recuperaciones > 0) ? `<span style="color:#c25700;font-size:10px"> (${d.canceladas > 0 ? `-${d.canceladas}can` : ''}${d.recuperaciones > 0 ? ` +${d.recuperaciones}rec` : ''})</span>` : ''}
-      </td>
-      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.clases_efectivas}</td>
-      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.horas_clase}h</td>
-      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.horas_trabajadas}h</td>
-      <td style="text-align:right;padding:3px 6px;font-weight:700;font-size:11px">${fmtMoney(d.monto)}</td>
-    </tr>`).join('')
+// ── Genera y descarga PDF con jsPDF ─────────────────────────────────────────
+function downloadPDF(blocks) {
+  // blocks = [{ periodo, instructorName, instructorCedula }]
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const PX = 85  // color morado Studio Dancers R
+  const PG = 23
+  const PB = 53
+  let y = 12
 
-  const meta = [
-    `<strong>${instructorName}</strong>`,
-    instructorCedula ? `C.I. ${instructorCedula}` : '',
-    `Período: ${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}`,
-    periodo.observaciones ? `Obs.: ${periodo.observaciones}` : '',
-    `Tarifa: ${fmtMoney(periodo.tarifa_hora_snapshot)}/hora · N.° ${periodo.numero_comprobante || ''}`,
-  ].filter(Boolean).join('&emsp;·&emsp;')
+  blocks.forEach((block, idx) => {
+    const { periodo, instructorName, instructorCedula } = block
+    const details = periodo.payment_details || []
 
-  return `<div style="font-family:Arial,sans-serif;font-size:12px;padding:10px 14px;border:1px solid #ddd;border-radius:6px;page-break-inside:avoid">
-    <div style="text-align:center;margin-bottom:6px">
-      <span style="font-size:13px;font-weight:700;color:#551735;letter-spacing:0.5px">STUDIO DANCERS</span>
-      <span style="color:#888;font-size:10px;margin-left:8px">Comprobante de Pago a Docente</span>
-    </div>
-    <div style="font-size:11px;color:#555;margin-bottom:6px;line-height:1.6">${meta}</div>
-    <table style="width:100%;border-collapse:collapse;font-size:11px">
-      <thead>
-        <tr style="background:#551735;color:#fff">
-          <th style="text-align:left;padding:4px 6px">Día / Horario / Grupo</th>
-          <th style="text-align:center;padding:4px 4px;white-space:nowrap">Cl.</th>
-          <th style="text-align:center;padding:4px 4px;white-space:nowrap">h/cl</th>
-          <th style="text-align:center;padding:4px 4px;white-space:nowrap">Total h</th>
-          <th style="text-align:right;padding:4px 6px">Monto</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-      <tfoot>
-        <tr style="border-top:2px solid #551735;background:#fdf0f5">
-          <td colspan="3" style="padding:4px 6px;font-weight:700;color:#551735;font-size:11px">TOTAL</td>
-          <td style="text-align:center;padding:4px 4px;font-weight:700;color:#551735">${periodo.total_horas}h</td>
-          <td style="text-align:right;padding:4px 6px;font-weight:700;color:#551735;font-size:13px">${fmtMoney(periodo.total_pagar)}</td>
-        </tr>
-      </tfoot>
-    </table>
-    <div style="display:flex;gap:24px;margin-top:10px">
-      <div style="flex:1;text-align:center">
-        <div style="border-bottom:1px solid #999;height:22px;margin-bottom:3px"></div>
-        <span style="font-size:10px;color:#888">Firma / C.I. Profesora</span>
-      </div>
-      <div style="flex:1;text-align:center">
-        <div style="border-bottom:1px solid #999;height:22px;margin-bottom:3px"></div>
-        <span style="font-size:10px;color:#888">Sello Studio Dancers · Fecha</span>
-      </div>
-    </div>
-  </div>`
-}
+    // Línea de corte entre comprobantes
+    if (idx > 0) {
+      doc.setDrawColor(200, 200, 200)
+      doc.setLineDashPattern([1.5, 1.5], 0)
+      doc.line(10, y, 200, y)
+      doc.setFontSize(7)
+      doc.setTextColor(190, 190, 190)
+      doc.text('✂', 105, y + 2.5, { align: 'center' })
+      doc.setLineDashPattern([], 0)
+      y += 6
+    }
 
-function openPrintWindow(htmlBlocks) {
-  const cutLine = `<div style="text-align:center;margin:6px 0;color:#bbb;font-size:11px;letter-spacing:3px">✂ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>`
-  const combined = htmlBlocks.join(cutLine)
-  const html = `<!DOCTYPE html><html><head>
-    <meta charset="UTF-8"/>
-    <title>Comprobantes Studio Dancers</title>
-    <style>
-      @page { size: A4; margin: 12mm; }
-      * { box-sizing: border-box; }
-      body { margin: 0; padding: 0; font-family: Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    </style>
-  </head><body>${combined}</body></html>`
+    // Encabezado
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(PX, PG, PB)
+    doc.text('STUDIO DANCERS', 105, y + 5, { align: 'center' })
 
-  const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none'
-  document.body.appendChild(iframe)
-  iframe.contentDocument.open()
-  iframe.contentDocument.write(html)
-  iframe.contentDocument.close()
-  iframe.contentWindow.focus()
-  setTimeout(() => {
-    iframe.contentWindow.print()
-    setTimeout(() => document.body.removeChild(iframe), 1000)
-  }, 300)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(120, 120, 120)
+    doc.text('Comprobante de Pago a Docente', 105, y + 10, { align: 'center' })
+    y += 13
+
+    // Info en dos líneas compactas
+    doc.setFontSize(8.5)
+    doc.setTextColor(50, 50, 50)
+    doc.setFont('helvetica', 'bold')
+    doc.text(instructorName, 10, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 100, 100)
+    const infoRight = [
+      instructorCedula ? `C.I. ${instructorCedula}` : '',
+      `N.° ${periodo.numero_comprobante || ''}`,
+      `${fmtMoney(periodo.tarifa_hora_snapshot)}/hora`,
+    ].filter(Boolean).join('   ·   ')
+    doc.text(infoRight, 200, y, { align: 'right' })
+    y += 5
+
+    doc.setFontSize(8)
+    doc.setTextColor(80, 80, 80)
+    const periodoText = `Período: ${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}${periodo.observaciones ? `   ·   Obs.: ${periodo.observaciones}` : ''}`
+    doc.text(periodoText, 10, y)
+    y += 4
+
+    // Tabla
+    autoTable(doc, {
+      startY: y,
+      head: [['Día / Horario / Grupo', 'Clases', 'Hrs/cl.', 'Total h', 'Monto']],
+      body: details.map(d => [
+        [d.dia_nombre || DAY_NAMES[d.dia_semana] || '', ' · ', d.horario || '', d.group_name ? ` · ${d.group_name}` : '', (d.canceladas > 0 || d.recuperaciones > 0) ? ` (${d.canceladas > 0 ? `-${d.canceladas}can` : ''}${d.recuperaciones > 0 ? ` +${d.recuperaciones}rec` : ''})` : ''].join(''),
+        d.clases_efectivas,
+        `${d.horas_clase}h`,
+        `${d.horas_trabajadas}h`,
+        fmtMoney(d.monto),
+      ]),
+      foot: [['TOTAL', '', '', `${periodo.total_horas}h`, fmtMoney(periodo.total_pagar)]],
+      headStyles: { fillColor: [PX, PG, PB], textColor: 255, fontSize: 8, fontStyle: 'bold', cellPadding: 2.5 },
+      footStyles: { fillColor: [253, 240, 245], textColor: [PX, PG, PB], fontStyle: 'bold', fontSize: 9, cellPadding: 2.5 },
+      bodyStyles: { fontSize: 8, cellPadding: 2 },
+      alternateRowStyles: { fillColor: [250, 250, 250] },
+      columnStyles: {
+        0: { cellWidth: 98 },
+        1: { halign: 'center', cellWidth: 16 },
+        2: { halign: 'center', cellWidth: 18 },
+        3: { halign: 'center', cellWidth: 18 },
+        4: { halign: 'right', cellWidth: 28 },
+      },
+      margin: { left: 10, right: 10 },
+      showFoot: 'lastPage',
+    })
+
+    y = doc.lastAutoTable.finalY + 6
+
+    // Líneas de firma
+    doc.setDrawColor(170, 170, 170)
+    doc.line(10, y + 14, 85, y + 14)
+    doc.line(115, y + 14, 200, y + 14)
+    doc.setFontSize(7)
+    doc.setTextColor(160, 160, 160)
+    doc.text('Firma / C.I. Profesora', 47, y + 18, { align: 'center' })
+    doc.text('Sello Studio Dancers · Fecha', 157, y + 18, { align: 'center' })
+    y += 24
+  })
+
+  const fileName = blocks.length === 1
+    ? `Comprobante ${blocks[0].periodo.numero_comprobante} - ${blocks[0].instructorName}.pdf`
+    : `Comprobantes Studio Dancers.pdf`
+  doc.save(fileName)
 }
 
 // ── WhatsApp text ────────────────────────────────────────────────────────────
@@ -126,8 +143,8 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
   const [copied, setCopied] = useState(false)
   const details = periodo.payment_details || []
 
-  const handlePrint = () => {
-    openPrintWindow([buildComprobantHTML(periodo, instructor.name, instructor.cedula)])
+  const handleDownload = () => {
+    downloadPDF([{ periodo, instructorName: instructor.name, instructorCedula: instructor.cedula }])
   }
 
   const handleCopyWA = async () => {
@@ -147,9 +164,9 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
               {copied ? <Check size={13} /> : <MessageSquare size={13} />}
               {copied ? 'Copiado' : 'WhatsApp'}
             </button>
-            <button onClick={handlePrint}
+            <button onClick={handleDownload}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
-              <Printer size={13} /> Imprimir / PDF
+              <Download size={13} /> Descargar PDF
             </button>
             <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
               <X size={16} />
@@ -243,12 +260,12 @@ function MultiPrintModal({ instructors, onClose }) {
     })
   }
 
-  const handlePrint = () => {
-    const blocks = Object.values(selected).map(({ periodo, instructor }) =>
-      buildComprobantHTML(periodo, instructor.name, instructor.cedula)
-    )
+  const handleDownload = () => {
+    const blocks = Object.values(selected).map(({ periodo, instructor }) => ({
+      periodo, instructorName: instructor.name, instructorCedula: instructor.cedula
+    }))
     if (blocks.length === 0) return
-    openPrintWindow(blocks)
+    downloadPDF(blocks)
   }
 
   const selectedCount = Object.keys(selected).length
@@ -307,12 +324,12 @@ function MultiPrintModal({ instructors, onClose }) {
             Cancelar
           </button>
           <button
-            onClick={handlePrint}
+            onClick={handleDownload}
             disabled={selectedCount === 0}
             className="flex-1 py-2.5 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 transition-colors"
           >
-            <Printer size={15}/>
-            Imprimir {selectedCount > 0 ? `(${selectedCount})` : ''}
+            <Download size={15}/>
+            Descargar PDF {selectedCount > 0 ? `(${selectedCount})` : ''}
           </button>
         </div>
       </div>
