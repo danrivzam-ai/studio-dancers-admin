@@ -361,6 +361,14 @@
   border-width: 2px;
 }
 
+/* KPI card hover glow */
+.kpi-card {
+  transition: box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+  box-shadow: 0 8px 30px rgba(85, 23, 53, 0.35);
+}
+
 /* Loading bar (used in App.jsx loading screen) */
 @keyframes loading-bar {
   0%   { transform: translateX(-100%); }
