@@ -60,7 +60,7 @@ export default function ReportesManager() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-16">
-      <div className="w-6 h-6 border-2 border-purple-300 border-t-purple-700 rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#c98daa] border-t-[#551735] rounded-full animate-spin" />
     </div>
   )
 
@@ -104,8 +104,8 @@ export default function ReportesManager() {
                   onClick={() => toggleExpanded(r.id)}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                    <User size={14} className="text-purple-600" />
+                  <div className="w-8 h-8 rounded-full bg-[#f9e8f0] flex items-center justify-center shrink-0">
+                    <User size={14} className="text-[#6b2145]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-800 text-sm truncate">{r.student_name}</p>
@@ -168,7 +168,7 @@ export default function ReportesManager() {
                     {r.proximo_ciclo_texto && (
                       <div>
                         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Próximo ciclo</p>
-                        <p className="text-sm text-gray-600 italic bg-purple-50 rounded-xl px-3 py-2">
+                        <p className="text-sm text-gray-600 italic bg-[#fdf5f9] rounded-xl px-3 py-2">
                           {r.proximo_ciclo_texto}
                         </p>
                       </div>

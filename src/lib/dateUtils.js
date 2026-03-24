@@ -574,7 +574,7 @@ export const getStatusColorClass = (colorCode) => {
     green: 'bg-green-100 text-green-800 border-green-200',
     blue: 'bg-blue-100 text-blue-800 border-blue-200',
     gray: 'bg-gray-100 text-gray-800 border-gray-200',
-    purple: 'bg-purple-100 text-purple-800 border-purple-200'
+    purple: 'bg-[#f9e8f0] text-[#441029] border-[#e8b4cc]'
   }
   return colors[colorCode] || colors.gray
 }
@@ -600,7 +600,7 @@ export const getStatusDotColor = (colorCode) => {
     green: 'bg-green-500',
     blue: 'bg-blue-500',
     gray: 'bg-gray-400',
-    purple: 'bg-purple-500'
+    purple: 'bg-[#7e2d55]'
   }
   return colors[colorCode] || colors.gray
 }

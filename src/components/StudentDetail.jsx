@@ -9,7 +9,7 @@ import { openWhatsApp, buildReminderMessage } from '../lib/whatsapp'
 const METHOD_STYLE = {
   'Efectivo':      { bg: 'bg-green-100',  text: 'text-green-700'  },
   'Transferencia': { bg: 'bg-blue-100',   text: 'text-blue-700'   },
-  'Tarjeta':       { bg: 'bg-purple-100', text: 'text-purple-700' },
+  'Tarjeta':       { bg: 'bg-[#f9e8f0]', text: 'text-[#551735]' },
   'PayPhone (Tarjeta)': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
 }
 const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
@@ -162,8 +162,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               </div>
               <div>
                 <h2 className="text-lg font-bold leading-tight">{student.name}</h2>
-                <p className="text-sm text-purple-200">{course?.name || 'Sin curso'}</p>
-                {student.cedula && <p className="text-xs text-purple-300 mt-0.5">CI: {student.cedula}</p>}
+                <p className="text-sm text-[#e8b4cc]">{course?.name || 'Sin curso'}</p>
+                {student.cedula && <p className="text-xs text-[#c98daa] mt-0.5">CI: {student.cedula}</p>}
               </div>
             </div>
 
@@ -325,27 +325,27 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           {/* Ciclo actual */}
           {cycleInfo && (
             <div className="px-4 pb-3">
-              <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
-                <p className="text-[10px] font-bold text-purple-500 uppercase tracking-widest mb-3 text-center">Ciclo actual</p>
+              <div className="bg-[#fdf5f9] border border-[#f9e8f0] rounded-xl p-4">
+                <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">Ciclo actual</p>
                 <div className="grid grid-cols-2 gap-4 mb-2">
                   <div className="text-center">
-                    <p className="text-[10px] text-purple-400 uppercase">Primera clase</p>
-                    <p className="text-sm font-bold text-purple-700">{cycleInfo.cycleStart}</p>
+                    <p className="text-[10px] text-[#9e4d75] uppercase">Primera clase</p>
+                    <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleStart}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-[10px] text-purple-400 uppercase">Última clase</p>
-                    <p className="text-sm font-bold text-purple-700">{cycleInfo.cycleEnd}</p>
+                    <p className="text-[10px] text-[#9e4d75] uppercase">Última clase</p>
+                    <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleEnd}</p>
                   </div>
                 </div>
-                <p className="text-xs text-center text-purple-500 mb-1">
+                <p className="text-xs text-center text-[#7e2d55] mb-1">
                   Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
                 </p>
-                <p className="text-center text-lg font-bold text-purple-700 mb-2">
+                <p className="text-center text-lg font-bold text-[#551735] mb-2">
                   Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
                 </p>
-                <div className="bg-purple-100 rounded-full h-2 overflow-hidden">
+                <div className="bg-[#f9e8f0] rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-purple-500 h-2 rounded-full transition-all"
+                    className="bg-[#7e2d55] h-2 rounded-full transition-all"
                     style={{ width: `${Math.min(100, Math.round((cycleInfo.classesPassed / cycleInfo.totalClasses) * 100))}%` }}
                   />
                 </div>
@@ -359,22 +359,22 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             <div className="bg-gray-50 rounded-xl p-3 space-y-2.5">
               {student.phone && (
                 <a href={`tel:${student.phone}`} className="flex items-center gap-2.5 group">
-                  <Phone size={14} className="text-purple-400 shrink-0" />
-                  <span className="text-sm text-gray-700 group-hover:text-purple-600 transition-colors">{student.phone}</span>
+                  <Phone size={14} className="text-[#9e4d75] shrink-0" />
+                  <span className="text-sm text-gray-700 group-hover:text-[#6b2145] transition-colors">{student.phone}</span>
                 </a>
               )}
               {student.email && (
                 <a href={`mailto:${student.email}`} className="flex items-center gap-2.5 group">
-                  <Mail size={14} className="text-purple-400 shrink-0" />
-                  <span className="text-sm text-gray-700 group-hover:text-purple-600 transition-colors truncate">{student.email}</span>
+                  <Mail size={14} className="text-[#9e4d75] shrink-0" />
+                  <span className="text-sm text-gray-700 group-hover:text-[#6b2145] transition-colors truncate">{student.email}</span>
                 </a>
               )}
               {student.parent_name && (
                 <div className="flex items-center gap-2.5">
-                  <User size={14} className="text-purple-400 shrink-0" />
+                  <User size={14} className="text-[#9e4d75] shrink-0" />
                   <span className="text-sm text-gray-700">{student.parent_name}</span>
                   {student.parent_phone && student.parent_phone !== student.phone && (
-                    <a href={`tel:${student.parent_phone}`} className="text-xs text-purple-500 hover:text-purple-700 ml-auto shrink-0">
+                    <a href={`tel:${student.parent_phone}`} className="text-xs text-[#7e2d55] hover:text-[#551735] ml-auto shrink-0">
                       {student.parent_phone}
                     </a>
                   )}
@@ -382,7 +382,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               )}
               {student.payer_name && student.payer_name !== student.parent_name && student.payer_name !== student.name && (
                 <div className="flex items-center gap-2.5">
-                  <Wallet size={14} className="text-purple-400 shrink-0" />
+                  <Wallet size={14} className="text-[#9e4d75] shrink-0" />
                   <span className="text-sm text-gray-700">Pagador: {student.payer_name}</span>
                 </div>
               )}
@@ -481,7 +481,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               {onReactivate && (
                 <button
                   onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
-                  className="flex-1 py-2.5 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+                  className="flex-1 py-2.5 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
                 >
                   <RefreshCw size={15} /> Reactivar ciclo
                 </button>
@@ -515,7 +515,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             {onEdit && (
               <button
                 onClick={() => { onClose(); onEdit(student) }}
-                className="px-4 py-3 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 active:scale-95 transition-all"
+                className="px-4 py-3 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] active:scale-95 transition-all"
                 title="Editar alumna"
               >
                 <Pencil size={18} />
@@ -570,7 +570,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">
             <h3 className="text-lg font-bold text-gray-800 mb-1 text-center flex items-center justify-center gap-2">
-              <RefreshCw size={20} className="text-purple-600" /> Reactivar ciclo
+              <RefreshCw size={20} className="text-[#6b2145]" /> Reactivar ciclo
             </h3>
             <p className="text-xs text-gray-500 text-center mb-4">{student.name}</p>
 
@@ -597,7 +597,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Próximo cobro:</span>
-                    <span className="font-semibold text-purple-700">{previewNextPayment ? formatDate(previewNextPayment) : '—'}</span>
+                    <span className="font-semibold text-[#551735]">{previewNextPayment ? formatDate(previewNextPayment) : '—'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Clases usadas:</span>
@@ -618,7 +618,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   <button
                     onClick={handleReactivate}
                     disabled={reactivating}
-                    className="flex-1 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium disabled:opacity-70 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="flex-1 py-3 bg-[#6b2145] text-white rounded-xl hover:bg-[#551735] font-medium disabled:opacity-70 flex items-center justify-center gap-2 active:scale-95 transition-all"
                   >
                     {reactivating ? <><RefreshCw size={15} className="animate-spin" /> Activando...</> : 'Reactivar'}
                   </button>

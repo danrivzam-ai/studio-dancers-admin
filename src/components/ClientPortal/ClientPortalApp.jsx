@@ -138,7 +138,7 @@ function StudentSelector({ students, onSelect, onLogout }) {
             <button
               key={s.id}
               onClick={() => onSelect(s)}
-              className="w-full text-left px-4 py-3.5 rounded-xl border-2 border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all"
+              className="w-full text-left px-4 py-3.5 rounded-xl border-2 border-gray-100 hover:border-[#c98daa] hover:bg-[#fdf5f9] transition-all"
             >
               <p className="font-semibold text-gray-800">{s.name}</p>
               <p className="text-xs text-gray-500">{s.course_name || s.course_id}</p>

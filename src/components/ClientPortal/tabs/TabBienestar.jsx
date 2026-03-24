@@ -7,7 +7,7 @@ export const CATEGORIA_CFG = {
   fortalecimiento:  { label: 'Fortalecimiento', emoji: '💪', badgeBg: 'bg-teal-100',    badgeText: 'text-teal-700'   },
   estiramiento:     { label: 'Estiramiento',     emoji: '🤸', badgeBg: 'bg-blue-100',   badgeText: 'text-blue-700'   },
   salud:            { label: 'Salud',             emoji: '❤️', badgeBg: 'bg-orange-100', badgeText: 'text-orange-700' },
-  bienestar_mental: { label: 'Bienestar mental',  emoji: '🧘', badgeBg: 'bg-purple-100', badgeText: 'text-purple-700' },
+  bienestar_mental: { label: 'Bienestar mental',  emoji: '🧘', badgeBg: 'bg-[#f9e8f0]', badgeText: 'text-[#551735]' },
   cultura_ballet:   { label: 'Cultura ballet',    emoji: '🩰', badgeBg: 'bg-yellow-100', badgeText: 'text-yellow-700' },
 }
 
@@ -117,8 +117,8 @@ export default function TabBienestar({ auth, student }) {
             onClick={() => setFiltro(f.id)}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 ${
               filtro === f.id
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-purple-200'
+                ? 'bg-[#6b2145] text-white shadow-sm'
+                : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-[#e8b4cc]'
             }`}
           >
             {f.label}
@@ -129,7 +129,7 @@ export default function TabBienestar({ auth, student }) {
       {/* Lista */}
       {loading && items.length === 0 ? (
         <div className="flex justify-center py-12">
-          <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
@@ -154,7 +154,7 @@ export default function TabBienestar({ auth, student }) {
                 load(next * PAGE)
               }}
               disabled={loading}
-              className="w-full py-3 text-sm text-purple-600 font-medium disabled:opacity-50 bg-white border-2 border-purple-100 rounded-2xl hover:bg-purple-50 active:scale-95 transition-all"
+              className="w-full py-3 text-sm text-[#6b2145] font-medium disabled:opacity-50 bg-white border-2 border-[#f9e8f0] rounded-2xl hover:bg-[#fdf5f9] active:scale-95 transition-all"
             >
               {loading ? 'Cargando…' : 'Ver más'}
             </button>

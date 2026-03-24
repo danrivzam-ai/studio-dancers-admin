@@ -198,11 +198,11 @@ export default function CobranzaReport({
         className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b bg-purple-700 text-white flex-shrink-0">
+        <div className="p-4 sm:p-5 border-b bg-[#551735] text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold">Reporte de Cobranza</h2>
-              <p className="text-xs text-purple-200 mt-0.5">
+              <p className="text-xs text-[#e8b4cc] mt-0.5">
                 {cobranzaList.length} alumna{cobranzaList.length !== 1 ? 's' : ''} con cobro pendiente o próximo
               </p>
             </div>
@@ -221,7 +221,7 @@ export default function CobranzaReport({
             ].map(t => (
               <div key={t.label} className={`${t.color} rounded-xl px-3 py-2 text-center`}>
                 <p className="text-lg sm:text-xl font-bold">{t.value}</p>
-                <p className="text-[11px] sm:text-xs text-purple-100">{t.label}</p>
+                <p className="text-[11px] sm:text-xs text-[#f9e8f0]">{t.label}</p>
               </div>
             ))}
           </div>
@@ -242,8 +242,8 @@ export default function CobranzaReport({
                 onClick={() => setFilterStatus(f.v)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   filterStatus === f.v
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:border-purple-300'
+                    ? 'bg-[#6b2145] text-white shadow-sm'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:border-[#c98daa]'
                 }`}
               >
                 {f.l}

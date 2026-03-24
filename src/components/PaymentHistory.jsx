@@ -421,7 +421,7 @@ export default function PaymentHistory({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Historial de pagos">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-3 sm:p-5 border-b bg-purple-700 text-white">
+        <div className="p-3 sm:p-5 border-b bg-[#551735] text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -468,8 +468,8 @@ export default function PaymentHistory({
                     onClick={() => setDatePreset(p.key)}
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold active:scale-95 transition-all ${
                       activePreset === p.key
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-purple-300 hover:text-purple-700'
+                        ? 'bg-[#6b2145] text-white shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-200 hover:border-[#c98daa] hover:text-[#551735]'
                     }`}
                   >
                     {p.label}
@@ -485,7 +485,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => { setDateFrom(e.target.value); setActivePreset(null) }}
-                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
                   />
                 </div>
                 <div>
@@ -494,7 +494,7 @@ export default function PaymentHistory({
                     type="date"
                     value={dateTo}
                     onChange={(e) => { setDateTo(e.target.value); setActivePreset(null) }}
-                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
                   />
                 </div>
                 <div>
@@ -502,7 +502,7 @@ export default function PaymentHistory({
                   <select
                     value={viewType}
                     onChange={(e) => setViewType(e.target.value)}
-                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
                   >
                     <option value="all">Todos</option>
                     <option value="students">Alumnos</option>
@@ -513,8 +513,8 @@ export default function PaymentHistory({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
-                  <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2.5 bg-white transition-all">
-                    <Search className="text-purple-400 shrink-0" size={14} />
+                  <div className="flex items-center gap-1.5 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#c98daa] focus-within:border-[#9e4d75] px-3 py-2.5 bg-white transition-all">
+                    <Search className="text-[#9e4d75] shrink-0" size={14} />
                     <input
                       type="text"
                       placeholder="Nombre, cédula..."
@@ -541,7 +541,7 @@ export default function PaymentHistory({
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2">
             <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
               <p className="text-[10px] sm:text-xs text-gray-500">Alumnos</p>
-              <p className="text-sm sm:text-lg font-bold text-purple-600">${totalStudentPayments.toFixed(2)}</p>
+              <p className="text-sm sm:text-lg font-bold text-[#6b2145]">${totalStudentPayments.toFixed(2)}</p>
               <p className="text-[10px] sm:text-xs text-gray-400">{filteredPayments.filter(p => !p.voided).length} pagos</p>
             </div>
             <div className="bg-white rounded-xl p-2 sm:p-3 text-center border">
@@ -571,7 +571,7 @@ export default function PaymentHistory({
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-12 flex flex-col items-center text-gray-500">
-              <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4" />
+              <div className="w-8 h-8 border-3 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin mb-4" />
               <p className="text-sm">Cargando pagos...</p>
             </div>
           ) : (
@@ -585,7 +585,7 @@ export default function PaymentHistory({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                       <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                        payment.voided ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'
+                        payment.voided ? 'bg-red-100 text-red-700' : 'bg-[#f9e8f0] text-[#551735]'
                       }`}>
                         {payment.voided ? <Ban size={16} /> : (payment.students?.name?.charAt(0) || '?')}
                       </div>
@@ -613,7 +613,7 @@ export default function PaymentHistory({
                           ${parseFloat(payment.amount).toFixed(2)}
                         </p>
                         <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full ${
-                          payment.voided ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-700'
+                          payment.voided ? 'bg-red-100 text-red-700' : 'bg-[#f9e8f0] text-[#551735]'
                         }`}>
                           {payment.voided ? 'Anulado' : 'Alumno'}
                         </span>
@@ -622,7 +622,7 @@ export default function PaymentHistory({
                         <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintStudent(payment)}
-                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl active:scale-95 transition-all"
+                            className="p-1.5 sm:p-2 bg-[#f9e8f0] text-[#551735] hover:bg-[#f9e8f0] rounded-xl active:scale-95 transition-all"
                             title="Reimprimir"
                           >
                             <Printer size={16} />
@@ -689,7 +689,7 @@ export default function PaymentHistory({
                         <div className="flex flex-col sm:flex-row gap-1">
                           <button
                             onClick={() => handleReprintQuick(payment)}
-                            className="p-1.5 sm:p-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl active:scale-95 transition-all"
+                            className="p-1.5 sm:p-2 bg-[#f9e8f0] text-[#551735] hover:bg-[#f9e8f0] rounded-xl active:scale-95 transition-all"
                             title="Reimprimir"
                           >
                             <Printer size={16} />
@@ -856,7 +856,7 @@ export default function PaymentHistory({
                   type="text"
                   value={voidReason}
                   onChange={(e) => setVoidReason(e.target.value)}
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
                   placeholder="Motivo de anulación..."
                 />
               </div>

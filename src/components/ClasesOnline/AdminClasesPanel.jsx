@@ -72,7 +72,7 @@ function ClassCard({ cls, type, onUpload, onDelete, uploading, uploadProgress })
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder={type === 'daily' ? 'Título de la clase (opcional)' : 'Mensaje de la semana (opcional)'}
-            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] transition-all"
           />
 
           <input
@@ -87,7 +87,7 @@ function ClassCard({ cls, type, onUpload, onDelete, uploading, uploadProgress })
           <button
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[#6b2145] hover:bg-[#551735] text-white font-medium rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload size={18} />
             {uploading ? 'Subiendo...' : 'Subir video'}
@@ -97,7 +97,7 @@ function ClassCard({ cls, type, onUpload, onDelete, uploading, uploadProgress })
             <div className="space-y-1">
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className="bg-purple-600 h-2.5 rounded-full transition-all duration-300"
+                  className="bg-[#6b2145] h-2.5 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -111,10 +111,10 @@ function ClassCard({ cls, type, onUpload, onDelete, uploading, uploadProgress })
 
   return (
     <>
-      <div className="bg-white rounded-2xl border-2 border-purple-100 p-6">
+      <div className="bg-white rounded-2xl border-2 border-[#f9e8f0] p-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <TypeIcon size={20} className="text-purple-600" />
+            <TypeIcon size={20} className="text-[#6b2145]" />
             <h3 className="font-semibold text-gray-700">{typeLabel}</h3>
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
               <CheckCircle size={12} /> Activa
@@ -212,7 +212,7 @@ export default function AdminClasesPanel() {
         <button
           onClick={() => { fetchActiveClasses(); fetchAllClasses() }}
           disabled={loading}
-          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+          className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl transition-all"
         >
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
         </button>

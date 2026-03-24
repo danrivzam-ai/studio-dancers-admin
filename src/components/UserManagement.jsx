@@ -6,7 +6,7 @@ import { ROLES } from '../hooks/useAuth'
 import Modal from './ui/Modal'
 
 const ROLE_LABELS = {
-  admin: { label: 'Administrador', color: 'bg-purple-100 text-purple-700', icon: Shield },
+  admin: { label: 'Administrador', color: 'bg-[#f9e8f0] text-[#551735]', icon: Shield },
   receptionist: { label: 'Recepcionista', color: 'bg-blue-100 text-blue-700', icon: User },
   viewer: { label: 'Solo Lectura', color: 'bg-gray-100 text-gray-700', icon: Eye }
 }
@@ -135,7 +135,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
     <Modal isOpen={isOpen} onClose={onClose} ariaLabel="Gestionar usuarios">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="bg-purple-700 text-white p-6">
+        <div className="bg-[#551735] text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield size={28} />
@@ -174,7 +174,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
           {!showAddForm && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="mb-6 flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-xl font-medium active:scale-95 transition-all"
+              className="mb-6 flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-3 rounded-xl font-medium active:scale-95 transition-all"
             >
               <UserPlus size={20} />
               Agregar Usuario
@@ -183,8 +183,8 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
 
           {/* Formulario agregar */}
           {showAddForm && (
-            <form onSubmit={handleAddUser} className="mb-6 bg-purple-50 p-4 rounded-xl border border-purple-200">
-              <h3 className="font-semibold text-purple-800 mb-4">Nuevo Usuario</h3>
+            <form onSubmit={handleAddUser} className="mb-6 bg-[#fdf5f9] p-4 rounded-xl border border-[#e8b4cc]">
+              <h3 className="font-semibold text-[#441029] mb-4">Nuevo Usuario</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -227,7 +227,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all"
+                  className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all"
                 >
                   <Check size={18} />
                   Agregar
@@ -266,7 +266,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                   <div
                     key={user.id}
                     className={`bg-white border rounded-xl p-4 flex items-center justify-between ${
-                      isCurrentUser ? 'border-purple-300 bg-purple-50' : 'border-gray-200'
+                      isCurrentUser ? 'border-[#c98daa] bg-[#fdf5f9]' : 'border-gray-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -277,7 +277,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                         <div className="font-medium text-gray-800">
                           {user.display_name || 'Sin nombre'}
                           {isCurrentUser && (
-                            <span className="ml-2 text-xs bg-purple-200 text-purple-700 px-2 py-0.5 rounded-full">
+                            <span className="ml-2 text-xs bg-[#f9e8f0] text-[#551735] px-2 py-0.5 rounded-full">
                               Tú
                             </span>
                           )}
@@ -324,7 +324,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
             <h4 className="font-medium text-gray-700 mb-2">Niveles de acceso:</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
               <div className="flex items-center gap-2">
-                <Shield size={16} className="text-purple-600" />
+                <Shield size={16} className="text-[#6b2145]" />
                 <span><strong>Admin:</strong> Acceso total</span>
               </div>
               <div className="flex items-center gap-2">

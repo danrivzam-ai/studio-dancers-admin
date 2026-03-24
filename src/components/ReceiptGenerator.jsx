@@ -124,7 +124,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
           <button
             onClick={onClose}
@@ -157,7 +157,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               ) : (
                 <div className="text-4xl mb-2">🩰</div>
               )}
-              <h1 className="text-xl font-bold text-purple-800">{settings.name}</h1>
+              <h1 className="text-xl font-bold text-[#441029]">{settings.name}</h1>
               <p className="text-sm text-gray-600">{settings.address}</p>
               {settings.phone && <p className="text-sm text-gray-600">Tel: {settings.phone}</p>}
               {settings.ruc && <p className="text-sm text-gray-600">RUC: {settings.ruc}</p>}
@@ -176,7 +176,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
                   Clase Diaria
                 </span>
               )}
-              <p className="text-purple-600 font-semibold">N° {payment.receipt_number || payment.receiptNumber}</p>
+              <p className="text-[#6b2145] font-semibold">N° {payment.receipt_number || payment.receiptNumber}</p>
               <p className="text-sm text-gray-500">Fecha: {formatDate(payment.payment_date)}</p>
             </div>
 
@@ -279,31 +279,31 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''
 
               return (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4">
+                <div className="bg-[#fdf5f9] border border-[#e8b4cc] rounded-xl p-3 mb-4">
                   {cycleInfo && (
-                    <div className="text-center mb-3 pb-2 border-b border-purple-200">
-                      <p className="text-xs font-bold text-purple-700 mb-1">CICLO PAGADO</p>
+                    <div className="text-center mb-3 pb-2 border-b border-[#e8b4cc]">
+                      <p className="text-xs font-bold text-[#551735] mb-1">CICLO PAGADO</p>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="text-purple-500">Inicia:</span>
-                          <span className="font-bold text-purple-700 ml-1">{cycleInfo.cycleStart}</span>
+                          <span className="text-[#7e2d55]">Inicia:</span>
+                          <span className="font-bold text-[#551735] ml-1">{cycleInfo.cycleStart}</span>
                         </div>
                         <div>
-                          <span className="text-purple-500">Termina:</span>
-                          <span className="font-bold text-purple-700 ml-1">{cycleInfo.cycleEnd}</span>
+                          <span className="text-[#7e2d55]">Termina:</span>
+                          <span className="font-bold text-[#551735] ml-1">{cycleInfo.cycleEnd}</span>
                         </div>
                       </div>
                       {(cycleInfo.totalClasses || classDaysLabel) && (
-                        <p className="text-[10px] text-purple-500 mt-1">
+                        <p className="text-[10px] text-[#7e2d55] mt-1">
                           {cycleInfo.totalClasses ? `${cycleInfo.totalClasses} clases` : ''}{cycleInfo.totalClasses && classDaysLabel ? ' • ' : ''}{classDaysLabel}
                         </p>
                       )}
                     </div>
                   )}
                   <p className="text-sm text-center">
-                    <span className="text-xs text-purple-600">Próximo cobro:</span>
+                    <span className="text-xs text-[#6b2145]">Próximo cobro:</span>
                     <br />
-                    <span className="text-lg font-bold text-purple-700">
+                    <span className="text-lg font-bold text-[#551735]">
                       {formatDate(student.next_payment_date)}
                     </span>
                   </p>
@@ -328,7 +328,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl active:scale-95 transition-all disabled:cursor-not-allowed ${
                 downloaded
                   ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60'
+                  : 'bg-[#6b2145] text-white hover:bg-[#551735] disabled:opacity-60'
               }`}
             >
               {downloaded ? <Check size={20} /> : <Download size={20} />}

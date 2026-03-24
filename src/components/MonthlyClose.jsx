@@ -39,7 +39,7 @@ function SummaryCard({ summary, loading }) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
       </div>
     )
   }
@@ -164,7 +164,7 @@ function CloseRow({ c, expanded, onToggle, settings }) {
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <Lock size={14} className="text-purple-400 shrink-0" />
+          <Lock size={14} className="text-[#9e4d75] shrink-0" />
           <div className="text-left">
             <p className="text-sm font-semibold text-gray-800">{periodoToLabel(c.periodo)}</p>
             <p className="text-[11px] text-gray-400">
@@ -193,9 +193,9 @@ function CloseRow({ c, expanded, onToggle, settings }) {
               <p className="font-bold text-red-700">{fmtMoney(c.total_egresos)}</p>
             </div>
             {c.alumnas_activas > 0 && (
-              <div className="bg-purple-50 rounded-lg p-2">
+              <div className="bg-[#fdf5f9] rounded-lg p-2">
                 <p className="text-gray-500">Alumnas activas</p>
-                <p className="font-bold text-purple-700">{c.alumnas_activas}</p>
+                <p className="font-bold text-[#551735]">{c.alumnas_activas}</p>
               </div>
             )}
             {c.alumnas_mora > 0 && (
@@ -212,7 +212,7 @@ function CloseRow({ c, expanded, onToggle, settings }) {
           )}
           <button
             onClick={exportPDF}
-            className="w-full py-2 text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors"
+            className="w-full py-2 text-xs font-medium text-[#551735] bg-[#fdf5f9] hover:bg-[#f9e8f0] rounded-xl transition-colors"
           >
             📄 Descargar PDF
           </button>
@@ -307,7 +307,7 @@ export default function MonthlyClose({
         className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b bg-purple-700 text-white flex-shrink-0">
+        <div className="p-4 sm:p-5 border-b bg-[#551735] text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -315,7 +315,7 @@ export default function MonthlyClose({
               </div>
               <div>
                 <h2 className="text-base font-bold">Cierre Mensual</h2>
-                <p className="text-xs text-purple-200">Solo admin · Bloquea el historial del mes</p>
+                <p className="text-xs text-[#e8b4cc]">Solo admin · Bloquea el historial del mes</p>
               </div>
             </div>
             <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl transition-colors">
@@ -336,7 +336,7 @@ export default function MonthlyClose({
                 setSelectedYear(y)
                 setSelectedMonth(m)
               }}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:outline-none"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:outline-none"
             >
               {prevMonths.map(({ year, month }) => (
                 <option key={`${year}-${month}`} value={`${year}-${month}`}>
@@ -374,7 +374,7 @@ export default function MonthlyClose({
               {summary && (
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { label: 'Alumnas activas', value: studentsCount,         color: 'bg-purple-50 text-purple-700' },
+                    { label: 'Alumnas activas', value: studentsCount,         color: 'bg-[#fdf5f9] text-[#551735]' },
                     { label: 'En mora',          value: moraStudentsCount,     color: 'bg-rose-50 text-rose-700' },
                     { label: 'Inactivas',         value: inactiveStudentsCount, color: 'bg-slate-50 text-slate-600' },
                   ].map(s => (
@@ -397,7 +397,7 @@ export default function MonthlyClose({
                     onChange={e => setNotas(e.target.value)}
                     rows={2}
                     placeholder="Observaciones, irregularidades, acuerdos del mes..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-purple-100 focus:outline-none resize-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:outline-none resize-none"
                   />
                 </div>
               )}
@@ -424,7 +424,7 @@ export default function MonthlyClose({
                     <button
                       onClick={() => setConfirm(true)}
                       disabled={summaryLoading}
-                      className="w-full py-3 bg-purple-600 text-white font-semibold text-sm rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-[#6b2145] text-white font-semibold text-sm rounded-xl hover:bg-[#551735] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                     >
                       <Lock size={15} />
                       Cerrar {MESES[selectedMonth - 1]} {selectedYear}
@@ -482,7 +482,7 @@ export default function MonthlyClose({
 
           {loading && (
             <div className="flex justify-center py-4">
-              <div className="w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
             </div>
           )}
         </div>

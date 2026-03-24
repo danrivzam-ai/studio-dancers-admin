@@ -138,7 +138,7 @@ export default function SettingsModal({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Configuración">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 bg-purple-700 text-white flex items-center justify-between sticky top-0 z-10 rounded-t-2xl">
+        <div className="p-6 bg-[#551735] text-white flex items-center justify-between sticky top-0 z-10 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-xl">
               <Building2 size={24} />
@@ -165,7 +165,7 @@ export default function SettingsModal({
               required
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               placeholder="Escuela de Danza"
             />
           </div>
@@ -178,7 +178,7 @@ export default function SettingsModal({
               type="text"
               value={formData.address}
               onChange={(e) => setFormData({...formData, address: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               placeholder="Alborada - Guayaquil"
             />
           </div>
@@ -192,7 +192,7 @@ export default function SettingsModal({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 placeholder="0999..."
               />
             </div>
@@ -204,7 +204,7 @@ export default function SettingsModal({
                 type="text"
                 value={formData.ruc}
                 onChange={(e) => setFormData({...formData, ruc: e.target.value})}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 placeholder="0912345678001"
               />
             </div>
@@ -218,7 +218,7 @@ export default function SettingsModal({
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               placeholder="escuela@email.com"
             />
           </div>
@@ -333,7 +333,7 @@ export default function SettingsModal({
                 onClick={() => setFormData({...formData, logo_url: '/logo.png'})}
                 className={`flex-1 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.logo_url === '/logo.png'
-                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -344,7 +344,7 @@ export default function SettingsModal({
                 onClick={() => setFormData({...formData, logo_url: ''})}
                 className={`flex-1 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
                   !formData.logo_url || formData.logo_url === ''
-                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -493,7 +493,7 @@ export default function SettingsModal({
                   <button
                     type="button"
                     onClick={handlePinChange}
-                    className="flex-1 px-3 py-3 bg-purple-600 text-white rounded-xl text-sm active:scale-95 transition-all"
+                    className="flex-1 px-3 py-3 bg-[#6b2145] text-white rounded-xl text-sm active:scale-95 transition-all"
                   >
                     Guardar PIN
                   </button>
@@ -519,7 +519,7 @@ export default function SettingsModal({
                     type={showApiKey ? 'text' : 'password'}
                     value={formData.mailerlite_api_key}
                     onChange={(e) => setFormData({...formData, mailerlite_api_key: e.target.value})}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 pr-10 text-base outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] pr-10 text-base outline-none transition-all"
                     placeholder="eyJ0eXAiOiJKV1QiLCJhbGciOi..."
                   />
                   <button
@@ -538,7 +538,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.mailerlite_group_id}
                   onChange={(e) => setFormData({...formData, mailerlite_group_id: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-base outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] text-base outline-none transition-all"
                   placeholder="123456789"
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo MailerLite donde se agregan padres y alumnas.</p>
@@ -549,7 +549,7 @@ export default function SettingsModal({
                   type="text"
                   value={formData.mailerlite_instructors_group_id}
                   onChange={(e) => setFormData({...formData, mailerlite_instructors_group_id: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 text-base outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] text-base outline-none transition-all"
                   placeholder="987654321"
                 />
                 <p className="text-xs text-gray-400 mt-1">Grupo MailerLite para la automatización de Bienvenida Instructoras.</p>

@@ -283,7 +283,7 @@ export default function PaymentModal({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Registrar pago">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 flex flex-col bg-purple-700 text-white rounded-t-2xl">
+        <div className="p-6 flex flex-col bg-[#551735] text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">
@@ -305,9 +305,9 @@ export default function PaymentModal({
         </div>
 
         {/* Student Info */}
-        <div className="px-4 sm:px-6 py-4 bg-purple-50 border-b">
+        <div className="px-4 sm:px-6 py-4 bg-[#fdf5f9] border-b">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-100 text-purple-700 w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0">
+            <div className="bg-[#f9e8f0] text-[#551735] w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0">
               {(student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -412,7 +412,7 @@ export default function PaymentModal({
           )}
 
           {allowsInstallments && !hasBalance && (
-            <p className="text-xs text-purple-600 mt-2">
+            <p className="text-xs text-[#6b2145] mt-2">
               Este programa permite pagar en {installmentCount} cuotas de ${(coursePrice / installmentCount).toFixed(2)}
             </p>
           )}
@@ -484,7 +484,7 @@ export default function PaymentModal({
                 onClick={() => setFormData({...formData, paymentType: 'custom', amount: ''})}
                 className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.paymentType === 'custom'
-                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -570,7 +570,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={discountValue}
                       onChange={(e) => handleDiscountValueChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all text-base"
                       placeholder={discountType === 'percent' ? 'Ej: 10' : 'Ej: 5.00'}
                     />
                   </div>
@@ -596,7 +596,7 @@ export default function PaymentModal({
                       step="0.01"
                       value={customFinalPrice}
                       onChange={(e) => handleCustomFinalPriceChange(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base"
+                      className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all text-base"
                       placeholder="Ej: 30.00"
                     />
                   </div>
@@ -640,7 +640,7 @@ export default function PaymentModal({
                       setCustomFinalPrice('')
                     }
                   }}
-                  className={`w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg font-semibold ${
+                  className={`w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-lg font-semibold ${
                     discountEnabled ? 'bg-green-50 border-green-300 text-green-700' : ''
                   }`}
                   readOnly={discountEnabled}
@@ -658,7 +658,7 @@ export default function PaymentModal({
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
-                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               />
             </div>
           </div>
@@ -717,7 +717,7 @@ export default function PaymentModal({
                     onClick={() => setFormData({...formData, paymentMethod: method.id, bankId: '', transferReceipt: ''})}
                     className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
                       formData.paymentMethod === method.id
-                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -741,7 +741,7 @@ export default function PaymentModal({
                   required
                   value={formData.bankId}
                   onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 >
                   <option value="">Seleccionar banco</option>
                   {BANKS.map(bank => (
@@ -759,7 +759,7 @@ export default function PaymentModal({
                   required
                   value={formData.transferReceipt}
                   onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                   placeholder="Ingrese número de comprobante"
                 />
               </div>
@@ -774,7 +774,7 @@ export default function PaymentModal({
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               rows={2}
               placeholder="Observaciones del pago..."
             />

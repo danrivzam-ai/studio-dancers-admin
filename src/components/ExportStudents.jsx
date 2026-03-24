@@ -160,7 +160,7 @@ export default function ExportStudents({ students, settings, onClose }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Exportar alumnos">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
         {/* Header */}
-        <div className="p-6 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
+        <div className="p-6 bg-[#551735] text-white flex items-center justify-between rounded-t-2xl">
           <h2 className="text-xl font-semibold">Exportar Listado</h2>
           <button
             onClick={onClose}
@@ -180,7 +180,7 @@ export default function ExportStudents({ students, settings, onClose }) {
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
             >
               <option value="all">Todos los cursos ({students.length} alumnos)</option>
 
@@ -291,7 +291,7 @@ export default function ExportStudents({ students, settings, onClose }) {
             <button
               onClick={handleExport}
               disabled={filteredStudents.length === 0}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-[#6b2145] text-white rounded-xl hover:bg-[#551735] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Download size={20} />
               Exportar

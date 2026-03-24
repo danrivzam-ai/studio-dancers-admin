@@ -72,7 +72,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Nueva alumna">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 bg-[#551735] text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><Plus size={16} /></div>
             <h3 className="font-semibold text-base">Nueva alumna</h3>
@@ -88,7 +88,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Nombre completo *</label>
             <input required value={form.name} onChange={e => set('name', e.target.value)}
               placeholder="Nombre de la alumna"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
           </div>
 
           {/* Cédula + Edad */}
@@ -97,13 +97,13 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
               <label className="text-xs font-medium text-gray-600 block mb-1">Cédula</label>
               <input value={form.cedula} onChange={e => set('cedula', e.target.value)}
                 placeholder="0000000000"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Edad</label>
               <input type="number" min={1} max={99} value={form.age} onChange={e => set('age', e.target.value)}
                 placeholder="Años"
-                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
             </div>
           </div>
 
@@ -112,29 +112,29 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono</label>
             <input value={form.phone} onChange={e => set('phone', e.target.value)}
               placeholder="09xxxxxxxx"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
           </div>
 
           {/* Es menor */}
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input type="checkbox" checked={form.is_minor} onChange={e => set('is_minor', e.target.checked)}
-              className="w-4 h-4 rounded accent-purple-600" />
+              className="w-4 h-4 rounded accent-[#6b2145]" />
             <span className="text-sm text-gray-700">Es menor de edad (tiene representante)</span>
           </label>
 
           {form.is_minor && (
-            <div className="bg-purple-50 rounded-xl p-3 space-y-3 border border-purple-100">
+            <div className="bg-[#fdf5f9] rounded-xl p-3 space-y-3 border border-[#f9e8f0]">
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Nombre del representante *</label>
                 <input value={form.parent_name} onChange={e => set('parent_name', e.target.value)}
                   placeholder="Nombre completo"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Teléfono del representante</label>
                 <input value={form.parent_phone} onChange={e => set('parent_phone', e.target.value)}
                   placeholder="09xxxxxxxx"
-                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all" />
+                  className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all" />
               </div>
             </div>
           )}
@@ -143,7 +143,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Curso *</label>
             <select required value={form.course_id} onChange={e => set('course_id', e.target.value)}
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all">
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none transition-all">
               <option value="">— Selecciona un curso —</option>
               {ACTIVE_COURSES.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -156,7 +156,7 @@ function NuevaAlumnaModal({ onClose, onCreated }) {
             <label className="text-xs font-medium text-gray-600 block mb-1">Notas (opcional)</label>
             <textarea rows={2} value={form.notes} onChange={e => set('notes', e.target.value)}
               placeholder="Observaciones adicionales..."
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none resize-none transition-all" />
+              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2.5 text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none resize-none transition-all" />
           </div>
 
           {error && (
@@ -189,7 +189,7 @@ function StudentRow({ student, onPago, onDetail }) {
   const initials = student.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-purple-200 transition-colors">
+    <div className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center gap-3 hover:border-[#e8b4cc] transition-colors">
       {/* Avatar */}
       <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
         style={{ background: PURPLE }}>
@@ -231,7 +231,7 @@ function StudentDetailModal({ student, onClose, onPago }) {
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle alumna">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
-        <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 bg-[#551735] text-white rounded-t-2xl">
           <div className="flex items-center gap-2">
             <div className="bg-white/20 p-1.5 rounded-xl"><User size={16} /></div>
             <h3 className="font-semibold text-base">Detalle alumna</h3>
@@ -267,20 +267,20 @@ function StudentDetailModal({ student, onClose, onPago }) {
             {student.phone && (
               <div className="flex items-center gap-2 text-gray-600">
                 <Phone size={14} className="text-gray-400" />
-                <a href={`tel:${student.phone}`} className="font-medium text-purple-700">{student.phone}</a>
+                <a href={`tel:${student.phone}`} className="font-medium text-[#551735]">{student.phone}</a>
               </div>
             )}
             {student.is_minor && student.parent_name && (
               <div className="flex items-center gap-2 text-gray-600">
                 <Users size={14} className="text-gray-400" /> Rep: <span className="font-medium">{student.parent_name}</span>
                 {student.parent_phone && (
-                  <a href={`tel:${student.parent_phone}`} className="text-purple-700 font-medium">{student.parent_phone}</a>
+                  <a href={`tel:${student.parent_phone}`} className="text-[#551735] font-medium">{student.parent_phone}</a>
                 )}
               </div>
             )}
             {course && (
-              <div className="bg-purple-50 rounded-xl px-3 py-2 mt-2">
-                <p className="font-semibold text-purple-800 text-xs">{course.name}</p>
+              <div className="bg-[#fdf5f9] rounded-xl px-3 py-2 mt-2">
+                <p className="font-semibold text-[#441029] text-xs">{course.name}</p>
                 <p className="text-xs text-gray-500 mt-0.5">{course.schedule} · ${course.price}/{course.priceType === 'mes' ? 'mes' : 'programa'}</p>
               </div>
             )}
@@ -383,12 +383,12 @@ export default function RecepcionDashboard({ onLogout, userName }) {
         {/* Búsqueda + nueva */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9e4d75]" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nombre, cédula o representante..."
-              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] focus:outline-none bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')}
@@ -424,7 +424,7 @@ export default function RecepcionDashboard({ onLogout, userName }) {
         {/* Lista */}
         {loading ? (
           <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-purple-300 border-t-purple-700 rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-[#c98daa] border-t-[#551735] rounded-full animate-spin" />
           </div>
         ) : sorted.length === 0 ? (
           <div className="text-center py-16 text-gray-400">

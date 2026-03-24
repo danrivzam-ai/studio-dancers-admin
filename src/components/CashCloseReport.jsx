@@ -104,10 +104,10 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="px-5 py-4 bg-purple-700 text-white flex items-center justify-between rounded-t-2xl">
+        <div className="px-5 py-4 bg-[#551735] text-white flex items-center justify-between rounded-t-2xl">
           <div>
             <h3 className="font-semibold text-sm">Reporte de Cierre</h3>
-            <p className="text-purple-200 text-xs mt-0.5">
+            <p className="text-[#e8b4cc] text-xs mt-0.5">
               {formatDate(cashRegister.register_date)}{cashRegister.shift ? ` · Turno ${cashRegister.shift}` : ''}
             </p>
           </div>
@@ -265,7 +265,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
           <button
             onClick={downloadReport}
             disabled={downloading}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-purple-700 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-[#551735] text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] transition-all"
           >
             {downloading
               ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />

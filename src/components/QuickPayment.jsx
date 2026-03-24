@@ -136,7 +136,7 @@ export default function QuickPayment({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Pago r\u00e1pido">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b bg-purple-700 text-white">
+        <div className="p-6 border-b bg-[#551735] text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap size={24} />
@@ -162,8 +162,8 @@ export default function QuickPayment({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Buscar alumno registrado (opcional)
               </label>
-              <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2.5 transition-all">
-                <Search className="text-purple-400 shrink-0" size={16} />
+              <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#c98daa] focus-within:border-[#9e4d75] px-3 py-2.5 transition-all">
+                <Search className="text-[#9e4d75] shrink-0" size={16} />
                 <input
                   type="text"
                   value={studentSearch}
@@ -190,9 +190,9 @@ export default function QuickPayment({
                       key={s.id}
                       type="button"
                       onClick={() => selectStudent(s)}
-                      className="w-full text-left px-3 py-2 hover:bg-purple-50 transition-colors flex items-center gap-2 border-b border-gray-50 last:border-0"
+                      className="w-full text-left px-3 py-2 hover:bg-[#fdf5f9] transition-colors flex items-center gap-2 border-b border-gray-50 last:border-0"
                     >
-                      <div className="bg-purple-100 text-purple-700 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="bg-[#f9e8f0] text-[#551735] w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
                         {s.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -221,7 +221,7 @@ export default function QuickPayment({
               required
               value={formData.customerName}
               onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               placeholder="Nombre completo"
             />
           </div>
@@ -235,7 +235,7 @@ export default function QuickPayment({
                 type="text"
                 value={formData.customerCedula}
                 onChange={(e) => setFormData({...formData, customerCedula: e.target.value})}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 placeholder="0912345678"
               />
             </div>
@@ -247,7 +247,7 @@ export default function QuickPayment({
                 type="tel"
                 value={formData.customerPhone}
                 onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 placeholder="0999..."
               />
             </div>
@@ -266,8 +266,8 @@ export default function QuickPayment({
                   onClick={() => handleClassChange(cls.id)}
                   className={`p-3 rounded-xl border-2 text-sm font-medium transition-all active:scale-95 ${
                     formData.classType === cls.id
-                      ? 'border-purple-500 bg-purple-50 text-purple-700'
-                      : 'border-gray-200 hover:border-purple-200'
+                      ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
+                      : 'border-gray-200 hover:border-[#e8b4cc]'
                   }`}
                 >
                   <div className="text-center">
@@ -294,7 +294,7 @@ export default function QuickPayment({
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-lg font-semibold"
+                  className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-lg font-semibold"
                 />
               </div>
             </div>
@@ -306,7 +306,7 @@ export default function QuickPayment({
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
-                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                className="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               />
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function QuickPayment({
                     onClick={() => setFormData({...formData, paymentMethod: method.id, bankId: '', transferReceipt: ''})}
                     className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
                       formData.paymentMethod === method.id
-                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -350,7 +350,7 @@ export default function QuickPayment({
                   required
                   value={formData.bankId}
                   onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                 >
                   <option value="">Seleccionar banco</option>
                   {BANKS.map(bank => (
@@ -367,7 +367,7 @@ export default function QuickPayment({
                   required
                   value={formData.transferReceipt}
                   onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
                   placeholder="Número de comprobante"
                 />
               </div>
@@ -383,7 +383,7 @@ export default function QuickPayment({
               type="text"
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 text-base"
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] text-base"
               placeholder="Observaciones..."
             />
           </div>
@@ -410,7 +410,7 @@ export default function QuickPayment({
             <button
               type="submit"
               disabled={loading || !formData.customerName || !formData.amount}
-              className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-[#6b2145] text-white rounded-xl hover:bg-[#551735] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <Check size={20} />
               {loading ? 'Procesando...' : 'Cobrar'}
@@ -422,8 +422,8 @@ export default function QuickPayment({
         {confirmStep && pendingPayment && (
           <div className="absolute inset-0 bg-white rounded-2xl flex flex-col p-6 gap-4 z-10 overflow-y-auto">
             <div className="text-center">
-              <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Check size={28} className="text-purple-600" />
+              <div className="w-14 h-14 bg-[#f9e8f0] rounded-full flex items-center justify-center mx-auto mb-3">
+                <Check size={28} className="text-[#6b2145]" />
               </div>
               <h3 className="text-lg font-bold text-gray-800">¿Confirmar este cobro?</h3>
               <p className="text-sm text-gray-500 mt-1">Revisa los datos antes de registrar</p>
@@ -437,9 +437,9 @@ export default function QuickPayment({
                 <span className="text-sm text-gray-500">Clase</span>
                 <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{pendingPayment.className}</span>
               </div>
-              <div className="flex justify-between items-center px-4 py-3 bg-purple-50">
+              <div className="flex justify-between items-center px-4 py-3 bg-[#fdf5f9]">
                 <span className="text-sm text-gray-600 font-medium">Monto</span>
-                <span className="text-2xl font-extrabold text-purple-700">${pendingPayment.amount.toFixed(2)}</span>
+                <span className="text-2xl font-extrabold text-[#551735]">${pendingPayment.amount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center px-4 py-2.5">
                 <span className="text-sm text-gray-500">Método</span>
@@ -468,7 +468,7 @@ export default function QuickPayment({
                 ← Editar
               </button>
               <button type="button" onClick={handleConfirm} disabled={loading}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
+                className="flex-1 px-4 py-3 bg-[#6b2145] text-white rounded-xl hover:bg-[#551735] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
                 <Check size={20} />
                 {loading ? 'Procesando...' : 'Sí, cobrar'}
               </button>

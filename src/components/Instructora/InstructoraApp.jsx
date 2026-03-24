@@ -80,7 +80,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <form onSubmit={handleSubmit} className="px-6 pt-6 pb-7 space-y-5">
-            <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl text-purple-700 text-sm">
+            <div className="p-4 bg-[#fdf5f9] border border-[#e8b4cc] rounded-xl text-[#551735] text-sm">
               Por seguridad, el administrador ha solicitado que cambies tu contraseña inicial.
             </div>
 
@@ -90,7 +90,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Nueva contraseña</label>
-              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
+              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-[#7e2d55] transition-all">
                 <input
                   type={showNew ? 'text' : 'password'}
                   value={newPw}
@@ -101,7 +101,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
                   required
                 />
                 <button type="button" onClick={() => setShowNew(v => !v)}
-                  className="px-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0">
+                  className="px-3 text-gray-400 hover:text-[#6b2145] transition-colors shrink-0">
                   {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -109,7 +109,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Confirmar contraseña</label>
-              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
+              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-[#7e2d55] transition-all">
                 <input
                   type={showCfm ? 'text' : 'password'}
                   value={confirmPw}
@@ -120,7 +120,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
                   required
                 />
                 <button type="button" onClick={() => setShowCfm(v => !v)}
-                  className="px-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0">
+                  className="px-3 text-gray-400 hover:text-[#6b2145] transition-colors shrink-0">
                   {showCfm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -136,7 +136,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
           </form>
         </div>
 
-        <p className="text-center text-purple-200 text-sm mt-8">
+        <p className="text-center text-[#e8b4cc] text-sm mt-8">
           © {new Date().getFullYear()} Studio Dancers
         </p>
       </div>

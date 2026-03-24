@@ -64,7 +64,7 @@ export default function LoginPage({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-700 via-purple-800 to-pink-700">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#551735] via-[#441029] to-pink-700">
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-6">
@@ -112,7 +112,7 @@ export default function LoginPage({ onLogin }) {
                       value={resetEmail}
                       onChange={e => setResetEmail(e.target.value)}
                       placeholder="tu@email.com"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                       required
                       autoFocus
                     />
@@ -155,7 +155,7 @@ export default function LoginPage({ onLogin }) {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="tu@email.com"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                 required
               />
             </div>
@@ -171,7 +171,7 @@ export default function LoginPage({ onLogin }) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                   required
                 />
                 <button
@@ -203,7 +203,7 @@ export default function LoginPage({ onLogin }) {
 
             <button
               type="button"
-              className="w-full text-sm text-purple-600 hover:text-purple-700 font-medium py-2"
+              className="w-full text-sm text-[#6b2145] hover:text-[#551735] font-medium py-2"
               onClick={() => { setIsResetting(true); setError(''); setResetSent(false); setResetEmail(formData.email) }}
             >
               ¿Olvidaste tu contraseña?
@@ -212,7 +212,7 @@ export default function LoginPage({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-purple-200 text-sm mt-8">
+        <p className="text-center text-[#e8b4cc] text-sm mt-8">
           © {new Date().getFullYear()} Studio Dancers Admin
         </p>
       </div>

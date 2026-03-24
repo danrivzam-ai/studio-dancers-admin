@@ -61,10 +61,10 @@ export default function GalleryManager() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Images size={18} className="text-purple-600" />
+          <Images size={18} className="text-[#6b2145]" />
           <h2 className="text-base font-semibold text-gray-800">Galería del estudio</h2>
           {!loading && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-[#f9e8f0] text-[#551735] px-2 py-0.5 rounded-full font-medium">
               {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
             </span>
           )}
@@ -72,7 +72,7 @@ export default function GalleryManager() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white px-3 py-1.5 rounded-xl text-xs font-medium active:scale-95 transition-all"
+          className="flex items-center gap-1.5 bg-[#6b2145] hover:bg-[#551735] disabled:bg-[#c98daa] text-white px-3 py-1.5 rounded-xl text-xs font-medium active:scale-95 transition-all"
         >
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
           {uploading ? 'Subiendo...' : 'Subir fotos'}
@@ -106,7 +106,7 @@ export default function GalleryManager() {
           <p className="text-xs text-gray-400">Sube las primeras imágenes del estudio</p>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="mt-2 flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-purple-700 active:scale-95 transition-all"
+            className="mt-2 flex items-center gap-1.5 bg-[#6b2145] text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-[#551735] active:scale-95 transition-all"
           >
             <Upload size={13} />
             Subir fotos
@@ -187,7 +187,7 @@ export default function GalleryManager() {
                 placeholder="Ej: Clase de técnica clásica"
                 autoFocus
                 maxLength={80}
-                className="w-full text-sm border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+                className="w-full text-sm border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
               />
               <div className="flex gap-2">
                 <button
@@ -199,7 +199,7 @@ export default function GalleryManager() {
                 <button
                   onClick={saveCaption}
                   disabled={savingCaption}
-                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm font-medium flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                  className="flex-1 py-2.5 rounded-xl bg-[#6b2145] hover:bg-[#551735] disabled:bg-[#c98daa] text-white text-sm font-medium flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                 >
                   {savingCaption ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                   Guardar

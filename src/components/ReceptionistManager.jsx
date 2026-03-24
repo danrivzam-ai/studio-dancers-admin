@@ -103,7 +103,7 @@ export default function ReceptionistManager() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all shadow-sm"
+          className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all shadow-sm"
         >
           <Plus size={18} />
           Nueva
@@ -117,7 +117,7 @@ export default function ReceptionistManager() {
         <div className="text-center py-12 text-gray-400 bg-white rounded-2xl border-2 border-dashed border-gray-200">
           <Shield size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No hay recepcionistas registradas</p>
-          <button onClick={openCreate} className="mt-3 text-purple-600 hover:underline text-sm font-medium">
+          <button onClick={openCreate} className="mt-3 text-[#6b2145] hover:underline text-sm font-medium">
             Crear la primera
           </button>
         </div>
@@ -126,8 +126,8 @@ export default function ReceptionistManager() {
           {receptionists.map(r => (
             <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
               {/* Avatar */}
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                <span className="text-purple-700 font-bold">{r.name.charAt(0).toUpperCase()}</span>
+              <div className="w-10 h-10 rounded-full bg-[#f9e8f0] flex items-center justify-center shrink-0">
+                <span className="text-[#551735] font-bold">{r.name.charAt(0).toUpperCase()}</span>
               </div>
 
               {/* Info */}
@@ -147,7 +147,7 @@ export default function ReceptionistManager() {
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={() => openEdit(r)}
-                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                  className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                   title="Editar / cambiar contraseña"
                 >
                   <Edit2 size={16} />
@@ -180,7 +180,7 @@ export default function ReceptionistManager() {
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} ariaLabel={editingId ? 'Editar recepcionista' : 'Nueva recepcionista'}>
         {showForm && (
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="px-5 py-4 bg-purple-700 text-white flex items-center justify-between">
+            <div className="px-5 py-4 bg-[#551735] text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-1.5 rounded-xl">
                   <Shield size={18} />
@@ -205,7 +205,7 @@ export default function ReceptionistManager() {
                   type="text"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] outline-none transition-all text-base"
                   placeholder="Ej: Gabriela Suárez"
                   required
                   autoFocus
@@ -218,7 +218,7 @@ export default function ReceptionistManager() {
                   type="text"
                   value={form.username}
                   onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 outline-none transition-all text-base"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] outline-none transition-all text-base"
                   placeholder="ej: gabriela.suarez"
                   autoCapitalize="none"
                   required
@@ -229,7 +229,7 @@ export default function ReceptionistManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {editingId ? 'Contraseña (editar para cambiar)' : 'Contraseña'}
                 </label>
-                <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
+                <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-[#7e2d55] transition-all">
                   <input
                     type={showPw ? 'text' : 'password'}
                     value={form.password}
@@ -241,7 +241,7 @@ export default function ReceptionistManager() {
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="px-3 py-2 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
+                    className="px-3 py-2 text-gray-400 hover:text-[#6b2145] transition-colors shrink-0"
                   >
                     {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -251,7 +251,7 @@ export default function ReceptionistManager() {
               <label className="flex items-center gap-3 cursor-pointer py-1">
                 <div
                   onClick={() => setForm(f => ({ ...f, active: !f.active }))}
-                  className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 shrink-0 ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
+                  className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 shrink-0 ${form.active ? 'bg-[#6b2145]' : 'bg-gray-300'}`}
                 >
                   <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.active ? 'translate-x-4' : 'translate-x-0'}`} />
                 </div>
@@ -269,7 +269,7 @@ export default function ReceptionistManager() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-base font-semibold disabled:opacity-50 active:scale-95 transition-all"
+                  className="flex-1 py-3 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-base font-semibold disabled:opacity-50 active:scale-95 transition-all"
                 >
                   {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Crear cuenta'}
                 </button>

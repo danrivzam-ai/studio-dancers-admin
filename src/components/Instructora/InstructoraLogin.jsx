@@ -104,7 +104,7 @@ export default function InstructoraLogin({ onLogin }) {
                 autoComplete="username"
                 autoFocus
                 inputMode="numeric"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                 required
               />
             </div>
@@ -113,7 +113,7 @@ export default function InstructoraLogin({ onLogin }) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Contraseña
               </label>
-              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-purple-500 transition-all">
+              <div className="flex items-center border-2 border-gray-200 rounded-xl focus-within:border-[#7e2d55] transition-all">
                 <input
                   type={showPw ? 'text' : 'password'}
                   name="password"
@@ -127,7 +127,7 @@ export default function InstructoraLogin({ onLogin }) {
                 <button
                   type="button"
                   onClick={() => setShowPw(v => !v)}
-                  className="px-3 text-gray-400 hover:text-purple-600 transition-colors shrink-0"
+                  className="px-3 text-gray-400 hover:text-[#6b2145] transition-colors shrink-0"
                 >
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -140,7 +140,7 @@ export default function InstructoraLogin({ onLogin }) {
                 type="checkbox"
                 checked={remember}
                 onChange={e => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-purple-600 accent-purple-600 cursor-pointer"
+                className="w-4 h-4 rounded border-gray-300 text-[#6b2145] accent-[#6b2145] cursor-pointer"
               />
               <span className="text-sm text-gray-600">Recordar sesión en este dispositivo</span>
             </label>
@@ -167,7 +167,7 @@ export default function InstructoraLogin({ onLogin }) {
           </form>
         </div>
 
-        <p className="text-center text-purple-200 text-sm mt-8">
+        <p className="text-center text-[#e8b4cc] text-sm mt-8">
           © {new Date().getFullYear()} Studio Dancers
         </p>
       </div>

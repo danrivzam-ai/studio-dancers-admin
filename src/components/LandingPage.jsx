@@ -154,14 +154,14 @@ export default function LandingPage() {
           onError={(e) => { e.target.src = '/logo.png' }}
         />
         <h1 className="text-2xl font-bold tracking-tight">Studio Dancers</h1>
-        <p className="text-purple-200 text-sm mt-1">La Alborada, Guayaquil</p>
+        <p className="text-[#e8b4cc] text-sm mt-1">La Alborada, Guayaquil</p>
       </div>
 
       {/* Partners section */}
       <div className="max-w-lg mx-auto px-4 py-8 space-y-6">
         {/* Section header */}
         <div className="text-center">
-          <p className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-1">Red de confianza</p>
+          <p className="text-xs font-bold text-[#6b2145] uppercase tracking-widest mb-1">Red de confianza</p>
           <h2 className="text-xl font-bold text-gray-800">Productos y servicios recomendados</h2>
           <p className="text-sm text-gray-500 mt-1">Aliados seleccionados por Studio Dancers para nuestras alumnas</p>
         </div>
@@ -195,7 +195,7 @@ export default function LandingPage() {
               href={`https://wa.me/${STUDIO_WHATSAPP}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-purple-600 font-semibold hover:underline"
+              className="text-[#6b2145] font-semibold hover:underline"
             >
               Escríbenos por WhatsApp
             </a>

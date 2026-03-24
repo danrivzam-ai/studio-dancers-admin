@@ -96,9 +96,9 @@ export default function TabCalendario({ student }) {
                   className={[
                     'w-8 h-8 flex items-center justify-center rounded-full text-sm leading-none',
                     today
-                      ? 'bg-purple-600 text-white font-bold shadow-sm'
+                      ? 'bg-[#6b2145] text-white font-bold shadow-sm'
                       : classDay
-                        ? 'bg-purple-100 text-purple-700 font-semibold'
+                        ? 'bg-[#f9e8f0] text-[#551735] font-semibold'
                         : 'text-gray-600',
                   ].join(' ')}
                 >
@@ -113,20 +113,20 @@ export default function TabCalendario({ student }) {
       {/* Leyenda */}
       <div className="mt-3 flex items-center gap-5 px-1">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-purple-600 shrink-0" />
+          <div className="w-5 h-5 rounded-full bg-[#6b2145] shrink-0" />
           <span className="text-xs text-gray-500">Hoy</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-purple-100 shrink-0" />
+          <div className="w-5 h-5 rounded-full bg-[#f9e8f0] shrink-0" />
           <span className="text-xs text-gray-500">Día de clase</span>
         </div>
       </div>
 
       {/* Info del curso */}
       {course && (
-        <div className="mt-4 rounded-2xl bg-purple-50 border border-purple-100 p-4">
-          <p className="text-xs font-semibold text-purple-700 mb-0.5">{course.name}</p>
-          <p className="text-xs text-purple-600">{course.schedule}</p>
+        <div className="mt-4 rounded-2xl bg-[#fdf5f9] border border-[#f9e8f0] p-4">
+          <p className="text-xs font-semibold text-[#551735] mb-0.5">{course.name}</p>
+          <p className="text-xs text-[#6b2145]">{course.schedule}</p>
         </div>
       )}
     </div>

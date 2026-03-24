@@ -120,7 +120,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <select
         value={studentId}
         onChange={(e) => setStudentId(e.target.value)}
-        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
       >
         <option value="">Seleccionar alumna...</option>
         {students.map(s => (
@@ -138,14 +138,14 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+            className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
             placeholder="Monto"
           />
         </div>
         <select
           value={bankName}
           onChange={(e) => setBankName(e.target.value)}
-          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
         >
           <option value="">Banco...</option>
           {BANKS.map(b => (
@@ -161,7 +161,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
           type="text"
           value={receiptNumber}
           onChange={(e) => setReceiptNumber(e.target.value)}
-          className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+          className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
           placeholder="N° Comprobante"
         />
       </div>
@@ -191,7 +191,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
         type="text"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
-        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
         placeholder="Nota (opcional)"
       />
 

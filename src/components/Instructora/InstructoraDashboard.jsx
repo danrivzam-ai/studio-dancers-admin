@@ -6,7 +6,7 @@ const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S�
 
 const DAY_PILL = [
   '',
-  'bg-purple-100 text-purple-700 border-purple-200',
+  'bg-[#f9e8f0] text-[#551735] border-[#e8b4cc]',
   'bg-blue-100 text-blue-700 border-blue-200',
   'bg-green-100 text-green-700 border-green-200',
   'bg-orange-100 text-orange-700 border-orange-200',
@@ -61,7 +61,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
       background: 'linear-gradient(135deg, #f5f3ff 0%, #fdf2f8 100%)'
     }}>
       {/* Header */}
-      <header className="bg-white border-b border-purple-100 shadow-sm sticky top-0 z-10">
+      <header className="bg-white border-b border-[#f9e8f0] shadow-sm sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
@@ -72,7 +72,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">{instructor.name}</p>
-              <p className="text-xs text-purple-500">Instructora</p>
+              <p className="text-xs text-[#7e2d55]">Instructora</p>
             </div>
           </div>
           <button
@@ -92,10 +92,10 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
         <div className="rounded-2xl p-6 text-white" style={{
           background: 'linear-gradient(135deg, #551735 0%, #6b2145 50%, #7e2d55 100%)'
         }}>
-          <p className="text-purple-200 text-sm mb-1">¡Bienvenida de vuelta!</p>
+          <p className="text-[#e8b4cc] text-sm mb-1">¡Bienvenida de vuelta!</p>
           <h1 className="text-2xl font-bold mb-1">{firstName} 🎉</h1>
           {!loading && (
-            <p className="text-purple-200 text-sm">
+            <p className="text-[#e8b4cc] text-sm">
               {totalClases > 0
                 ? `${totalClases} ${totalClases === 1 ? 'clase' : 'clases'} distribuidas en ${days.length} ${days.length === 1 ? 'día' : 'días'} a la semana`
                 : 'Tu administrador configurará tu horario pronto'}
@@ -106,20 +106,20 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
         {/* Horario semanal */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-            <Calendar size={16} className="text-purple-500" />
+            <Calendar size={16} className="text-[#7e2d55]" />
             Mi horario semanal
           </h2>
 
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="w-7 h-7 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+              <div className="w-7 h-7 border-4 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
             </div>
 
           ) : days.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-purple-100 p-8 text-center space-y-3">
+            <div className="bg-white rounded-2xl border border-[#f9e8f0] p-8 text-center space-y-3">
               <div className="flex justify-center">
-                <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center">
-                  <Music2 size={26} className="text-purple-400" />
+                <div className="w-14 h-14 rounded-2xl bg-[#fdf5f9] flex items-center justify-center">
+                  <Music2 size={26} className="text-[#9e4d75]" />
                 </div>
               </div>
               <p className="text-gray-600 font-medium text-sm">Aún no tienes clases asignadas</p>
@@ -139,8 +139,8 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
                     key={dow}
                     className={`bg-white rounded-2xl border p-4 space-y-3 transition-shadow ${
                       isToday
-                        ? 'border-purple-300 shadow-md shadow-purple-100'
-                        : 'border-purple-100'
+                        ? 'border-[#c98daa] shadow-md shadow-[#f9e8f0]'
+                        : 'border-[#f9e8f0]'
                     }`}
                   >
                     {/* Cabecera del día */}
@@ -149,7 +149,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
                         {DAY_NAMES[dow]}
                       </span>
                       {isToday && (
-                        <span className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                        <span className="text-xs text-[#6b2145] font-semibold bg-[#fdf5f9] px-2 py-0.5 rounded-full border border-[#e8b4cc]">
                           Hoy
                         </span>
                       )}
@@ -163,7 +163,7 @@ export default function InstructoraDashboard({ instructor, onLogout }) {
                       {slots.map(slot => (
                         <div
                           key={slot.id}
-                          className="flex items-start gap-3 pl-3 border-l-2 border-purple-200"
+                          className="flex items-start gap-3 pl-3 border-l-2 border-[#e8b4cc]"
                         >
                           {/* Hora */}
                           <div className="flex items-center gap-1 text-xs text-gray-400 shrink-0 pt-0.5 min-w-[80px]">

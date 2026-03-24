@@ -51,7 +51,7 @@ export default function PinPromptModal({
     <Modal isOpen={isOpen} onClose={handleClose} ariaLabel={title}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs">
         {/* Header */}
-        <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl">
+        <div className="px-5 py-4 bg-[#551735] text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">
@@ -87,7 +87,7 @@ export default function PinPromptModal({
                 setPin(e.target.value.replace(/\D/g, ''))
                 setError('')
               }}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-4 focus:ring-purple-100 focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] transition-all"
               placeholder="••••"
               autoFocus
               disabled={attempts >= 3}
@@ -108,7 +108,7 @@ export default function PinPromptModal({
             <button
               type="submit"
               disabled={pin.length < 4 || attempts >= 3}
-              className="flex-1 px-3 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all"
+              className="flex-1 px-3 py-3 bg-[#6b2145] text-white rounded-xl hover:bg-[#551735] font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all"
             >
               Verificar
             </button>

@@ -7,7 +7,7 @@ const CATEGORIA_CFG = {
   flexibilidad:      { emoji: '🤸', label: 'Flexibilidad',      color: 'text-blue-600'   },
   equilibrio:        { emoji: '⚖️', label: 'Equilibrio',        color: 'text-amber-600'  },
   musicalidad:       { emoji: '🎵', label: 'Musicalidad',       color: 'text-rose-500'   },
-  conciencia_corporal: { emoji: '🧘', label: 'Conciencia corporal', color: 'text-purple-600' },
+  conciencia_corporal: { emoji: '🧘', label: 'Conciencia corporal', color: 'text-[#6b2145]' },
 }
 
 function formatSemana(dateStr) {
@@ -34,7 +34,7 @@ export default function TabRetos({ auth, student }) {
 
   if (loading) return (
     <div className="flex justify-center py-12">
-      <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
     </div>
   )
 
@@ -53,9 +53,9 @@ export default function TabRetos({ auth, student }) {
       {activo ? (() => {
         const cfg = CATEGORIA_CFG[activo.categoria] || CATEGORIA_CFG.fuerza
         return (
-          <div className="rounded-2xl p-5 bg-purple-50 border border-purple-100">
+          <div className="rounded-2xl p-5 bg-[#fdf5f9] border border-[#f9e8f0]">
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs font-bold text-purple-700 uppercase tracking-wide">Reto de esta semana</span>
+              <span className="text-xs font-bold text-[#551735] uppercase tracking-wide">Reto de esta semana</span>
               <span className="text-[10px] text-gray-400">{formatSemana(activo.semana_inicio)}</span>
             </div>
             <div className="flex items-start gap-3">
@@ -65,7 +65,7 @@ export default function TabRetos({ auth, student }) {
                 <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{activo.descripcion}</p>
                 {activo.tip_extra && (
                   <div className="mt-3 bg-white/70 rounded-xl px-3 py-2">
-                    <p className="text-xs text-purple-700 font-semibold mb-0.5">💡 Consejo extra</p>
+                    <p className="text-xs text-[#551735] font-semibold mb-0.5">💡 Consejo extra</p>
                     <p className="text-xs text-gray-600">{activo.tip_extra}</p>
                   </div>
                 )}
@@ -105,7 +105,7 @@ export default function TabRetos({ auth, student }) {
                     <div className="px-4 pb-3 border-t border-gray-50 pt-2 text-sm text-gray-600 leading-relaxed">
                       {r.descripcion}
                       {r.tip_extra && (
-                        <p className="mt-2 text-xs text-purple-600 bg-purple-50 rounded-xl px-3 py-1.5">
+                        <p className="mt-2 text-xs text-[#6b2145] bg-[#fdf5f9] rounded-xl px-3 py-1.5">
                           💡 {r.tip_extra}
                         </p>
                       )}

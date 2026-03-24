@@ -121,29 +121,29 @@ export default function UploadComprobante({ auth, student }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-between p-4 bg-purple-50 border border-purple-100 rounded-2xl hover:bg-purple-100 transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-[#fdf5f9] border border-[#f9e8f0] rounded-2xl hover:bg-[#f9e8f0] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-purple-600 rounded-xl flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 bg-[#6b2145] rounded-xl flex items-center justify-center shrink-0">
             <Upload size={16} className="text-white" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-semibold text-purple-800">Subir comprobante de pago</p>
-            <p className="text-xs text-purple-500">Transferencia o depósito bancario</p>
+            <p className="text-sm font-semibold text-[#441029]">Subir comprobante de pago</p>
+            <p className="text-xs text-[#7e2d55]">Transferencia o depósito bancario</p>
           </div>
         </div>
-        <ChevronDown size={18} className="text-purple-400" />
+        <ChevronDown size={18} className="text-[#9e4d75]" />
       </button>
     )
   }
 
   // ── Expanded form ─────────────────────────────────────────────────
   return (
-    <div className="bg-white border border-purple-100 rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-[#f9e8f0] rounded-2xl overflow-hidden shadow-sm">
       {/* Header */}
       <button
         onClick={() => { setOpen(false); resetForm() }}
-        className="w-full flex items-center justify-between px-4 py-3 bg-purple-600 text-white"
+        className="w-full flex items-center justify-between px-4 py-3 bg-[#6b2145] text-white"
       >
         <div className="flex items-center gap-2">
           <Upload size={16} />
@@ -159,7 +159,7 @@ export default function UploadComprobante({ auth, student }) {
           <select
             value={bank}
             onChange={(e) => setBank(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-purple-400"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-[#9e4d75]"
           >
             <option value="">Seleccionar...</option>
             {BANKS.map(b => <option key={b} value={b}>{b}</option>)}
@@ -178,7 +178,7 @@ export default function UploadComprobante({ auth, student }) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-purple-400"
+              className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-[#9e4d75]"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function UploadComprobante({ auth, student }) {
             value={receiptNo}
             onChange={(e) => setReceiptNo(e.target.value)}
             placeholder="Ej: 0012345678"
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-purple-400"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-[#9e4d75]"
           />
         </div>
 
@@ -213,7 +213,7 @@ export default function UploadComprobante({ auth, student }) {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="w-full py-5 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-1.5 hover:border-purple-300 hover:bg-purple-50/30 transition-colors"
+              className="w-full py-5 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center gap-1.5 hover:border-[#c98daa] hover:bg-[#fdf5f9]/30 transition-colors"
             >
               <Camera size={24} className="text-gray-300" />
               <span className="text-xs text-gray-400">Toca para adjuntar foto</span>
@@ -233,7 +233,7 @@ export default function UploadComprobante({ auth, student }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 active:bg-purple-800 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-3 rounded-xl bg-[#6b2145] text-white text-sm font-semibold hover:bg-[#551735] active:bg-[#441029] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
         >
           {loading ? (
             <>

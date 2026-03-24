@@ -136,7 +136,7 @@ export default function StudentForm({
     setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
-  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all"
+  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] transition-all"
   const inputClassBlue = "w-full px-3 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
   const inputClassGreen = "w-full px-3 py-2 text-sm border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
 
@@ -144,7 +144,7 @@ export default function StudentForm({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-purple-600 to-purple-800 text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>
@@ -155,13 +155,13 @@ export default function StudentForm({
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Toggle Menor / Adulto */}
-          <div className="flex rounded-xl overflow-hidden border-2 border-purple-200">
+          <div className="flex rounded-xl overflow-hidden border-2 border-[#e8b4cc]">
             <button
               type="button"
               onClick={() => setFormData({...formData, isMinor: true})}
               className={`flex-1 py-2 text-sm font-medium active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
                 formData.isMinor
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-[#6b2145] text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -173,7 +173,7 @@ export default function StudentForm({
               onClick={() => setFormData({...formData, isMinor: false, age: ''})}
               className={`flex-1 py-2 text-sm font-medium active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
                 !formData.isMinor
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-[#6b2145] text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -183,8 +183,8 @@ export default function StudentForm({
           </div>
 
           {/* DATOS DEL ALUMNO */}
-          <div className="bg-purple-50 rounded-xl p-3">
-            <h3 className="text-sm font-semibold text-purple-800 mb-3 flex items-center gap-1.5">
+          <div className="bg-[#fdf5f9] rounded-xl p-3">
+            <h3 className="text-sm font-semibold text-[#441029] mb-3 flex items-center gap-1.5">
               <User size={14} /> {formData.isMinor ? 'Datos del Alumno' : 'Datos Personales'}
             </h3>
             <div className="space-y-2">
@@ -557,7 +557,7 @@ export default function StudentForm({
               const age = parseInt(formData.age)
               const suggested = courses.filter(c => age >= (c.ageMin || c.age_min || 3) && age <= (c.ageMax || c.age_max || 99))
               return suggested.length > 0 ? (
-                <p className="text-xs text-purple-600">
+                <p className="text-xs text-[#6b2145]">
                   Sugeridos: {suggested.map(c => c.name.split(' - ')[0]).slice(0, 3).join(', ')}
                 </p>
               ) : null
@@ -595,7 +595,7 @@ export default function StudentForm({
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-medium text-sm flex items-center justify-center gap-1.5"
+              className="flex-1 px-4 py-2.5 bg-[#6b2145] hover:bg-[#551735] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-2xl font-medium text-sm flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <>

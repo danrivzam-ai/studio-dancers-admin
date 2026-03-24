@@ -99,13 +99,13 @@ export default function TabGlosario() {
 
       {/* Buscador */}
       <div className="relative mb-4">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400" />
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9e4d75]" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Buscar término..."
-          className="w-full pl-9 pr-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-purple-500 shadow-sm transition-all"
+          className="w-full pl-9 pr-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] shadow-sm transition-all"
         />
       </div>
 
@@ -119,7 +119,7 @@ export default function TabGlosario() {
           <div className="space-y-2">
             {searchResults.map((t, i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5">
-                <p className="text-[10px] text-purple-500 font-semibold uppercase tracking-wide mb-0.5">
+                <p className="text-[10px] text-[#7e2d55] font-semibold uppercase tracking-wide mb-0.5">
                   {t.categoria}
                 </p>
                 <p className="font-bold text-gray-800 text-sm">{t.term}</p>

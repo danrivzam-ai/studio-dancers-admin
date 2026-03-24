@@ -101,7 +101,7 @@ export default function RecepcionLogin({ onLogin }) {
                 placeholder="tu.usuario"
                 autoFocus
                 autoCapitalize="none"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                 required
               />
             </div>
@@ -116,7 +116,7 @@ export default function RecepcionLogin({ onLogin }) {
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError('') }}
                   placeholder="••••••••"
-                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all"
+                  className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] outline-none transition-all"
                   required
                 />
                 <button
@@ -152,7 +152,7 @@ export default function RecepcionLogin({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-purple-200 text-sm mt-8">
+        <p className="text-center text-[#e8b4cc] text-sm mt-8">
           © {new Date().getFullYear()} Studio Dancers Admin
         </p>
       </div>

@@ -22,7 +22,7 @@ const ACTION_CONFIG = {
   sale_created: { label: 'Venta registrada', icon: Plus, color: 'text-green-600', bg: 'bg-green-50' },
   sale_deleted: { label: 'Venta eliminada', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
   // Alumnos
-  student_created: { label: 'Alumno registrado', icon: Plus, color: 'text-purple-600', bg: 'bg-purple-50' },
+  student_created: { label: 'Alumno registrado', icon: Plus, color: 'text-[#6b2145]', bg: 'bg-[#fdf5f9]' },
   student_updated: { label: 'Alumno actualizado', icon: Edit2, color: 'text-blue-600', bg: 'bg-blue-50' },
   student_deleted: { label: 'Alumno eliminado', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
   // Pagos
@@ -121,7 +121,7 @@ export default function AuditLog({ onClose }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Registro de auditoría">
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-purple-700 text-white p-6">
+        <div className="bg-[#551735] text-white p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Log de Auditoria</h2>

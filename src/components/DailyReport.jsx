@@ -258,7 +258,7 @@ export default function DailyReport({ cashRegister }) {
             </span>
             {r.incomeByMethod.card > 0 && (
               <span className="flex items-center gap-1.5">
-                <CreditCard size={14} className="text-purple-600" />
+                <CreditCard size={14} className="text-[#6b2145]" />
                 <span className="text-gray-600">Tarjeta:</span>
                 <span className="font-semibold text-gray-800">{fmt(r.incomeByMethod.card)}</span>
               </span>
@@ -303,7 +303,7 @@ export default function DailyReport({ cashRegister }) {
             )}
             {r.expensesByMethod.card > 0 && (
               <span className="flex items-center gap-1.5">
-                <CreditCard size={14} className="text-purple-600" />
+                <CreditCard size={14} className="text-[#6b2145]" />
                 <span className="text-gray-600">Tarjeta:</span>
                 <span className="font-semibold text-gray-800">{fmt(r.expensesByMethod.card)}</span>
               </span>

@@ -121,8 +121,8 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
                   onLoad={() => setPhotoError(false)}
                   className="w-full h-full rounded-full object-cover"
                 />
-              : <div className="w-full h-full rounded-full bg-purple-100 flex items-center justify-center">
-                  <span className="text-purple-700 font-bold">{initials}</span>
+              : <div className="w-full h-full rounded-full bg-[#f9e8f0] flex items-center justify-center">
+                  <span className="text-[#551735] font-bold">{initials}</span>
                 </div>
             }
             {photoUploading ? (
@@ -189,7 +189,7 @@ export default function TabReportesNinas({ auth, student, onLogout }) {
           </div>
           <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-purple-400 to-purple-600"
+              className="h-full rounded-full bg-gradient-to-r from-[#9e4d75] to-[#6b2145]"
               style={{ width: `${Math.min(100, Math.round(((classes_used || 0) / classes_per_cycle) * 100))}%` }}
             />
           </div>

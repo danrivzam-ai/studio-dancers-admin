@@ -33,13 +33,13 @@ import Modal from './Modal'
 const ICON_COLORS = {
   red:    'text-red-400',
   amber:  'text-amber-400',
-  purple: 'text-purple-400',
+  purple: 'text-[#9e4d75]',
 }
 
 const BTN_COLORS = {
   red:    'bg-red-500 hover:bg-red-600',
   amber:  'bg-amber-500 hover:bg-amber-600',
-  purple: 'bg-purple-600 hover:bg-purple-700',
+  purple: 'bg-[#6b2145] hover:bg-[#551735]',
 }
 
 export default function ConfirmDialog({

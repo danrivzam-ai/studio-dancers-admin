@@ -13,7 +13,7 @@ import { syncToMailerLite } from '../lib/mailerlite'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
 const COURSE_COLORS = [
-  'bg-purple-100 text-purple-700 border-purple-200',
+  'bg-[#f9e8f0] text-[#551735] border-[#e8b4cc]',
   'bg-blue-100 text-blue-700 border-blue-200',
   'bg-green-100 text-green-700 border-green-200',
   'bg-orange-100 text-orange-700 border-orange-200',
@@ -435,7 +435,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <GraduationCap size={22} className="text-purple-600" />
+            <GraduationCap size={22} className="text-[#6b2145]" />
             Instructoras
           </h2>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -444,7 +444,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all text-sm"
+          className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all text-sm"
         >
           <Plus size={16} />
           Nueva Instructora
@@ -474,8 +474,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             onClick={() => setFilterActive(val)}
             className={`px-3 py-2 rounded-xl text-sm font-medium active:scale-95 transition-all ${
               filterActive === val
-                ? 'bg-purple-600 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-purple-50'
+                ? 'bg-[#6b2145] text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-[#fdf5f9]'
             }`}
           >
             {label}
@@ -486,7 +486,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
       {/* Lista */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-12 text-center">
@@ -505,13 +505,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             return (
               <div
                 key={inst.id}
-                className={`bg-white rounded-xl shadow border-l-4 ${inst.active ? 'border-purple-500' : 'border-gray-300'} p-4 flex flex-col gap-3`}
+                className={`bg-white rounded-xl shadow border-l-4 ${inst.active ? 'border-[#7e2d55]' : 'border-gray-300'} p-4 flex flex-col gap-3`}
               >
                 {/* Cabecera */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${inst.active ? 'bg-purple-500' : 'bg-gray-400'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${inst.active ? 'bg-[#7e2d55]' : 'bg-gray-400'}`}>
                         {inst.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -556,7 +556,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   <button
                     onClick={() => isCoursePanelOpen ? closeCoursePanel() : openCoursePanel(inst.id)}
                     className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
-                      isCoursePanelOpen ? 'bg-purple-600 text-white' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+                      isCoursePanelOpen ? 'bg-[#6b2145] text-white' : 'bg-[#fdf5f9] hover:bg-[#f9e8f0] text-[#551735]'
                     }`}
                   >
                     <BookOpen size={13} />
@@ -605,8 +605,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
 
                 {/* Panel de cursos inline */}
                 {isCoursePanelOpen && (
-                  <div className="border-t border-purple-100 pt-3">
-                    <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1">
+                  <div className="border-t border-[#f9e8f0] pt-3">
+                    <p className="text-xs font-semibold text-[#551735] mb-2 flex items-center gap-1">
                       <Calendar size={12} />
                       Asignar cursos a {inst.name.split(' ')[0]}
                     </p>
@@ -620,13 +620,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                           return (
                             <label
                               key={cid}
-                              className={`flex items-start gap-2 p-2 rounded-xl cursor-pointer transition-all ${checked ? 'bg-purple-50 border border-purple-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                              className={`flex items-start gap-2 p-2 rounded-xl cursor-pointer transition-all ${checked ? 'bg-[#fdf5f9] border border-[#e8b4cc]' : 'hover:bg-gray-50 border border-transparent'}`}
                             >
                               <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => toggleCourse(cid)}
-                                className="mt-0.5 accent-purple-600"
+                                className="mt-0.5 accent-[#6b2145]"
                               />
                               <div className="min-w-0">
                                 <p className="text-xs font-medium text-gray-800 leading-tight">{course.name}</p>
@@ -643,7 +643,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       <button
                         onClick={saveCourses}
                         disabled={savingCourses}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-xl active:scale-95 transition-all"
+                        className="flex-1 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 text-white text-sm font-medium py-2 rounded-xl active:scale-95 transition-all"
                       >
                         {savingCourses ? 'Guardando…' : 'Guardar cursos'}
                       </button>
@@ -760,7 +760,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                     group_name: f.group_name ? f.group_name : courseName,
                                   }))
                                 }}
-                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                               >
                                 <option value="">— Sin vincular —</option>
                                 {allCourses.map(c => (
@@ -775,7 +775,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 <select
                                   value={slotForm.day_of_week}
                                   onChange={e => setSlotForm(f => ({ ...f, day_of_week: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                                 >
                                   {[1,2,3,4,5,6,7].map(d => (
                                     <option key={d} value={d}>{DAY_NAMES[d]}</option>
@@ -789,7 +789,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   value={slotForm.group_name}
                                   onChange={e => setSlotForm(f => ({ ...f, group_name: e.target.value }))}
                                   placeholder="ej: Dance Kids"
-                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                                 />
                               </div>
                             </div>
@@ -801,7 +801,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_start}
                                   onChange={e => setSlotForm(f => ({ ...f, time_start: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                                 />
                               </div>
                               <div>
@@ -810,7 +810,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                   type="time"
                                   value={slotForm.time_end}
                                   onChange={e => setSlotForm(f => ({ ...f, time_end: e.target.value }))}
-                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                  className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                                 />
                               </div>
                             </div>
@@ -822,7 +822,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                                 value={slotForm.notes}
                                 onChange={e => setSlotForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="ej: Sala principal"
-                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full text-base border border-gray-200 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-[#7e2d55] outline-none"
                               />
                             </div>
 
@@ -865,7 +865,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col">
             {/* Header modal */}
-            <div className="flex items-center justify-between p-6 bg-purple-700 text-white rounded-t-2xl">
+            <div className="flex items-center justify-between p-6 bg-[#551735] text-white rounded-t-2xl">
               <h3 className="font-bold flex items-center gap-2">
                 <div className="bg-white/20 p-2 rounded-xl"><GraduationCap size={18} /></div>
                 {editing ? 'Editar Instructora' : 'Nueva Instructora'}
@@ -886,7 +886,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="Ej: María García"
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                 />
               </div>
 
@@ -899,7 +899,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, cedula: e.target.value })}
                   placeholder="Ej: 0912345678"
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">La instructora usa su cédula para iniciar sesión</p>
               </div>
@@ -916,7 +916,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   placeholder="instructora@email.com"
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                  className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">Opcional — se agrega al segmento de bienvenida automáticamente</p>
               </div>
@@ -932,7 +932,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       onChange={e => setForm({ ...form, password: e.target.value })}
                       placeholder="Mínimo 6 caracteres"
                       autoComplete="new-password"
-                      className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                      className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                     />
                     <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -948,7 +948,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       id="resetPass"
                       checked={resetPass}
                       onChange={e => setResetPass(e.target.checked)}
-                      className="accent-purple-600"
+                      className="accent-[#6b2145]"
                     />
                     <label htmlFor="resetPass" className="text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-pointer">
                       <RotateCcw size={13} />
@@ -963,7 +963,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                           value={form.password}
                           onChange={e => setForm({ ...form, password: e.target.value })}
                           placeholder="Nueva contraseña"
-                          className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 outline-none transition-all"
+                          className="w-full px-3 py-2.5 pr-10 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                         />
                         <button type="button" onClick={() => setShowNewPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                           {showNewPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -982,13 +982,13 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   <p className="text-xs text-gray-400">Las inactivas no pueden iniciar sesión</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className={`text-xs font-medium ${form.active ? 'text-purple-600' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-medium ${form.active ? 'text-[#6b2145]' : 'text-gray-400'}`}>
                     {form.active ? 'Activa' : 'Inactiva'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, active: !f.active }))}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${form.active ? 'bg-purple-600' : 'bg-gray-300'}`}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${form.active ? 'bg-[#6b2145]' : 'bg-gray-300'}`}
                   >
                     <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
@@ -1051,7 +1051,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-xl active:scale-95 transition-all"
+                  className="flex-1 px-4 py-3 text-sm font-medium text-white bg-[#6b2145] hover:bg-[#551735] disabled:opacity-50 rounded-xl active:scale-95 transition-all"
                 >
                   {saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear instructora'}
                 </button>

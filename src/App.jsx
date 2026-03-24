@@ -57,7 +57,7 @@ function StudentAvatar({ student, isCamp }) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const avatarUrl = supabase.storage.from('avatars').getPublicUrl(`${student.id}.jpg`).data?.publicUrl
   const initials = student.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-purple-100 text-purple-700'
+  const bgClass = isCamp ? 'bg-pink-100 text-pink-700' : 'bg-[#f9e8f0] text-[#551735]'
   return (
     <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 overflow-hidden flex items-center justify-center relative ${bgClass}`}>
       <span className="font-bold text-sm absolute select-none">{initials}</span>
@@ -864,7 +864,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 50%, #be185d 100%)'
+        background: 'linear-gradient(135deg, #6b2145 0%, #551735 50%, #be185d 100%)'
       }}>
         <div className="text-center">
           {/* Spinner animado */}
@@ -897,19 +897,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="text-center">
           {/* Spinner animado */}
           <div className="mb-5 flex justify-center">
-            <div className="w-14 h-14 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <div className="w-14 h-14 border-4 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin"></div>
           </div>
 
           {/* Texto */}
-          <h2 className="text-purple-800 text-lg font-semibold mb-1">Cargando datos</h2>
-          <p className="text-purple-400 text-sm">Un momento por favor...</p>
+          <h2 className="text-[#441029] text-lg font-semibold mb-1">Cargando datos</h2>
+          <p className="text-[#9e4d75] text-sm">Un momento por favor...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#fdf5f9] to-pink-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
@@ -946,7 +946,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
             {/* Centro: Nombre */}
             <div className="text-center flex-1 min-w-0 px-2">
-              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-purple-800 truncate">{settings.name}</h1>
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-[#441029] truncate">{settings.name}</h1>
               <p className="text-gray-400 text-xs hidden md:block truncate">{settings.address}</p>
             </div>
 
@@ -962,7 +962,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       setShowSettings(true)
                     }
                   }}
-                  className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                  className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                   title="Configuración"
                 >
                   <Settings size={20} />
@@ -995,7 +995,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
               <button
                 onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#6b2145] hover:bg-[#551735] active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
               >
                 <Plus size={20} />
                 <span>Alumno</span>
@@ -1030,7 +1030,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </button>
               <button
                 onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-purple-100 hover:bg-purple-200 active:scale-95 text-purple-700 px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] active:scale-95 text-[#551735] px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
               >
                 <History size={20} />
                 <span>Historial</span>
@@ -1042,7 +1042,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {!isRecepcion && can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                  className="flex items-center gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] text-[#551735] px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
                 >
                   <Download size={16} />
                   Exportar
@@ -1068,7 +1068,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <>
                   <button
                     onClick={() => setShowMonthlyClose(true)}
-                    className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                    className="flex items-center gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] text-[#551735] px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
                   >
                     <Lock size={16} />
                     Cierre mensual
@@ -1108,15 +1108,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-xs sm:text-sm shrink-0 ${
                   activeTab === tab.id
-                    ? 'bg-white text-purple-700 shadow-md font-semibold'
-                    : 'text-gray-500 hover:bg-white/70 hover:text-purple-700 hover:shadow-sm'
+                    ? 'bg-white text-[#551735] shadow-md font-semibold'
+                    : 'text-gray-500 hover:bg-white/70 hover:text-[#551735] hover:shadow-sm'
                 }`}
               >
                 <Icon size={15} />
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
-                    activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'
+                    activeTab === tab.id ? 'bg-[#f9e8f0] text-[#551735]' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {tab.count}
                   </span>
@@ -1198,7 +1198,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {kpis && !kpisLoading && (
           <button
             onClick={() => setShowMonthlyClose(true)}
-            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-2.5 mb-3 flex items-center justify-between gap-2 hover:shadow-md hover:border-purple-200 transition-all text-left"
+            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-2.5 mb-3 flex items-center justify-between gap-2 hover:shadow-md hover:border-[#e8b4cc] transition-all text-left"
             title="Ver cierre mensual"
           >
             <div className="flex items-center gap-1 min-w-0">
@@ -1244,8 +1244,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Global Search Bar */}
         <div className="mb-3 sm:mb-4">
-          <div className="flex items-center gap-2.5 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-2.5 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 focus-within:shadow-md transition-all">
-            <Search className="text-purple-400 shrink-0" size={16} />
+          <div className="flex items-center gap-2.5 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-2.5 focus-within:border-[#9e4d75] focus-within:ring-2 focus-within:ring-[#f9e8f0] focus-within:shadow-md transition-all">
+            <Search className="text-[#9e4d75] shrink-0" size={16} />
             <input
               ref={globalSearchRef}
               type="text"
@@ -1282,14 +1282,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-purple-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 hover:shadow-lg hover:scale-[1.02] transition-all border-t-4 border-[#9e4d75]"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className="bg-purple-100 p-2 sm:p-3 rounded-xl shrink-0">
-                    <Users className="text-purple-600" size={18} />
+                  <div className="bg-[#f9e8f0] p-2 sm:p-3 rounded-xl shrink-0">
+                    <Users className="text-[#6b2145]" size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-lg sm:text-3xl font-bold text-purple-600">{students.length}</p>
+                    <p className="text-lg sm:text-3xl font-bold text-[#6b2145]">{students.length}</p>
                     <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Alumnos</p>
                   </div>
                 </div>
@@ -1778,7 +1778,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </h3>
                     {isAdmin && (
                       <button onClick={() => setShowManageItems(true)}
-                        className="text-xs text-purple-600 hover:text-purple-700 flex items-center gap-1 font-medium">
+                        className="text-xs text-[#6b2145] hover:text-[#551735] flex items-center gap-1 font-medium">
                         <Package size={13} /> Gestionar
                       </button>
                     )}
@@ -1832,7 +1832,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     setNewPlanPreselect(product)
                                     setShowNewPlan(true)
                                   }}
-                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors">
+                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-[#c98daa] text-[#551735] hover:bg-[#fdf5f9] transition-colors">
                                   Abonar
                                 </button>
                               </div>
@@ -1895,7 +1895,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
                             )}
                             <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}{group.sale.program && <span className="ml-2 text-blue-500">· {group.sale.program}</span>}</p>
-                            <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-purple-400">{group.sale.receipt_number}</span>}</p>
+                            <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-[#9e4d75]">{group.sale.receipt_number}</span>}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <p className="font-bold text-green-600">${groupTotal.toFixed(2)}</p>
@@ -1913,7 +1913,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   })
                                   setShowSaleReceipt(true)
                                 }}
-                                className="p-1.5 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                                className="p-1.5 text-[#7e2d55] hover:text-[#551735] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                 title="Ver comprobante"
                               >
                                 <ScrollText size={16} />
@@ -1982,7 +1982,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {isAdmin && (
                 <button
                   onClick={() => setShowManageItems(true)}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
+                  className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
                 >
                   <Package size={16} />
                   Gestionar
@@ -1999,21 +1999,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {regular.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-md p-4 sm:p-6">
                       <h2 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
+                        <span className="w-2 h-2 rounded-full bg-[#7e2d55] inline-block" />
                         Clases Regulares
                       </h2>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {regular.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-4 border-purple-400 rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
-                              <h3 className="font-semibold text-purple-700 leading-tight">{course.name}</h3>
+                            <div key={course.id || course.code} className="border-t-4 border-[#9e4d75] rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
+                              <h3 className="font-semibold text-[#551735] leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">{course.schedule || 'Sin horario definido'}</p>
                               <div className="flex items-center justify-between mt-3">
                                 <p className="text-lg font-bold text-emerald-600">
                                   ${course.price}<span className="text-xs font-normal text-gray-400">/{(course.priceType || course.price_type) === 'mes' ? 'mes' : 'clase'}</span>
                                 </p>
-                                <span className="text-xs font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                                <span className="text-xs font-semibold bg-[#f9e8f0] text-[#551735] px-2 py-0.5 rounded-full">
                                   {enrolledCount} alumna{enrolledCount !== 1 ? 's' : ''}
                                 </span>
                               </div>
@@ -2074,7 +2074,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {!isRecepcion && (
                   <button
                     onClick={() => setShowManageCategories(true)}
-                    className="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-xl font-medium transition-colors text-sm"
+                    className="flex items-center gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] text-[#551735] px-3 py-2 rounded-xl font-medium transition-colors text-sm"
                   >
                     <Palette size={16} />
                     Categorías
@@ -2082,7 +2082,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 )}
                 <button
                   onClick={() => setShowExpenses(true)}
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
+                  className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md active:scale-95 text-sm"
                 >
                   <TrendingDown size={16} />
                   Registrar Egreso
@@ -2121,7 +2121,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {activeTab === 'academico' && (
           <div>
             {/* Sub-barra académica */}
-            <div className="flex gap-1 mb-5 bg-purple-50 rounded-xl p-1 border border-purple-100 overflow-x-auto">
+            <div className="flex gap-1 mb-5 bg-[#fdf5f9] rounded-xl p-1 border border-[#f9e8f0] overflow-x-auto">
               {[
                 { id: 'instructoras',  icon: GraduationCap, label: 'Instructoras' },
                 { id: 'ciclos',        icon: History,       label: 'Ciclos' },
@@ -2134,8 +2134,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     onClick={() => setActiveAcademicTab(sub.id)}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                       activeAcademicTab === sub.id
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'text-purple-600 hover:bg-purple-100'
+                        ? 'bg-[#6b2145] text-white shadow-sm'
+                        : 'text-[#6b2145] hover:bg-[#f9e8f0]'
                     }`}
                   >
                     <Icon size={14} />
@@ -2161,7 +2161,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Tablón Tab */}
         {activeTab === 'tablon' && (() => {
           const COLORS = [
-            { id: 'purple', bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300', label: 'Morado' },
+            { id: 'purple', bg: 'bg-[#f9e8f0]', text: 'text-[#551735]', border: 'border-[#c98daa]', label: 'Morado' },
             { id: 'blue',   bg: 'bg-blue-100',   text: 'text-blue-700',   border: 'border-blue-300',   label: 'Azul' },
             { id: 'green',  bg: 'bg-green-100',  text: 'text-green-700',  border: 'border-green-300',  label: 'Verde' },
             { id: 'amber',  bg: 'bg-amber-100',  text: 'text-amber-700',  border: 'border-amber-300',  label: 'Amarillo' },
@@ -2173,13 +2173,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Megaphone size={20} className="text-purple-600" />
+                  <Megaphone size={20} className="text-[#6b2145]" />
                   <h2 className="text-lg font-semibold text-gray-800">Tablón de anuncios</h2>
                   <span className="text-xs text-gray-500">{announcements.filter(a => a.active).length} activos</span>
                 </div>
                 <button
                   onClick={() => { setEditingAnnouncement(null); setAnnouncementForm({ title: '', body: '', color: 'purple', pinned: false, expires_at: '' }); setShowAnnouncementForm(true) }}
-                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  className="flex items-center gap-1.5 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
                 >
                   <Plus size={15} /> Nuevo aviso
                 </button>
@@ -2187,21 +2187,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
               {/* Create/Edit form */}
               {showAnnouncementForm && (
-                <div className="bg-white rounded-xl shadow border border-purple-100 p-4 space-y-3">
+                <div className="bg-white rounded-xl shadow border border-[#f9e8f0] p-4 space-y-3">
                   <h3 className="font-semibold text-gray-800 text-sm">{editingAnnouncement ? 'Editar aviso' : 'Nuevo aviso'}</h3>
                   <input
                     type="text"
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
@@ -2226,7 +2226,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="checkbox"
                         checked={announcementForm.pinned}
                         onChange={e => setAnnouncementForm(f => ({ ...f, pinned: e.target.checked }))}
-                        className="w-4 h-4 accent-purple-600"
+                        className="w-4 h-4 accent-[#6b2145]"
                       />
                       <span className="text-sm text-gray-700 flex items-center gap-1"><Pin size={13} /> Fijar al tope</span>
                     </label>
@@ -2237,7 +2237,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={announcementForm.expires_at}
                         onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
-                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-purple-400 outline-none transition-all"
+                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#c98daa] outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -2245,7 +2245,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <button
                       onClick={saveAnnouncement}
                       disabled={!announcementForm.title.trim() || !announcementForm.body.trim()}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white py-2 rounded-xl text-sm font-medium transition-colors"
+                      className="flex-1 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-40 text-white py-2 rounded-xl text-sm font-medium transition-colors"
                     >
                       {editingAnnouncement ? 'Guardar cambios' : 'Publicar aviso'}
                     </button>
@@ -2282,7 +2282,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
                         <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
-                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-purple-600 active:scale-95 transition-all">
+                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-[#6b2145] active:scale-95 transition-all">
                           <Edit2 size={14} />
                         </button>
                         <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
@@ -2660,7 +2660,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-purple-700 to-purple-900 text-white">
+              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-[#551735] to-[#3a0f24] text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -2691,7 +2691,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
                 {/* Fila 1: Búsqueda + Curso */}
                 <div className="flex gap-2">
-                  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-400 px-3 py-2 bg-white transition-all">
+                  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#c98daa] focus-within:border-[#9e4d75] px-3 py-2 bg-white transition-all">
                     <Search className="text-gray-400 shrink-0" size={16} />
                     <input
                       type="text"
@@ -2712,7 +2712,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 bg-white text-gray-700 max-w-[160px]"
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -2743,7 +2743,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 {/* Fila 2: Chips de estado de pago */}
                 <div className="flex gap-1.5 flex-wrap">
                   {[
-                    { value: 'all',      label: 'Todas',         active: 'bg-purple-600 text-white shadow-sm',        inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-purple-300 hover:text-purple-600' },
+                    { value: 'all',      label: 'Todas',         active: 'bg-[#6b2145] text-white shadow-sm',        inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-[#c98daa] hover:text-[#6b2145]' },
                     { value: 'overdue',  label: 'Por renovar',   active: 'bg-red-600 text-white shadow-sm',           inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600' },
                     { value: 'mora',     label: 'Suspendidas',   active: 'bg-rose-700 text-white shadow-sm',          inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-rose-400 hover:text-rose-700' },
                     { value: 'upcoming', label: 'Próximas',      active: 'bg-amber-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300 hover:text-amber-600' },
@@ -2805,7 +2805,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     {!(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
                       <button
                         onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors"
+                        className="px-4 py-2 bg-[#6b2145] text-white rounded-xl text-sm font-medium hover:bg-[#551735] transition-colors"
                       >
                         Agregar alumna
                       </button>
@@ -2849,7 +2849,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
                                   return (
-                                    <p className="text-[10px] text-purple-600 font-semibold mt-0.5">
+                                    <p className="text-[10px] text-[#6b2145] font-semibold mt-0.5">
                                       Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
                                     </p>
                                   )
@@ -2874,7 +2874,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <div className="flex gap-0.5 sm:gap-1">
                                 <button
                                   onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                   title="Ver detalle"
                                 >
                                   <Eye size={16} />
@@ -2902,7 +2902,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
@@ -2934,7 +2934,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <div className="flex gap-2 flex-1 sm:flex-none justify-end">
                   <button
                     onClick={() => { setShowStudentListModal(false); setShowCobranzaReport(true) }}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors font-medium text-xs"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] transition-colors font-medium text-xs"
                   >
                     <FileText size={13} /> Reporte cobranza
                   </button>

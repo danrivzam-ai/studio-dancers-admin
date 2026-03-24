@@ -40,8 +40,8 @@ export default function AdultDashboard({ auth, student, onLogout }) {
       {/* Header compacto */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 py-2.5">
         <div className="flex items-center gap-3 max-w-lg mx-auto">
-          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-            <span className="text-purple-700 font-bold text-xs">{initials}</span>
+          <div className="w-8 h-8 rounded-full bg-[#f9e8f0] flex items-center justify-center shrink-0">
+            <span className="text-[#551735] font-bold text-xs">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-gray-800 leading-tight truncate">
@@ -86,18 +86,18 @@ export default function AdultDashboard({ auth, student, onLogout }) {
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`relative flex-1 flex flex-col items-center gap-0.5 pt-2 pb-3 transition-all ${active ? 'bg-purple-50' : 'hover:bg-gray-50'}`}
+                className={`relative flex-1 flex flex-col items-center gap-0.5 pt-2 pb-3 transition-all ${active ? 'bg-[#fdf5f9]' : 'hover:bg-gray-50'}`}
               >
                 <Icon
                   size={20}
-                  className={active ? 'text-purple-600' : 'text-gray-400'}
+                  className={active ? 'text-[#6b2145]' : 'text-gray-400'}
                   strokeWidth={active ? 2.5 : 1.8}
                 />
-                <span className={`text-[10px] font-semibold ${active ? 'text-purple-600' : 'text-gray-400'}`}>
+                <span className={`text-[10px] font-semibold ${active ? 'text-[#6b2145]' : 'text-gray-400'}`}>
                   {label}
                 </span>
                 {active && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-purple-500" />
+                  <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-[#7e2d55]" />
                 )}
               </button>
             )

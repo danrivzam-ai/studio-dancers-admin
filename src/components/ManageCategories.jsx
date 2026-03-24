@@ -168,7 +168,7 @@ export default function ManageCategories({ onClose }) {
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar categorías">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
         {/* Header */}
-        <div className="bg-purple-700 text-white p-6">
+        <div className="bg-[#551735] text-white p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Palette size={24} />
@@ -214,7 +214,7 @@ export default function ManageCategories({ onClose }) {
           {!showCategoryForm && (
             <button
               onClick={() => openCategoryForm()}
-              className="w-full py-3 border border-dashed border-gray-300 rounded-xl text-gray-400 hover:text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3 border border-dashed border-gray-300 rounded-xl text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] hover:border-[#c98daa] transition-colors flex items-center justify-center gap-2 text-sm"
             >
               <Plus size={16} />
               Nueva categoría
@@ -223,13 +223,13 @@ export default function ManageCategories({ onClose }) {
 
           {/* Category form */}
           {showCategoryForm && (
-            <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-200">
+            <div className="bg-[#fdf5f9]/60 p-4 rounded-xl border border-[#e8b4cc]">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-purple-800 text-sm">
+                <h3 className="font-semibold text-[#441029] text-sm">
                   {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
                 </h3>
-                <button onClick={closeCategoryForm} className="p-2 hover:bg-purple-100 rounded-lg active:scale-95 transition-all">
-                  <X size={16} className="text-purple-400" />
+                <button onClick={closeCategoryForm} className="p-2 hover:bg-[#f9e8f0] rounded-lg active:scale-95 transition-all">
+                  <X size={16} className="text-[#9e4d75]" />
                 </button>
               </div>
 
@@ -239,7 +239,7 @@ export default function ManageCategories({ onClose }) {
                   type="text"
                   value={categoryForm.name}
                   onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
+                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all text-base bg-white"
                   placeholder="Nombre de la categoría *"
                   maxLength={MAX_NAME_LENGTH}
                   autoFocus
@@ -256,7 +256,7 @@ export default function ManageCategories({ onClose }) {
                         onClick={() => setCategoryForm({ ...categoryForm, color })}
                         className={`w-7 h-7 rounded-full transition-all ${
                           categoryForm.color === color
-                            ? 'ring-2 ring-offset-2 ring-purple-500 scale-110'
+                            ? 'ring-2 ring-offset-2 ring-[#7e2d55] scale-110'
                             : 'hover:scale-110'
                         }`}
                         style={{ backgroundColor: color }}
@@ -265,7 +265,7 @@ export default function ManageCategories({ onClose }) {
                     <div className="relative">
                       <button
                         type="button"
-                        className="w-7 h-7 rounded-full border-2 border-dashed border-gray-300 hover:border-purple-400 transition-all flex items-center justify-center text-gray-400 text-xs"
+                        className="w-7 h-7 rounded-full border-2 border-dashed border-gray-300 hover:border-[#9e4d75] transition-all flex items-center justify-center text-gray-400 text-xs"
                         onClick={() => document.getElementById('cat-color-picker').click()}
                         title="Color personalizado"
                       >
@@ -291,7 +291,7 @@ export default function ManageCategories({ onClose }) {
                         type="number"
                         value={categoryForm.monthly_budget}
                         onChange={(e) => setCategoryForm({ ...categoryForm, monthly_budget: e.target.value })}
-                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
+                        className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all text-base bg-white"
                         placeholder="$ Opcional"
                         min="0"
                         step="0.01"
@@ -304,7 +304,7 @@ export default function ManageCategories({ onClose }) {
                       type="number"
                       value={categoryForm.sort_order}
                       onChange={(e) => setCategoryForm({ ...categoryForm, sort_order: e.target.value })}
-                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all text-base bg-white"
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all text-base bg-white"
                       placeholder="0, 1, 2..."
                       min="0"
                     />
@@ -322,7 +322,7 @@ export default function ManageCategories({ onClose }) {
                   <button
                     onClick={handleSaveCategory}
                     disabled={saving || !categoryForm.name.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 bg-purple-700 hover:bg-purple-800 text-white px-4 py-3 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#551735] hover:bg-[#441029] text-white px-4 py-3 rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all text-sm"
                   >
                     {saving ? (
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -377,7 +377,7 @@ export default function ManageCategories({ onClose }) {
                       <span
                         role="button"
                         onClick={(e) => { e.stopPropagation(); openCategoryForm(cat) }}
-                        className="p-2 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-lg active:scale-95 transition-all"
+                        className="p-2 text-gray-300 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-lg active:scale-95 transition-all"
                         title="Editar"
                       >
                         <Edit2 size={15} />
@@ -415,7 +415,7 @@ export default function ManageCategories({ onClose }) {
                         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => openSubForm(cat.id, sub)}
-                            className="p-1.5 text-gray-300 hover:text-purple-600 hover:bg-purple-50 rounded-lg active:scale-95 transition-all"
+                            className="p-1.5 text-gray-300 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-lg active:scale-95 transition-all"
                             title="Editar"
                           >
                             <Edit2 size={13} />
@@ -456,7 +456,7 @@ export default function ManageCategories({ onClose }) {
                           type="text"
                           value={subForm.name}
                           onChange={(e) => setSubForm({ ...subForm, name: e.target.value.slice(0, MAX_NAME_LENGTH) })}
-                          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                          className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#7e2d55] focus:border-[#7e2d55] outline-none transition-all"
                           placeholder="Nueva subcategoría"
                           maxLength={MAX_NAME_LENGTH}
                           autoFocus
@@ -465,7 +465,7 @@ export default function ManageCategories({ onClose }) {
                         <button
                           onClick={handleSaveSubcategory}
                           disabled={saving || !subForm.name.trim()}
-                          className="p-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg active:scale-95 transition-all disabled:opacity-50"
+                          className="p-2 bg-[#551735] hover:bg-[#441029] text-white rounded-lg active:scale-95 transition-all disabled:opacity-50"
                         >
                           <Check size={15} />
                         </button>
@@ -476,7 +476,7 @@ export default function ManageCategories({ onClose }) {
                     ) : (
                       <button
                         onClick={() => openSubForm(cat.id)}
-                        className="w-full px-3 py-2 text-sm text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        className="w-full px-3 py-2 text-sm text-[#7e2d55] hover:text-[#551735] hover:bg-[#fdf5f9] rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
                         <Plus size={14} />
                         Agregar subcategoría

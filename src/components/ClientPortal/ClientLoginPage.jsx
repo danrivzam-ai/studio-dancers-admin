@@ -94,7 +94,7 @@ export default function ClientLoginPage({ onLogin }) {
               onChange={e => { setCedula(e.target.value); setError('') }}
               placeholder="0912345678"
               maxLength={13}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] transition-all"
               required
             />
           </div>
@@ -111,7 +111,7 @@ export default function ClientLoginPage({ onLogin }) {
                 onChange={e => { setPhone4(e.target.value.replace(/\D/g, '').slice(0, 4)); setError('') }}
                 placeholder="••••"
                 maxLength={4}
-                className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all tracking-widest font-mono"
+                className="w-full px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:border-[#7e2d55] focus:ring-4 focus:ring-[#f9e8f0] transition-all tracking-widest font-mono"
                 required
               />
               <button

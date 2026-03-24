@@ -18,7 +18,7 @@ const COLORS = {
   amber:  'bg-amber-100 text-amber-700',
   rose:   'bg-rose-100 text-rose-700',
   blue:   'bg-blue-100 text-blue-700',
-  purple: 'bg-purple-100 text-purple-700',
+  purple: 'bg-[#f9e8f0] text-[#551735]',
   gray:   'bg-gray-200 text-gray-700',
   orange: 'bg-orange-100 text-orange-700',
   yellow: 'bg-yellow-100 text-yellow-700',

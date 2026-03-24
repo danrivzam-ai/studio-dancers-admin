@@ -111,14 +111,14 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
     <Modal isOpen={true} onClose={onClose} ariaLabel="Conteo físico de inventario">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
+        <div className="px-5 py-4 bg-[#551735] text-white rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-xl">
               <ClipboardCheck size={20} />
             </div>
             <div>
               <h3 className="font-semibold text-sm">Conteo Físico de Inventario</h3>
-              <p className="text-purple-200 text-xs mt-0.5">
+              <p className="text-[#e8b4cc] text-xs mt-0.5">
                 {trackedProducts.length} producto{trackedProducts.length !== 1 ? 's' : ''} con control de stock
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
                             min="0"
                             value={counts[item.code] ?? ''}
                             onChange={(e) => handleCountChange(item.code, e.target.value)}
-                            className="w-20 text-center px-2 py-2 border-2 border-gray-200 rounded-xl text-sm font-bold focus:border-purple-400 outline-none transition-all"
+                            className="w-20 text-center px-2 py-2 border-2 border-gray-200 rounded-xl text-sm font-bold focus:border-[#9e4d75] outline-none transition-all"
                             placeholder="—"
                           />
 
@@ -302,7 +302,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
               <button
                 onClick={handleSubmit}
                 disabled={countedItems.length === 0 || submitting || !allCounted}
-                className="flex-1 px-3 py-2.5 bg-purple-700 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all"
+                className="flex-1 px-3 py-2.5 bg-[#551735] text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all"
               >
                 {submitting
                   ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -322,7 +322,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
               <button
                 onClick={handleDownload}
                 disabled={downloading}
-                className="flex-1 px-3 py-2.5 bg-purple-700 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all"
+                className="flex-1 px-3 py-2.5 bg-[#551735] text-white rounded-xl font-medium text-sm flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 transition-all"
               >
                 {downloading
                   ? <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />

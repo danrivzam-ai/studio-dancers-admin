@@ -425,7 +425,7 @@ export default function ManageItems({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Gestionar cursos y productos">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-4 md:p-6 border-b bg-purple-700 text-white">
+        <div className="p-4 md:p-6 border-b bg-[#551735] text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-xl">
@@ -467,7 +467,7 @@ export default function ManageItems({
           ].map((tab, i) => {
             const active = activeTab === tab.key
             const colorMap = {
-              purple: { text: 'text-purple-600', border: 'border-purple-600', badge: 'bg-purple-100 text-purple-700' },
+              purple: { text: 'text-[#6b2145]', border: 'border-[#6b2145]', badge: 'bg-[#f9e8f0] text-[#551735]' },
               orange: { text: 'text-orange-600', border: 'border-orange-600', badge: 'bg-orange-100 text-orange-700' },
               pink:   { text: 'text-pink-600',   border: 'border-pink-600',   badge: 'bg-pink-100 text-pink-700' },
               green:  { text: 'text-green-600',  border: 'border-green-600',  badge: 'bg-green-100 text-green-700' },
@@ -501,7 +501,7 @@ export default function ManageItems({
           {/* Add Button */}
           {!showForm && (() => {
             const tabConfig = {
-              courses:   { type: 'course',  label: 'Curso',     border: 'border-purple-300', text: 'text-purple-600', hover: 'hover:border-purple-400 hover:bg-purple-50' },
+              courses:   { type: 'course',  label: 'Curso',     border: 'border-[#c98daa]', text: 'text-[#6b2145]', hover: 'hover:border-[#9e4d75] hover:bg-[#fdf5f9]' },
               programs:  { type: 'program', label: 'Programa',  border: 'border-orange-300', text: 'text-orange-600', hover: 'hover:border-orange-400 hover:bg-orange-50' },
               workshops: { type: 'workshop',label: 'Taller',    border: 'border-pink-300',   text: 'text-pink-600',   hover: 'hover:border-pink-400 hover:bg-pink-50' },
               products:  { type: 'product', label: 'Producto',  border: 'border-green-300',  text: 'text-green-600',  hover: 'hover:border-green-400 hover:bg-green-50' },
@@ -533,7 +533,7 @@ export default function ManageItems({
                   ) : formData.type === 'program' ? (
                     <Calendar size={18} className="text-orange-600" />
                   ) : (
-                    <BookOpen size={18} className="text-purple-600" />
+                    <BookOpen size={18} className="text-[#6b2145]" />
                   )}
                   {editingItem ? 'Editar' : 'Nuevo'} {formData.type === 'product' ? 'Producto' : formData.type === 'workshop' ? 'Taller' : formData.type === 'program' ? 'Programa' : 'Curso'}
                 </h3>
@@ -552,7 +552,7 @@ export default function ManageItems({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { id: 'course', label: 'Curso', Icon: BookOpen, activeClass: 'border-purple-500 bg-purple-50 text-purple-700' },
+                      { id: 'course', label: 'Curso', Icon: BookOpen, activeClass: 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]' },
                       { id: 'program', label: 'Programa', Icon: Calendar, activeClass: 'border-orange-500 bg-orange-50 text-orange-700' },
                       { id: 'workshop', label: 'Taller', Icon: Sparkles, activeClass: 'border-pink-500 bg-pink-50 text-pink-700' },
                     ].map(opt => (
@@ -580,7 +580,7 @@ export default function ManageItems({
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                   placeholder={formData.type === 'product' ? 'Ej: Zapatillas Ballet' : 'Ej: Ballet Kids'}
                 />
               </div>
@@ -603,7 +603,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMin}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMin: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                         />
                       </div>
                       <div className="flex-1">
@@ -614,7 +614,7 @@ export default function ManageItems({
                           max="99"
                           value={formData.ageMax}
                           onChange={(e) => { const n = e.target.valueAsNumber; if (!isNaN(n)) setFormData({...formData, ageMax: n, ageGroup: 'custom'}) }}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -641,7 +641,7 @@ export default function ManageItems({
                             }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border-2 ${
                               isSelected
-                                ? 'border-purple-500 bg-purple-100 text-purple-700'
+                                ? 'border-[#7e2d55] bg-[#f9e8f0] text-[#551735]'
                                 : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
                             }`}
                           >
@@ -663,18 +663,18 @@ export default function ManageItems({
                         type="time"
                         value={formData.timeStart}
                         onChange={(e) => setFormData({...formData, timeStart: e.target.value})}
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                       />
                       <span className="text-gray-400 text-sm">a</span>
                       <input
                         type="time"
                         value={formData.timeEnd}
                         onChange={(e) => setFormData({...formData, timeEnd: e.target.value})}
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                       />
                     </div>
                     {formData.classDays.length > 0 && formData.timeStart && formData.timeEnd && (
-                      <p className="text-xs text-purple-500 mt-1.5 bg-purple-50 px-2.5 py-1 rounded-lg">
+                      <p className="text-xs text-[#7e2d55] mt-1.5 bg-[#fdf5f9] px-2.5 py-1 rounded-lg">
                         {formData.classDays.map(d => DAYS_OF_WEEK.find(dw => dw.id === d)?.short).filter(Boolean).join(', ')} · {formData.timeStart} - {formData.timeEnd}
                       </p>
                     )}
@@ -688,7 +688,7 @@ export default function ManageItems({
                         type="text"
                         value={formData.workshopDuration}
                         onChange={(e) => setFormData({...formData, workshopDuration: e.target.value})}
-                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                         placeholder="Ej: 1 día, 1 semana, 3 sesiones"
                       />
                     </div>
@@ -706,7 +706,7 @@ export default function ManageItems({
                         max="50"
                         value={formData.classesPerCycle}
                         onChange={(e) => setFormData({...formData, classesPerCycle: e.target.value})}
-                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                         placeholder={`Ej: ${formData.classDays.length * 4}`}
                       />
                       <p className="text-xs text-gray-400 mt-1">
@@ -728,7 +728,7 @@ export default function ManageItems({
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                   />
                 </div>
                 {/* Solo cursos muestran selector de tipo de precio */}
@@ -738,7 +738,7 @@ export default function ManageItems({
                     <select
                       value={formData.priceType}
                       onChange={(e) => setFormData({...formData, priceType: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                     >
                       {COURSE_PRICE_TYPES.map(pt => (
                         <option key={pt.id} value={pt.id}>{pt.name}</option>
@@ -763,7 +763,7 @@ export default function ManageItems({
                       min="0"
                       value={formData.stock}
                       onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                       placeholder="Opcional"
                     />
                   </div>
@@ -777,7 +777,7 @@ export default function ManageItems({
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white outline-none transition-all"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all"
                   >
                     <option value="">Sin categoría</option>
                     {productCategories.map(cat => (
@@ -827,7 +827,7 @@ export default function ManageItems({
                       <ImageIcon size={14} />
                       Detalles adicionales
                       {(formData.imageUrl || formData.benefits || formData.requirements) && (
-                        <span className="w-2 h-2 rounded-full bg-purple-500" />
+                        <span className="w-2 h-2 rounded-full bg-[#7e2d55]" />
                       )}
                     </span>
                     <ChevronDown size={16} className={`transition-transform ${showExtras ? 'rotate-180' : ''}`} />
@@ -854,8 +854,8 @@ export default function ManageItems({
                       </div>
                     )}
                     {imageUploading && (
-                      <div className="flex items-center gap-2 py-2 text-sm text-purple-600">
-                        <div className="w-4 h-4 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                      <div className="flex items-center gap-2 py-2 text-sm text-[#6b2145]">
+                        <div className="w-4 h-4 border-2 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
                         Subiendo imagen...
                       </div>
                     )}
@@ -895,7 +895,7 @@ export default function ManageItems({
                         }
                         e.target.value = ''
                       }}
-                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50"
+                      className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#fdf5f9] file:text-[#551735] hover:file:bg-[#f9e8f0] disabled:opacity-50"
                     />
                     <p className="text-xs text-gray-400 mt-1">JPG o PNG, se comprime a 800px max</p>
                   </div>
@@ -906,7 +906,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.benefits}
                       onChange={(e) => setFormData({...formData, benefits: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-base outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white text-base outline-none transition-all"
                       placeholder="Un beneficio por línea&#10;Ej: Mejora la postura&#10;Aumenta la flexibilidad"
                       rows={3}
                     />
@@ -918,7 +918,7 @@ export default function ManageItems({
                     <textarea
                       value={formData.requirements}
                       onChange={(e) => setFormData({...formData, requirements: e.target.value})}
-                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white text-base outline-none transition-all"
+                      className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white text-base outline-none transition-all"
                       placeholder="Un requisito por línea&#10;Ej: Zapatillas de media punta&#10;Ropa ajustada"
                       rows={3}
                     />
@@ -946,7 +946,7 @@ export default function ManageItems({
                         ? 'bg-pink-600 hover:bg-pink-700'
                         : formData.type === 'program'
                           ? 'bg-orange-600 hover:bg-orange-700'
-                          : 'bg-purple-600 hover:bg-purple-700'
+                          : 'bg-[#6b2145] hover:bg-[#551735]'
                   }`}
                 >
                   <Save size={18} />
@@ -1080,10 +1080,10 @@ export default function ManageItems({
           return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
               <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-                <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
+                <div className="px-5 py-4 bg-[#551735] text-white rounded-t-2xl flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-sm">Ajustar Stock</h3>
-                    <p className="text-purple-200 text-xs mt-0.5">{stockModal.name}</p>
+                    <p className="text-[#e8b4cc] text-xs mt-0.5">{stockModal.name}</p>
                   </div>
                   <button onClick={() => setStockModal(null)} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                     <X size={18} />
@@ -1107,7 +1107,7 @@ export default function ManageItems({
                         const r = ADJUST_REASONS.find(r => r.id === e.target.value)
                         if (r?.direction) setAdjustDirection(r.direction)
                       }}
-                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:border-purple-400 outline-none transition-all"
+                      className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:border-[#9e4d75] outline-none transition-all"
                     >
                       <optgroup label="Entrada (+)">
                         {ADJUST_REASONS.filter(r => r.direction === 'add').map(r => (
@@ -1159,7 +1159,7 @@ export default function ManageItems({
                       min="1"
                       value={adjustQty}
                       onChange={(e) => setAdjustQty(e.target.value)}
-                      className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 outline-none transition-all"
+                      className="w-full text-center text-2xl px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[#9e4d75] outline-none transition-all"
                       placeholder="0"
                       autoFocus
                     />
@@ -1187,7 +1187,7 @@ export default function ManageItems({
                       type="text"
                       value={adjustNotes}
                       onChange={(e) => setAdjustNotes(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:border-purple-400 outline-none transition-all"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:border-[#9e4d75] outline-none transition-all"
                       placeholder="Ej: Compra proveedor, conteo físico..."
                     />
                   </div>
@@ -1225,10 +1225,10 @@ export default function ManageItems({
         {historyModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-[60]">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] flex flex-col">
-              <div className="px-5 py-4 bg-purple-700 text-white rounded-t-2xl flex items-center justify-between">
+              <div className="px-5 py-4 bg-[#551735] text-white rounded-t-2xl flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-sm">Historial de Inventario</h3>
-                  <p className="text-purple-200 text-xs mt-0.5">{historyModal.name} · Stock: {historyModal.stock ?? 0}</p>
+                  <p className="text-[#e8b4cc] text-xs mt-0.5">{historyModal.name} · Stock: {historyModal.stock ?? 0}</p>
                 </div>
                 <button onClick={() => { setHistoryModal(null); setHistoryData([]) }} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
                   <X size={18} />
@@ -1238,7 +1238,7 @@ export default function ManageItems({
               <div className="flex-1 overflow-y-auto p-4">
                 {historyLoading ? (
                   <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-3 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin" />
                   </div>
                 ) : historyData.length === 0 ? (
                   <div className="text-center py-12 text-gray-400">
@@ -1307,7 +1307,7 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
       ? { border: 'border-pink-200', bg: 'bg-pink-50', icon: 'text-pink-600', badge: 'bg-pink-100 text-pink-700' }
       : isProgram
         ? { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' }
-        : { border: 'border-purple-200', bg: 'bg-purple-50', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-700' }
+        : { border: 'border-[#e8b4cc]', bg: 'bg-[#fdf5f9]', icon: 'text-[#6b2145]', badge: 'bg-[#f9e8f0] text-[#551735]' }
 
   const Icon = isProduct ? ShoppingBag : isWorkshop ? Sparkles : isProgram ? Calendar : BookOpen
 
@@ -1333,7 +1333,7 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
                 {item.schedule && <span className="ml-2">• {item.schedule}</span>}
               </p>
               {item.classDays && item.classDays.length > 0 && (
-                <p className="text-xs text-purple-600 mt-0.5">
+                <p className="text-xs text-[#6b2145] mt-0.5">
                   <Calendar size={10} className="inline mr-1" />
                   {item.classDays.map(d => ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d]).join('/')}
                   {item.classesPerCycle && ` • ${item.classesPerCycle} clases/ciclo`}
@@ -1380,7 +1380,7 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
           {isProduct && onViewHistory && (
             <button
               onClick={onViewHistory}
-              className="p-2.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl active:scale-95 transition-all"
+              className="p-2.5 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
               title="Historial de inventario"
               aria-label="Ver historial de inventario"
             >
@@ -1406,7 +1406,7 @@ function ItemCard({ item, type, onEdit, onDelete, onAdjustStock, onViewHistory }
                   ? 'text-pink-600 hover:bg-pink-100'
                   : isProgram
                     ? 'text-orange-600 hover:bg-orange-100'
-                    : 'text-purple-600 hover:bg-purple-100'
+                    : 'text-[#6b2145] hover:bg-[#f9e8f0]'
             }`}
             title="Editar"
             aria-label={`Editar ${item.name}`}

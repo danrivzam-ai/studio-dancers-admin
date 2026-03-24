@@ -94,7 +94,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
           <select
             value={courseId}
             onChange={e => { setCourseId(e.target.value); setRecords({}) }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-4 focus:ring-purple-100"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-4 focus:ring-[#f9e8f0]"
           >
             <option value="">— Selecciona un curso —</option>
             {allCourses.map(c => (
@@ -154,7 +154,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
             {/* Lista de alumnas */}
             {loading ? (
               <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-[#c98daa] border-t-[#6b2145] rounded-full animate-spin" />
               </div>
             ) : (
               <>
