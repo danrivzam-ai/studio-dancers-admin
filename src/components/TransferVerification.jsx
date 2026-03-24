@@ -130,16 +130,15 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
 
       {/* Amount + Bank in row */}
       <div className="flex gap-2">
-        <div className="relative flex-1">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+        <div className="flex-1">
           <input
             type="number"
             step="0.01"
             min="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
-            placeholder="Monto"
+            className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+            placeholder="Monto $"
           />
         </div>
         <select

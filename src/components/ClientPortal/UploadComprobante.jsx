@@ -169,18 +169,15 @@ export default function UploadComprobante({ auth, student }) {
         {/* Monto */}
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Monto transferido ($)</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
-            <input
+          <input
               type="number"
               step="0.01"
               min="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-[#9e4d75]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:outline-none focus:border-[#9e4d75]"
             />
-          </div>
         </div>
 
         {/* Número comprobante (opcional) */}

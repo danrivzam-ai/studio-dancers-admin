@@ -271,19 +271,16 @@ export default function CashMovements({ onClose, cashRegisterId, settings }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Monto *
               </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
-                <input
+              <input
                   type="number"
                   min="0.01"
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full pl-8 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-lg"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-lg"
                   placeholder="0.00"
                   required
                 />
-              </div>
             </div>
 
             {/* Banco (solo para depósito/retiro) */}
