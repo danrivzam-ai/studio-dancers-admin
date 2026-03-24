@@ -943,7 +943,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
             onClick={e => e.stopPropagation()}>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#551735] text-white">
               <p className="font-semibold text-sm">Detalle del plan</p>
               <button onClick={() => setShowDetail(false)}
                 className="p-2 hover:bg-white/20 rounded-xl transition-colors">

@@ -124,7 +124,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-[#551735] text-white z-10 rounded-t-2xl">
           <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
           <button
             onClick={onClose}

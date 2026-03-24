@@ -318,7 +318,7 @@
   50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 .animate-pulse-urgent {
-  animation: pulse-urgent 2s ease-in-out infinite;
+  animation: pulse-urgent 2s ease-in-out 3;
 }
 
 /* Reuse slide-in for notification toasts (replaces old bounce-in) */

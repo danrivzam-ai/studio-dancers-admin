@@ -194,7 +194,7 @@ export default function TabReportes({ auth, student, onLogout }) {
           </div>
           <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#fdf5f9]0 to-[#551735] transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-[#9e4d75] to-[#551735] transition-all"
               style={{ width: `${Math.min(100, Math.round(((classes_used || 0) / classes_per_cycle) * 100))}%` }}
             />
           </div>

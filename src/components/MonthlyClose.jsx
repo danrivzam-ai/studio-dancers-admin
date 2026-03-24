@@ -397,7 +397,7 @@ export default function MonthlyClose({
                     onChange={e => setNotas(e.target.value)}
                     rows={2}
                     placeholder="Observaciones, irregularidades, acuerdos del mes..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:outline-none resize-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-base focus:ring-4 focus:ring-[#f9e8f0] focus:outline-none resize-none"
                   />
                 </div>
               )}

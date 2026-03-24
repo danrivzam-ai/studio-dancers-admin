@@ -51,7 +51,7 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white rounded-t-2xl">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#551735] text-white rounded-t-2xl">
           <span className="font-semibold">Comprobante de Venta</span>
           <div className="flex items-center gap-1">
             <button

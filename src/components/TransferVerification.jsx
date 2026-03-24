@@ -294,7 +294,7 @@ export default function TransferVerification({
     <Modal isOpen={true} onClose={onClose} ariaLabel="Verificar transferencias">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-t-2xl">
+        <div className="p-6 border-b bg-[#551735] text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">

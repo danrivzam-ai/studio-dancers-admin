@@ -175,7 +175,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
                             min="0"
                             value={counts[item.code] ?? ''}
                             onChange={(e) => handleCountChange(item.code, e.target.value)}
-                            className="w-20 text-center px-2 py-2 border-2 border-gray-200 rounded-xl text-sm font-bold focus:border-[#9e4d75] outline-none transition-all"
+                            className="w-20 text-center px-2 py-2 border-2 border-gray-200 rounded-xl text-base font-bold focus:border-[#9e4d75] outline-none transition-all"
                             placeholder="—"
                           />
 

@@ -932,7 +932,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 isCashOpen
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
                   : isCashNotOpened
-                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 animate-pulse'
+                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
               title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
@@ -1059,7 +1059,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <DollarSign size={16} />
                 Transferencias
                 {pendingTransfers > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                     {pendingTransfers}
                   </span>
                 )}
@@ -1159,8 +1159,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setShowStudentListModal(true)
             }}
             className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer hover:shadow-lg hover:scale-105 transition-all border-t-4 ${
-              moraStudents.length > 0 ? 'border-rose-600 animate-pulse-urgent' :
-              urgentCount > 0 ? 'border-red-500 animate-pulse-urgent' : 'border-amber-400'
+              moraStudents.length > 0 ? 'border-rose-600' :
+              urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
             }`}
             title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
@@ -2194,14 +2194,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] resize-none outline-none transition-all"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
@@ -2245,7 +2245,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <button
                       onClick={saveAnnouncement}
                       disabled={!announcementForm.title.trim() || !announcementForm.body.trim()}
-                      className="flex-1 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-40 text-white py-2 rounded-xl text-sm font-medium transition-colors"
+                      className="flex-1 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-40 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
                     >
                       {editingAnnouncement ? 'Guardar cambios' : 'Publicar aviso'}
                     </button>
@@ -2373,7 +2373,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <select
                       value={saleForm.program}
                       onChange={(e) => setSaleForm({...saleForm, program: e.target.value})}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                     >
                       <option value="">— Sin programa —</option>
                       {allCourses.map(c => (
@@ -2393,7 +2393,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         value={productSearch}
                         onChange={(e) => { setProductSearch(e.target.value); setSaleForm(f => ({...f, productId: ''})) }}
                         placeholder="Buscar artículo..."
-                        className="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       />
                       {productSearch && (
                         <button type="button" onClick={() => { setProductSearch(''); setSaleForm(f => ({...f, productId: ''})) }}
@@ -2434,7 +2434,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.productId}
                         onChange={(e) => setSaleForm({...saleForm, productId: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white outline-none transition-all"
                       >
                         <option value="">— Seleccionar —</option>
                         {allProducts.map(product => {
@@ -2528,7 +2528,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="date"
                         value={saleForm.date}
                         onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       />
                     </div>
                     <div>
@@ -2536,7 +2536,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <select
                         value={saleForm.paymentMethod}
                         onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 outline-none transition-all"
                       >
                         <option value="cash">Efectivo</option>
                         <option value="transfer">Transferencia</option>
@@ -2660,7 +2660,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-gradient-to-r from-[#551735] to-[#3a0f24] text-white">
+              <div className="p-3 sm:p-5 border-b bg-[#551735] text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -2698,7 +2698,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       placeholder="Buscar por nombre o cédula..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full text-sm outline-none bg-transparent"
+                      className="w-full text-base outline-none bg-transparent"
                     />
                     {searchTerm && (
                       <button
@@ -2712,7 +2712,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 max-w-[160px]"
+                    className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -2805,7 +2805,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     {!(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
                       <button
                         onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
-                        className="px-4 py-2 bg-[#6b2145] text-white rounded-xl text-sm font-medium hover:bg-[#551735] transition-colors"
+                        className="px-4 py-2.5 bg-[#6b2145] text-white rounded-xl text-sm font-medium hover:bg-[#551735] transition-colors"
                       >
                         Agregar alumna
                       </button>

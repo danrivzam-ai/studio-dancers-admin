@@ -136,15 +136,15 @@ export default function StudentForm({
     setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
-  const inputClass = "w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] transition-all"
-  const inputClassBlue = "w-full px-3 py-2 text-sm border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
-  const inputClassGreen = "w-full px-3 py-2 text-sm border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
+  const inputClass = "w-full px-3 py-2 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] transition-all"
+  const inputClassBlue = "w-full px-3 py-2 text-base border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+  const inputClassGreen = "w-full px-3 py-2 text-base border-2 border-green-100 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all"
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-gradient-to-r from-[#6b2145] to-[#441029] text-white z-10 rounded-t-2xl">
+        <div className="p-4 flex items-center justify-between sticky top-0 bg-[#551735] text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
             {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
           </h2>

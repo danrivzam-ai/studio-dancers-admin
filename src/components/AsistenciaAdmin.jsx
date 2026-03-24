@@ -94,7 +94,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
           <select
             value={courseId}
             onChange={e => { setCourseId(e.target.value); setRecords({}) }}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-4 focus:ring-[#f9e8f0]"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-4 focus:ring-[#f9e8f0]"
           >
             <option value="">— Selecciona un curso —</option>
             {allCourses.map(c => (
