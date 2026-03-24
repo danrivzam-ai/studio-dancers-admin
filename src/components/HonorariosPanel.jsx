@@ -4,7 +4,6 @@ import {
   DollarSign, Clock, MessageSquare, FileText, AlertCircle, Layers
 } from 'lucide-react'
 import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 import { supabase } from '../lib/supabase'
 import {
   useHonorarios, buildDetails, recalcDetail, DAY_NAMES
@@ -25,13 +24,13 @@ function downloadPDF(blocks) {
   const PX = 85  // color morado Studio Dancers R
   const PG = 23
   const PB = 53
-  let y = 10
+  let y = 12
 
   blocks.forEach((block, idx) => {
     const { periodo, instructorName, instructorCedula } = block
     const details = periodo.payment_details || []
 
-    // Línea de corte entre comprobantes
+    // Línea de corte
     if (idx > 0) {
       doc.setDrawColor(210, 210, 210)
       doc.setLineDashPattern([1.5, 1.5], 0)
@@ -40,79 +39,94 @@ function downloadPDF(blocks) {
       doc.setTextColor(200, 200, 200)
       doc.text('✂', 105, y + 2, { align: 'center' })
       doc.setLineDashPattern([], 0)
-      y += 4
+      y += 5
     }
 
-    // Encabezado en una sola línea
+    // Título
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
+    doc.setFontSize(10)
     doc.setTextColor(PX, PG, PB)
-    doc.text('STUDIO DANCERS', 10, y + 5)
+    doc.text('STUDIO DANCERS', 10, y)
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7.5)
-    doc.setTextColor(140, 140, 140)
-    doc.text('Comprobante de Pago a Docente', 200, y + 5, { align: 'right' })
-    y += 8
+    doc.setFontSize(8)
+    doc.setTextColor(130, 130, 130)
+    doc.text('— Comprobante de Pago a Docente', 48, y)
+    doc.text(`N.° ${periodo.numero_comprobante || ''}`, 200, y, { align: 'right' })
+    y += 5
 
-    // Info: nombre + C.I. + N.° + tarifa en una línea, período en otra
+    // Profesora + período en una línea cada uno
     doc.setFontSize(8.5)
-    doc.setTextColor(40, 40, 40)
+    doc.setTextColor(30, 30, 30)
     doc.setFont('helvetica', 'bold')
-    doc.text(instructorName, 10, y)
+    doc.text(`Profesora: `, 10, y)
     doc.setFont('helvetica', 'normal')
-    doc.setTextColor(110, 110, 110)
-    const infoRight = [
-      instructorCedula ? `C.I. ${instructorCedula}` : '',
-      `N.° ${periodo.numero_comprobante || ''}`,
-      `${fmtMoney(periodo.tarifa_hora_snapshot)}/hora`,
-    ].filter(Boolean).join('  ·  ')
-    doc.text(infoRight, 200, y, { align: 'right' })
+    const nameX = 10 + doc.getTextWidth('Profesora: ')
+    doc.text(instructorName, nameX, y)
+    if (instructorCedula) {
+      doc.setTextColor(120, 120, 120)
+      doc.setFontSize(7.5)
+      doc.text(`C.I. ${instructorCedula}`, 200, y, { align: 'right' })
+    }
     y += 4.5
 
-    doc.setFontSize(7.5)
-    doc.setTextColor(90, 90, 90)
-    const periodoText = `Período: ${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}${periodo.observaciones ? `   ·   Obs.: ${periodo.observaciones}` : ''}`
-    doc.text(periodoText, 10, y)
-    y += 3
+    doc.setFontSize(8)
+    doc.setTextColor(80, 80, 80)
+    const tarifa = `${fmtMoney(periodo.tarifa_hora_snapshot)}/hora`
+    const obs = periodo.observaciones ? `  —  ${periodo.observaciones}` : ''
+    doc.text(`Período: ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}  ·  Tarifa: ${tarifa}${obs}`, 10, y)
+    y += 5
 
-    // Tabla compacta
-    autoTable(doc, {
-      startY: y,
-      head: [['Día / Horario / Grupo', 'Clases', 'h/cl.', 'Total h', 'Monto']],
-      body: details.map(d => [
-        [d.dia_nombre || DAY_NAMES[d.dia_semana] || '', ' · ', d.horario || '', d.group_name ? ` · ${d.group_name}` : '', (d.canceladas > 0 || d.recuperaciones > 0) ? ` (${d.canceladas > 0 ? `-${d.canceladas}can` : ''}${d.recuperaciones > 0 ? ` +${d.recuperaciones}rec` : ''})` : ''].join(''),
-        d.clases_efectivas,
-        `${d.horas_clase}h`,
-        `${d.horas_trabajadas}h`,
-        fmtMoney(d.monto),
-      ]),
-      foot: [['TOTAL', '', '', `${periodo.total_horas}h`, fmtMoney(periodo.total_pagar)]],
-      headStyles: { fillColor: [PX, PG, PB], textColor: 255, fontSize: 7.5, fontStyle: 'bold', cellPadding: 1.8 },
-      footStyles: { fillColor: [253, 240, 245], textColor: [PX, PG, PB], fontStyle: 'bold', fontSize: 8.5, cellPadding: 1.8 },
-      bodyStyles: { fontSize: 7.5, cellPadding: 1.5 },
-      alternateRowStyles: { fillColor: [250, 250, 250] },
-      columnStyles: {
-        0: { cellWidth: 100 },
-        1: { halign: 'center', cellWidth: 16 },
-        2: { halign: 'center', cellWidth: 16 },
-        3: { halign: 'center', cellWidth: 18 },
-        4: { halign: 'right', cellWidth: 28 },
-      },
-      margin: { left: 10, right: 10 },
-      showFoot: 'lastPage',
+    // Detalle: una línea por horario
+    doc.setFontSize(8)
+    doc.setTextColor(60, 60, 60)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Detalle:', 10, y)
+    y += 4.5
+    doc.setFont('helvetica', 'normal')
+
+    details.forEach(d => {
+      const dia = d.dia_nombre || DAY_NAMES[d.dia_semana] || ''
+      const ajuste = (d.canceladas > 0 || d.recuperaciones > 0)
+        ? ` (${d.canceladas > 0 ? `-${d.canceladas}can` : ''}${d.recuperaciones > 0 ? ` +${d.recuperaciones}rec` : ''})`
+        : ''
+      const grupo = d.group_name ? ` · ${d.group_name}` : ''
+      const linea = `${dia} (${d.horario})${grupo}${ajuste}`
+      const monto = `${d.clases_efectivas} clases · ${d.horas_trabajadas}h · ${fmtMoney(d.monto)}`
+      doc.setTextColor(60, 60, 60)
+      doc.text(`   ${linea}`, 10, y)
+      doc.setTextColor(PX, PG, PB)
+      doc.setFont('helvetica', 'bold')
+      doc.text(monto, 200, y, { align: 'right' })
+      doc.setFont('helvetica', 'normal')
+      y += 4.2
     })
 
-    y = doc.lastAutoTable.finalY + 3
+    // Total
+    y += 1
+    doc.setDrawColor(PX, PG, PB)
+    doc.setLineWidth(0.3)
+    doc.line(10, y, 200, y)
+    doc.setLineWidth(0.2)
+    y += 4
+    doc.setFontSize(8)
+    doc.setTextColor(80, 80, 80)
+    doc.text(`Total horas: ${periodo.total_horas}h`, 10, y)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(PX, PG, PB)
+    doc.text(`TOTAL: ${fmtMoney(periodo.total_pagar)}`, 200, y, { align: 'right' })
+    doc.setFont('helvetica', 'normal')
+    y += 6
 
-    // Líneas de firma compactas
-    doc.setDrawColor(180, 180, 180)
-    doc.line(10, y + 10, 85, y + 10)
-    doc.line(115, y + 10, 200, y + 10)
+    // Firmas
+    doc.setDrawColor(185, 185, 185)
+    doc.line(10, y + 9, 85, y + 9)
+    doc.line(120, y + 9, 200, y + 9)
     doc.setFontSize(7)
     doc.setTextColor(170, 170, 170)
-    doc.text('Firma / C.I. Profesora', 47, y + 14, { align: 'center' })
-    doc.text('Sello Studio Dancers · Fecha', 157, y + 14, { align: 'center' })
-    y += 18
+    doc.text('Firma / C.I. Profesora', 47, y + 13, { align: 'center' })
+    doc.text('Sello Studio Dancers · Fecha', 160, y + 13, { align: 'center' })
+    y += 17
   })
 
   const fileName = blocks.length === 1
