@@ -183,21 +183,57 @@ export function useStudents() {
   }
 
   // Eliminar estudiante (soft delete)
-  const deleteStudent = async (id) => {
+  const deleteStudent = async (id, reason) => {
     try {
+      const updates = {
+        active: false,
+        withdrawn_at: new Date().toISOString(),
+        withdrawn_reason: reason || null,
+      }
       const { error } = await supabase
         .from('students')
-        .update({ active: false })
+        .update(updates)
         .eq('id', id)
 
       if (error) throw error
 
       setStudents(prev => prev.filter(s => s.id !== id))
-      logAudit({ action: 'student_deleted', tableName: 'students', recordId: id })
+      logAudit({ action: 'student_withdrawn', tableName: 'students', recordId: id, reason })
       return { success: true }
     } catch (err) {
-      console.error('Error deleting student:', err)
+      console.error('Error withdrawing student:', err)
       return { success: false, error: err.message }
+    }
+  }
+
+  const reactivateStudent = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('students')
+        .update({ active: true, withdrawn_at: null, withdrawn_reason: null })
+        .eq('id', id)
+
+      if (error) throw error
+      logAudit({ action: 'student_reactivated', tableName: 'students', recordId: id })
+      return { success: true }
+    } catch (err) {
+      console.error('Error reactivating student:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  const fetchInactiveStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('active', false)
+        .order('withdrawn_at', { ascending: false })
+      if (error) throw error
+      return data || []
+    } catch (err) {
+      console.error('Error fetching inactive students:', err)
+      return []
     }
   }
 
@@ -774,6 +810,8 @@ export function useStudents() {
     createStudent,
     updateStudent,
     deleteStudent,
+    reactivateStudent,
+    fetchInactiveStudents,
     registerPayment,
     pauseStudent,
     unpauseStudent,

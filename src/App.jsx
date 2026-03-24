@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -74,7 +74,7 @@ function StudentAvatar({ student, isCamp }) {
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
@@ -125,6 +125,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [filterPayment, setFilterPayment] = useState('all')
   // showStudentList and showUpcomingPayments removed - now handled by dashboard cards
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: '', id: null, name: '' })
+  const [showRetiradasModal, setShowRetiradasModal] = useState(false)
+  const [retiradasList, setRetiradasList] = useState([])
+  const [loadingRetiradas, setLoadingRetiradas] = useState(false)
   const [showPinPrompt, setShowPinPrompt] = useState(false)
   const [pendingSettingsAccess, setPendingSettingsAccess] = useState(false)
   const [showCashRegister, setShowCashRegister] = useState(false)
@@ -807,12 +810,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   // Ejecutar eliminación después de confirmar PIN
-  const executeDelete = async () => {
+  const executeDelete = async (reason) => {
     const { type, id, saleData } = deleteModal
     let result
 
     if (type === 'alumno') {
-      result = await deleteStudent(id)
+      result = await deleteStudent(id, reason)
     } else if (type === 'venta') {
       result = await deleteSale(id)
       // Restaurar stock si la venta tenía producto con inventario
@@ -2968,10 +2971,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                                    title="Eliminar"
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
+                                    title="Dar de baja"
                                   >
-                                    <Trash2 size={16} />
+                                    <UserMinus size={16} />
                                   </button>
                                 )}
                               </div>
@@ -2989,7 +2992,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <p className="text-xs text-gray-400 hidden sm:block shrink-0">
                   {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
                 </p>
-                <div className="flex gap-2 flex-1 sm:flex-none justify-end">
+                <div className="flex gap-2 flex-1 sm:flex-none justify-end flex-wrap">
+                  {!isRecepcion && (
+                    <button
+                      onClick={async () => {
+                        setLoadingRetiradas(true)
+                        const data = await fetchInactiveStudents()
+                        setRetiradasList(data)
+                        setLoadingRetiradas(false)
+                        setShowRetiradasModal(true)
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-500 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors font-medium text-xs"
+                    >
+                      {loadingRetiradas ? <RefreshCw size={13} className="animate-spin" /> : <UserMinus size={13} />}
+                      Ver retiradas
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowStudentListModal(false); setShowCobranzaReport(true) }}
                     className="flex items-center gap-1.5 px-3 py-2 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] transition-colors font-medium text-xs"
@@ -3332,6 +3350,77 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           itemType={deleteModal.type}
           requiredPin={settings.security_pin}
         />
+
+        {/* Modal: Alumnas Retiradas */}
+        {showRetiradasModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowRetiradasModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="px-5 py-4 border-b bg-orange-600 text-white flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserMinus size={18} />
+                  <span className="font-bold">Alumnas retiradas</span>
+                  <span className="bg-white/20 text-xs font-bold px-2 py-0.5 rounded-full">{retiradasList.length}</span>
+                </div>
+                <button onClick={() => setShowRetiradasModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-3 sm:p-4 space-y-2">
+                {retiradasList.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400">
+                    <UserCheck size={36} className="mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">No hay alumnas retiradas</p>
+                  </div>
+                ) : retiradasList.map(s => {
+                  const course = allCourses.find(c => (c.id || c.code) === s.course_id)
+                  const withdrawnDate = s.withdrawn_at
+                    ? new Date(s.withdrawn_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })
+                    : null
+                  const reasonLabels = { economico: 'Económico', horario: 'Horario', cambio_ciudad: 'Cambio de ciudad/país', salud: 'Salud', personal: 'Personal', otro: 'Otro' }
+                  return (
+                    <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50 hover:bg-orange-50 transition-colors">
+                      <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                        <span className="text-orange-600 font-bold text-sm">{s.name?.[0]?.toUpperCase()}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{course?.name || s.course_id || '—'}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {withdrawnDate && <span className="text-xs text-gray-400">{withdrawnDate}</span>}
+                          {s.withdrawn_reason && (
+                            <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                              {reasonLabels[s.withdrawn_reason] || s.withdrawn_reason}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`¿Reactivar a ${s.name}?`)) return
+                          const res = await reactivateStudent(s.id)
+                          if (res.success) {
+                            setRetiradasList(prev => prev.filter(x => x.id !== s.id))
+                            fetchStudents()
+                          }
+                        }}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white border border-green-200 text-green-700 rounded-xl hover:bg-green-50 hover:border-green-400 transition-all text-xs font-semibold shrink-0"
+                      >
+                        <UserCheck size={13} /> Reactivar
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="p-3 border-t bg-gray-50">
+                <button onClick={() => setShowRetiradasModal(false)} className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PIN Prompt Modal for Settings Access */}
         <PinPromptModal
