@@ -16,82 +16,81 @@ function fmtDate(dateStr) {
 }
 function fmtMoney(n) { return `$${Number(n || 0).toFixed(2)}` }
 
-// ── Genera HTML autocontenido para imprimir ─────────────────────────────────
+// ── Genera HTML compacto para imprimir ──────────────────────────────────────
 function buildComprobantHTML(periodo, instructorName, instructorCedula) {
   const details = periodo.payment_details || []
   const rows = details.map((d, i) => `
-    <tr style="background:${i % 2 === 0 ? '#fff' : '#f9f9f9'}">
-      <td style="padding:6px 8px">
-        <strong>${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''}</strong><br/>
-        <span style="color:#666;font-size:11px">${d.horario || ''}</span>
-        ${d.group_name ? `<br/><span style="color:#999;font-size:11px">${d.group_name}</span>` : ''}
-        ${(d.canceladas > 0 || d.recuperaciones > 0) ? `<br/><span style="color:#c25700;font-size:10px">${d.canceladas > 0 ? `-${d.canceladas} cancel.` : ''} ${d.recuperaciones > 0 ? `+${d.recuperaciones} recup.` : ''}</span>` : ''}
+    <tr style="background:${i % 2 === 0 ? '#fff' : '#f7f7f7'}">
+      <td style="padding:3px 6px;font-size:11px">
+        <strong>${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''}</strong>
+        <span style="color:#777"> · ${d.horario || ''}</span>
+        ${d.group_name ? `<span style="color:#aaa;font-size:10px"> · ${d.group_name}</span>` : ''}
+        ${(d.canceladas > 0 || d.recuperaciones > 0) ? `<span style="color:#c25700;font-size:10px"> (${d.canceladas > 0 ? `-${d.canceladas}can` : ''}${d.recuperaciones > 0 ? ` +${d.recuperaciones}rec` : ''})</span>` : ''}
       </td>
-      <td style="text-align:center;padding:6px 4px">${d.clases_efectivas}</td>
-      <td style="text-align:center;padding:6px 4px">${d.horas_clase}h</td>
-      <td style="text-align:center;padding:6px 4px">${d.horas_trabajadas}h</td>
-      <td style="text-align:right;padding:6px 8px;font-weight:600">${fmtMoney(d.monto)}</td>
+      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.clases_efectivas}</td>
+      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.horas_clase}h</td>
+      <td style="text-align:center;padding:3px 4px;font-size:11px">${d.horas_trabajadas}h</td>
+      <td style="text-align:right;padding:3px 6px;font-weight:700;font-size:11px">${fmtMoney(d.monto)}</td>
     </tr>`).join('')
 
-  return `
-    <div style="font-family:Arial,sans-serif;font-size:13px;max-width:520px;margin:0 auto;padding:16px">
-      <div style="text-align:center;margin-bottom:14px">
-        <h2 style="margin:0;color:#551735;letter-spacing:1px;font-size:16px">STUDIO DANCERS</h2>
-        <p style="margin:4px 0 2px;color:#555;font-size:12px">Comprobante de Pago a Docente</p>
-        <p style="margin:0;color:#999;font-size:11px">N.° ${periodo.numero_comprobante || ''}</p>
+  const meta = [
+    `<strong>${instructorName}</strong>`,
+    instructorCedula ? `C.I. ${instructorCedula}` : '',
+    `Período: ${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}`,
+    periodo.observaciones ? `Obs.: ${periodo.observaciones}` : '',
+    `Tarifa: ${fmtMoney(periodo.tarifa_hora_snapshot)}/hora · N.° ${periodo.numero_comprobante || ''}`,
+  ].filter(Boolean).join('&emsp;·&emsp;')
+
+  return `<div style="font-family:Arial,sans-serif;font-size:12px;padding:10px 14px;border:1px solid #ddd;border-radius:6px;page-break-inside:avoid">
+    <div style="text-align:center;margin-bottom:6px">
+      <span style="font-size:13px;font-weight:700;color:#551735;letter-spacing:0.5px">STUDIO DANCERS</span>
+      <span style="color:#888;font-size:10px;margin-left:8px">Comprobante de Pago a Docente</span>
+    </div>
+    <div style="font-size:11px;color:#555;margin-bottom:6px;line-height:1.6">${meta}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead>
+        <tr style="background:#551735;color:#fff">
+          <th style="text-align:left;padding:4px 6px">Día / Horario / Grupo</th>
+          <th style="text-align:center;padding:4px 4px;white-space:nowrap">Cl.</th>
+          <th style="text-align:center;padding:4px 4px;white-space:nowrap">h/cl</th>
+          <th style="text-align:center;padding:4px 4px;white-space:nowrap">Total h</th>
+          <th style="text-align:right;padding:4px 6px">Monto</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr style="border-top:2px solid #551735;background:#fdf0f5">
+          <td colspan="3" style="padding:4px 6px;font-weight:700;color:#551735;font-size:11px">TOTAL</td>
+          <td style="text-align:center;padding:4px 4px;font-weight:700;color:#551735">${periodo.total_horas}h</td>
+          <td style="text-align:right;padding:4px 6px;font-weight:700;color:#551735;font-size:13px">${fmtMoney(periodo.total_pagar)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="display:flex;gap:24px;margin-top:10px">
+      <div style="flex:1;text-align:center">
+        <div style="border-bottom:1px solid #999;height:22px;margin-bottom:3px"></div>
+        <span style="font-size:10px;color:#888">Firma / C.I. Profesora</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;background:#f5f5f5;border-radius:8px">
-        <tr><td style="padding:5px 10px;color:#777;width:110px">Profesora:</td><td style="padding:5px 10px;font-weight:700">${instructorName}</td></tr>
-        ${instructorCedula ? `<tr><td style="padding:4px 10px;color:#777">C.I.:</td><td style="padding:4px 10px">${instructorCedula}</td></tr>` : ''}
-        <tr><td style="padding:4px 10px;color:#777">Período:</td><td style="padding:4px 10px">${fmtDate(periodo.fecha_inicio)} — ${fmtDate(periodo.fecha_fin)}</td></tr>
-        ${periodo.observaciones ? `<tr><td style="padding:4px 10px;color:#777">Obs.:</td><td style="padding:4px 10px;color:#555">${periodo.observaciones}</td></tr>` : ''}
-        <tr><td style="padding:4px 10px;color:#777">Tarifa:</td><td style="padding:4px 10px">${fmtMoney(periodo.tarifa_hora_snapshot)}/hora</td></tr>
-      </table>
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead>
-          <tr style="background:#551735;color:#fff">
-            <th style="text-align:left;padding:6px 8px">Día / Horario</th>
-            <th style="text-align:center;padding:6px 4px">Clases</th>
-            <th style="text-align:center;padding:6px 4px">Hrs/clase</th>
-            <th style="text-align:center;padding:6px 4px">Total hrs</th>
-            <th style="text-align:right;padding:6px 8px">Monto</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-        <tfoot>
-          <tr style="border-top:2px solid #551735;background:#fdf5f9">
-            <td colspan="3" style="padding:7px 8px;font-weight:700;color:#551735">TOTAL</td>
-            <td style="text-align:center;padding:7px 4px;font-weight:700;color:#551735">${periodo.total_horas}h</td>
-            <td style="text-align:right;padding:7px 8px;font-weight:700;color:#551735;font-size:14px">${fmtMoney(periodo.total_pagar)}</td>
-          </tr>
-        </tfoot>
-      </table>
-      <div style="margin-top:24px;padding-top:12px;border-top:1px dashed #ccc;display:flex;gap:32px">
-        <div style="flex:1;text-align:center">
-          <div style="border-bottom:1px solid #888;height:32px;margin-bottom:4px"></div>
-          <p style="margin:0;font-size:11px;color:#777">Firma / C.I. Profesora</p>
-        </div>
-        <div style="flex:1;text-align:center">
-          <div style="border-bottom:1px solid #888;height:32px;margin-bottom:4px"></div>
-          <p style="margin:0;font-size:11px;color:#777">Sello Studio Dancers · Fecha</p>
-        </div>
+      <div style="flex:1;text-align:center">
+        <div style="border-bottom:1px solid #999;height:22px;margin-bottom:3px"></div>
+        <span style="font-size:10px;color:#888">Sello Studio Dancers · Fecha</span>
       </div>
-    </div>`
+    </div>
+  </div>`
 }
 
 function openPrintWindow(htmlBlocks) {
-  const combined = htmlBlocks.join(`
-    <div style="text-align:center;margin:8px 0;color:#aaa;font-size:18px;letter-spacing:4px">
-      ✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    </div>`)
+  const cutLine = `<div style="text-align:center;margin:6px 0;color:#bbb;font-size:11px;letter-spacing:3px">✂ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─</div>`
+  const combined = htmlBlocks.join(cutLine)
 
-  const win = window.open('', '_blank', 'width=700,height=900')
+  const win = window.open('', '_blank', 'width=720,height=900')
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8"/>
     <title>Comprobantes Studio Dancers</title>
     <style>
-      body { margin: 20px; font-family: Arial, sans-serif; }
-      @media print { body { margin: 10px; } }
+      @page { size: A4; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 0; font-family: Arial, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     </style>
   </head><body>${combined}
   <script>window.onload = function(){ window.print(); }<\/script>
