@@ -19,27 +19,36 @@ function fmtMoney(n) { return `$${Number(n || 0).toFixed(2)}` }
 
 // ── Genera y descarga PDF con jsPDF ─────────────────────────────────────────
 function downloadPDF(blocks) {
-  // blocks = [{ periodo, instructorName, instructorCedula }]
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const PX = 85  // color morado Studio Dancers R
-  const PG = 23
-  const PB = 53
-  let y = 12
+  const PX = 85, PG = 23, PB = 53
+  const PAGE_H = 277   // A4 297mm - 20mm márgenes internos
+  const CUT_H  = 5     // alto línea de corte entre bloques
+
+  // Estimar alto de cada bloque (base fija + filas variables)
+  const BASE_H     = 5 + 4.5 + 5 + 4.5 + 1 + 4 + 6 + 17  // 47mm
+  const ROW_H      = 4.2
+  const blockHeights = blocks.map(b => BASE_H + (b.periodo.payment_details?.length || 0) * ROW_H)
+  const totalContent = blockHeights.reduce((s, h) => s + h, 0)
+                     + (blocks.length - 1) * CUT_H
+  const spare  = PAGE_H - totalContent
+  // Margen superior + espacio entre bloques (n+1 gaps si cabe, sino 0)
+  const gap    = spare > 0 ? spare / (blocks.length + 1) : 4
+  let y = gap
 
   blocks.forEach((block, idx) => {
     const { periodo, instructorName, instructorCedula } = block
     const details = periodo.payment_details || []
 
-    // Línea de corte
+    // Línea de corte centrada en el gap entre bloques
     if (idx > 0) {
+      const cutY = y - gap / 2
       doc.setDrawColor(210, 210, 210)
       doc.setLineDashPattern([1.5, 1.5], 0)
-      doc.line(10, y, 200, y)
+      doc.line(10, cutY, 200, cutY)
       doc.setFontSize(7)
       doc.setTextColor(200, 200, 200)
-      doc.text('✂', 105, y + 2, { align: 'center' })
+      doc.text('✂', 105, cutY + 2, { align: 'center' })
       doc.setLineDashPattern([], 0)
-      y += 5
     }
 
     // Título
@@ -125,7 +134,7 @@ function downloadPDF(blocks) {
     doc.setTextColor(170, 170, 170)
     doc.text('Firma / C.I. Profesora', 47, y + 13, { align: 'center' })
     doc.text('Sello Studio Dancers · Fecha', 160, y + 13, { align: 'center' })
-    y += 17
+    y += 17 + gap
   })
 
   const fileName = blocks.length === 1
