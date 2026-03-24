@@ -71,9 +71,8 @@ function downloadPDF(blocks) {
 
     doc.setFontSize(8)
     doc.setTextColor(80, 80, 80)
-    const tarifa = `${fmtMoney(periodo.tarifa_hora_snapshot)}/hora`
     const obs = periodo.observaciones ? `  —  ${periodo.observaciones}` : ''
-    doc.text(`Período: ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}  ·  Tarifa: ${tarifa}${obs}`, 10, y)
+    doc.text(`Período: ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}${obs}`, 10, y)
     y += 5
 
     // Detalle: una línea por horario
