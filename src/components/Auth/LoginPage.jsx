@@ -64,7 +64,7 @@ export default function LoginPage({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#551735] via-[#441029] to-pink-700">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #551735 0%, #3a0d22 50%, #6b1f45 100%)' }}>
       <div className="w-full max-w-md">
         {/* Logo y título */}
         <div className="text-center mb-6">

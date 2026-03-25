@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.540.0"
-import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner@3.540.0"
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "npm:@aws-sdk/client-s3@3.540.0"
+import { getSignedUrl } from "npm:@aws-sdk/s3-request-presigner@3.540.0"
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -345,6 +345,15 @@ Deno.serve(async (req: Request) => {
       return await expireClasses(body, { userId: "", isAdmin: true, isPortal: false }, supabaseAdmin)
     }
 
+    // Acciones públicas (portal de alumnas — sin JWT)
+    if (action === "list-active") {
+      return await listActive(body, { userId: "", isAdmin: false, isPortal: true }, supabaseAdmin)
+    }
+    if (action === "get-video-url") {
+      return await getVideoUrl(body, { userId: "", isAdmin: false, isPortal: true }, supabaseAdmin)
+    }
+
+    // Acciones admin — requieren auth
     const auth = await verifyAuth(req, supabaseAdmin)
     if (!auth) {
       return jsonResponse({ error: "unauthorized" }, 401)
@@ -355,10 +364,6 @@ Deno.serve(async (req: Request) => {
         return await getUploadUrl(body, auth, supabaseAdmin)
       case "confirm-upload":
         return await confirmUpload(body, auth, supabaseAdmin)
-      case "get-video-url":
-        return await getVideoUrl(body, auth, supabaseAdmin)
-      case "list-active":
-        return await listActive(body, auth, supabaseAdmin)
       case "list-all":
         return await listAll(body, auth, supabaseAdmin)
       case "delete-class":
