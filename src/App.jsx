@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Images, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw
+  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -39,7 +39,6 @@ import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import SaleInstallments from './components/SaleInstallments'
 import { useSalePlans } from './hooks/useSalePlans'
-import GalleryManager from './components/GalleryManager'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
@@ -49,6 +48,7 @@ import MonthlyClose from './components/MonthlyClose'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
+import ScreenLock from './components/ScreenLock'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import './App.css'
@@ -144,6 +144,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const [showCobranzaReport, setShowCobranzaReport]   = useState(false)
   const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
+  const [isScreenLocked, setIsScreenLocked] = useState(false)
   const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
 
@@ -986,6 +987,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
             {/* Derecha: Configuración y Logout */}
             <div className="flex items-center gap-1">
+              {/* Bloqueo de pantalla — solo desktop */}
+              <button
+                onClick={() => {
+                  if (!settings.security_pin) {
+                    alert('Para usar la pantalla de ausencia, primero configura un PIN de seguridad en Configuración.')
+                    return
+                  }
+                  setIsScreenLocked(true)
+                }}
+                className="hidden sm:flex p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl active:scale-95 transition-all"
+                title="Bloquear pantalla"
+              >
+                <Lock size={20} />
+              </button>
               {!isRecepcion && can('canEditSettings') && (
                 <button
                   onClick={() => {
@@ -1129,7 +1144,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
             { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
             { id: 'report', icon: BarChart3, label: 'Reporte' },
-            { id: 'gallery', icon: Images, label: 'Galería' },
             { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
             { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
           ].filter(tab => !tab.adminOnly || isAdmin)
@@ -2181,13 +2195,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Report Tab */}
         {activeTab === 'report' && (
           <DailyReport cashRegister={todayRegister} />
-        )}
-
-        {/* Gallery Tab */}
-        {activeTab === 'gallery' && (
-          <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-            <GalleryManager />
-          </div>
         )}
 
         {/* ── Área Académica ── */}
@@ -3511,6 +3518,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           requiredPin={settings.security_pin}
           title="Acceso a Configuración"
           description="Ingresa el PIN para acceder a la configuración"
+        />
+
+        {/* Pantalla de ausencia */}
+        <ScreenLock
+          isLocked={isScreenLocked}
+          onUnlock={() => setIsScreenLocked(false)}
+          schoolName={settings.name || 'Studio Dancers'}
+          securityPin={settings.security_pin}
         />
 
         {/* Footer */}
