@@ -66,7 +66,17 @@ export default function ScreenLock({ isLocked, onUnlock, schoolName, securityPin
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 select-none">
+    <div
+      className="flex flex-col items-center justify-center select-none"
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 99999,
+        background: 'linear-gradient(135deg, #3b0764 0%, #4c1d95 40%, #312e81 100%)',
+      }}
+    >
       {/* Reloj */}
       <div className="text-center mb-8">
         <div className="text-white/90 font-mono font-light tracking-widest" style={{ fontSize: 'clamp(3rem, 10vw, 7rem)', lineHeight: 1 }}>
