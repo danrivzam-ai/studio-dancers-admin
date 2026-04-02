@@ -389,9 +389,17 @@ export function useStudents() {
         }
       }
 
+      // Si el pago es anticipado (antes del vencimiento), el nuevo ciclo empieza
+      // en la fecha de vencimiento anterior (no hoy), para que el conteo de clases
+      // sea correcto visualmente.
+      const isPaidEarly = studentNextPaymentDate && paymentDate < studentNextPaymentDate && !isPartialPayment
+      const cycleStartForDisplay = isPaidEarly
+        ? formatDateForInput(studentNextPaymentDate)
+        : formatDateForInput(paymentDate)
+
       // Actualizar estudiante
       const updateFields = {
-        last_payment_date: formatDateForInput(paymentDate),
+        last_payment_date: cycleStartForDisplay,
         next_payment_date: nextPayment ? formatDateForInput(new Date(nextPayment)) : null,
         amount_paid: newAmountPaid,
         balance: Math.max(0, newBalance),
