@@ -68,9 +68,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   if (!student) return null
 
   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-  const baseDate = student.last_payment_date || student.enrollment_date
+  const todayEC = getTodayEC()
+  const showOldCycle = student.prepaid && student.prepaid_old_start && student.last_payment_date && todayEC < student.last_payment_date
+  const baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
+  const cycleEndDate = showOldCycle ? student.last_payment_date : student.next_payment_date
   const cycleInfo = isRecurring && baseDate
-    ? getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
+    ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses)
     : null
 
   const coursePrice = course?.price || 0
@@ -81,7 +84,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const validPayments = payments.filter(p => !p.voided)
   const totalHistoricPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
 
-  const todayStr = getTodayEC()
+  const todayStr = todayEC
   const todayDate = new Date(todayStr + 'T12:00:00')
   const isTodayClassDay = !!(course?.classDays && course.classDays.includes(todayDate.getDay()))
 
@@ -331,7 +334,9 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           {cycleInfo && (
             <div className="px-4 pb-3">
               <div className="bg-[#fdf5f9] border border-[#f9e8f0] rounded-xl p-4">
-                <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">Ciclo actual</p>
+                <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">
+                  {showOldCycle ? 'Ciclo en curso · Próximo ya pagado' : 'Ciclo actual'}
+                </p>
                 <div className="grid grid-cols-2 gap-4 mb-2">
                   <div className="text-center">
                     <p className="text-[10px] text-[#9e4d75] uppercase">Primera clase</p>
