@@ -2941,6 +2941,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {student.is_paused && (
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium">Pausado</span>
                                 )}
+                                {student.prepaid && (
+                                  <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-semibold">✓ Mes anticipado</span>
+                                )}
                                 {paymentStatus.status === 'mora' && (
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">🚫 No puede asistir</span>
                                 )}
@@ -3123,6 +3126,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onReject={rejectRequest}
             onClose={() => { setShowTransferVerification(false); fetchTransferRequests() }}
             onRegisterPayment={registerPayment}
+            onPaymentRegistered={(paymentData, student) => {
+              const fullStudent = students.find(s => s.id === student?.id) || student
+              setSelectedStudent({
+                ...fullStudent,
+                next_payment_date: paymentData.next_payment_date ?? fullStudent?.next_payment_date,
+                amount_paid: paymentData.newAmountPaid ?? fullStudent?.amount_paid,
+                balance: paymentData.newBalance ?? fullStudent?.balance,
+                payment_status: paymentData.paymentStatus ?? fullStudent?.payment_status
+              })
+              setLastPayment(paymentData)
+              setShowTransferVerification(false)
+              setShowReceipt(true)
+              refreshIncome()
+              fetchTransferRequests()
+            }}
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             students={students}

@@ -194,6 +194,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 Pausado
               </span>
             )}
+            {student.prepaid && (
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
+                ✓ Mes anticipado
+              </span>
+            )}
             {loyalty.tier && (
               <span className="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
                 style={{

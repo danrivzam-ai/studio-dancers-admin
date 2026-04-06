@@ -234,7 +234,6 @@ export default function TransferVerification({
   const filtered = requests.filter(r => filter === 'all' || r.status === filter)
 
   const handleApprove = async (request) => {
-    if (!confirm(`¿Aprobar transferencia de $${request.amount} para ${request.students?.name}?`)) return
     setProcessing(request.id)
     try {
       const student = request.students
