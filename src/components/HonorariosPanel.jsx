@@ -562,17 +562,23 @@ function InstructorCard({ instructor }) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-bold text-gray-900 truncate">{instructor.name}</p>
-            <div className="flex items-center gap-3 mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
               <span className="text-xs text-[#6b2145] font-semibold flex items-center gap-1">
                 <DollarSign size={11}/>
-                {instructor.tarifa_hora ? `${fmtMoney(instructor.tarifa_hora)}/h` : <span className="text-amber-600">Sin tarifa — edita su perfil</span>}
+                {instructor.tarifa_hora ? `${fmtMoney(instructor.tarifa_hora)}/h` : <span className="text-amber-600">Sin tarifa</span>}
               </span>
               {instructor.cedula && <span className="text-xs text-gray-400">C.I. {instructor.cedula}</span>}
             </div>
+            {/* Botón visible solo en mobile (sm:hidden) */}
+            <button onClick={openLiquidacion}
+              className="mt-2 sm:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
+              <Plus size={13}/> Nueva liquidación
+            </button>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Botón visible solo en desktop (hidden sm:flex) */}
             <button onClick={openLiquidacion}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-[#6b2145] hover:bg-[#551735] text-white rounded-xl text-xs font-semibold transition-all active:scale-95">
               <Plus size={13}/> Nueva liquidación
             </button>
             <button onClick={loadPeriodos}

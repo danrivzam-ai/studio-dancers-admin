@@ -1212,17 +1212,17 @@ export default function SaleInstallments({
           </div>
 
           {/* Búsqueda */}
-          <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 focus-within:ring-4 focus-within:ring-[#f9e8f0] focus-within:border-[#7e2d55] transition-all bg-white">
+            <Search size={15} className="text-gray-400 shrink-0" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por alumna o representante..."
-              className="w-full pl-9 pr-9 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+              className="flex-1 py-2.5 text-sm outline-none bg-transparent"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 shrink-0">
                 <X size={14} />
               </button>
             )}
