@@ -1102,6 +1102,7 @@ export default function SaleInstallments({
   const [confirmCancel, setConfirmCancel] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [toast,         setToast]         = useState(null)  // { msg, type }
+  const [search,        setSearch]        = useState('')
 
   const showToast = (msg, type = 'success') => setToast({ msg, type })
 
@@ -1109,7 +1110,16 @@ export default function SaleInstallments({
   const preselect = externalShowNew ? externalPreselect : null
   const closeNew  = () => { setShowNew(false); if (onExternalClose) onExternalClose() }
 
-  const visiblePlans = tab === 'active' ? activePlans : paidPlans
+  const basePlans = tab === 'active' ? activePlans : paidPlans
+  const visiblePlans = search.trim().length < 2
+    ? basePlans
+    : basePlans.filter(p => {
+        const q = search.toLowerCase()
+        return (
+          (p.customer_name || '').toLowerCase().includes(q) ||
+          (p.student_name  || '').toLowerCase().includes(q)
+        )
+      })
 
   const handleCreatePlan = async (formData) => {
     setSaving(true)
@@ -1201,6 +1211,23 @@ export default function SaleInstallments({
             </button>
           </div>
 
+          {/* Búsqueda */}
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por alumna o representante..."
+              className="w-full pl-9 pr-9 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
           {/* Lista */}
           {loading ? (
             <div className="text-center py-10 text-gray-400 text-sm">Cargando planes...</div>
@@ -1208,7 +1235,9 @@ export default function SaleInstallments({
             <div className="text-center py-10">
               <ClipboardList size={36} className="mx-auto text-gray-300 mb-3" />
               <p className="text-gray-400 text-sm">
-                {tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
+                {search.trim().length >= 2
+                  ? `Sin resultados para "${search}"`
+                  : tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
               </p>
             </div>
           ) : (
