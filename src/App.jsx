@@ -3063,7 +3063,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               openPaymentModal(student)
             }}
             onReactivate={reactivateCycle}
-            schoolName={settings?.name}
+            onPause={(student) => {
+              handlePauseStudent(student)
+              setShowStudentDetail(null)
+            }}
+            onEdit={(student) => {
+              setShowStudentDetail(null)
+              setEditingStudent(student)
+              setShowForm(true)
+            }}
+            schoolName={settings?.school_name || settings?.name}
           />
         )}
 
