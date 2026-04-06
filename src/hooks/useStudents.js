@@ -504,6 +504,7 @@ export function useStudents() {
         success: true,
         data: {
           ...paymentRecord,
+          last_payment_date: cycleStartForDisplay,
           next_payment_date: updateFields.next_payment_date,
           newBalance: Math.max(0, newBalance),
           newAmountPaid: newAmountPaid,

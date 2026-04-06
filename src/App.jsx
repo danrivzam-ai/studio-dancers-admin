@@ -625,6 +625,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       const student = students.find(s => s.id === studentId)
       setSelectedStudent({
         ...student,
+        last_payment_date: result.data.last_payment_date ?? student.last_payment_date,
         next_payment_date: result.data.next_payment_date ?? student.next_payment_date,
         amount_paid: result.data.newAmountPaid ?? student.amount_paid,
         balance: result.data.newBalance ?? student.balance,
@@ -3130,6 +3131,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               const fullStudent = students.find(s => s.id === student?.id) || student
               setSelectedStudent({
                 ...fullStudent,
+                last_payment_date: paymentData.last_payment_date ?? fullStudent?.last_payment_date,
                 next_payment_date: paymentData.next_payment_date ?? fullStudent?.next_payment_date,
                 amount_paid: paymentData.newAmountPaid ?? fullStudent?.amount_paid,
                 balance: paymentData.newBalance ?? fullStudent?.balance,
