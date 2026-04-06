@@ -407,7 +407,8 @@ export function useStudents() {
         classes_used: isPackage ? classesUsed : undefined,
         is_paused: false,
         pause_date: null,
-        prepaid: isPaidEarly ? true : false
+        prepaid: isPaidEarly ? true : false,
+        prepaid_old_start: isPaidEarly ? (student.last_payment_date || null) : null
       }
 
       // Fidelidad: solo aplica a cursos de adultas con pago mensual.

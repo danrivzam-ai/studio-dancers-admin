@@ -881,6 +881,31 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     setShowPaymentModal(true)
   }
 
+  // Reimprimir último recibo con datos actuales del alumno
+  const handleReprint = async (student) => {
+    try {
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('student_id', student.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (!payments?.length) return
+      const payment = payments[0]
+      setSelectedStudent(student)
+      setLastPayment({
+        ...payment,
+        // Usar last_payment_date del alumno como ciclo base para mostrar ciclo correcto
+        cycle_start_date: student.last_payment_date || payment.cycle_start_date,
+        isReprint: true
+      })
+      setShowStudentDetail(null)
+      setShowReceipt(true)
+    } catch (err) {
+      console.error('Error reimprimir:', err)
+    }
+  }
+
   // Handler para mostrar comprobante desde historial
   const handleShowReceiptFromHistory = (data) => {
     setSelectedStudent(data.student)
@@ -2928,14 +2953,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {searchTerm && student.parent_name && student.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) && (
                                   <p className="text-[10px] text-gray-400 truncate">Representante: {student.parent_name}</p>
                                 )}
-                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && (student.last_payment_date || student.enrollment_date) && student.next_payment_date && (() => {
-                                  const baseDate = student.last_payment_date || student.enrollment_date
+                                {(course?.priceType === 'mes' || course?.priceType === 'paquete') && (() => {
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-                                  const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course?.classDays, cycleClasses)
+                                  const today = getTodayEC()
+                                  // Si pagó anticipado y el nuevo ciclo aún no empieza → mostrar ciclo viejo
+                                  const showOldCycle = student.prepaid && student.prepaid_old_start && student.last_payment_date && today < student.last_payment_date
+                                  const baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
+                                  const endDate  = showOldCycle ? student.last_payment_date : student.next_payment_date
+                                  if (!baseDate || !endDate) return null
+                                  const cycleInfo = getCycleInfo(baseDate, endDate, course?.classDays, cycleClasses)
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
                                   return (
                                     <p className="text-[10px] text-[#6b2145] font-semibold mt-0.5">
                                       Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
+                                      {showOldCycle && ' (ciclo actual)'}
                                     </p>
                                   )
                                 })()}
@@ -3072,6 +3103,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setEditingStudent(student)
               setShowForm(true)
             }}
+            onReprint={handleReprint}
             schoolName={settings?.school_name || settings?.name}
           />
         )}

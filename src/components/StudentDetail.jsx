@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
@@ -14,7 +14,7 @@ const METHOD_STYLE = {
 }
 const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, schoolName }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
@@ -524,6 +524,15 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 title="Editar alumna"
               >
                 <Pencil size={18} />
+              </button>
+            )}
+            {onReprint && (
+              <button
+                onClick={() => onReprint(student)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 active:scale-95 transition-all"
+                title="Reimprimir último recibo"
+              >
+                <Printer size={18} />
               </button>
             )}
             {(student.phone || student.parent_phone || student.payer_phone) && (
