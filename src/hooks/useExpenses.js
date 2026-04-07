@@ -63,7 +63,7 @@ export function useExpenses() {
         receipt_number: expenseData.receiptNumber || null,
         provider: expenseData.provider || null,
         notes: expenseData.notes || null,
-        expense_date: new Date().toISOString()
+        expense_date: `${getTodayEC()}T${new Date().toLocaleTimeString('en-GB', { timeZone: 'America/Guayaquil' })}`
       }
 
       const { data, error } = await supabase
