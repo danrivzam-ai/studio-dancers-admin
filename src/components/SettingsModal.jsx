@@ -12,6 +12,7 @@ export default function SettingsModal({
 }) {
   const [formData, setFormData] = useState({
     name: '',
+    legal_name: '',
     address: '',
     phone: '',
     email: '',
@@ -39,6 +40,7 @@ export default function SettingsModal({
     if (settings) {
       setFormData({
         name: settings.name || '',
+        legal_name: settings.legal_name || '',
         address: settings.address || '',
         phone: settings.phone || '',
         email: settings.email || '',
@@ -180,6 +182,19 @@ export default function SettingsModal({
               onChange={(e) => setFormData({...formData, address: e.target.value})}
               className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
               placeholder="Alborada - Guayaquil"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Razón Social / Nombre Legal
+            </label>
+            <input
+              type="text"
+              value={formData.legal_name}
+              onChange={(e) => setFormData({...formData, legal_name: e.target.value})}
+              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
+              placeholder="ADLAB STUDIO S.A.S."
             />
           </div>
 

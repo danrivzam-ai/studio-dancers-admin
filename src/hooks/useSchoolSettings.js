@@ -5,6 +5,7 @@ import { logAudit } from '../lib/auditLog'
 export function useSchoolSettings() {
   const [settings, setSettings] = useState({
     name: 'Studio Dancers',
+    legal_name: '',
     address: 'Alborada - Guayaquil',
     phone: '',
     email: '',

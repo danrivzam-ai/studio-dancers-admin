@@ -51,6 +51,7 @@ import ReceptionistManager from './components/ReceptionistManager'
 import ScreenLock from './components/ScreenLock'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
+import ContabilidadPanel from './components/Contabilidad/ContabilidadPanel'
 import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
@@ -144,6 +145,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showStudentListModal, setShowStudentListModal] = useState(false)
   const [showCobranzaReport, setShowCobranzaReport]   = useState(false)
   const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
+  const [showContabilidad, setShowContabilidad] = useState(false)
   const [isScreenLocked, setIsScreenLocked] = useState(false)
   const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
@@ -1156,6 +1158,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     Auditoría
                   </button>
                 </>
+              )}
+              {!isRecepcion && (isAdmin || userRole === 'contador') && (
+                <button
+                  onClick={() => setShowContabilidad(true)}
+                  className="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-800 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium border border-amber-200"
+                >
+                  <FileText size={16} />
+                  Contabilidad
+                </button>
               )}
             </div>
           </div>
@@ -3222,6 +3233,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             getCourseById={getCourseById}
             enrichCourse={enrichCourse}
             onClose={() => setShowCobranzaReport(false)}
+          />
+        )}
+
+        {/* Panel Contabilidad */}
+        {showContabilidad && (
+          <ContabilidadPanel
+            settings={settings}
+            onClose={() => setShowContabilidad(false)}
           />
         )}
 

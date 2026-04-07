@@ -158,6 +158,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
                 <div className="text-4xl mb-2">🩰</div>
               )}
               <h1 className="text-xl font-bold text-[#441029]">{settings.name}</h1>
+              {settings.legal_name && <p className="text-xs text-gray-400">{settings.legal_name}</p>}
               <p className="text-sm text-gray-600">{settings.address}</p>
               {settings.phone && <p className="text-sm text-gray-600">Tel: {settings.phone}</p>}
               {settings.ruc && <p className="text-sm text-gray-600">RUC: {settings.ruc}</p>}
