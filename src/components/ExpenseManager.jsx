@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { X, DollarSign, TrendingDown, Trash2, Banknote, Smartphone, CreditCard, AlertTriangle, Check, Clock } from 'lucide-react'
+import { X, DollarSign, TrendingDown, Trash2, Banknote, Smartphone, CreditCard, AlertTriangle, Check, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useExpenses } from '../hooks/useExpenses'
-import { formatDate } from '../lib/dateUtils'
+import { formatDate, getTodayEC } from '../lib/dateUtils'
 import { sanitizeError } from '../lib/errorUtils'
 import Modal from './ui/Modal'
 import EmptyState from './ui/EmptyState'
@@ -21,6 +21,20 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
   const [errorMessage, setErrorMessage] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [historyDate, setHistoryDate] = useState(getTodayEC())
+
+  // Recargar cuando cambia la fecha del historial
+  useEffect(() => {
+    if (activeTab === 'history') fetchExpenses(historyDate)
+  }, [historyDate, activeTab])
+
+  const changeHistoryDate = (days) => {
+    const d = new Date(historyDate + 'T12:00:00')
+    d.setDate(d.getDate() + days)
+    setHistoryDate(d.toISOString().slice(0, 10))
+  }
+
+  const isToday = historyDate === getTodayEC()
 
   const [formData, setFormData] = useState({
     categoryId: '',
@@ -356,6 +370,29 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
         {/* Tab: Historial */}
         {activeTab === 'history' && (
           <div className="p-4">
+            {/* Navegador de fecha */}
+            <div className="flex items-center justify-between mb-4 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+              <button onClick={() => changeHistoryDate(-1)} className="p-1.5 hover:bg-gray-200 rounded-lg transition-all">
+                <ChevronLeft size={16} className="text-gray-600" />
+              </button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={historyDate}
+                  onChange={e => setHistoryDate(e.target.value)}
+                  className="text-sm font-semibold text-gray-700 bg-transparent outline-none cursor-pointer"
+                />
+                {!isToday && (
+                  <button onClick={() => setHistoryDate(getTodayEC())} className="text-xs text-[#6b2145] font-medium hover:underline">
+                    Hoy
+                  </button>
+                )}
+              </div>
+              <button onClick={() => changeHistoryDate(1)} disabled={isToday} className="p-1.5 hover:bg-gray-200 rounded-lg transition-all disabled:opacity-30">
+                <ChevronRight size={16} className="text-gray-600" />
+              </button>
+            </div>
+
             {loading ? (
               <div className="p-8 flex flex-col items-center">
                 <div className="w-7 h-7 border-3 border-[#e8b4cc] border-t-[#6b2145] rounded-full animate-spin mb-3" />
@@ -364,7 +401,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
             ) : expenses.length === 0 ? (
               <EmptyState
                 icon={TrendingDown}
-                title="No hay egresos registrados hoy"
+                title={isToday ? 'No hay egresos registrados hoy' : `Sin egresos el ${historyDate}`}
                 action={
                   <button
                     onClick={() => setActiveTab('register')}
