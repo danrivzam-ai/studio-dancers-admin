@@ -91,7 +91,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
           .order('payment_date', { ascending: true }),
         supabase
           .from('quick_payments')
-          .select('id, payment_date, amount, payment_method, bank_name, description')
+          .select('id, payment_date, amount, payment_method, bank_name, notes')
           .gte('payment_date', inicio)
           .lte('payment_date', fin)
           .order('payment_date', { ascending: true }),
@@ -140,7 +140,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
         lista.push({
           n: seq++,
           fecha: q.payment_date,
-          descripcion: q.description || 'Clase / pago rápido',
+          descripcion: q.notes || 'Clase / pago rápido',
           cuenta_debe: ctaDebe,
           nombre_debe: PLAN_CUENTAS[ctaDebe],
           monto_debe: parseFloat(q.amount || 0),
