@@ -97,7 +97,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
           .order('payment_date', { ascending: true }),
         supabase
           .from('sales')
-          .select('id, created_at, total_amount, payment_method')
+          .select('id, created_at, total, payment_method')
           .gte('created_at', inicio)
           .lte('created_at', finExtended)
           .order('created_at', { ascending: true }),
@@ -161,10 +161,10 @@ export default function ContabilidadPanel({ settings, onClose }) {
           descripcion: 'Venta de productos',
           cuenta_debe: ctaDebe,
           nombre_debe: PLAN_CUENTAS[ctaDebe],
-          monto_debe: parseFloat(s.total_amount || 0),
+          monto_debe: parseFloat(s.total || 0),
           cuenta_haber: '4.1.02',
           nombre_haber: PLAN_CUENTAS['4.1.02'],
-          monto_haber: parseFloat(s.total_amount || 0),
+          monto_haber: parseFloat(s.total || 0),
           tipo: 'sale',
         })
       }
