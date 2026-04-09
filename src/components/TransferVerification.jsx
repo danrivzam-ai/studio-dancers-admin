@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause } from 'lucide-react'
 import { formatDate, getPaymentStatus, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
+import { getCourseById as getCourseByIdHardcoded } from '../lib/courses'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
@@ -444,7 +445,11 @@ export default function TransferVerification({
                   {req.status === 'pending' && (() => {
                     const st = req.students
                     const course = getCourseById?.(st?.course_id)
-                    const isAdultCycle = (course?.priceType === 'mes' || course?.priceType === 'paquete') && (course?.ageMin ?? 0) >= 18
+                    // Usar datos hardcodeados para ageMin (el getCourseById del hook solo trae datos de DB)
+                    const hardcoded = getCourseByIdHardcoded(st?.course_id)
+                    const priceType = course?.priceType || course?.price_type || hardcoded?.priceType
+                    const ageMin = course?.ageMin ?? hardcoded?.ageMin ?? 0
+                    const isAdultCycle = (priceType === 'mes' || priceType === 'paquete') && ageMin >= 18
                     const daysUntilDue = isAdultCycle && st?.next_payment_date ? getDaysUntilDue(st.next_payment_date) : null
                     const cycleFinished = daysUntilDue !== null && daysUntilDue <= 0
                     const attended = getAttended(req.id)
