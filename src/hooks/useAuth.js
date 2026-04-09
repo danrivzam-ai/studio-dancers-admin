@@ -65,13 +65,15 @@ export function useAuth() {
         const validUser = isPortalUser ? null : session?.user ?? null
         setSession(isPortalUser ? null : session)
         setUser(validUser)
+
+        // Liberar el loading inmediatamente — el rol se carga en paralelo sin bloquear
+        setLoading(false)
+
         if (validUser) {
-          const role = await fetchUserRole(validUser)
-          setDetectedRole(role)
+          fetchUserRole(validUser).then(role => setDetectedRole(role))
         }
       } catch (err) {
         console.error('Auth error:', err)
-      } finally {
         setLoading(false)
       }
     }
@@ -81,19 +83,18 @@ export function useAuth() {
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event)
         // Shadow users del portal de alumnas NO deben acceder al admin
         const isPortalUser = session?.user?.app_metadata?.portal_role === 'alumna'
         const validUser = isPortalUser ? null : session?.user ?? null
         setSession(isPortalUser ? null : session)
         setUser(validUser)
+        setLoading(false)
+
         if (validUser) {
-          const role = await fetchUserRole(validUser)
-          setDetectedRole(role)
+          fetchUserRole(validUser).then(role => setDetectedRole(role))
         } else {
           setDetectedRole(ROLES.ADMIN)
         }
-        setLoading(false)
       }
     )
 
