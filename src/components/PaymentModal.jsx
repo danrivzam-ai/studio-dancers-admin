@@ -30,6 +30,8 @@ export default function PaymentModal({
   const allowsInstallments = course?.allowsInstallments || false
   const installmentCount = course?.installmentCount || 2
   const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
+  // Cursos de ciclo libre (adultas): sin lenguaje de "vencido/atrasado"
+  const isAdultCycleCourse = isRecurring && (course?.ageMin ?? 0) >= 18
 
   // Calcular saldo pendiente del estudiante (funciona para programas, mensuales y paquetes)
   const amountPaid = parseFloat(student?.amount_paid || 0)
@@ -44,10 +46,10 @@ export default function PaymentModal({
   const isOverdue = daysUntilDue <= 0
   const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0
 
-  // Opción de inicio de ciclo: 'original' = desde fecha que le correspondía, 'today' = desde hoy
-  // Si la alumna está inactiva (pasó el periodo de gracia), por defecto empezar desde hoy
-  const [cycleStartOption, setCycleStartOption] = useState(
-    isOverdue && daysOverdue > autoInactiveDays ? 'today' : 'original'
+  // Fecha de inicio del nuevo ciclo: por defecto = fecha que le correspondía (next_payment_date)
+  // La recepcionista puede cambiarla si la alumna empezó clases en otra fecha
+  const [cycleStartDate, setCycleStartDate] = useState(
+    student?.next_payment_date || getTodayEC()
   )
 
   // Estado de descuento
@@ -227,8 +229,10 @@ export default function PaymentModal({
       discountValue: customFinalPrice !== '' ? (getBaseAmount() - parseFloat(formData.amount)).toFixed(2) : discountValue,
       discountAmount: getDiscountAmount().toFixed(2)
     } : null
-    const cycleStartDate = isOverdue
-      ? (cycleStartOption === 'original' ? student.next_payment_date : getTodayEC())
+    // Solo pasar cycleStartDate al hook cuando el alumno está atrasado y tiene ciclo previo
+    // Así el hook sabe que la recepcionista eligió explícitamente el inicio del ciclo
+    const resolvedCycleStartDate = (isOverdue && !hasBalance && student?.next_payment_date)
+      ? cycleStartDate
       : null
     setPendingPayment({
       amount: parseFloat(formData.amount),
@@ -242,7 +246,7 @@ export default function PaymentModal({
       coursePrice,
       courseName: course?.name || 'Sin curso',
       discount: discountInfo,
-      cycleStartDate
+      cycleStartDate: resolvedCycleStartDate
     })
     setConfirmStep(true)
   }
@@ -331,6 +335,17 @@ export default function PaymentModal({
             })()}
           </div>
         </div>
+
+        {/* Banner: Alumna pausada */}
+        {student?.is_paused && (
+          <div className="px-4 sm:px-6 py-3 bg-blue-50 border-b border-blue-200 flex items-center gap-2">
+            <span className="text-blue-500 text-lg">⏸</span>
+            <div>
+              <p className="text-sm font-semibold text-blue-800">Tiene 1 clase pausada</p>
+              <p className="text-xs text-blue-600">Se sumará automáticamente al nuevo ciclo al registrar el pago</p>
+            </div>
+          </div>
+        )}
 
         {/* Loyalty Banner — solo si tiene tier activo en curso recurrente */}
         {hasLoyaltyDiscount && (() => {
@@ -652,42 +667,43 @@ export default function PaymentModal({
             </div>
           </div>
 
-          {/* Cycle Start Date - solo cuando alumno atrasado y curso recurrente */}
-          {isOverdue && !hasBalance && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-              <p className="text-sm font-medium text-amber-800 mb-2 flex items-center gap-1.5">
-                <AlertCircle size={16} />
-                Pago atrasado ({daysOverdue} {daysOverdue === 1 ? 'día' : 'días'})
+          {/* Cycle Start Date - ciclo terminado, renovando */}
+          {isOverdue && !hasBalance && student?.next_payment_date && (
+            <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 space-y-2">
+              <p className="text-sm font-semibold text-sky-800 flex items-center gap-1.5">
+                <AlertCircle size={15} />
+                {isAdultCycleCourse
+                  ? `Ciclo terminado · ${daysOverdue}d sin renovar`
+                  : `Pago pendiente · ${daysOverdue} ${daysOverdue === 1 ? 'día' : 'días'}`}
               </p>
-              <p className="text-xs text-amber-700 mb-2.5">
-                ¿Desde cuándo empieza el nuevo ciclo de clases?
+              <p className="text-xs text-sky-700 leading-relaxed">
+                ¿Cuándo asistió por primera vez al nuevo ciclo?
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCycleStartOption('original')}
-                  className={`p-2.5 rounded-xl border-2 text-xs font-medium active:scale-95 transition-all text-center ${
-                    cycleStartOption === 'original'
-                      ? 'border-amber-500 bg-amber-100 text-amber-800'
-                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
-                  }`}
-                >
-                  <p className="font-semibold text-sm">Fecha original</p>
-                  <p className="text-[10px] mt-0.5 opacity-80">{formatDate(student.next_payment_date)}</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCycleStartOption('today')}
-                  className={`p-2.5 rounded-xl border-2 text-xs font-medium active:scale-95 transition-all text-center ${
-                    cycleStartOption === 'today'
-                      ? 'border-amber-500 bg-amber-100 text-amber-800'
-                      : 'border-gray-200 bg-white hover:border-gray-300 text-gray-600'
-                  }`}
-                >
-                  <p className="font-semibold text-sm">Desde hoy</p>
-                  <p className="text-[10px] mt-0.5 opacity-80">{formatDate(getTodayEC())}</p>
-                </button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={cycleStartDate}
+                  max={getTodayEC()}
+                  onChange={(e) => setCycleStartDate(e.target.value)}
+                  className="flex-1 px-3 py-2 text-sm border-2 border-sky-300 rounded-xl focus:ring-2 focus:ring-sky-200 focus:border-sky-500 outline-none bg-white font-medium text-gray-800"
+                />
+                {cycleStartDate !== student.next_payment_date && (
+                  <button
+                    type="button"
+                    onClick={() => setCycleStartDate(student.next_payment_date)}
+                    className="text-xs text-sky-700 underline whitespace-nowrap shrink-0"
+                  >
+                    Restablecer
+                  </button>
+                )}
               </div>
+              <p className="text-[11px] text-sky-600 leading-relaxed">
+                {cycleStartDate === student.next_payment_date
+                  ? '✓ Fecha original — correcto si asistió ese día o después'
+                  : cycleStartDate > student.next_payment_date
+                  ? '⚠ Fecha posterior — el nuevo ciclo empezará desde aquí'
+                  : '⚠ Fecha anterior — verifica que sea la correcta'}
+              </p>
             </div>
           )}
 

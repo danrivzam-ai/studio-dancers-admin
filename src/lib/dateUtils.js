@@ -416,19 +416,22 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     }
 
     if (days < 0) {
+      // Paquete terminado → lenguaje neutral, sin "vencido" ni urgencia
       return {
-        status: 'overdue',
-        label: `Renovar paquete`,
-        color: 'bg-red-600 text-white ring-1 ring-red-700',
-        colorCode: 'red',
-        priority: 1
+        status: 'cycle_complete',
+        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${Math.abs(days)}d`,
+        color: 'bg-sky-100 text-sky-800 border border-sky-200',
+        colorCode: 'blue',
+        priority: 3
       }
     }
 
     return {
       status: 'active_package',
-      label: `${remaining} clase${remaining !== 1 ? 's' : ''} restante${remaining !== 1 ? 's' : ''}`,
-      color: remaining <= 1 ? 'bg-orange-500 text-white ring-1 ring-orange-600' : 'bg-violet-100 text-violet-700 border border-violet-200',
+      label: remaining <= 1
+        ? `Última clase`
+        : `${remaining} clases restantes`,
+      color: remaining <= 1 ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-violet-100 text-violet-700 border border-violet-200',
       colorCode: remaining <= 1 ? 'orange' : 'blue',
       priority: remaining <= 1 ? 2 : 4
     }
@@ -478,13 +481,13 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
-    // Adultas: ciclo finalizado → no puede asistir, debe renovar (sin mora ni gracia)
+    // Adultas: ciclo finalizado → lenguaje neutral de membresía, sin "vencido"
     if (isAdultCourse) {
       return {
         status: 'adult_renewal',
-        label: absDays === 1 ? 'Ciclo finalizado (1 día)' : `Ciclo finalizado (${absDays}d)`,
-        color: 'bg-amber-100 text-amber-800 ring-1 ring-amber-300',
-        colorCode: 'amber',
+        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${absDays}d`,
+        color: 'bg-sky-100 text-sky-800 border border-sky-200',
+        colorCode: 'blue',
         canAttend: false,
         priority: 3
       }
@@ -528,9 +531,11 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   if (days === 0) {
     return {
       status: 'due_today',
-      label: 'Renovar hoy',
-      color: 'bg-red-500 text-white ring-1 ring-red-600',
-      colorCode: 'red',
+      label: isAdultCourse ? 'Última clase hoy' : 'Renovar hoy',
+      color: isAdultCourse
+        ? 'bg-orange-100 text-orange-700 border border-orange-200'
+        : 'bg-red-500 text-white ring-1 ring-red-600',
+      colorCode: isAdultCourse ? 'orange' : 'red',
       canAttend: true,
       priority: 1
     }
@@ -538,9 +543,13 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   if (days <= 3) {
     return {
       status: 'urgent',
-      label: days === 1 ? 'Vence mañana' : `Vence en ${days} días`,
-      color: 'bg-orange-500 text-white ring-1 ring-orange-600',
-      colorCode: 'orange',
+      label: isAdultCourse
+        ? (days === 1 ? 'Última clase mañana' : `Termina en ${days} días`)
+        : (days === 1 ? 'Vence mañana' : `Vence en ${days} días`),
+      color: isAdultCourse
+        ? 'bg-amber-100 text-amber-800 border border-amber-200'
+        : 'bg-orange-500 text-white ring-1 ring-orange-600',
+      colorCode: isAdultCourse ? 'yellow' : 'orange',
       canAttend: true,
       priority: 2
     }
@@ -548,7 +557,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   if (days <= 7) {
     return {
       status: 'upcoming',
-      label: `Vence en ${days} días`,
+      label: isAdultCourse ? `Por renovar · ${days}d` : `Vence en ${days} días`,
       color: 'bg-amber-100 text-amber-800 border border-amber-300',
       colorCode: 'yellow',
       canAttend: true,

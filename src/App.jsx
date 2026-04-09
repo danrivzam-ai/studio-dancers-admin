@@ -52,6 +52,7 @@ import ScreenLock from './components/ScreenLock'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import ContabilidadPanel from './components/Contabilidad/ContabilidadPanel'
+import ContadorDashboard from './components/Contabilidad/ContadorDashboard'
 import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
@@ -75,7 +76,7 @@ function StudentAvatar({ student, isCamp }) {
 }
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
-  const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, can } = useAuth()
+  const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, isContador, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
@@ -952,6 +953,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     return <LoginPage onLogin={(user) => console.log('Logged in:', user.email)} />
   }
 
+  // Contadora: panel simplificado exclusivo
+  if (!isRecepcion && isContador) {
+    return (
+      <ContadorDashboard
+        user={user}
+        settings={settings}
+        onSignOut={signOut}
+      />
+    )
+  }
+
   if (!isRecepcion && loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{
@@ -1770,14 +1782,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         const days = getDaysUntilDue(s.next_payment_date)
                         const isOverdue = days < 0
                         const isActive = reminderQueueIdx === idx
+                        const isAdultCycle = (course?.ageMin ?? 0) >= 18 && (course?.priceType === 'mes' || course?.priceType === 'paquete')
                         return (
                           <div key={s.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${isActive ? 'bg-green-50 border border-green-200' : 'bg-gray-50'}`}>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
                               <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
                             </div>
-                            <span className={`text-xs font-bold shrink-0 ${isOverdue ? 'text-red-500' : 'text-amber-500'}`}>
-                              {isOverdue ? `${Math.abs(days)}d vencido` : days === 0 ? 'Hoy' : `${days}d`}
+                            <span className={`text-xs font-bold shrink-0 ${isOverdue ? (isAdultCycle ? 'text-sky-600' : 'text-red-500') : 'text-amber-500'}`}>
+                              {isOverdue
+                                ? `${Math.abs(days)}d ${isAdultCycle ? 'sin renovar' : 'vencido'}`
+                                : days === 0 ? 'Hoy' : `${days}d`}
                             </span>
                             <button
                               onClick={() => {

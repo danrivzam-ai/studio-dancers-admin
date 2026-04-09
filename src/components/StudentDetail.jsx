@@ -125,6 +125,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
     const due = new Date(student.next_payment_date + 'T12:00:00')
     return Math.round((due - today) / (1000 * 60 * 60 * 24))
   })()
+  // Cursos de ciclo libre (adultas mensual/paquete): sin lenguaje de "vencido"
+  const isAdultCycleCourse = isRecurring && (course?.ageMin ?? 0) >= 18
 
   const handleWhatsApp = () => {
     const phone = student.payer_phone || student.parent_phone || student.phone
@@ -259,19 +261,28 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
             {isRecurring && (
               <div className={`rounded-xl p-3 text-center border ${
-                daysUntilDue !== null && daysUntilDue < 0 ? 'bg-red-50 border-red-200'
-                : daysUntilDue !== null && daysUntilDue <= 5 ? 'bg-amber-50 border-amber-200'
-                : 'bg-sky-50 border-sky-100'
+                daysUntilDue !== null && daysUntilDue < 0
+                  ? isAdultCycleCourse ? 'bg-sky-50 border-sky-200' : 'bg-red-50 border-red-200'
+                  : daysUntilDue !== null && daysUntilDue <= 5 ? 'bg-amber-50 border-amber-200'
+                  : 'bg-sky-50 border-sky-100'
               }`}>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">Próximo cobro</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">
+                  {isAdultCycleCourse ? 'Próxima renovación' : 'Próximo cobro'}
+                </p>
                 <p className="text-sm font-bold text-gray-800">
                   {student.next_payment_date ? formatDate(student.next_payment_date) : '—'}
                 </p>
                 {daysUntilDue !== null && (
                   <p className={`text-xs mt-0.5 font-medium ${
-                    daysUntilDue < 0 ? 'text-red-600' : daysUntilDue === 0 ? 'text-amber-600' : 'text-gray-400'
+                    daysUntilDue < 0
+                      ? isAdultCycleCourse ? 'text-sky-600' : 'text-red-600'
+                      : daysUntilDue === 0 ? 'text-amber-600'
+                      : 'text-gray-400'
                   }`}>
-                    {daysUntilDue < 0 ? `${Math.abs(daysUntilDue)}d vencido`
+                    {daysUntilDue < 0
+                      ? isAdultCycleCourse
+                        ? `${Math.abs(daysUntilDue)}d sin renovar`
+                        : `${Math.abs(daysUntilDue)}d vencido`
                       : daysUntilDue === 0 ? 'Hoy'
                       : `en ${daysUntilDue} días`}
                   </p>

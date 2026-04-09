@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2 } from 'lucide-react'
-import { formatDate } from '../lib/dateUtils'
+import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause } from 'lucide-react'
+import { formatDate, getPaymentStatus, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
@@ -230,11 +230,18 @@ export default function TransferVerification({
   const [rejectReason, setRejectReason] = useState('')
   const [processing, setProcessing] = useState(null)
   const [showManualForm, setShowManualForm] = useState(false)
+  // Estado por transferencia: ¿ya asistió al nuevo ciclo? + fecha de primera clase
+  const [attendedInfo, setAttendedInfo] = useState({})
+
+  const getAttended = (reqId) => attendedInfo[reqId] || { attended: false, date: '' }
+  const setAttended = (reqId, field, value) =>
+    setAttendedInfo(prev => ({ ...prev, [reqId]: { ...getAttended(reqId), [field]: value } }))
 
   const filtered = requests.filter(r => filter === 'all' || r.status === filter)
 
   const handleApprove = async (request) => {
     setProcessing(request.id)
+    const attended = getAttended(request.id)
     try {
       const student = request.students
       if (onRegisterPayment && student) {
@@ -243,7 +250,9 @@ export default function TransferVerification({
           paymentMethod: 'Transferencia',
           bankName: request.bank_name || '',
           transferReceipt: request.receipt_number || request.id.slice(0, 8),
-          notes: `Aprobado desde portal. ${request.receipt_number ? 'Comp: ' + request.receipt_number : 'Ref: ' + request.id.slice(0, 8)}`
+          notes: `Aprobado desde portal. ${request.receipt_number ? 'Comp: ' + request.receipt_number : 'Ref: ' + request.id.slice(0, 8)}`,
+          // Si indicó que ya asistió al nuevo ciclo, usar esa fecha como inicio del ciclo
+          cycleStartDate: attended.attended && attended.date ? attended.date : null
         })
         if (!result?.success) {
           throw new Error(result?.error || 'Error registrando el pago del estudiante')
@@ -431,54 +440,126 @@ export default function TransferVerification({
                     <p className="text-xs text-gray-400 mb-2">Nota: {req.notes}</p>
                   )}
 
-                  {/* Actions for pending */}
-                  {req.status === 'pending' && (
-                    <>
-                      {rejectingId === req.id ? (
-                        <div className="flex gap-2 mt-2">
-                          <input
-                            type="text"
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                            placeholder="Motivo de rechazo..."
-                            className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => handleReject(req.id)}
-                            disabled={processing === req.id}
-                            className="px-3 py-1.5 bg-red-600 text-white rounded-xl text-xs font-medium disabled:opacity-50 active:scale-95 transition-all"
-                          >
-                            Rechazar
-                          </button>
-                          <button
-                            onClick={() => { setRejectingId(null); setRejectReason('') }}
-                            className="px-2 py-1.5 text-gray-500 text-xs"
-                          >
-                            Cancel
-                          </button>
+                  {/* Contexto del ciclo + estado alumna — solo para pendientes */}
+                  {req.status === 'pending' && (() => {
+                    const st = req.students
+                    const course = getCourseById?.(st?.course_id)
+                    const isAdultCycle = (course?.priceType === 'mes' || course?.priceType === 'paquete') && (course?.ageMin ?? 0) >= 18
+                    const daysUntilDue = isAdultCycle && st?.next_payment_date ? getDaysUntilDue(st.next_payment_date) : null
+                    const cycleFinished = daysUntilDue !== null && daysUntilDue <= 0
+                    const attended = getAttended(req.id)
+
+                    return (
+                      <div className="mt-2 space-y-2">
+                        {/* Badges de estado */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {st?.is_paused && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[11px] font-semibold">
+                              <Pause size={10} /> Clase pausada
+                            </span>
+                          )}
+                          {isAdultCycle && cycleFinished && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sky-100 text-sky-700 rounded-full text-[11px] font-semibold">
+                              Ciclo terminado · {Math.abs(daysUntilDue)}d sin renovar
+                            </span>
+                          )}
+                          {isAdultCycle && !cycleFinished && daysUntilDue !== null && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[11px] font-semibold">
+                              Ciclo activo · {daysUntilDue}d restantes
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => handleApprove(req)}
-                            disabled={processing === req.id}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
-                          >
-                            <CheckCircle size={14} />
-                            {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
-                          </button>
-                          <button
-                            onClick={() => setRejectingId(req.id)}
-                            disabled={processing === req.id}
-                            className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
-                          >
-                            <XCircle size={14} />
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
+
+                        {/* ¿Ya asistió? — solo cursos adultas de ciclo */}
+                        {isAdultCycle && cycleFinished && (
+                          <div className="bg-sky-50 border border-sky-200 rounded-xl p-2.5 space-y-2">
+                            <p className="text-xs font-semibold text-sky-800 flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              ¿Ya asistió a su primera clase del nuevo ciclo?
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setAttended(req.id, 'attended', false)}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                                  !attended.attended
+                                    ? 'bg-sky-600 text-white border-sky-600'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                No · el ciclo inicia hoy
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setAttended(req.id, 'attended', true)}
+                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                                  attended.attended
+                                    ? 'bg-sky-600 text-white border-sky-600'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                Sí · ya asistió
+                              </button>
+                            </div>
+                            {attended.attended && (
+                              <input
+                                type="date"
+                                value={attended.date || st?.next_payment_date || getTodayEC()}
+                                max={getTodayEC()}
+                                onChange={(e) => setAttended(req.id, 'date', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border-2 border-sky-300 rounded-xl focus:ring-2 focus:ring-sky-200 outline-none bg-white font-medium text-gray-800"
+                              />
+                            )}
+                          </div>
+                        )}
+
+                        {/* Reject input */}
+                        {rejectingId === req.id ? (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={rejectReason}
+                              onChange={(e) => setRejectReason(e.target.value)}
+                              placeholder="Motivo de rechazo..."
+                              className="flex-1 px-3 py-2.5 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleReject(req.id)}
+                              disabled={processing === req.id}
+                              className="px-3 py-1.5 bg-red-600 text-white rounded-xl text-xs font-medium disabled:opacity-50 active:scale-95 transition-all"
+                            >
+                              Rechazar
+                            </button>
+                            <button
+                              onClick={() => { setRejectingId(null); setRejectReason('') }}
+                              className="px-2 py-1.5 text-gray-500 text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleApprove(req)}
+                              disabled={processing === req.id}
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
+                            >
+                              <CheckCircle size={14} />
+                              {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
+                            </button>
+                            <button
+                              onClick={() => setRejectingId(req.id)}
+                              disabled={processing === req.id}
+                              className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
+                            >
+                              <XCircle size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               ))}
             </div>

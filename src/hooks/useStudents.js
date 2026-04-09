@@ -393,9 +393,15 @@ export function useStudents() {
       // en la fecha de vencimiento anterior (no hoy), para que el conteo de clases
       // sea correcto visualmente.
       const isPaidEarly = studentNextPaymentDate && paymentDate < studentNextPaymentDate && !isPartialPayment
-      const cycleStartForDisplay = isPaidEarly
-        ? formatDateForInput(studentNextPaymentDate)
-        : formatDateForInput(paymentDate)
+      // cycleStartForDisplay determina last_payment_date (base del ciclo visual):
+      // 1. Si la recepcionista eligió fecha explícita (pagos atrasados) → usarla
+      // 2. Si pago anticipado → usar fecha de vencimiento original (no fecha de hoy)
+      // 3. Pago normal → fecha real del pago
+      const cycleStartForDisplay = paymentData.cycleStartDate
+        ? paymentData.cycleStartDate
+        : isPaidEarly
+          ? formatDateForInput(studentNextPaymentDate)
+          : formatDateForInput(paymentDate)
 
       // Actualizar estudiante
       const updateFields = {
@@ -473,17 +479,19 @@ export function useStudents() {
 
       if (paymentError) throw paymentError
 
-      // Actualizar estado local
+      // Actualizar estado local — debe usar exactamente los mismos valores que se guardaron en DB
       setStudents(prev => prev.map(s => {
         if (s.id === studentId) {
           return {
             ...s,
-            last_payment_date: formatDateForInput(paymentDate),
+            last_payment_date: updateFields.last_payment_date,
             next_payment_date: updateFields.next_payment_date,
             amount_paid: updateFields.amount_paid,
             balance: updateFields.balance,
             payment_status: updateFields.payment_status,
-            classes_used: isPackage ? classesUsed : s.classes_used
+            classes_used: isPackage ? classesUsed : s.classes_used,
+            prepaid: updateFields.prepaid,
+            prepaid_old_start: updateFields.prepaid_old_start
           }
         }
         return s

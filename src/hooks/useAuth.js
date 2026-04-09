@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-// Roles disponibles (para futuro uso)
+// Roles disponibles
 export const ROLES = {
   ADMIN: 'admin',
   RECEPTIONIST: 'receptionist',
-  VIEWER: 'viewer'
+  VIEWER: 'viewer',
+  CONTADOR: 'contador'
 }
 
 // Permisos de Admin (todos los permisos)
@@ -31,6 +32,23 @@ export function useAuth() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState(null)
+  const [detectedRole, setDetectedRole] = useState(ROLES.ADMIN)
+
+  // Consultar rol del usuario en la tabla user_roles
+  const fetchUserRole = async (userObj) => {
+    if (!userObj?.email) return ROLES.ADMIN
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('email', userObj.email)
+        .maybeSingle()
+      if (data?.role) return data.role
+    } catch {
+      // Si la tabla no existe o hay error, asumir admin
+    }
+    return ROLES.ADMIN
+  }
 
   useEffect(() => {
     // Obtener sesión actual
@@ -44,8 +62,13 @@ export function useAuth() {
 
         // Shadow users del portal de alumnas NO deben acceder al admin
         const isPortalUser = session?.user?.app_metadata?.portal_role === 'alumna'
+        const validUser = isPortalUser ? null : session?.user ?? null
         setSession(isPortalUser ? null : session)
-        setUser(isPortalUser ? null : session?.user ?? null)
+        setUser(validUser)
+        if (validUser) {
+          const role = await fetchUserRole(validUser)
+          setDetectedRole(role)
+        }
       } catch (err) {
         console.error('Auth error:', err)
       } finally {
@@ -61,8 +84,15 @@ export function useAuth() {
         console.log('Auth event:', event)
         // Shadow users del portal de alumnas NO deben acceder al admin
         const isPortalUser = session?.user?.app_metadata?.portal_role === 'alumna'
+        const validUser = isPortalUser ? null : session?.user ?? null
         setSession(isPortalUser ? null : session)
-        setUser(isPortalUser ? null : session?.user ?? null)
+        setUser(validUser)
+        if (validUser) {
+          const role = await fetchUserRole(validUser)
+          setDetectedRole(role)
+        } else {
+          setDetectedRole(ROLES.ADMIN)
+        }
         setLoading(false)
       }
     )
@@ -151,14 +181,21 @@ export function useAuth() {
     return !!user
   }
 
+  const isContador = user ? detectedRole === ROLES.CONTADOR : false
+
   return {
     user,
     session,
-    userRole: user ? { role: ROLES.ADMIN, display_name: 'Administrador', email: user.email } : null,
+    userRole: user ? {
+      role: detectedRole,
+      display_name: detectedRole === ROLES.CONTADOR ? 'Contadora' : 'Administrador',
+      email: user.email
+    } : null,
     permissions: user ? ADMIN_PERMISSIONS : {},
     loading,
     isAuthenticated: !!user,
     isAdmin: isAdmin(),
+    isContador,
     can,
     signIn,
     signUp,
