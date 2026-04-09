@@ -23,15 +23,15 @@ export default function AdultDashboard({ auth, student, onLogout }) {
   const initials = (student.name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const isCourtesy = student.is_courtesy
   const ps = student.payment_status
-  // DB values: 'paid' | 'pending' | 'partial' | 'overdue'
+  // Adultas: sin lenguaje de "vencido" — modelo de membresía/ciclo libre
   const chip = isCourtesy
-    ? { label: 'Cortesía', cls: 'bg-amber-100 text-amber-700' }
+    ? { label: 'Cortesía',           cls: 'bg-amber-100 text-amber-700' }
     : ps === 'paid'
-    ? { label: 'Al día', cls: 'bg-emerald-100 text-emerald-700' }
+    ? { label: 'Al día ✓',           cls: 'bg-emerald-100 text-emerald-700' }
     : ps === 'overdue'
-    ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
+    ? { label: 'Lista para renovar', cls: 'bg-sky-100 text-sky-800' }
     : (ps === 'pending' || ps === 'partial')
-    ? { label: 'Por renovar', cls: 'bg-amber-100 text-amber-700' }
+    ? { label: 'Por renovar',        cls: 'bg-amber-100 text-amber-700' }
     : null
 
   return (

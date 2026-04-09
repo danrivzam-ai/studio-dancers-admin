@@ -13,10 +13,11 @@ function formatFecha(dateStr) {
   })
 }
 
+// Adultas: modelo de membresía/ciclo libre — sin "vencido" ni urgencia
 const ESTADO_PAGO = {
-  al_dia:     { label: 'Al día ✓',       bg: 'bg-emerald-100', text: 'text-emerald-700', bar: 'border-t-4 border-emerald-400' },
-  por_vencer: { label: 'Por renovar',    bg: 'bg-amber-100',   text: 'text-amber-700',   bar: 'border-t-4 border-amber-400'   },
-  vencido:    { label: 'Pago vencido',   bg: 'bg-red-100',     text: 'text-red-700',     bar: 'border-t-4 border-red-400'     },
+  al_dia:     { label: 'Al día ✓',           bg: 'bg-emerald-100', text: 'text-emerald-700', bar: 'border-t-4 border-emerald-400' },
+  por_vencer: { label: 'Por renovar',        bg: 'bg-amber-100',   text: 'text-amber-700',   bar: 'border-t-4 border-amber-400'   },
+  vencido:    { label: 'Lista para renovar', bg: 'bg-sky-100',     text: 'text-sky-800',     bar: 'border-t-4 border-sky-400'     },
 }
 // DB values: 'paid' | 'pending' | 'partial' | 'overdue'
 function normPS(ps) {
@@ -160,7 +161,7 @@ export default function TabReportes({ auth, student, onLogout }) {
         <div className="flex items-center justify-between py-2.5 border-t border-gray-50">
           <div className="flex items-center gap-2 text-gray-600">
             <CalendarCheck size={15} className="text-gray-400" />
-            <span className="text-sm">Próximo pago</span>
+            <span className="text-sm">Próxima renovación</span>
           </div>
           <span className="text-sm font-semibold text-gray-800">
             {formatFecha(next_payment_date)}
