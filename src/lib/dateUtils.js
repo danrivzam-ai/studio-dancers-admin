@@ -468,6 +468,57 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   // Cuando el ciclo vence → no puede asistir hasta renovar.
   const isAdultCourse = (course?.ageMin ?? 0) >= 18
 
+  // Para adultas con classesPerCycle (ej: Ballet Adultos M-J, 8 clases):
+  // verificar si el ciclo se completó por CLASES aunque next_payment_date aún no haya llegado.
+  if (isAdultCourse && days >= 0) {
+    const classesTotal = course.classesPerCycle || course.classesPerPackage || course.classes_per_cycle
+    const baseDate = student.last_payment_date || student.enrollment_date
+    if (classesTotal && baseDate && student.next_payment_date && (course.classDays || course.class_days)) {
+      const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course.classDays || course.class_days, classesTotal)
+      const classesTaken = cycleInfo?.classesPassed ?? 0
+      const remaining = classesTotal - classesTaken
+
+      if (remaining <= 0) {
+        // Todas las clases tomadas — ¿la última es hoy?
+        const todayStr = getTodayEC()
+        const todayDow = new Date(todayStr + 'T12:00:00').getDay()
+        const classDaysArr = course.classDays || course.class_days || []
+        const isLastClassToday = Array.isArray(classDaysArr) && classDaysArr.includes(todayDow)
+
+        if (isLastClassToday) {
+          return {
+            status: 'due_today',
+            label: 'Última clase hoy',
+            color: 'bg-orange-100 text-orange-700 border border-orange-200',
+            colorCode: 'orange',
+            canAttend: true,
+            priority: 1
+          }
+        }
+        // Ciclo completado por clases, día siguiente o posterior
+        return {
+          status: 'adult_renewal',
+          label: 'Lista para renovar',
+          color: 'bg-sky-100 text-sky-800 border border-sky-200',
+          colorCode: 'blue',
+          canAttend: false,
+          priority: 3
+        }
+      }
+
+      if (remaining === 1) {
+        return {
+          status: 'active_package',
+          label: 'Última clase',
+          color: 'bg-orange-100 text-orange-700 border border-orange-200',
+          colorCode: 'orange',
+          canAttend: true,
+          priority: 2
+        }
+      }
+    }
+  }
+
   if (days < 0) {
     const absDays = Math.abs(days)
 
