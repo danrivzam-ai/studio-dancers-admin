@@ -76,12 +76,16 @@ function Curtain({ side }) {
 const autofillStyle = `
   .pin-input:-webkit-autofill,
   .pin-input:-webkit-autofill:hover,
-  .pin-input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 30px rgba(255,255,255,0.12) inset !important;
+  .pin-input:-webkit-autofill:focus,
+  .pin-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px rgba(60,10,25,0.85) inset !important;
     -webkit-text-fill-color: white !important;
-    caret-color: white;
+    caret-color: white !important;
+    background-color: transparent !important;
+    transition: background-color 9999s ease-in-out 0s;
   }
-  .pin-input::placeholder { color: rgba(255,255,255,0.25); }
+  .pin-input { background-color: rgba(255,255,255,0.10) !important; }
+  .pin-input::placeholder { color: rgba(255,255,255,0.22); }
 `
 
 export default function ScreenLock({ isLocked, onUnlock, schoolName, securityPin }) {
@@ -218,7 +222,7 @@ export default function ScreenLock({ isLocked, onUnlock, schoolName, securityPin
                 type="password"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                autoComplete="off"
+                autoComplete="new-password"
                 maxLength={6}
                 className="pin-input"
                 value={pin}
