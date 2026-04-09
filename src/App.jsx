@@ -927,22 +927,44 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'linear-gradient(135deg, #6b2145 0%, #551735 50%, #be185d 100%)'
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden" style={{
+        background: 'linear-gradient(180deg, #0d0206 0%, #1a0509 35%, #220810 65%, #150306 100%)'
       }}>
-        <div className="text-center">
-          {/* Spinner animado */}
-          <div className="mb-6 flex justify-center">
-            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-          </div>
+        {/* Subtle spotlight from top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none" style={{
+          width: '70%', height: '60%',
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(255,230,180,0.08) 0%, transparent 70%)'
+        }} />
 
-          {/* Texto */}
-          <p className="text-white/80 text-sm mb-6">Cargando...</p>
+        {/* Logo */}
+        <img
+          src="/logo2.png"
+          alt="Studio Dancers"
+          style={{
+            width: 'clamp(120px, 22vw, 200px)',
+            height: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 18px rgba(180,80,110,0.55)) drop-shadow(0 2px 8px rgba(0,0,0,0.7))',
+            marginBottom: '1.75rem',
+          }}
+        />
 
-          {/* Barra de carga */}
-          <div className="loading-bar-container">
-            <div className="loading-bar"></div>
-          </div>
+        {/* Spinner */}
+        <div className="mb-4 flex justify-center">
+          <div className="w-10 h-10 rounded-full animate-spin" style={{
+            border: '3px solid rgba(201,168,76,0.2)',
+            borderTopColor: 'rgba(201,168,76,0.75)',
+          }} />
+        </div>
+
+        {/* Texto */}
+        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem', letterSpacing: '0.12em' }}>
+          Cargando...
+        </p>
+
+        {/* Curtain strips — decorative bottom edge */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: '6px' }}>
+          <div style={{ height: '100%', background: 'linear-gradient(90deg, #220810, #551735 30%, #7a1a38 50%, #551735 70%, #220810)', opacity: 0.8 }} />
         </div>
       </div>
     )
