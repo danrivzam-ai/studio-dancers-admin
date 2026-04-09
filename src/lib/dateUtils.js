@@ -208,11 +208,13 @@ export const calculateDueDate = (nextPaymentDate) => {
 }
 
 // Obtener días hasta el vencimiento
+// Usa la fecha de Ecuador (no UTC) para evitar desfase de zona horaria después de las 7 PM
 export const getDaysUntilDue = (nextPaymentDate) => {
   if (!nextPaymentDate) return 999
   const date = typeof nextPaymentDate === 'string' ? parseISO(nextPaymentDate) : nextPaymentDate
   const dueDate = subDays(date, 1)
-  return differenceInDays(dueDate, new Date())
+  const todayEC = parseISO(getTodayEC())
+  return differenceInDays(dueDate, todayEC)
 }
 
 /**
