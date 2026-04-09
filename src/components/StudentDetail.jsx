@@ -80,6 +80,9 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const amountPaid = parseFloat(student.amount_paid || 0)
   const balance = parseFloat(student.balance || 0)
   const hasBalance = amountPaid > 0 && balance > 0
+  // Programa 100% pagado: usar paymentStatus computado (no el campo crudo del DB,
+  // que puede no haberse actualizado aún a 'paid' aunque balance ya sea 0)
+  const isProgramFullyPaid = isProgram && (paymentStatus.status === 'paid' || (amountPaid > 0 && balance <= 0))
 
   const validPayments = payments.filter(p => !p.voided)
   const totalHistoricPaid = validPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
@@ -560,13 +563,18 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <MessageCircle size={18} />
               </button>
             )}
-            {!student.is_courtesy && (
+            {!student.is_courtesy && !isProgramFullyPaid && (
               <button
                 onClick={() => { onClose(); if (onPayment) onPayment(student) }}
                 className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
               >
                 <CreditCard size={16} /> Registrar Pago
               </button>
+            )}
+            {isProgramFullyPaid && (
+              <div className="flex-1 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
+                <CheckCircle size={16} /> Programa pagado completo
+              </div>
             )}
           </div>
         </div>

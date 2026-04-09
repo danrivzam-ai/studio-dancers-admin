@@ -3025,7 +3025,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   <Eye size={16} />
                                 </button>
                                 {!(course?.priceType === 'programa' && (
-                                  student.payment_status === 'paid' ||
+                                  paymentStatus.status === 'paid' ||
                                   (parseFloat(student.amount_paid || 0) > 0 && parseFloat(student.balance || 0) <= 0)
                                 )) && (
                                   <button
