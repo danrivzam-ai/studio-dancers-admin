@@ -1,4 +1,4 @@
-import { formatDate } from './dateUtils'
+import { formatDate, getCycleInfo } from './dateUtils'
 
 /**
  * Limpia y formatea un número de teléfono para WhatsApp (Ecuador).
@@ -90,7 +90,7 @@ Te recordamos que la mensualidad de *${student.name}* en *${courseName}* vence e
 💰 Monto: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
 Envíanos tu comprobante por aquí y ¡listo! 🙌
-🩰 ${schoolName}`
+${schoolName}`
 }
 
 /**
@@ -111,7 +111,7 @@ La mensualidad de *${student.name}* en *${courseName}* está vencida hace *${day
 
 Por favor envíanos tu comprobante para continuar en clases.
 Cualquier consulta estamos aquí 🙌
-🩰 ${schoolName}`
+${schoolName}`
 }
 
 /**
@@ -130,20 +130,46 @@ Te escribimos de *${schoolName}* porque el pago de *${student.name}* en *${cours
 💰 Monto pendiente: *$${amount}*
 
 Por favor contáctanos para coordinar tu pago y retomar las clases.
-🩰 ${schoolName}`
+${schoolName}`
+}
+
+/**
+ * Calcula las fechas reales del ciclo (primera y última clase) usando getCycleInfo.
+ * Si no hay datos de curso, cae a last_payment_date / next_payment_date como antes.
+ */
+const resolveCycleDates = (student, course) => {
+  if (course && student.last_payment_date && student.next_payment_date &&
+      (course.classDays || course.class_days) &&
+      (course.classesPerCycle || course.classesPerPackage)) {
+    const info = getCycleInfo(
+      student.last_payment_date,
+      student.next_payment_date,
+      course.classDays || course.class_days,
+      course.classesPerCycle || course.classesPerPackage
+    )
+    if (info) {
+      // getCycleInfo devuelve "dd/MM" — agregar año del ciclo
+      const year = student.last_payment_date.substring(0, 4)
+      return { start: `${info.cycleStart}/${year}`, end: `${info.cycleEnd}/${year}` }
+    }
+  }
+  // Fallback: fechas de pago (menos precisas)
+  return {
+    start: student.last_payment_date ? formatDate(student.last_payment_date) : null,
+    end: student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A',
+  }
 }
 
 /**
  * Mensaje Adult-A — Recordatorio previo para adultas (ciclo próximo a vencer).
- * Lenguaje de renovación con fechas del ciclo.
+ * Lenguaje de renovación con fechas reales del ciclo (primera y última clase).
  */
-export const buildMessageAdultReminder = (student, courseName, settings) => {
+export const buildMessageAdultReminder = (student, courseName, settings, course = null) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
-  const cycleEnd = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
-  const cycleStart = student.last_payment_date ? formatDate(student.last_payment_date) : null
   const schoolName = settings?.name || settings || 'Studio Dancers'
   const bankLine = buildBankLine(settings)
-  const cycleLine = cycleStart ? `del *${cycleStart}* al *${cycleEnd}*` : `que finaliza el *${cycleEnd}*`
+  const { start, end } = resolveCycleDates(student, course)
+  const cycleLine = start ? `del *${start}* al *${end}*` : `que finaliza el *${end}*`
 
   return `Hola ${student.name} 👋
 Te recordamos que tu ciclo de clases de *${courseName}* ${cycleLine} está por finalizar.
@@ -152,20 +178,19 @@ Para que tus clases continúen sin interrupción, renueva tu próximo ciclo:
 💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
 Envíanos tu comprobante por aquí y listo.
-🩰 ${schoolName}`
+${schoolName}`
 }
 
 /**
  * Mensaje Adult-B — Ciclo vencido para adultas (ya finalizó, debe renovar para retomar).
- * Sin "mora" ni "suspensión" — lenguaje de renovación con fechas del ciclo.
+ * Sin "mora" ni "suspensión" — lenguaje de renovación con fechas reales del ciclo.
  */
-export const buildMessageAdultExpired = (student, courseName, daysOverdue, settings) => {
+export const buildMessageAdultExpired = (student, courseName, daysOverdue, settings, course = null) => {
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
   const schoolName = settings?.name || settings || 'Studio Dancers'
   const bankLine = buildBankLine(settings)
-  const cycleEnd = student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A'
-  const cycleStart = student.last_payment_date ? formatDate(student.last_payment_date) : null
-  const cycleLine = cycleStart ? `del *${cycleStart}* al *${cycleEnd}*` : `que finalizó el *${cycleEnd}*`
+  const { start, end } = resolveCycleDates(student, course)
+  const cycleLine = start ? `del *${start}* al *${end}*` : `que finalizó el *${end}*`
 
   return `Hola ${student.name},
 Tu ciclo de clases de *${courseName}* ${cycleLine} ha finalizado.
@@ -174,7 +199,7 @@ Para retomar tus clases, renueva tu inscripción al nuevo ciclo:
 💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
 
 Escríbenos cuando quieras coordinar tu regreso.
-🩰 ${schoolName}`
+${schoolName}`
 }
 
 /**
@@ -188,7 +213,7 @@ Escríbenos cuando quieras coordinar tu regreso.
  * @param {number} graceDays     - días de gracia (default 5)
  * @param {number} moraDays      - días hasta suspensión (default 20)
  */
-export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20, isAdultCourse = false) => {
+export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20, isAdultCourse = false, course = null) => {
   const absDays = Math.abs(daysUntilDue)
 
   // ── Cursos de adultas (ageMin >= 18) ──────────────────────────────────────
@@ -196,10 +221,10 @@ export const buildReminderMessage = (student, courseName, daysUntilDue, settings
   if (isAdultCourse) {
     // Ciclo vigente o próximo a vencer → recordatorio de ciclo
     if (daysUntilDue >= 0) {
-      return buildMessageAdultReminder(student, courseName, settings)
+      return buildMessageAdultReminder(student, courseName, settings, course)
     }
     // Ciclo vencido → invitación a renovar
-    return buildMessageAdultExpired(student, courseName, absDays, settings)
+    return buildMessageAdultExpired(student, courseName, absDays, settings, course)
   }
 
   // ── Cursos infantiles/juveniles ───────────────────────────────────────────
