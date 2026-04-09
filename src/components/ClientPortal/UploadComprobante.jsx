@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Upload, Camera, X, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { notifyTelegram } from '../../lib/whatsappMetaApi'
 
 const BANKS = [
   'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
@@ -91,7 +92,35 @@ export default function UploadComprobante({ auth, student }) {
         })
       if (insertError) throw insertError
 
-      // 3. Show success
+      // 3. Notificar a Telegram (fire-and-forget — no bloquea el flujo)
+      try {
+        const { data: cfg } = await supabase
+          .from('school_settings')
+          .select('telegram_transfers_bot_token, telegram_transfers_chat_id, name')
+          .eq('id', 1)
+          .single()
+
+        if (cfg?.telegram_transfers_bot_token && cfg?.telegram_transfers_chat_id) {
+          const hora = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
+          const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
+          await notifyTelegram({
+            botToken: cfg.telegram_transfers_bot_token,
+            chatId: cfg.telegram_transfers_chat_id,
+            text:
+              `💸 *Nueva transferencia recibida*\n\n` +
+              `👤 *Alumna:* ${student?.name || '—'}\n` +
+              `🏦 *Banco:* ${bank}\n` +
+              `💰 *Monto:* $${parseFloat(amount).toFixed(2)}` +
+              (receiptNo.trim() ? `\n🔢 *Comprobante:* ${receiptNo.trim()}` : '') +
+              `\n\n🕐 ${fecha} · ${hora}\n` +
+              `_Revisa la sección de Transferencias en el sistema._`,
+          })
+        }
+      } catch {
+        // Silencioso — la notificación no debe bloquear el flujo del portal
+      }
+
+      // 4. Show success
       setSuccess(true)
       resetForm()
       setTimeout(() => { setSuccess(false); setOpen(false) }, 4000)

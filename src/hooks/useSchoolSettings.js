@@ -28,6 +28,8 @@ export function useSchoolSettings() {
     sri_obligado_contabilidad: true,
     sri_contribuyente_especial: '',
     sri_main_activity: 'P8549.03',
+    telegram_transfers_bot_token: '',
+    telegram_transfers_chat_id: '',
   })
   const [loading, setLoading] = useState(true)
 

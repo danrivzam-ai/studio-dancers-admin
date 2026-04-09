@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Send } from 'lucide-react'
 import BackupExport from './BackupExport'
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
@@ -24,7 +24,9 @@ export default function SettingsModal({
     auto_inactive_days: 60,
     mailerlite_api_key: '',
     mailerlite_group_id: '',
-    mailerlite_instructors_group_id: ''
+    mailerlite_instructors_group_id: '',
+    telegram_transfers_bot_token: '',
+    telegram_transfers_chat_id: '',
   })
   const toast = useToast()
   const [loading, setLoading] = useState(false)
@@ -52,7 +54,9 @@ export default function SettingsModal({
         auto_inactive_days: settings.auto_inactive_days ?? 60,
         mailerlite_api_key: settings.mailerlite_api_key || '',
         mailerlite_group_id: settings.mailerlite_group_id || '',
-        mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || ''
+        mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || '',
+        telegram_transfers_bot_token: settings.telegram_transfers_bot_token || '',
+        telegram_transfers_chat_id: settings.telegram_transfers_chat_id || '',
       })
     }
   }, [settings])
@@ -572,6 +576,41 @@ export default function SettingsModal({
             </div>
           </div>
 
+
+          {/* Telegram — Notificaciones de Transferencias */}
+          <div className="border-t pt-4 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Send size={16} className="text-sky-500" />
+              <label className="text-sm font-medium text-gray-700">Telegram — Nuevas transferencias</label>
+            </div>
+            <p className="text-xs text-gray-500 mb-3">
+              Recibe un mensaje en Telegram cada vez que una alumna suba un comprobante de transferencia desde el portal.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Bot Token</label>
+                <input
+                  type="password"
+                  value={formData.telegram_transfers_bot_token}
+                  onChange={(e) => setFormData({...formData, telegram_transfers_bot_token: e.target.value})}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-100 text-base outline-none transition-all font-mono"
+                  placeholder="123456789:ABCdefGhIJKlmNoPQRstuVWxyZ"
+                />
+                <p className="text-xs text-gray-400 mt-1">Obtén uno en @BotFather → /newbot</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Chat ID</label>
+                <input
+                  type="text"
+                  value={formData.telegram_transfers_chat_id}
+                  onChange={(e) => setFormData({...formData, telegram_transfers_chat_id: e.target.value})}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-sky-100 text-base outline-none transition-all font-mono"
+                  placeholder="-1001234567890"
+                />
+                <p className="text-xs text-gray-400 mt-1">Tu ID personal o el ID del grupo/canal. Puede ser negativo.</p>
+              </div>
+            </div>
+          </div>
 
           {/* Backup Export */}
           <BackupExport settings={settings} />
