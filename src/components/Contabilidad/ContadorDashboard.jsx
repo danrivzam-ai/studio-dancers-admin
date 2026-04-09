@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { getTodayEC } from '../../lib/dateUtils'
 import {
   TrendingUp, TrendingDown, DollarSign, FileText, LogOut,
-  BookOpen, BarChart3, Calendar, ChevronDown, Download, RefreshCw, Eye, EyeOff
+  BookOpen, BarChart3, Calendar, Download, RefreshCw, Eye, EyeOff,
+  AlertCircle, Users
 } from 'lucide-react'
 import ContabilidadPanel from './ContabilidadPanel'
 import * as XLSX from 'xlsx'
@@ -31,6 +32,7 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
   const [recentPayments, setRecentPayments] = useState([])
   const [recentExpenses, setRecentExpenses] = useState([])
   const [monthlySummary, setMonthlySummary] = useState([]) // últimos 6 meses
+  const [cartera, setCartera] = useState([]) // cuentas por cobrar
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -39,20 +41,22 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
       const lastDay = new Date(selectedYear, selectedMonth + 1, 0)
       const lastDayStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
 
-      // Pagos del mes seleccionado (payments + quick_payments)
-      const [paymentsRes, quickRes, expensesRes] = await Promise.all([
+      // Pagos del mes seleccionado (payments + quick_payments) + cartera
+      const [paymentsRes, quickRes, expensesRes, carteraRes] = await Promise.all([
         supabase
           .from('payments')
           .select('amount, payment_date, student_id, students(name)')
           .gte('payment_date', `${firstDay}T00:00:00`)
           .lte('payment_date', `${lastDayStr}T23:59:59`)
+          .eq('voided', false)
           .order('payment_date', { ascending: false }),
         supabase
           .from('quick_payments')
-          .select('amount, created_at, student_name, notes')
-          .gte('created_at', `${firstDay}T00:00:00`)
-          .lte('created_at', `${lastDayStr}T23:59:59`)
-          .order('created_at', { ascending: false }),
+          .select('amount, payment_date, notes')
+          .gte('payment_date', firstDay)
+          .lte('payment_date', lastDayStr)
+          .eq('voided', false)
+          .order('payment_date', { ascending: false }),
         supabase
           .from('expenses')
           .select('amount, expense_date, description, expense_categories(name, color)')
@@ -60,7 +64,15 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
           .eq('voided', false)
           .gte('expense_date', `${firstDay}T00:00:00`)
           .lte('expense_date', `${lastDayStr}T23:59:59`)
-          .order('expense_date', { ascending: false })
+          .order('expense_date', { ascending: false }),
+        supabase
+          .from('students')
+          .select('id, name, balance, course_id, next_payment_date, last_payment_date, payment_status')
+          .is('deleted_at', null)
+          .eq('is_courtesy', false)
+          .gt('balance', 0)
+          .order('balance', { ascending: false })
+          .limit(25),
       ])
 
       const payments = paymentsRes.data || []
@@ -73,6 +85,7 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
 
       setIngresos(totalIngresos)
       setEgresos(totalEgresos)
+      setCartera(carteraRes.data || [])
 
       // Últimos pagos combinados
       const combined = [
@@ -85,10 +98,10 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
         })),
         ...quick.map(q => ({
           type: 'ingreso',
-          name: q.student_name || '—',
+          name: '—',
           concept: q.notes || 'Pago rápido',
           amount: parseFloat(q.amount) || 0,
-          date: q.created_at
+          date: q.payment_date
         }))
       ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 12)
 
@@ -106,8 +119,8 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
         const lStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(l.getDate()).padStart(2, '0')}`
 
         const [pRes, qRes, eRes] = await Promise.all([
-          supabase.from('payments').select('amount').gte('payment_date', `${f}T00:00:00`).lte('payment_date', `${lStr}T23:59:59`),
-          supabase.from('quick_payments').select('amount').gte('created_at', `${f}T00:00:00`).lte('created_at', `${lStr}T23:59:59`),
+          supabase.from('payments').select('amount').eq('voided', false).gte('payment_date', `${f}T00:00:00`).lte('payment_date', `${lStr}T23:59:59`),
+          supabase.from('quick_payments').select('amount').eq('voided', false).gte('payment_date', f).lte('payment_date', lStr),
           supabase.from('expenses').select('amount').is('deleted_at', null).eq('voided', false).gte('expense_date', `${f}T00:00:00`).lte('expense_date', `${lStr}T23:59:59`)
         ])
         const ing = (pRes.data || []).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0)
@@ -342,6 +355,94 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
             </div>
           )}
         </div>
+
+        {/* Cartera — cuentas por cobrar */}
+        {(cartera.length > 0 || loading) && (
+          <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-amber-100 flex items-center gap-2">
+              <AlertCircle size={16} className="text-amber-500" />
+              <h2 className="font-semibold text-gray-900 text-sm">Cartera — Saldos pendientes</h2>
+              {!loading && cartera.length > 0 && (
+                <>
+                  <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                    {cartera.length} alumna{cartera.length !== 1 ? 's' : ''}
+                  </span>
+                  <span className="text-xs font-bold text-red-600">
+                    {hideAmounts ? '•••' : fmt(cartera.reduce((s, c) => s + (parseFloat(c.balance) || 0), 0))}
+                  </span>
+                </>
+              )}
+            </div>
+            {loading ? (
+              <div className="px-5 py-6 text-center text-gray-400 text-sm">Cargando...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-amber-50/60 text-xs text-gray-500 uppercase tracking-wide">
+                      <th className="px-5 py-3 text-left font-medium">Alumna</th>
+                      <th className="px-5 py-3 text-left font-medium hidden sm:table-cell">Estado</th>
+                      <th className="px-5 py-3 text-left font-medium hidden md:table-cell">Próx. cobro</th>
+                      <th className="px-5 py-3 text-right font-medium">Saldo ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {cartera.map((st, i) => {
+                      const daysStr = st.next_payment_date
+                        ? (() => {
+                            const diff = Math.floor((new Date(st.next_payment_date) - new Date()) / 86400000)
+                            if (diff < 0) return `${Math.abs(diff)}d vencido`
+                            if (diff === 0) return 'hoy'
+                            return `en ${diff}d`
+                          })()
+                        : '—'
+                      const statusLabel = {
+                        overdue: 'Vencido', mora: 'En mora', urgent: 'Urgente',
+                        due_today: 'Hoy', partial: 'Parcial', pending: 'Pendiente',
+                      }[st.payment_status] || st.payment_status || '—'
+                      const statusColor = {
+                        overdue: 'text-red-600 bg-red-50',
+                        mora: 'text-red-700 bg-red-100',
+                        urgent: 'text-orange-600 bg-orange-50',
+                        due_today: 'text-orange-500 bg-orange-50',
+                        partial: 'text-amber-600 bg-amber-50',
+                        pending: 'text-gray-500 bg-gray-100',
+                      }[st.payment_status] || 'text-gray-500 bg-gray-100'
+                      return (
+                        <tr key={st.id} className="hover:bg-amber-50/30 transition-colors">
+                          <td className="px-5 py-3 font-medium text-gray-800">{st.name}</td>
+                          <td className="px-5 py-3 hidden sm:table-cell">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-xs text-gray-500 hidden md:table-cell">
+                            {st.next_payment_date
+                              ? `${new Date(st.next_payment_date + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short' })} (${daysStr})`
+                              : '—'}
+                          </td>
+                          <td className="px-5 py-3 text-right font-semibold text-red-600">
+                            {hideAmounts ? '•••' : fmt(st.balance)}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-amber-50 border-t border-amber-100">
+                      <td colSpan={3} className="px-5 py-3 text-sm font-semibold text-gray-700">
+                        Total cartera
+                      </td>
+                      <td className="px-5 py-3 text-right font-bold text-red-700">
+                        {hideAmounts ? '•••' : fmt(cartera.reduce((s, c) => s + (parseFloat(c.balance) || 0), 0))}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Últimos movimientos — 2 columnas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

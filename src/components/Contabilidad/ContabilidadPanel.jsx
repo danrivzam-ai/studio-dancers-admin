@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { X, Download, BookOpen, BarChart3, FileText, TrendingUp, RefreshCw } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 // ─── Plan de cuentas ────────────────────────────────────────────────────────
 const PLAN_CUENTAS = {
@@ -85,15 +87,17 @@ export default function ContabilidadPanel({ settings, onClose }) {
       ] = await Promise.all([
         supabase
           .from('payments')
-          .select('id, payment_date, amount, payment_method, bank_name, student_id, notes')
+          .select('id, payment_date, amount, payment_method, bank_name, notes, students(name)')
           .gte('payment_date', inicio)
           .lte('payment_date', fin)
+          .eq('voided', false)
           .order('payment_date', { ascending: true }),
         supabase
           .from('quick_payments')
           .select('id, payment_date, amount, payment_method, bank_name, notes')
           .gte('payment_date', inicio)
           .lte('payment_date', fin)
+          .eq('voided', false)
           .order('payment_date', { ascending: true }),
         supabase
           .from('sales')
@@ -106,6 +110,8 @@ export default function ContabilidadPanel({ settings, onClose }) {
           .select('id, expense_date, amount, description, expense_categories(name)')
           .gte('expense_date', inicio)
           .lte('expense_date', fin)
+          .is('deleted_at', null)
+          .eq('voided', false)
           .order('expense_date', { ascending: true }),
       ])
 
@@ -123,7 +129,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
         lista.push({
           n: seq++,
           fecha: p.payment_date,
-          descripcion: `Mensualidad - ${p.notes || p.student_id || ''}`.trim().replace(/\s*-\s*$/, ''),
+          descripcion: `Mensualidad - ${p.students?.name || p.notes || ''}`.trim().replace(/\s*-\s*$/, ''),
           cuenta_debe: ctaDebe,
           nombre_debe: PLAN_CUENTAS[ctaDebe],
           monto_debe: parseFloat(p.amount || 0),
@@ -343,6 +349,109 @@ export default function ContabilidadPanel({ settings, onClose }) {
     XLSX.writeFile(wb, nombreArchivo)
   }
 
+  // ─── Exportar PDF ────────────────────────────────────────────────────────────
+  const exportarPDF = () => {
+    const periodoLabel = periodoTipo === 'mes' ? getMesLabel(anio, mes) : `${rangoFechas.inicio} al ${rangoFechas.fin}`
+    const schoolName = settings?.legal_name || settings?.school_name || settings?.name || 'Studio Dancers'
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' })
+    const pageW = doc.internal.pageSize.getWidth()
+    const BRAND = [85, 23, 53] // #551735
+
+    const addHeader = (title) => {
+      doc.setFillColor(...BRAND)
+      doc.rect(0, 0, pageW, 40, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.text(schoolName, 40, 16)
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(title, 40, 30)
+      doc.text(`Período: ${periodoLabel}`, pageW - 40, 30, { align: 'right' })
+      doc.setTextColor(0, 0, 0)
+    }
+
+    // ── Página 1: Libro Diario ──
+    addHeader('LIBRO DIARIO')
+    autoTable(doc, {
+      startY: 50,
+      head: [['N°', 'Fecha', 'Descripción', 'Cuenta Debe', 'Debe ($)', 'Cuenta Haber', 'Haber ($)']],
+      body: asientos.map(a => [
+        a.n,
+        a.fecha,
+        a.descripcion,
+        `${a.cuenta_debe} - ${a.nombre_debe}`,
+        fmt(a.monto_debe),
+        `${a.cuenta_haber} - ${a.nombre_haber}`,
+        fmt(a.monto_haber),
+      ]),
+      foot: [['', '', 'TOTALES', '', fmt(totalDiarioDebe), '', fmt(totalDiarioHaber)]],
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: BRAND, textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [240, 240, 240], fontStyle: 'bold' },
+      columnStyles: { 4: { halign: 'right' }, 6: { halign: 'right' } },
+      alternateRowStyles: { fillColor: [253, 245, 249] },
+    })
+
+    // ── Página 2: Balance de Comprobación ──
+    doc.addPage()
+    addHeader('BALANCE DE COMPROBACIÓN')
+    autoTable(doc, {
+      startY: 50,
+      head: [['Código', 'Cuenta', 'Total Debe ($)', 'Total Haber ($)', 'Saldo Deudor ($)', 'Saldo Acreedor ($)']],
+      body: balanceComprobacion.map(c => [
+        c.codigo, c.nombre,
+        fmt(c.totalDebe), fmt(c.totalHaber),
+        fmt(c.saldoDeudor), fmt(c.saldoAcreedor),
+      ]),
+      foot: [['', 'TOTALES',
+        fmt(totalesBalance.debe), fmt(totalesBalance.haber),
+        fmt(totalesBalance.deudor), fmt(totalesBalance.acreedor),
+      ]],
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: BRAND, textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [240, 240, 240], fontStyle: 'bold' },
+      columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
+      alternateRowStyles: { fillColor: [253, 245, 249] },
+    })
+
+    // ── Página 3: Estado de Resultados ──
+    doc.addPage()
+    addHeader('ESTADO DE RESULTADOS')
+    const { ingresos, gastos, totalIngresos, totalGastos, utilidad } = estadoResultados
+    autoTable(doc, {
+      startY: 50,
+      head: [['', 'Cuenta', 'Monto ($)']],
+      body: [
+        [{ content: 'INGRESOS', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 240, 220] } }],
+        ...ingresos.map(c => [c.codigo, c.nombre, fmt(Math.abs(c.saldoFinal))]),
+        [{ content: '' }, { content: 'TOTAL INGRESOS', styles: { fontStyle: 'bold' } }, { content: fmt(totalIngresos), styles: { fontStyle: 'bold', halign: 'right' } }],
+        [{ content: 'GASTOS', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [255, 230, 230] } }],
+        ...gastos.map(c => [c.codigo, c.nombre, fmt(Math.abs(c.saldoFinal))]),
+        [{ content: '' }, { content: 'TOTAL GASTOS', styles: { fontStyle: 'bold' } }, { content: fmt(totalGastos), styles: { fontStyle: 'bold', halign: 'right' } }],
+        [{ content: '' },
+          { content: utilidad >= 0 ? '✓ UTILIDAD DEL PERÍODO' : '▼ PÉRDIDA DEL PERÍODO', styles: { fontStyle: 'bold', textColor: utilidad >= 0 ? [0, 120, 0] : [180, 0, 0] } },
+          { content: fmt(Math.abs(utilidad)), styles: { fontStyle: 'bold', halign: 'right', textColor: utilidad >= 0 ? [0, 120, 0] : [180, 0, 0] } },
+        ],
+      ],
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: BRAND, textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 2: { halign: 'right' } },
+    })
+
+    // Pie de página en todas las páginas
+    const totalPages = doc.internal.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      doc.setFontSize(7)
+      doc.setTextColor(150)
+      doc.text(`Página ${i} de ${totalPages} · Generado ${new Date().toLocaleDateString('es-EC')}`, pageW / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' })
+    }
+
+    const pdfName = `Contabilidad_${schoolName.replace(/\s+/g, '_')}_${periodoLabel.replace(/\s+/g,'_')}.pdf`
+    doc.save(pdfName)
+  }
+
   // ─── Render ──────────────────────────────────────────────────────────────────
   const tabs = [
     { id: 'diario', label: 'Libro Diario', icon: BookOpen },
@@ -382,12 +491,20 @@ export default function ContabilidadPanel({ settings, onClose }) {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={exportarPDF}
+              disabled={loading || asientos.length === 0}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
+            >
+              <FileText size={16} />
+              PDF
+            </button>
+            <button
               onClick={exportarExcel}
               disabled={loading || asientos.length === 0}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
             >
               <Download size={16} />
-              Exportar Excel
+              Excel
             </button>
             <button
               onClick={onClose}
