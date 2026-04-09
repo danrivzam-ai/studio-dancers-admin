@@ -3024,13 +3024,18 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 >
                                   <Eye size={16} />
                                 </button>
-                                <button
-                                  onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
-                                  title="Registrar pago"
-                                >
-                                  <CreditCard size={16} />
-                                </button>
+                                {!(course?.priceType === 'programa' && (
+                                  student.payment_status === 'paid' ||
+                                  (parseFloat(student.amount_paid || 0) > 0 && parseFloat(student.balance || 0) <= 0)
+                                )) && (
+                                  <button
+                                    onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
+                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                    title="Registrar pago"
+                                  >
+                                    <CreditCard size={16} />
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
