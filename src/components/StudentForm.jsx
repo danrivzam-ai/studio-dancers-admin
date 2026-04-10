@@ -79,7 +79,9 @@ export default function StudentForm({
     billingFromSelf: true,
     payerName: '', payerCedula: '', payerPhone: '', payerAddress: '', payerEmail: '',
     courseId: '', notes: '',
-    enrollmentDate: getTodayEC()
+    enrollmentDate: getTodayEC(),
+    isCourtesy: false,
+    courtesyEndDate: '',
   })
 
   useEffect(() => {
@@ -111,7 +113,9 @@ export default function StudentForm({
         payerEmail: student.payer_email || '',
         courseId: student.course_id || '',
         notes: student.notes || '',
-        enrollmentDate: student.enrollment_date || getTodayEC()
+        enrollmentDate: student.enrollment_date || getTodayEC(),
+        isCourtesy: student.is_courtesy || false,
+        courtesyEndDate: student.courtesy_end_date || '',
       })
     }
   }, [student])
@@ -571,6 +575,33 @@ export default function StudentForm({
                 className={inputClass}
               />
             </LabeledInput>
+
+            {/* Pase de Cortesía */}
+            <div className={`rounded-xl border-2 p-3 transition-all ${formData.isCourtesy ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-gray-50'}`}>
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.isCourtesy}
+                  onChange={(e) => setFormData({ ...formData, isCourtesy: e.target.checked, courtesyEndDate: e.target.checked ? formData.courtesyEndDate : '' })}
+                  className="w-4 h-4 accent-amber-500 rounded"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-gray-700">Pase de Cortesía / VIP</span>
+                  <p className="text-[11px] text-gray-500 leading-tight">No genera registros financieros</p>
+                </div>
+              </label>
+              {formData.isCourtesy && (
+                <div className="mt-2.5">
+                  <label className="block text-[10px] font-medium text-amber-700 mb-0.5 uppercase tracking-wider">Válido hasta</label>
+                  <input
+                    type="date"
+                    value={formData.courtesyEndDate}
+                    onChange={(e) => setFormData({ ...formData, courtesyEndDate: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border-2 border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-white transition-all"
+                  />
+                </div>
+              )}
+            </div>
 
             <LabeledInput label="Notas">
               <textarea
