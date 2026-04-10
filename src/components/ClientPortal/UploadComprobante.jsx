@@ -92,29 +92,35 @@ export default function UploadComprobante({ auth, student }) {
         })
       if (insertError) throw insertError
 
-      // 3. Notificar a Telegram (fire-and-forget — no bloquea el flujo)
-      // Usa env vars directamente para evitar problemas de RLS en el portal
+      // 3. Notificar a Telegram
       try {
         const botToken = import.meta.env.VITE_TELEGRAM_TRANSFERS_BOT_TOKEN
         const chatId   = import.meta.env.VITE_TELEGRAM_TRANSFERS_CHAT_ID
+        console.log('[Telegram] token:', botToken ? `${botToken.slice(0,8)}...` : 'UNDEFINED')
+        console.log('[Telegram] chatId:', chatId || 'UNDEFINED')
         if (botToken && chatId) {
           const hora  = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
           const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
-          await notifyTelegram({
-            botToken,
-            chatId,
-            text:
-              `💸 *Nueva transferencia recibida*\n\n` +
-              `👤 *Alumna:* ${student?.name || '—'}\n` +
-              `🏦 *Banco:* ${bank}\n` +
-              `💰 *Monto:* $${parseFloat(amount).toFixed(2)}` +
-              (receiptNo.trim() ? `\n🔢 *Comprobante:* ${receiptNo.trim()}` : '') +
-              `\n\n🕐 ${fecha} · ${hora}\n` +
-              `_Revisa la sección de Transferencias en el sistema._`,
+          const text =
+            `💸 *Nueva transferencia recibida*\n\n` +
+            `👤 *Alumna:* ${student?.name || '—'}\n` +
+            `🏦 *Banco:* ${bank}\n` +
+            `💰 *Monto:* $${parseFloat(amount).toFixed(2)}` +
+            (receiptNo.trim() ? `\n🔢 *Comprobante:* ${receiptNo.trim()}` : '') +
+            `\n\n🕐 ${fecha} · ${hora}\n` +
+            `_Revisa la sección de Transferencias en el sistema._`
+          const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
           })
+          const json = await res.json()
+          console.log('[Telegram] respuesta:', JSON.stringify(json))
+        } else {
+          console.warn('[Telegram] faltan env vars, no se envió notificación')
         }
-      } catch {
-        // Silencioso — la notificación no debe bloquear el flujo del portal
+      } catch (err) {
+        console.error('[Telegram] error:', err.message)
       }
 
       // 4. Show success
