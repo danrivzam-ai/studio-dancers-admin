@@ -93,19 +93,16 @@ export default function UploadComprobante({ auth, student }) {
       if (insertError) throw insertError
 
       // 3. Notificar a Telegram (fire-and-forget — no bloquea el flujo)
+      // Usa env vars directamente para evitar problemas de RLS en el portal
       try {
-        const { data: cfg } = await supabase
-          .from('school_settings')
-          .select('telegram_transfers_bot_token, telegram_transfers_chat_id, name')
-          .eq('id', 1)
-          .single()
-
-        if (cfg?.telegram_transfers_bot_token && cfg?.telegram_transfers_chat_id) {
-          const hora = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
+        const botToken = import.meta.env.VITE_TELEGRAM_TRANSFERS_BOT_TOKEN
+        const chatId   = import.meta.env.VITE_TELEGRAM_TRANSFERS_CHAT_ID
+        if (botToken && chatId) {
+          const hora  = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
           const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
           await notifyTelegram({
-            botToken: cfg.telegram_transfers_bot_token,
-            chatId: cfg.telegram_transfers_chat_id,
+            botToken,
+            chatId,
             text:
               `💸 *Nueva transferencia recibida*\n\n` +
               `👤 *Alumna:* ${student?.name || '—'}\n` +
