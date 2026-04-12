@@ -3032,7 +3032,17 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
                             <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                               <div className="text-right">
-                                <p className="font-semibold text-gray-800 text-sm hidden sm:block">${student.monthly_fee}</p>
+                                <p className="font-semibold text-gray-800 text-sm hidden sm:block">
+                                  ${student.monthly_fee}
+                                  {(() => {
+                                    const c = getCourseById(student.course_id)
+                                    const fee = parseFloat(student.monthly_fee) || 0
+                                    const cPrice = c?.price || 0
+                                    return (c?.priceType === 'mes' || c?.priceType === 'paquete') && fee > 0 && fee < cPrice
+                                      ? <span className="ml-1 text-[9px] text-amber-600 font-bold">★</span>
+                                      : null
+                                  })()}
+                                </p>
                                 <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${paymentStatus.color}`}>
                                   {paymentStatus.label}
                                 </span>

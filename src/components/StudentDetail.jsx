@@ -77,6 +77,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
     : null
 
   const coursePrice = course?.price || 0
+  // Tarifa personal del alumno (puede diferir del precio actual del curso)
+  const studentFee = parseFloat(student.monthly_fee) || coursePrice
+  const hasGrandfatheredRate = (course?.priceType === 'mes' || course?.priceType === 'paquete')
+    && studentFee < coursePrice
   const amountPaid = parseFloat(student.amount_paid || 0)
   const balance = parseFloat(student.balance || 0)
   const hasBalance = amountPaid > 0 && balance > 0
@@ -241,15 +245,18 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
           {/* Payment cards grid */}
           {!student.is_courtesy && <div className="p-4 grid grid-cols-2 gap-3">
-            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-violet-400 uppercase tracking-wider font-medium mb-1">Tarifa</p>
-              <p className="text-xl font-bold text-violet-700">${coursePrice.toFixed(2)}</p>
-              <p className="text-xs text-violet-300 mt-0.5">
+            <div className={`border rounded-xl p-3 text-center ${hasGrandfatheredRate ? 'bg-amber-50 border-amber-200' : 'bg-violet-50 border-violet-100'}`}>
+              <p className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${hasGrandfatheredRate ? 'text-amber-500' : 'text-violet-400'}`}>Tarifa</p>
+              <p className={`text-xl font-bold ${hasGrandfatheredRate ? 'text-amber-700' : 'text-violet-700'}`}>${studentFee.toFixed(2)}</p>
+              <p className={`text-xs mt-0.5 ${hasGrandfatheredRate ? 'text-amber-400' : 'text-violet-300'}`}>
                 {course?.priceType === 'mes' ? (course?.classesPerCycle ? `${course.classesPerCycle} clases` : 'mensual')
                   : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases`
                   : course?.priceType === 'programa' ? 'programa completo'
                   : 'por clase'}
               </p>
+              {hasGrandfatheredRate && (
+                <p className="text-[9px] text-amber-500 font-semibold mt-1 uppercase tracking-wide">Tarifa histórica</p>
+              )}
             </div>
 
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">

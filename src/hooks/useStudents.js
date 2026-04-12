@@ -285,7 +285,11 @@ export function useStudents() {
       const isMonthly = course?.priceType === 'mes'
       const isProgram = course?.priceType === 'programa'
       const isPackage = course?.priceType === 'paquete'
-      const coursePrice = course?.price || 0
+      // Para cursos recurrentes (mes/paquete): respetar monthly_fee personal del alumno
+      // Esto preserva tarifas históricas ($40) aunque el curso suba a $44
+      const coursePrice = (isMonthly || isPackage)
+        ? (parseFloat(student?.monthly_fee) || course?.price || 0)
+        : (course?.price || 0)
 
       // Obtener los días de clase del curso (si tiene)
       const classDays = course?.classDays || null
