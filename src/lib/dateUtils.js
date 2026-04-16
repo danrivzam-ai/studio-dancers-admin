@@ -419,9 +419,10 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
 
     if (days < 0) {
       // Paquete terminado → lenguaje neutral, sin "vencido" ni urgencia
+      const absDays = Math.abs(days)
       return {
         status: 'cycle_complete',
-        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${Math.abs(days)}d`,
+        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${absDays}d`,
         color: 'bg-sky-100 text-sky-800 border border-sky-200',
         colorCode: 'blue',
         priority: 3

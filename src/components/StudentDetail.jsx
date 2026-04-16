@@ -139,7 +139,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
     const phone = student.payer_phone || student.parent_phone || student.phone
     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
     const isAdult = (course?.ageMin ?? 0) >= 18
-    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers', 5, 20, isAdult))
+    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers', 5, 20, isAdult, course))
   }
 
   return (

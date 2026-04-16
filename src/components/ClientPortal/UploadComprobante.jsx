@@ -96,8 +96,6 @@ export default function UploadComprobante({ auth, student }) {
       try {
         const botToken = import.meta.env.VITE_TELEGRAM_TRANSFERS_BOT_TOKEN
         const chatId   = import.meta.env.VITE_TELEGRAM_TRANSFERS_CHAT_ID
-        console.log('[Telegram] token:', botToken ? `${botToken.slice(0,8)}...` : 'UNDEFINED')
-        console.log('[Telegram] chatId:', chatId || 'UNDEFINED')
         if (botToken && chatId) {
           const hora  = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
           const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
@@ -109,18 +107,14 @@ export default function UploadComprobante({ auth, student }) {
             (receiptNo.trim() ? `\n🔢 *Comprobante:* ${receiptNo.trim()}` : '') +
             `\n\n🕐 ${fecha} · ${hora}\n` +
             `_Revisa la sección de Transferencias en el sistema._`
-          const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
           })
-          const json = await res.json()
-          console.log('[Telegram] respuesta:', JSON.stringify(json))
-        } else {
-          console.warn('[Telegram] faltan env vars, no se envió notificación')
         }
-      } catch (err) {
-        console.error('[Telegram] error:', err.message)
+      } catch {
+        // Silencioso — no bloquea el flujo del portal
       }
 
       // 4. Show success
