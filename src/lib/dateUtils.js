@@ -405,6 +405,15 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     }
     const remaining = classesTotal - classesTaken
 
+    // Detectar paquete multi-ciclo (promo 3 meses):
+    // subCycleSize = clases que hay en 1 mes según días de clase
+    const classDaysArr = course?.classDays || course?.class_days || []
+    const subCycleSize = classDaysArr.length >= 2 ? 8 : 4
+    const isMultiCycle = classesTotal > subCycleSize && classesTotal % subCycleSize === 0
+    const totalMonths  = isMultiCycle ? Math.round(classesTotal / subCycleSize) : 1
+    const currentMonth = isMultiCycle ? Math.min(totalMonths, Math.floor(classesTaken / subCycleSize) + 1) : 1
+    const remainingInMonth = isMultiCycle ? subCycleSize - (classesTaken % subCycleSize) : remaining
+
     const days = getDaysUntilDue(student.next_payment_date)
 
     if (days < 0 && Math.abs(days) > autoInactiveDays) {
@@ -418,7 +427,6 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     }
 
     if (days < 0) {
-      // Paquete terminado → lenguaje neutral, sin "vencido" ni urgencia
       const absDays = Math.abs(days)
       return {
         status: 'cycle_complete',
@@ -426,6 +434,25 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
         color: 'bg-sky-100 text-sky-800 border border-sky-200',
         colorCode: 'blue',
         priority: 3
+      }
+    }
+
+    // Badge para paquete activo
+    if (isMultiCycle) {
+      const label = remainingInMonth <= 1
+        ? `Mes ${currentMonth}/${totalMonths} · Última clase`
+        : `Mes ${currentMonth}/${totalMonths} · ${remainingInMonth} restantes`
+      return {
+        status: 'active_package',
+        label,
+        color: remainingInMonth <= 1
+          ? 'bg-orange-100 text-orange-700 border border-orange-200'
+          : 'bg-violet-100 text-violet-700 border border-violet-200',
+        colorCode: remainingInMonth <= 1 ? 'orange' : 'blue',
+        priority: remainingInMonth <= 1 ? 2 : 4,
+        // Datos extra para StudentDetail
+        isMultiCycle: true, currentMonth, totalMonths, subCycleSize,
+        progressInMonth: classesTaken % subCycleSize, remainingInMonth,
       }
     }
 

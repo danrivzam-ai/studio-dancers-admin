@@ -352,37 +352,100 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           })()}
 
           {/* Ciclo actual */}
-          {cycleInfo && (
-            <div className="px-4 pb-3">
-              <div className="bg-[#fdf5f9] border border-[#f9e8f0] rounded-xl p-4">
-                <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">
-                  {showOldCycle ? 'Ciclo en curso · Próximo ya pagado' : 'Ciclo actual'}
-                </p>
-                <div className="grid grid-cols-2 gap-4 mb-2">
-                  <div className="text-center">
-                    <p className="text-[10px] text-[#9e4d75] uppercase">Primera clase</p>
-                    <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleStart}</p>
+          {cycleInfo && (() => {
+            // Detectar paquete multi-ciclo (promo 3 meses)
+            const classDaysArr = course?.classDays || []
+            const subCycleSize = classDaysArr.length >= 2 ? 8 : 4
+            const totalPkg = course?.classesPerPackage || 0
+            const isMultiCycle = course?.priceType === 'paquete'
+              && totalPkg > subCycleSize
+              && totalPkg % subCycleSize === 0
+            const totalMonths     = isMultiCycle ? Math.round(totalPkg / subCycleSize) : 1
+            const taken           = cycleInfo.classesPassed
+            const currentMonth    = isMultiCycle ? Math.min(totalMonths, Math.floor(taken / subCycleSize) + 1) : 1
+            const progressInMonth = isMultiCycle ? taken % subCycleSize : taken
+            const totalInMonth    = isMultiCycle ? subCycleSize : cycleInfo.totalClasses
+
+            return (
+              <div className="px-4 pb-3">
+                <div className="bg-[#fdf5f9] border border-[#f9e8f0] rounded-xl p-4">
+                  {/* Encabezado */}
+                  <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">
+                    {showOldCycle ? 'Ciclo en curso · Próximo ya pagado'
+                      : isMultiCycle ? `Promo ${totalMonths} meses`
+                      : 'Ciclo actual'}
+                  </p>
+
+                  {/* Indicador de mes (solo multi-ciclo) */}
+                  {isMultiCycle && (
+                    <div className="flex items-center justify-center gap-1.5 mb-3">
+                      {Array.from({ length: totalMonths }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`rounded-full transition-all ${
+                            i + 1 < currentMonth
+                              ? 'w-6 h-2 bg-[#7e2d55]'
+                              : i + 1 === currentMonth
+                              ? 'w-8 h-2.5 bg-[#551735]'
+                              : 'w-6 h-2 bg-[#f9e8f0] border border-[#e8b4cc]'
+                          }`}
+                        />
+                      ))}
+                      <span className="text-xs font-bold text-[#551735] ml-1">
+                        Mes {currentMonth}/{totalMonths}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Fechas de inicio/fin */}
+                  <div className="grid grid-cols-2 gap-4 mb-2">
+                    <div className="text-center">
+                      <p className="text-[10px] text-[#9e4d75] uppercase">Primera clase</p>
+                      <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleStart}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[10px] text-[#9e4d75] uppercase">Última clase</p>
+                      <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleEnd}</p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-[10px] text-[#9e4d75] uppercase">Última clase</p>
-                    <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleEnd}</p>
+
+                  <p className="text-xs text-center text-[#7e2d55] mb-1">
+                    Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
+                  </p>
+
+                  {/* Contador de clases */}
+                  <p className="text-center text-lg font-bold text-[#551735] mb-2">
+                    {isMultiCycle
+                      ? `Clase ${progressInMonth}/${totalInMonth} · ${taken}/${totalPkg} total`
+                      : `Clase ${cycleInfo.classesPassed}/${cycleInfo.totalClasses}`}
+                  </p>
+
+                  {/* Barra de progreso del mes actual (no del total) */}
+                  <div className="bg-[#f9e8f0] rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-[#7e2d55] h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(100, Math.round((progressInMonth / totalInMonth) * 100))}%` }}
+                    />
                   </div>
-                </div>
-                <p className="text-xs text-center text-[#7e2d55] mb-1">
-                  Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
-                </p>
-                <p className="text-center text-lg font-bold text-[#551735] mb-2">
-                  Clase {cycleInfo.classesPassed}/{cycleInfo.totalClasses}
-                </p>
-                <div className="bg-[#f9e8f0] rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-[#7e2d55] h-2 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, Math.round((cycleInfo.classesPassed / cycleInfo.totalClasses) * 100))}%` }}
-                  />
+
+                  {/* Barra total (solo multi-ciclo, más delgada y en gris) */}
+                  {isMultiCycle && (
+                    <div className="mt-1.5 bg-[#f9e8f0] rounded-full h-1 overflow-hidden">
+                      <div
+                        className="bg-[#c98daa] h-1 rounded-full transition-all"
+                        style={{ width: `${Math.min(100, Math.round((taken / totalPkg) * 100))}%` }}
+                      />
+                    </div>
+                  )}
+                  {isMultiCycle && (
+                    <p className="text-[10px] text-center text-[#9e4d75] mt-1">
+                      Progreso total: {taken}/{totalPkg} clases
+                    </p>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Contacto */}
           <div className="px-4 pb-3">
