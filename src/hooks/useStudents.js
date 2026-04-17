@@ -393,17 +393,29 @@ export function useStudents() {
         }
       }
 
-      // Si el pago es anticipado (antes del vencimiento), el nuevo ciclo empieza
-      // en la fecha de vencimiento anterior (no hoy), para que el conteo de clases
-      // sea correcto visualmente.
-      const isPaidEarly = studentNextPaymentDate && paymentDate < studentNextPaymentDate && !isPartialPayment
+      // isPayingBeforeDue: la fecha de pago es anterior a next_payment_date y el pago completa el ciclo.
+      // Esto incluye pagos anticipados frescos Y completar saldo del ciclo en curso.
+      // Se usa para calcular correctamente el cycleStartForDisplay (last_payment_date).
+      const isPayingBeforeDue = studentNextPaymentDate && paymentDate < studentNextPaymentDate && !isPartialPayment
+
+      // isPaidEarly: pago realmente anticipado — sin saldo previo Y antes del vencimiento.
+      // Distinto de completar un saldo que ya existía (eso NO es pago anticipado).
+      // Controla: flag prepaid, prepaid_old_start, y cycle_start_date del comprobante.
+      const isPaidEarly = isPayingBeforeDue && prevAmountPaid === 0
+
+      // isCompletingBalance: pago que liquida el saldo del ciclo en curso.
+      // Aplica tanto si paga antes como después del vencimiento.
+      // El comprobante debe mostrar el ciclo que ya corría, no uno nuevo calculado desde hoy.
+      const isCompletingBalance = !isPartialPayment && prevAmountPaid > 0 && (isMonthly || isPackage)
+
       // cycleStartForDisplay determina last_payment_date (base del ciclo visual):
-      // 1. Si la recepcionista eligió fecha explícita (pagos atrasados) → usarla
-      // 2. Si pago anticipado → usar fecha de vencimiento original (no fecha de hoy)
-      // 3. Pago normal → fecha real del pago
+      // 1. Override manual de la recepcionista (pagos atrasados) → usarlo
+      // 2. Pago antes del vencimiento (anticipado real o completando saldo) →
+      //    nuevo ciclo arranca en la antigua next_payment_date
+      // 3. Pago normal u overdue → fecha real del pago
       const cycleStartForDisplay = paymentData.cycleStartDate
         ? paymentData.cycleStartDate
-        : isPaidEarly
+        : isPayingBeforeDue
           ? formatDateForInput(studentNextPaymentDate)
           : formatDateForInput(paymentDate)
 
@@ -471,12 +483,13 @@ export function useStudents() {
         // 4. Pago normal → null (comprobante usa payment_date)
         cycle_start_date: (() => {
           if (paymentData.cycleStartDate) return paymentData.cycleStartDate
-          if ((isMonthly || isPackage) && !isPartialPayment && prevAmountPaid > 0) {
-            // Completando saldo: mostrar el ciclo que ya corría (inicio original)
+          if (isCompletingBalance) {
+            // Saldo completado: el comprobante muestra el ciclo que ya corría
+            // (inicio original = last_payment_date antes de este pago)
             return student?.last_payment_date || null
           }
           if (isPaidEarly) {
-            // Pago anticipado: nuevo ciclo empieza en la antigua fecha de vencimiento
+            // Pago anticipado fresco: ciclo nuevo empieza en la antigua next_payment_date
             return cycleStartForDisplay
           }
           return null
