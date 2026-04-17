@@ -463,7 +463,10 @@ export function useStudents() {
         payer_name: student?.payer_name || student?.parent_name || student?.name || null,
         payer_cedula: student?.payer_cedula || student?.parent_cedula || student?.cedula || null,
         notes: paymentData.notes || null,
-        cycle_start_date: paymentData.cycleStartDate || null,
+        // Para pagos anticipados (isPaidEarly), guardar cycleStartForDisplay como cycle_start_date
+        // así el comprobante puede mostrar el ciclo correcto (no desde la fecha de pago sino desde
+        // cuando el ciclo realmente inicia: la antigua next_payment_date)
+        cycle_start_date: paymentData.cycleStartDate || (isPaidEarly ? cycleStartForDisplay : null),
         days_late: daysLate
       }
 
