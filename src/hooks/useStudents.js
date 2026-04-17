@@ -463,10 +463,24 @@ export function useStudents() {
         payer_name: student?.payer_name || student?.parent_name || student?.name || null,
         payer_cedula: student?.payer_cedula || student?.parent_cedula || student?.cedula || null,
         notes: paymentData.notes || null,
-        // Para pagos anticipados (isPaidEarly), guardar cycleStartForDisplay como cycle_start_date
-        // así el comprobante puede mostrar el ciclo correcto (no desde la fecha de pago sino desde
-        // cuando el ciclo realmente inicia: la antigua next_payment_date)
-        cycle_start_date: paymentData.cycleStartDate || (isPaidEarly ? cycleStartForDisplay : null),
+        // Determinar cycle_start_date para el comprobante (3 escenarios):
+        // 1. Override manual (recepcionista eligió fecha por pago atrasado)
+        // 2. Completando saldo pendiente → inicio del ciclo original (last_payment_date antes de este pago)
+        //    así el comprobante muestra el ciclo que se está saldando, no uno nuevo desde hoy
+        // 3. Pago anticipado sin saldo → nueva next_payment_date como inicio del nuevo ciclo
+        // 4. Pago normal → null (comprobante usa payment_date)
+        cycle_start_date: (() => {
+          if (paymentData.cycleStartDate) return paymentData.cycleStartDate
+          if ((isMonthly || isPackage) && !isPartialPayment && prevAmountPaid > 0) {
+            // Completando saldo: mostrar el ciclo que ya corría (inicio original)
+            return student?.last_payment_date || null
+          }
+          if (isPaidEarly) {
+            // Pago anticipado: nuevo ciclo empieza en la antigua fecha de vencimiento
+            return cycleStartForDisplay
+          }
+          return null
+        })(),
         days_late: daysLate
       }
 
