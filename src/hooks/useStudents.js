@@ -359,31 +359,44 @@ export function useStudents() {
           // Recalcular next_payment_date usando effectiveCycleDate (no paymentDate)
           try {
             if (isPackage) {
-              const classesPerPackage = course?.classesPerPackage || 4
-              const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
-
-              let cycleStart
-              if (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate) {
-                cycleStart = currentNextPaymentDate
+              if (prevAmountPaid > 0) {
+                // Completando saldo del paquete en curso: next_payment_date no cambia
+                // La alumna ya tiene su ciclo de clases asignado, no hay que avanzar al siguiente
+                nextPayment = student?.next_payment_date
               } else {
-                cycleStart = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                const classesPerPackage = course?.classesPerPackage || 4
+                const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
+
+                let cycleStart
+                if (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate) {
+                  cycleStart = currentNextPaymentDate
+                } else {
+                  cycleStart = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                }
+
+                const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
+                nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
+                classesUsed = 0
               }
-
-              const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
-              nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
-              classesUsed = 0
             } else if (isMonthly) {
-              const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
-              const classesPerCycle = course?.classesPerCycle || null
-
-              if (!currentNextPaymentDate) {
-                const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
-              } else if (currentNextPaymentDate > effectiveCycleDate) {
-                nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
+              if (prevAmountPaid > 0) {
+                // Completando saldo del mes en curso: next_payment_date no cambia.
+                // La alumna ya está en su ciclo (ej. ciclo termina el 28/04),
+                // completar el saldo NO debe avanzar la fecha al mes siguiente.
+                nextPayment = student?.next_payment_date
               } else {
-                const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
+                const classesPerCycle = course?.classesPerCycle || null
+
+                if (!currentNextPaymentDate) {
+                  const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                } else if (currentNextPaymentDate > effectiveCycleDate) {
+                  nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
+                } else {
+                  const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
+                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                }
               }
             }
           } catch (calcErr) {
@@ -410,14 +423,18 @@ export function useStudents() {
 
       // cycleStartForDisplay determina last_payment_date (base del ciclo visual):
       // 1. Override manual de la recepcionista (pagos atrasados) → usarlo
-      // 2. Pago antes del vencimiento (anticipado real o completando saldo) →
+      // 2. Completando saldo → conservar inicio del ciclo original (last_payment_date actual)
+      //    El ciclo ya estaba corriendo; no hay que moverlo a next_payment_date.
+      // 3. Pago anticipado fresco (sin saldo previo, antes del vencimiento) →
       //    nuevo ciclo arranca en la antigua next_payment_date
-      // 3. Pago normal u overdue → fecha real del pago
+      // 4. Pago normal u overdue → fecha real del pago
       const cycleStartForDisplay = paymentData.cycleStartDate
         ? paymentData.cycleStartDate
-        : isPayingBeforeDue
-          ? formatDateForInput(studentNextPaymentDate)
-          : formatDateForInput(paymentDate)
+        : isCompletingBalance
+          ? (student?.last_payment_date || formatDateForInput(paymentDate))
+          : isPayingBeforeDue
+            ? formatDateForInput(studentNextPaymentDate)
+            : formatDateForInput(paymentDate)
 
       // Actualizar estudiante
       const updateFields = {
