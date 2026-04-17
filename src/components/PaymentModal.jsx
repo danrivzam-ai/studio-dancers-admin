@@ -30,12 +30,17 @@ export default function PaymentModal({
   const allowsInstallments = course?.allowsInstallments || false
   const installmentCount = course?.installmentCount || 2
   const isRecurring = course?.priceType === 'mes' || course?.priceType === 'paquete'
+  // Tarifa personal de la alumna (respeta precio congelado para cursos recurrentes)
+  const studentFee = isRecurring
+    ? (parseFloat(student?.monthly_fee) || coursePrice)
+    : coursePrice
+  const hasGrandfatheredRate = isRecurring && studentFee < coursePrice
   // Cursos de ciclo libre (adultas): sin lenguaje de "vencido/atrasado"
   const isAdultCycleCourse = isRecurring && (course?.ageMin ?? 0) >= 18
 
   // Calcular saldo pendiente del estudiante (funciona para programas, mensuales y paquetes)
   const amountPaid = parseFloat(student?.amount_paid || 0)
-  const totalPrice = isRecurring ? coursePrice : parseFloat(student?.total_program_price || coursePrice)
+  const totalPrice = isRecurring ? studentFee : parseFloat(student?.total_program_price || coursePrice)
   const balance = totalPrice - amountPaid
   const hasBalance = amountPaid > 0 && balance > 0
 
@@ -70,14 +75,14 @@ export default function PaymentModal({
 
   useEffect(() => {
     if (student && course) {
-      let initialAmount = coursePrice
+      let initialAmount = studentFee
       let initialPaymentType = 'full'
 
       if (hasBalance) {
         initialAmount = balance
         initialPaymentType = 'balance'
       } else if (course.priceType === 'mes' || course.priceType === 'paquete') {
-        initialAmount = coursePrice
+        initialAmount = studentFee
         initialPaymentType = 'full'
       }
 
@@ -95,7 +100,7 @@ export default function PaymentModal({
   const getBaseAmount = () => {
     if (formData.paymentType === 'balance') return balance
     if (formData.paymentType === 'installment') return coursePrice / installmentCount
-    return hasBalance ? balance : coursePrice
+    return hasBalance ? balance : studentFee
   }
 
   const calculateDiscountedAmount = () => {
@@ -131,10 +136,10 @@ export default function PaymentModal({
   }, [discountEnabled, discountType, discountValue, customFinalPrice])
 
   const handlePaymentTypeChange = (type) => {
-    let newAmount = coursePrice
+    let newAmount = studentFee
 
     if (type === 'full') {
-      newAmount = hasBalance ? balance : coursePrice
+      newAmount = hasBalance ? balance : studentFee
     } else if (type === 'installment') {
       newAmount = coursePrice / installmentCount
     } else if (type === 'balance') {
@@ -243,7 +248,7 @@ export default function PaymentModal({
       bankName: selectedBank?.name || null,
       transferReceipt: formData.transferReceipt || null,
       notes: formData.notes,
-      coursePrice,
+      coursePrice: studentFee,
       courseName: course?.name || 'Sin curso',
       discount: discountInfo,
       cycleStartDate: resolvedCycleStartDate
@@ -386,11 +391,18 @@ export default function PaymentModal({
         {/* Course Price Info */}
         <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b">
           <div className="flex justify-between items-center">
-            <span className="text-gray-600">Precio del curso:</span>
+            <span className="text-gray-600">
+              {hasGrandfatheredRate ? 'Tarifa de la alumna:' : 'Precio del curso:'}
+            </span>
             <span className={`text-xl font-bold ${discountEnabled ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-              ${coursePrice.toFixed(2)}
+              ${studentFee.toFixed(2)}
             </span>
           </div>
+          {hasGrandfatheredRate && (
+            <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+              ★ Tarifa histórica — precio actual del curso: ${coursePrice.toFixed(2)}
+            </p>
+          )}
 
           {/* Precio con descuento */}
           {showDiscountSummary && (
@@ -453,7 +465,7 @@ export default function PaymentModal({
               >
                 <div className="text-center">
                   <p className="font-semibold">{hasBalance ? 'Saldar' : 'Completo'}</p>
-                  <p className="text-xs mt-1">${hasBalance ? balance.toFixed(2) : coursePrice.toFixed(2)}</p>
+                  <p className="text-xs mt-1">${hasBalance ? balance.toFixed(2) : studentFee.toFixed(2)}</p>
                 </div>
               </button>
 
