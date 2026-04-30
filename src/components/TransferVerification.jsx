@@ -246,14 +246,23 @@ export default function TransferVerification({
     try {
       const student = request.students
       if (onRegisterPayment && student) {
+        // Calcular la fecha de inicio del ciclo:
+        // 1. Si el admin la ajustó manualmente → usarla
+        // 2. Si no → usar next_payment_date (si ya venció) como default
+        //    porque el nuevo ciclo probablemente inició en esa fecha
+        const today = getTodayEC()
+        const defaultCycleStart = (student?.next_payment_date && student.next_payment_date <= today)
+          ? student.next_payment_date
+          : null  // null = pago adelantado, registerPayment lo maneja
+        const resolvedCycleStart = attended.date || defaultCycleStart
+
         const result = await onRegisterPayment(request.student_id, {
           amount: parseFloat(request.amount),
           paymentMethod: 'Transferencia',
           bankName: request.bank_name || '',
           transferReceipt: request.receipt_number || request.id.slice(0, 8),
           notes: `Aprobado desde portal. ${request.receipt_number ? 'Comp: ' + request.receipt_number : 'Ref: ' + request.id.slice(0, 8)}`,
-          // Si indicó que ya asistió al nuevo ciclo, usar esa fecha como inicio del ciclo
-          cycleStartDate: attended.attended && attended.date ? attended.date : null
+          cycleStartDate: resolvedCycleStart
         })
         if (!result?.success) {
           throw new Error(result?.error || 'Error registrando el pago del estudiante')
@@ -475,46 +484,29 @@ export default function TransferVerification({
                           )}
                         </div>
 
-                        {/* ¿Ya asistió? — solo cursos adultas de ciclo */}
-                        {isAdultCycle && cycleFinished && (
-                          <div className="bg-sky-50 border border-sky-200 rounded-xl p-2.5 space-y-2">
+                        {/* Fecha de inicio del ciclo — siempre visible para cursos adultas */}
+                        {isAdultCycle && (
+                          <div className="bg-sky-50 border border-sky-200 rounded-xl p-2.5 space-y-1.5">
                             <p className="text-xs font-semibold text-sky-800 flex items-center gap-1">
                               <AlertCircle size={12} />
-                              ¿Ya asistió a su primera clase del nuevo ciclo?
+                              Primera clase del nuevo ciclo
                             </p>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setAttended(req.id, 'attended', false)}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                                  !attended.attended
-                                    ? 'bg-sky-600 text-white border-sky-600'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
-                                No · el ciclo inicia hoy
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setAttended(req.id, 'attended', true)}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                                  attended.attended
-                                    ? 'bg-sky-600 text-white border-sky-600'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
-                                Sí · ya asistió
-                              </button>
-                            </div>
-                            {attended.attended && (
-                              <input
-                                type="date"
-                                value={attended.date || st?.next_payment_date || getTodayEC()}
-                                max={getTodayEC()}
-                                onChange={(e) => setAttended(req.id, 'date', e.target.value)}
-                                className="w-full px-3 py-2 text-sm border-2 border-sky-300 rounded-xl focus:ring-2 focus:ring-sky-200 outline-none bg-white font-medium text-gray-800"
-                              />
-                            )}
+                            <p className="text-[11px] text-sky-600">
+                              {cycleFinished
+                                ? 'Ciclo terminado — selecciona cuándo inició el nuevo ciclo'
+                                : 'Ajusta si el ciclo ya inició antes de hoy o es pago anticipado'}
+                            </p>
+                            <input
+                              type="date"
+                              value={attended.date || (
+                                // Default inteligente: next_payment_date si ya venció, si no hoy
+                                st?.next_payment_date && st.next_payment_date <= getTodayEC()
+                                  ? st.next_payment_date
+                                  : getTodayEC()
+                              )}
+                              onChange={(e) => setAttended(req.id, 'date', e.target.value)}
+                              className="w-full px-3 py-2 text-sm border-2 border-sky-300 rounded-xl focus:ring-2 focus:ring-sky-200 outline-none bg-white font-medium text-gray-800"
+                            />
                           </div>
                         )}
 
