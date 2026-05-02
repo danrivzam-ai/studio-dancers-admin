@@ -53,6 +53,7 @@ import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import ContabilidadPanel from './components/Contabilidad/ContabilidadPanel'
 import ContadorDashboard from './components/Contabilidad/ContadorDashboard'
+import BottomNav from './components/BottomNav'
 import './App.css'
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
@@ -1007,7 +1008,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdf5f9] to-pink-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto pb-20 md:pb-0">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
           <img
@@ -1206,8 +1207,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
+        {/* Tabs — ocultos en mobile, la navegación inferior los reemplaza */}
+        <div className="hidden md:flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
             { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
@@ -3666,10 +3667,20 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         </div>
       </div>
 
+      {/* Navegación inferior — solo mobile */}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isAdmin={isAdmin}
+        isRecepcion={isRecepcion}
+        pendingTransfers={pendingTransfers}
+        announcementCount={announcements.filter(a => a.active).length}
+      />
+
       {/* Toast notification for new transfers */}
       {newTransferAlert && (
         <div
-          className="fixed bottom-6 right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
+          className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
           onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
         >
           <div className="flex items-start gap-3">
