@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
-import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { calculateNextCalendarMonthPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { sendLeadEvent, sendPurchaseEvent } from '../lib/metaConversionsApi'
 
@@ -386,16 +386,19 @@ export function useStudents() {
                 nextPayment = student?.next_payment_date
               } else {
                 const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
-                const classesPerCycle = course?.classesPerCycle || null
 
                 if (!currentNextPaymentDate) {
+                  // Primer pago: ciclo arranca en la próxima clase desde hoy
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                  nextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
                 } else if (currentNextPaymentDate > effectiveCycleDate) {
-                  nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
+                  // Pago anticipado: el ciclo actual aún no terminó; el siguiente cobro
+                  // es el 1er día de clase del mes siguiente al que arrancaría el ciclo nuevo
+                  nextPayment = calculateNextCalendarMonthPaymentDate(currentNextPaymentDate, classDays)
                 } else {
+                  // Pago a tiempo o en mora: ciclo arranca en la próxima clase desde hoy
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                  nextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
                 }
               }
             }
@@ -760,9 +763,9 @@ export function useStudents() {
         const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
         newNextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
       } else if (isMonthly) {
-        const classesPerCycle = course.classesPerCycle || null
+        // Modelo mes calendario: primer día de clase del mes siguiente al inicio del ciclo
         const startDate = getNextClassDay(lastPayDate, classDays)
-        newNextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+        newNextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
       }
 
       if (!newNextPayment) continue
@@ -830,7 +833,6 @@ export function useStudents() {
       const todayStr = getTodayEC()
       const todayDate = new Date(todayStr + 'T12:00:00')
       const classDays = course.classDays || null
-      const classesPerCycle = course.classesPerCycle || null
       const classesPerPackage = course.classesPerPackage || null
 
       let nextPayment
@@ -840,9 +842,9 @@ export function useStudents() {
           const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage || 4)
           nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
         } else {
-          // mensual
+          // mensual: primer día de clase del próximo mes calendario
           const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
-          nextPayment = calculateNextPaymentDate(cycleStart, classDays, classesPerCycle)
+          nextPayment = calculateNextCalendarMonthPaymentDate(cycleStart, classDays)
         }
       } catch (calcErr) {
         console.error('Error calculando próximo pago, usando fallback +1 mes:', calcErr)

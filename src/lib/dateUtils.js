@@ -90,6 +90,39 @@ const normalizeClassDays = (classDays) => {
 }
 
 /**
+ * Obtener el día de clase ANTERIOR más reciente (estrictamente antes de una fecha)
+ * @param {Date|string} date - Fecha de referencia (se busca hacia atrás, sin incluirla)
+ * @param {number[]} classDays - Días de clase (0=Dom, 1=Lun, …, 6=Sáb)
+ * @returns {Date} - Último día de clase estrictamente antes de `date`
+ */
+export const getPrevClassDay = (date, classDays) => {
+  const d = toNoonLocal(date)
+  for (let i = 1; i <= 7; i++) {
+    const prevDay = addDays(d, -i)
+    if (classDays?.includes(getDay(prevDay))) return prevDay
+  }
+  return addDays(d, -1) // fallback (nunca debería ocurrir con classDays válidos)
+}
+
+/**
+ * Calcular la próxima fecha de pago usando el modelo de MES CALENDARIO.
+ * Siempre devuelve el primer día de clase del MES SIGUIENTE al mes de `cycleStartDate`.
+ * Ejemplo: cycleStartDate = 04/05 (lunes), classDays = [2,4] (Mar/Jue)
+ *   → 01/06 es martes → devuelve 03/06 (primer martes de junio)
+ * @param {Date|string} cycleStartDate - Fecha de inicio del ciclo actual
+ * @param {number[]} classDays - Días de clase
+ * @returns {Date} - Primer día de clase del próximo mes calendario
+ */
+export const calculateNextCalendarMonthPaymentDate = (cycleStartDate, classDays) => {
+  const d = toNoonLocal(cycleStartDate)
+  // Siempre el 1ro del MES SIGUIENTE (nunca "mismo día del mes siguiente")
+  const firstOfNextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 1)
+  firstOfNextMonth.setHours(12, 0, 0, 0)
+  if (!classDays || classDays.length === 0) return firstOfNextMonth
+  return getNextClassDay(firstOfNextMonth, classDays)
+}
+
+/**
  * Obtener el próximo día de clase a partir de una fecha
  * @param {Date} fromDate - Fecha desde la cual buscar
  * @param {number[]} classDays - Días de clase (0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb)
@@ -234,28 +267,30 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
 
   let cycleStart, cycleEnd, totalClasses
 
-  if (classDays && classDays.length > 0 && classesPerCycle) {
-    // Cálculo preciso con días de clase
+  if (classDays && classDays.length > 0) {
+    // Ciclo real: del primer día de clase después del pago hasta el último día
+    // de clase antes del próximo cobro. Funciona tanto para facturación por mes
+    // calendario como por conteo de clases (N clases → next_payment es siempre
+    // el siguiente día de clase, por lo que getPrevClassDay entrega el último del ciclo).
     cycleStart = getNextClassDay(lastPay, classDays)
-    cycleEnd = calculatePackageEndDate(cycleStart, classDays, classesPerCycle)
-    totalClasses = classesPerCycle
+    cycleEnd = getPrevClassDay(nextPay, classDays)
+
+    // Contar clases reales en [cycleStart, cycleEnd]
+    totalClasses = 0
+    {
+      let cur = new Date(cycleStart)
+      let safety = 0
+      while (cur <= cycleEnd && safety < 400) {
+        if (classDays.includes(getDay(cur))) totalClasses++
+        cur = addDays(cur, 1)
+        safety++
+      }
+    }
   } else {
-    // Fallback: usar las fechas directamente
-    // Ciclo va desde la fecha de pago/inicio hasta un día antes del próximo cobro
+    // Fallback: sin días de clase definidos, usar fechas crudas
     cycleStart = lastPay
     cycleEnd = subDays(nextPay, 1)
-    // Estimar clases si tenemos classDays
-    if (classDays && classDays.length > 0) {
-      let count = 0
-      let d = new Date(cycleStart)
-      while (d <= cycleEnd) {
-        if (classDays.includes(getDay(d))) count++
-        d = addDays(d, 1)
-      }
-      totalClasses = count
-    } else {
-      totalClasses = classesPerCycle || null
-    }
+    totalClasses = classesPerCycle || null
   }
 
   // Calcular cuántas clases han pasado desde el inicio del ciclo
@@ -496,17 +531,24 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   // Cuando el ciclo vence → no puede asistir hasta renovar.
   const isAdultCourse = (course?.ageMin ?? 0) >= 18
 
-  // Para adultas con classesPerCycle (ej: Ballet Adultos M-J, 8 clases):
-  // verificar si el ciclo se completó por CLASES aunque next_payment_date aún no haya llegado.
+  // Para adultas con classDays definidos: verificar si el ciclo se completó por
+  // CLASES aunque next_payment_date aún no haya llegado. Usa totalClasses real
+  // (contado en getCycleInfo) para no dispararse en meses con 9 clases cuando
+  // classesPerCycle = 8 (modelo mes calendario).
   if (isAdultCourse && days >= 0) {
-    const classesTotal = course.classesPerCycle || course.classesPerPackage || course.classes_per_cycle
     const baseDate = student.last_payment_date || student.enrollment_date
-    if (classesTotal && baseDate && student.next_payment_date && (course.classDays || course.class_days)) {
-      const cycleInfo = getCycleInfo(baseDate, student.next_payment_date, course.classDays || course.class_days, classesTotal)
+    if (baseDate && student.next_payment_date && (course.classDays || course.class_days)) {
+      const cycleInfo = getCycleInfo(
+        baseDate, student.next_payment_date,
+        course.classDays || course.class_days,
+        course.classesPerCycle || course.classes_per_cycle
+      )
+      // Usar totalClasses real (contado en el ciclo actual) como referencia
+      const classesTotal = cycleInfo?.totalClasses ?? null
       const classesTaken = cycleInfo?.classesPassed ?? 0
-      const remaining = classesTotal - classesTaken
+      const remaining = classesTotal != null ? classesTotal - classesTaken : -1
 
-      if (remaining <= 0) {
+      if (remaining <= 0 && classesTotal != null) {
         // Todas las clases tomadas — ¿la última es hoy?
         const todayStr = getTodayEC()
         const todayDow = new Date(todayStr + 'T12:00:00').getDay()
