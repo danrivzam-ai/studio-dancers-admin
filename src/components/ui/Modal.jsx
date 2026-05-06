@@ -78,7 +78,7 @@ export default function Modal({ isOpen, onClose, ariaLabel, children, className 
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
-      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50 ${className}`}
+      className={`fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-50 ${className}`}
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
       }}

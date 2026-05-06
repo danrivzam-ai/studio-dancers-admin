@@ -301,11 +301,15 @@ export default function PaymentModal({
   }
 
   return (
-    <Modal isOpen={true} onClose={onClose} ariaLabel="Registrar pago">
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Registrar pago" className="!items-end sm:!items-center !p-0 sm:!p-4">
+      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[92svh] sm:max-h-[90vh] overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Header */}
-        <div className="p-6 flex flex-col bg-[#551735] text-white rounded-t-2xl">
-          <div className="flex items-center justify-between">
+        <div className="flex flex-col bg-[#551735] text-white rounded-t-2xl">
+          {/* Pill handle — mobile only */}
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+            <div className="w-10 h-1 rounded-full bg-white/30" />
+          </div>
+          <div className="px-6 pb-6 pt-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-xl">
                 <CreditCard size={20} />
@@ -323,6 +327,7 @@ export default function PaymentModal({
           <p className="text-sm text-white/70 mt-2 ml-1">
             Comprobante N° {receiptNumber}
           </p>
+          </div>
         </div>
 
         {/* Student Info */}

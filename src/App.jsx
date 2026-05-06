@@ -2484,10 +2484,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-end sm:items-center justify-center sm:p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92svh] sm:max-h-[90vh] flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-5 border-b flex items-center justify-between shrink-0">
+              <div className="border-b shrink-0">
+                <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-gray-300" />
+                </div>
+                <div className="px-5 pb-4 pt-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingBag size={20} className="text-green-600" />
                   <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
@@ -2495,6 +2499,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <button onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }} className="p-2 hover:bg-gray-100 rounded-xl active:scale-95 transition-all">
                   <X size={20} />
                 </button>
+                </div>
               </div>
 
               <form onSubmit={handleSaleSubmit} className="flex flex-col flex-1 overflow-hidden">
@@ -2807,10 +2812,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Student Detail Modal */}
         {/* Student List Modal */}
         {showStudentListModal && (
-          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-end sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl max-h-[92svh] sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
               {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-[#551735] text-white">
+              <div className="p-3 sm:p-5 border-b bg-[#551735] text-white rounded-t-2xl sm:rounded-t-2xl">
+                {/* Pill handle — mobile only */}
+                <div className="flex justify-center mb-2 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-white/30" />
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
@@ -2840,7 +2849,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Search and Filters */}
               <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
                 {/* Fila 1: Búsqueda + Curso */}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#c98daa] focus-within:border-[#9e4d75] px-3 py-2 bg-white transition-all">
                     <Search className="text-gray-400 shrink-0" size={16} />
                     <input
@@ -2862,7 +2871,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 max-w-[160px]"
+                    className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 sm:max-w-[160px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -3043,10 +3052,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <div className="flex gap-0.5 sm:gap-1">
                                 <button
                                   onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
+                                  className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                   title="Ver detalle"
                                 >
-                                  <Eye size={16} />
+                                  <Eye size={17} />
                                 </button>
                                 {!(course?.priceType === 'programa' && (
                                   paymentStatus.status === 'paid' ||
@@ -3054,12 +3063,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 )) && (
                                   <button
                                     onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
-                                    className="p-1.5 sm:p-2 text-gray-500 hover:text-green-700 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                    className="p-2 text-gray-500 hover:text-green-700 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                     title="Registrar pago"
                                   >
-                                    <CreditCard size={16} />
+                                    <CreditCard size={17} />
                                   </button>
                                 )}
+                                {/* Acciones secundarias: solo visible en desktop */}
                                 <button
                                   onClick={() => {
                                     const phone = student.payer_phone || student.parent_phone || student.phone
@@ -3069,14 +3079,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18, courseObj)
                                     openWhatsApp(phone, msg)
                                   }}
-                                  className="p-1.5 sm:p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                  className="hidden sm:flex p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                   title="Recordatorio WhatsApp"
                                 >
                                   <MessageCircle size={16} />
                                 </button>
                                 <button
                                   onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
+                                  className="hidden sm:flex p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                   title="Editar"
                                 >
                                   <Edit2 size={16} />
@@ -3084,7 +3094,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-orange-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
+                                    className="hidden sm:flex p-2 text-orange-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
                                     title="Dar de baja"
                                   >
                                     <UserMinus size={16} />
@@ -3290,10 +3300,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
-          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
-                <div className="flex items-center justify-between">
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-end sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92svh] sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500">
+                <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-white/40" />
+                </div>
+                <div className="px-4 pb-4 pt-2 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-white/20 rounded-xl">
                       <Wallet className="text-white" size={22} />
@@ -3306,6 +3319,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <button onClick={() => setShowBalanceAlerts(false)} className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all text-white">
                     <X size={20} />
                   </button>
+                </div>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -3556,9 +3570,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal: Alumnas Retiradas */}
         {showRetiradasModal && (
-          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowRetiradasModal(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-              <div className="px-5 py-4 border-b bg-orange-600 text-white flex items-center justify-between">
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-end sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowRetiradasModal(false)}>
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92svh] sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={e => e.stopPropagation()}>
+              <div className="border-b bg-orange-600 text-white">
+                <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
+                  <div className="w-10 h-1 rounded-full bg-white/40" />
+                </div>
+                <div className="px-5 pb-4 pt-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <UserMinus size={18} />
                   <span className="font-bold">Alumnas retiradas</span>
@@ -3567,6 +3585,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <button onClick={() => setShowRetiradasModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
                   <X size={18} />
                 </button>
+                </div>
               </div>
 
               <div className="overflow-y-auto flex-1 p-3 sm:p-4 space-y-2">
