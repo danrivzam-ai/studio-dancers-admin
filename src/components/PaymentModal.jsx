@@ -324,10 +324,9 @@ export default function PaymentModal({
               <X size={20} />
             </button>
           </div>
-          <p className="text-sm text-white/70 mt-2 ml-1">
+          <p className="text-sm text-white/70 mt-2 ml-1 px-6 pb-4">
             Comprobante N° {receiptNumber}
           </p>
-          </div>
         </div>
 
         {/* Student Info */}
