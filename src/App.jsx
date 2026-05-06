@@ -1101,108 +1101,115 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
           </div>
 
-          {/* Fila 2: Acciones principales - grid adaptable */}
-          <div className="pt-3 border-t border-gray-100 space-y-5">
-            {/* Acciones principales: grid 3 cols en móvil, row en desktop */}
-            <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5">
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#6b2145] hover:bg-[#551735] active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-              >
-                <Plus size={20} />
-                <span>Alumno</span>
-              </button>
-              <button
-                onClick={() => setShowSaleForm(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-              >
-                <ShoppingBag size={20} />
-                <span>Venta</span>
-              </button>
-              <button
-                onClick={() => setShowQuickPayment(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-              >
-                <Zap size={20} />
-                <span>Pago</span>
-              </button>
-              <button
-                onClick={() => setShowExpenses(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-              >
-                <TrendingDown size={20} />
-                <span>Egreso</span>
-              </button>
-              <button
-                onClick={() => setShowCashMovements(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-              >
-                <ArrowLeftRight size={20} />
-                <span>Movimiento</span>
-              </button>
-              <button
-                onClick={() => setShowPaymentHistory(true)}
-                className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] active:scale-95 text-[#551735] px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
-              >
-                <History size={20} />
-                <span>Historial</span>
-              </button>
-            </div>
+          {/* Fila 2: Acciones — en desktop una sola fila, en mobile dos grupos */}
+          <div className="pt-3 border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
 
-            {/* Herramientas secundarias */}
-            <div className="flex items-center justify-center sm:justify-end gap-4 sm:gap-5 flex-wrap pt-2 mt-1 border-t border-gray-100">
-              {!isRecepcion && can('canExport') && (
+              {/* ── Primarias: grid 3-col en mobile, inline en desktop ── */}
+              <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
                 <button
-                  onClick={() => setShowExport(true)}
-                  className="flex items-center gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] text-[#551735] px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                  onClick={() => setShowForm(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#6b2145] hover:bg-[#551735] active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
                 >
-                  <Download size={16} />
-                  Exportar
+                  <Plus size={20} />
+                  <span>Alumno</span>
                 </button>
-              )}
-              <button
-                onClick={() => setShowTransferVerification(true)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all text-sm font-medium relative active:scale-95 ${
-                  pendingTransfers > 0
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg'
-                    : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                }`}
-              >
-                <DollarSign size={16} />
-                Transferencias
-                {pendingTransfers > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                    {pendingTransfers}
-                  </span>
+                <button
+                  onClick={() => setShowSaleForm(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                >
+                  <ShoppingBag size={20} />
+                  <span>Venta</span>
+                </button>
+                <button
+                  onClick={() => setShowQuickPayment(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                >
+                  <Zap size={20} />
+                  <span>Pago</span>
+                </button>
+                <button
+                  onClick={() => setShowExpenses(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                >
+                  <TrendingDown size={20} />
+                  <span>Egreso</span>
+                </button>
+                <button
+                  onClick={() => setShowCashMovements(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                >
+                  <ArrowLeftRight size={20} />
+                  <span>Movimiento</span>
+                </button>
+                <button
+                  onClick={() => setShowPaymentHistory(true)}
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] active:scale-95 text-[#551735] px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+                >
+                  <History size={20} />
+                  <span>Historial</span>
+                </button>
+              </div>
+
+              {/* Divisor visual — solo desktop */}
+              <div className="hidden sm:block w-px h-7 bg-gray-200 flex-shrink-0 mx-1" />
+
+              {/* ── Secundarias: fila compacta en mobile, inline en desktop ── */}
+              <div className="flex flex-wrap items-center gap-2">
+                {!isRecepcion && can('canExport') && (
+                  <button
+                    onClick={() => setShowExport(true)}
+                    className="flex items-center gap-1.5 bg-[#f9e8f0] hover:bg-[#f2d9e8] text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                  >
+                    <Download size={15} />
+                    Exportar
+                  </button>
                 )}
-              </button>
-              {!isRecepcion && isAdmin && (
-                <>
-                  <button
-                    onClick={() => setShowMonthlyClose(true)}
-                    className="flex items-center gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] text-[#551735] px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                  >
-                    <Lock size={16} />
-                    Cierre mensual
-                  </button>
-                  <button
-                    onClick={() => setShowAuditLog(true)}
-                    className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                  >
-                    <ScrollText size={16} />
-                    Auditoría
-                  </button>
-                </>
-              )}
-              {!isRecepcion && (isAdmin || userRole === 'contador') && (
                 <button
-                  onClick={() => setShowContabilidad(true)}
-                  className="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-800 px-5 py-2.5 rounded-xl active:scale-95 transition-all text-sm font-medium border border-amber-200"
+                  onClick={() => setShowTransferVerification(true)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all text-sm font-medium relative active:scale-95 ${
+                    pendingTransfers > 0
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                  }`}
                 >
-                  <FileText size={16} />
-                  Contabilidad
+                  <DollarSign size={15} />
+                  Transferencias
+                  {pendingTransfers > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {pendingTransfers}
+                    </span>
+                  )}
                 </button>
-              )}
+                {!isRecepcion && isAdmin && (
+                  <>
+                    <button
+                      onClick={() => setShowMonthlyClose(true)}
+                      className="flex items-center gap-1.5 bg-[#f9e8f0] hover:bg-[#f2d9e8] text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                    >
+                      <Lock size={15} />
+                      Cierre mensual
+                    </button>
+                    <button
+                      onClick={() => setShowAuditLog(true)}
+                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
+                    >
+                      <ScrollText size={15} />
+                      Auditoría
+                    </button>
+                  </>
+                )}
+                {!isRecepcion && (isAdmin || userRole === 'contador') && (
+                  <button
+                    onClick={() => setShowContabilidad(true)}
+                    className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium border border-amber-200"
+                  >
+                    <FileText size={15} />
+                    Contabilidad
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
