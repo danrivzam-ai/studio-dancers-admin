@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -51,15 +51,22 @@ export default function PaymentModal({
   const isOverdue = daysUntilDue <= 0
   const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0
 
-  // Alumna nueva en curso mensual: nunca ha pagado, el picker de inicio de ciclo
-  // permite elegir cualquier fecha (mismo mes = empieza pronto, mes siguiente = pago adelantado)
-  const isNewEnrollment = course?.priceType === 'mes' && !student?.next_payment_date && !hasBalance
+  // Alumna nueva en curso recurrente (mes o paquete): nunca ha pagado.
+  // El picker de inicio de ciclo permite elegir el primer día de clase real.
+  const isNewEnrollment = isRecurring && !student?.next_payment_date && !hasBalance
 
-  // Fecha de inicio del nuevo ciclo: por defecto = fecha que le correspondía (next_payment_date)
-  // La recepcionista puede cambiarla si la alumna empezó clases en otra fecha
-  const [cycleStartDate, setCycleStartDate] = useState(
-    student?.next_payment_date || getTodayEC()
-  )
+  // Para alumna nueva: el picker muestra el primer día de clase calculado desde hoy
+  // (ej. hoy = lun 5/mayo, sábados → muestra 9/mayo) para que la recepcionista
+  // cambie directamente a la fecha real de inicio (ej. sábado 16/mayo).
+  // Para alumna con historial: usa next_payment_date como base (comportamiento anterior).
+  const _defaultCycleStart = (() => {
+    if (isNewEnrollment && course?.classDays?.length > 0) {
+      return formatDateForInput(getNextClassDay(getTodayEC(), course.classDays))
+    }
+    return student?.next_payment_date || getTodayEC()
+  })()
+
+  const [cycleStartDate, setCycleStartDate] = useState(_defaultCycleStart)
 
   // Estado de descuento
   const [discountEnabled, setDiscountEnabled] = useState(false)
@@ -684,14 +691,14 @@ export default function PaymentModal({
             </div>
           </div>
 
-          {/* Cycle Start Date — inscripción nueva en curso mensual */}
+          {/* Cycle Start Date — inscripción nueva */}
           {isNewEnrollment && (
             <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 space-y-2">
               <p className="text-sm font-semibold text-violet-800">
-                ¿Cuándo empieza clases?
+                Primer día de clase
               </p>
               <p className="text-xs text-violet-600 leading-relaxed">
-                El cobro siguiente siempre cae el 1er día de clase del mes siguiente a la fecha que elijas.
+                Cambia la fecha si la alumna empieza en un día diferente al calculado.
               </p>
               <div className="flex items-center gap-2">
                 <input
@@ -700,20 +707,20 @@ export default function PaymentModal({
                   onChange={(e) => setCycleStartDate(e.target.value)}
                   className="flex-1 px-3 py-2 text-sm border-2 border-violet-300 rounded-xl focus:ring-2 focus:ring-violet-200 focus:border-violet-500 outline-none bg-white font-medium text-gray-800"
                 />
-                {cycleStartDate !== getTodayEC() && (
+                {cycleStartDate !== _defaultCycleStart && (
                   <button
                     type="button"
-                    onClick={() => setCycleStartDate(getTodayEC())}
+                    onClick={() => setCycleStartDate(_defaultCycleStart)}
                     className="text-xs text-violet-700 underline whitespace-nowrap shrink-0"
                   >
-                    Hoy
+                    Restablecer
                   </button>
                 )}
               </div>
               <p className="text-[11px] text-violet-600 leading-relaxed">
                 {cycleStartDate <= getTodayEC()
-                  ? '✓ Empieza este mes — próximo cobro: primer día de clase del mes siguiente'
-                  : '📅 Empieza el mes siguiente — próximo cobro: primer día de clase del mes posterior'}
+                  ? '✓ Empieza este mes — próximo cobro: 1er día de clase de junio'
+                  : '📅 Empieza el mes siguiente — próximo cobro: 1er día de clase del mes posterior'}
               </p>
             </div>
           )}
