@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
-import { calculateNextCalendarMonthPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { sendLeadEvent, sendPurchaseEvent } from '../lib/metaConversionsApi'
 
@@ -380,25 +380,23 @@ export function useStudents() {
               }
             } else if (isMonthly) {
               if (prevAmountPaid > 0) {
-                // Completando saldo del mes en curso: next_payment_date no cambia.
-                // La alumna ya está en su ciclo (ej. ciclo termina el 28/04),
-                // completar el saldo NO debe avanzar la fecha al mes siguiente.
+                // Completando saldo del ciclo en curso: next_payment_date no cambia.
                 nextPayment = student?.next_payment_date
               } else {
                 const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
+                const classesPerCycle = course?.classesPerCycle || null
 
                 if (!currentNextPaymentDate) {
-                  // Primer pago: ciclo arranca en la próxima clase desde hoy
+                  // Primer pago o sin ciclo previo: calcular desde effectiveCycleDate
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                  nextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
+                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
                 } else if (currentNextPaymentDate > effectiveCycleDate) {
-                  // Pago anticipado: el ciclo actual aún no terminó; el siguiente cobro
-                  // es el 1er día de clase del mes siguiente al que arrancaría el ciclo nuevo
-                  nextPayment = calculateNextCalendarMonthPaymentDate(currentNextPaymentDate, classDays)
+                  // Pago anticipado: el ciclo actual sigue vigente, encadenar al siguiente
+                  nextPayment = calculateNextPaymentDate(currentNextPaymentDate, classDays, classesPerCycle)
                 } else {
-                  // Pago a tiempo o en mora: ciclo arranca en la próxima clase desde hoy
+                  // Pago a tiempo o en mora: nuevo ciclo desde effectiveCycleDate
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
-                  nextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
+                  nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
                 }
               }
             }
@@ -763,9 +761,9 @@ export function useStudents() {
         const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage)
         newNextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
       } else if (isMonthly) {
-        // Modelo mes calendario: primer día de clase del mes siguiente al inicio del ciclo
+        const classesPerCycle = course.classesPerCycle || null
         const startDate = getNextClassDay(lastPayDate, classDays)
-        newNextPayment = calculateNextCalendarMonthPaymentDate(startDate, classDays)
+        newNextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
       }
 
       if (!newNextPayment) continue
@@ -833,6 +831,7 @@ export function useStudents() {
       const todayStr = getTodayEC()
       const todayDate = new Date(todayStr + 'T12:00:00')
       const classDays = course.classDays || null
+      const classesPerCycle = course.classesPerCycle || null
       const classesPerPackage = course.classesPerPackage || null
 
       let nextPayment
@@ -842,9 +841,9 @@ export function useStudents() {
           const packageEnd = calculatePackageEndDate(cycleStart, classDays, classesPerPackage || 4)
           nextPayment = calculateNextPackagePaymentDate(packageEnd, classDays)
         } else {
-          // mensual: primer día de clase del próximo mes calendario
+          // mensual: ciclo de N clases desde hoy
           const cycleStart = classDays ? getNextClassDay(todayDate, classDays) : todayDate
-          nextPayment = calculateNextCalendarMonthPaymentDate(cycleStart, classDays)
+          nextPayment = calculateNextPaymentDate(cycleStart, classDays, classesPerCycle)
         }
       } catch (calcErr) {
         console.error('Error calculando próximo pago, usando fallback +1 mes:', calcErr)
