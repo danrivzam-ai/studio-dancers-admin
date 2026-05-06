@@ -161,16 +161,15 @@ export default function ScreenLock({ isLocked, onUnlock, schoolName, securityPin
       {/* Center stage */}
       <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
 
-        {/* Logo — brightness boost for contrast */}
+        {/* Logo */}
         <img
-          src="/logo2.png"
+          src="/logo-cream.png"
           alt="Studio Dancers"
           style={{
             width: 'clamp(100px, 18vw, 170px)',
             height: 'auto',
             objectFit: 'contain',
             marginBottom: '1.1rem',
-            filter: 'brightness(1.5) saturate(1.1) drop-shadow(0 0 14px rgba(220,120,160,0.6)) drop-shadow(0 0 32px rgba(200,80,120,0.35))',
           }}
         />
 

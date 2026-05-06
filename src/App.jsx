@@ -939,13 +939,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Logo */}
         <img
-          src="/logo2.png"
+          src="/logo-cream.png"
           alt="Studio Dancers"
           style={{
             width: 'clamp(120px, 22vw, 200px)',
             height: 'auto',
             objectFit: 'contain',
-            filter: 'drop-shadow(0 0 18px rgba(180,80,110,0.55)) drop-shadow(0 2px 8px rgba(0,0,0,0.7))',
             marginBottom: '1.75rem',
           }}
         />
@@ -1007,7 +1006,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdf5f9] to-pink-50 p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6" style={{ backgroundColor: 'oklch(97.5% 0.005 350)' }}>
       <div className="max-w-6xl mx-auto pb-20 md:pb-0">
         {/* Logo Centrado - Arriba */}
         <div className="text-center mb-3">
@@ -1020,7 +1019,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         </div>
 
         {/* Header con controles - Blanco */}
-        <div className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-6 p-3 sm:p-4">
+        <div className="bg-white rounded-2xl mb-4 sm:mb-6 p-4 sm:p-6" style={{ boxShadow: '0 1px 3px oklch(40% 0.06 350 / 0.10), 0 4px 16px oklch(40% 0.06 350 / 0.06)' }}>
           {/* Fila 1: Caja, Nombre, Config */}
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             {/* Izquierda: Estado de caja */}
@@ -1059,7 +1058,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   }
                   setIsScreenLocked(true)
                 }}
-                className="hidden sm:flex p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl active:scale-95 transition-all"
+                className="hidden sm:flex p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl active:scale-95 transition-all"
                 title="Bloquear pantalla"
               >
                 <Lock size={20} />
@@ -1093,7 +1092,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     }
                   }
                 }}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                 title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
               >
                 <LogOut size={20} />
@@ -1101,116 +1100,119 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
           </div>
 
-          {/* Fila 2: Acciones — en desktop una sola fila, en mobile dos grupos */}
-          <div className="pt-3 border-t border-gray-100">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+          {/* Fila 2: Acciones */}
+          <div className="pt-4 border-t border-gray-100 space-y-3">
 
-              {/* ── Primarias: grid 3-col en mobile, inline en desktop ── */}
-              <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
+            {/* ── Primarias: tarjetas con paleta muted ── */}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[
+                {
+                  label: 'Alumno', icon: <Plus size={20} strokeWidth={2.5} />,
+                  bg: '#551735', fg: '#fff',
+                  hoverBg: '#441029',
+                  onClick: () => setShowForm(true),
+                },
+                {
+                  label: 'Venta', icon: <ShoppingBag size={20} />,
+                  bg: '#1a5c3c', fg: '#fff',
+                  hoverBg: '#134830',
+                  onClick: () => setShowSaleForm(true),
+                },
+                {
+                  label: 'Pago', icon: <Zap size={20} strokeWidth={2.2} />,
+                  bg: '#7c5000', fg: '#fff',
+                  hoverBg: '#633f00',
+                  onClick: () => setShowQuickPayment(true),
+                },
+                {
+                  label: 'Egreso', icon: <TrendingDown size={20} />,
+                  bg: '#7a1e14', fg: '#fff',
+                  hoverBg: '#641710',
+                  onClick: () => setShowExpenses(true),
+                },
+                {
+                  label: 'Movimiento', icon: <ArrowLeftRight size={20} />,
+                  bg: '#1b3d6e', fg: '#fff',
+                  hoverBg: '#142e56',
+                  onClick: () => setShowCashMovements(true),
+                },
+                {
+                  label: 'Historial', icon: <History size={20} />,
+                  bg: '#f2e8ed', fg: '#441029',
+                  hoverBg: '#e8d4de',
+                  onClick: () => setShowPaymentHistory(true),
+                },
+              ].map(({ label, icon, bg, fg, hoverBg, onClick }) => (
                 <button
-                  onClick={() => setShowForm(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#6b2145] hover:bg-[#551735] active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
+                  key={label}
+                  onClick={onClick}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = hoverBg}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = bg}
+                  style={{ backgroundColor: bg, color: fg, height: '68px', borderRadius: '14px' }}
+                  className="flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-transform"
                 >
-                  <Plus size={20} />
-                  <span>Alumno</span>
+                  {icon}
+                  <span style={{ fontSize: '11px', fontWeight: 600, lineHeight: 1, letterSpacing: '0.01em' }}>{label}</span>
                 </button>
-                <button
-                  onClick={() => setShowSaleForm(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-                >
-                  <ShoppingBag size={20} />
-                  <span>Venta</span>
-                </button>
-                <button
-                  onClick={() => setShowQuickPayment(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-                >
-                  <Zap size={20} />
-                  <span>Pago</span>
-                </button>
-                <button
-                  onClick={() => setShowExpenses(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-                >
-                  <TrendingDown size={20} />
-                  <span>Egreso</span>
-                </button>
-                <button
-                  onClick={() => setShowCashMovements(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-md hover:shadow-lg text-xs sm:text-sm"
-                >
-                  <ArrowLeftRight size={20} />
-                  <span>Movimiento</span>
-                </button>
-                <button
-                  onClick={() => setShowPaymentHistory(true)}
-                  className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 bg-[#f9e8f0] hover:bg-[#f9e8f0] active:scale-95 text-[#551735] px-2.5 sm:px-4 py-3 sm:py-2.5 rounded-2xl font-medium transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
-                >
-                  <History size={20} />
-                  <span>Historial</span>
-                </button>
-              </div>
-
-              {/* Divisor visual — solo desktop */}
-              <div className="hidden sm:block w-px h-7 bg-gray-200 flex-shrink-0 mx-1" />
-
-              {/* ── Secundarias: fila compacta en mobile, inline en desktop ── */}
-              <div className="flex flex-wrap items-center gap-2">
-                {!isRecepcion && can('canExport') && (
-                  <button
-                    onClick={() => setShowExport(true)}
-                    className="flex items-center gap-1.5 bg-[#f9e8f0] hover:bg-[#f2d9e8] text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                  >
-                    <Download size={15} />
-                    Exportar
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowTransferVerification(true)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all text-sm font-medium relative active:scale-95 ${
-                    pendingTransfers > 0
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
-                      : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
-                  }`}
-                >
-                  <DollarSign size={15} />
-                  Transferencias
-                  {pendingTransfers > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                      {pendingTransfers}
-                    </span>
-                  )}
-                </button>
-                {!isRecepcion && isAdmin && (
-                  <>
-                    <button
-                      onClick={() => setShowMonthlyClose(true)}
-                      className="flex items-center gap-1.5 bg-[#f9e8f0] hover:bg-[#f2d9e8] text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                    >
-                      <Lock size={15} />
-                      Cierre mensual
-                    </button>
-                    <button
-                      onClick={() => setShowAuditLog(true)}
-                      className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium"
-                    >
-                      <ScrollText size={15} />
-                      Auditoría
-                    </button>
-                  </>
-                )}
-                {!isRecepcion && (isAdmin || userRole === 'contador') && (
-                  <button
-                    onClick={() => setShowContabilidad(true)}
-                    className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-sm font-medium border border-amber-200"
-                  >
-                    <FileText size={15} />
-                    Contabilidad
-                  </button>
-                )}
-              </div>
-
+              ))}
             </div>
+
+            {/* ── Secundarias: chips compactos ── */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {!isRecepcion && can('canExport') && (
+                <button
+                  onClick={() => setShowExport(true)}
+                  className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed]"
+                >
+                  <Download size={13} />
+                  Exportar
+                </button>
+              )}
+              <button
+                onClick={() => setShowTransferVerification(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-medium relative active:scale-95 ${
+                  pendingTransfers > 0
+                    ? 'bg-[#1b3d6e] text-white'
+                    : 'text-[#1b3d6e] hover:bg-blue-50'
+                }`}
+              >
+                <DollarSign size={13} />
+                Transferencias
+                {pendingTransfers > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {pendingTransfers}
+                  </span>
+                )}
+              </button>
+              {!isRecepcion && isAdmin && (
+                <>
+                  <button
+                    onClick={() => setShowMonthlyClose(true)}
+                    className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed]"
+                  >
+                    <Lock size={13} />
+                    Cierre mensual
+                  </button>
+                  <button
+                    onClick={() => setShowAuditLog(true)}
+                    className="flex items-center gap-1.5 text-slate-500 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-slate-100"
+                  >
+                    <ScrollText size={13} />
+                    Auditoría
+                  </button>
+                </>
+              )}
+              {!isRecepcion && (isAdmin || userRole === 'contador') && (
+                <button
+                  onClick={() => setShowContabilidad(true)}
+                  className="flex items-center gap-1.5 text-amber-700 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-amber-50"
+                >
+                  <FileText size={13} />
+                  Contabilidad
+                </button>
+              )}
+            </div>
+
           </div>
         </div>
 
@@ -1257,13 +1259,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div
             onClick={() => setShowCashRegister(true)}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all border-t-4 border-green-400"
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all"
             title="Ver cuadre de caja"
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-green-100 p-2 sm:p-3 rounded-xl shrink-0">
-                <DollarSign className="text-green-600" size={20} />
-              </div>
+              <DollarSign className="text-green-600" size={20} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
                   <p className="text-xl sm:text-2xl font-bold text-green-600 truncate transition-all">{hideIncome ? '• • •' : `$${todayIncome.toFixed(2)}`}</p>
@@ -1285,21 +1285,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setFilterPayment(target)
               setShowStudentListModal(true)
             }}
-            className={`bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all border-t-4 ${
-              moraStudents.length > 0 ? 'border-rose-600' :
-              adultRenewalStudents.length > 0 ? 'border-amber-500' :
-              urgentCount > 0 ? 'border-red-500' : 'border-amber-400'
-            }`}
+            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all"
             title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : adultRenewalStudents.length > 0 ? 'Ver ciclos por renovar' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
           >
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${
-                moraStudents.length > 0 ? 'bg-rose-100' : adultRenewalStudents.length > 0 ? 'bg-amber-100' : urgentCount > 0 ? 'bg-red-100' : 'bg-yellow-100'
-              }`}>
-                <AlertCircle className={
-                  moraStudents.length > 0 ? 'text-rose-700' : adultRenewalStudents.length > 0 ? 'text-amber-600' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
-                } size={20} />
-              </div>
+              <AlertCircle className={
+                moraStudents.length > 0 ? 'text-rose-700' : adultRenewalStudents.length > 0 ? 'text-amber-600' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
+              } size={20} />
               <div className="min-w-0">
                 {moraStudents.length > 0 ? (
                   <>
@@ -1398,7 +1390,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
                 title="Limpiar búsqueda"
               >
                 <X size={16} />
@@ -1415,12 +1407,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* View Students Button */}
               <button
                 onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all border-t-4 border-[#9e4d75]"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className="bg-[#f9e8f0] p-2 sm:p-3 rounded-xl shrink-0">
-                    <Users className="text-[#6b2145]" size={18} />
-                  </div>
+                  <Users className="text-[#6b2145]" size={18} />
                   <div className="min-w-0">
                     <p className="text-lg sm:text-3xl font-bold text-[#6b2145]">{students.length}</p>
                     <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Alumnos</p>
@@ -1431,12 +1421,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Upcoming Payments */}
               <button
                 onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all border-t-4 border-amber-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                    <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'} size={18} />
-                  </div>
+                  <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'} size={18} />
                   <div className="min-w-0">
                     <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
                       {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
@@ -1449,12 +1437,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Balance Alerts */}
               <button
                 onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all border-t-4 border-orange-400"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${studentsWithBalance.length > 0 ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                    <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={18} />
-                  </div>
+                  <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={18} />
                   <div className="min-w-0">
                     <p className={`text-lg sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
                       {studentsWithBalance.length}
@@ -1467,12 +1453,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {/* Inactive Students */}
               <button
                 onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all border-t-4 border-slate-300"
+                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
               >
                 <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${inactiveStudents.length > 0 ? 'bg-slate-200' : 'bg-gray-100'}`}>
-                    <Pause className={inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'} size={18} />
-                  </div>
+                  <Pause className={inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'} size={18} />
                   <div className="min-w-0">
                     <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'}`}>
                       {inactiveStudents.length}
@@ -1537,7 +1521,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     const { contactName, contactPhone, contactRelation } = getContactInfo(s)
                     return (
-                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-rose-500 rounded-r-xl pl-3 pr-2 py-2.5">
+                      <div key={s.id} className="flex items-center gap-2 bg-rose-50 rounded-xl pl-3 pr-2 py-2.5">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">
@@ -1588,7 +1572,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     const { contactName, contactPhone, contactRelation } = getContactInfo(s)
                     return (
-                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-red-400 rounded-r-xl pl-3 pr-2 py-2.5">
+                      <div key={s.id} className="flex items-center gap-2 bg-red-50 rounded-xl pl-3 pr-2 py-2.5">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">
@@ -1638,7 +1622,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const course = getCourseById(s.course_id)
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     return (
-                      <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-slate-300 rounded-r-xl pl-3 pr-3 py-2.5">
+                      <div key={s.id} className="flex items-center gap-2 bg-white rounded-xl pl-3 pr-3 py-2.5">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
@@ -1677,7 +1661,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const days = getDaysUntilDue(s.next_payment_date)
                     const { contactName, contactRelation } = getContactInfo(s)
                     return (
-                      <div key={s.id} className={`flex items-center gap-2 bg-white/90 border-l-4 rounded-r-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'border-orange-400' : 'border-amber-300'}`}>
+                      <div key={s.id} className={`flex items-center gap-2 rounded-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'bg-orange-50' : 'bg-amber-50'}`}>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                           <p className="text-xs text-gray-500 truncate">
@@ -1726,7 +1710,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
                 <div className="space-y-1.5">
                   {studentsWithBalance.slice(0, 3).map(s => (
-                    <div key={s.id} className="flex items-center gap-2 bg-white/90 border-l-4 border-orange-300 rounded-r-xl pl-3 pr-3 py-2.5">
+                    <div key={s.id} className="flex items-center gap-2 bg-orange-50 rounded-xl pl-3 pr-3 py-2.5">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
                         <p className="text-xs text-gray-500 truncate">{s.courseName}</p>
@@ -2091,7 +2075,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             {!isRecepcion && (
                               <button
                                 onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
+                                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -2175,7 +2159,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {regular.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-4 border-[#9e4d75] rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="rounded-2xl p-4 bg-gray-50 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-[#551735] leading-tight">{course.name}</h3>
                               <p className="text-xs text-gray-400 mt-0.5">{course.schedule || 'Sin horario definido'}</p>
                               <div className="flex items-center justify-between mt-3">
@@ -2202,9 +2186,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         {programs.map(course => {
                           const enrolledCount = students.filter(s => s.course_id === (course.id || course.code)).length
                           return (
-                            <div key={course.id || course.code} className="border-t-4 border-orange-400 rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
+                            <div key={course.id || course.code} className="rounded-2xl p-4 bg-orange-50/40 hover:shadow-md transition-all">
                               <h3 className="font-semibold text-orange-700 leading-tight">{course.name}</h3>
-                              <p className="text-xs text-gray-400 mt-0.5">
+                              <p className="text-xs text-orange-600 mt-0.5">
                                 {(course.ageMin || course.age_min)} - {(course.ageMax || course.age_max)} años
                                 {course.schedule && ` · ${course.schedule}`}
                               </p>
@@ -2258,7 +2242,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-md border-t-4 border-red-400 p-6 text-center">
+            <div className="bg-white rounded-2xl shadow-md p-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
                 <TrendingDown className="text-red-400" size={28} />
               </div>
@@ -2451,10 +2435,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-[#6b2145] active:scale-95 transition-all">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-gray-400 hover:text-red-500' : 'hover:bg-green-50 text-gray-400 hover:text-green-600'}`}>
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-red-400 hover:text-red-500' : 'hover:bg-green-50 text-green-500 hover:text-green-600'}`}>
                           {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
-                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 active:scale-95 transition-all">
+                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-red-400 hover:text-red-500 active:scale-95 transition-all">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -2500,7 +2484,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal Form - New Sale */}
         {showSaleForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-50" onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-5 border-b flex items-center justify-between shrink-0">
@@ -2665,7 +2649,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                               <button
                                 type="button"
                                 onClick={() => setCartItems(prev => prev.filter((_, i) => i !== idx))}
-                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                               >
                                 <X size={14} />
                               </button>
@@ -2823,7 +2807,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Student Detail Modal */}
         {/* Student List Modal */}
         {showStudentListModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               {/* Header */}
               <div className="p-3 sm:p-5 border-b bg-[#551735] text-white">
@@ -2943,7 +2927,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
                     <button
                       onClick={() => { setSearchTerm(''); setFilterCourse('all'); setFilterPayment('all') }}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-200"
+                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-200"
                     >
                       Limpiar filtros
                     </button>
@@ -2985,15 +2969,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       const isCamp = student.course_id?.startsWith('camp-')
 
                       const rowBg = isCamp
-                        ? 'border-l-4 border-pink-400 hover:bg-pink-50/40'
+                        ? 'bg-pink-50/40 hover:bg-pink-50/70'
                         : paymentStatus.status === 'mora'
-                          ? 'border-l-4 border-rose-600 bg-rose-50/40 hover:bg-rose-50/60'
+                          ? 'bg-rose-50/50 hover:bg-rose-50/70'
                           : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
-                            ? 'border-l-4 border-red-400 bg-red-50/30 hover:bg-red-50/50'
+                            ? 'bg-red-50/40 hover:bg-red-50/60'
                             : paymentStatus.status === 'grace'
-                              ? 'border-l-4 border-amber-300 bg-amber-50/20 hover:bg-amber-50/40'
+                              ? 'bg-amber-50/30 hover:bg-amber-50/50'
                               : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
-                                ? 'border-l-4 border-amber-400 bg-amber-50/30 hover:bg-amber-50/50'
+                                ? 'bg-amber-50/40 hover:bg-amber-50/60'
                                 : 'hover:bg-gray-50'
 
                       return (
@@ -3070,7 +3054,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 )) && (
                                   <button
                                     onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                    className="p-1.5 sm:p-2 text-gray-500 hover:text-green-700 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                     title="Registrar pago"
                                   >
                                     <CreditCard size={16} />
@@ -3085,7 +3069,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18, courseObj)
                                     openWhatsApp(phone, msg)
                                   }}
-                                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                  className="p-1.5 sm:p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
                                   title="Recordatorio WhatsApp"
                                 >
                                   <MessageCircle size={16} />
@@ -3100,7 +3084,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {!isRecepcion && (
                                   <button
                                     onClick={() => handleDelete(student)}
-                                    className="p-1.5 sm:p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
+                                    className="p-1.5 sm:p-2 text-orange-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
                                     title="Dar de baja"
                                   >
                                     <UserMinus size={16} />
@@ -3131,7 +3115,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         setLoadingRetiradas(false)
                         setShowRetiradasModal(true)
                       }}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-500 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors font-medium text-xs"
+                      className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-orange-500 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors font-medium text-xs"
                     >
                       {loadingRetiradas ? <RefreshCw size={13} className="animate-spin" /> : <UserMinus size={13} />}
                       Ver retiradas
@@ -3306,7 +3290,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Balance Alerts Modal */}
         {showBalanceAlerts && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-50" onClick={() => setShowBalanceAlerts(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
               <div className="p-4 bg-gradient-to-r from-orange-500 to-amber-500">
                 <div className="flex items-center justify-between">
@@ -3420,7 +3404,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
           })() : null
           return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]"
+            <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-[60]"
               onClick={() => setDetailBalanceStudent(null)}>
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
                 onClick={e => e.stopPropagation()}>
@@ -3506,7 +3490,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal: Advertencia de alumna duplicada */}
         {duplicateWarning.show && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-[60]" onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
               <div className="px-5 py-4 border-b bg-amber-50 rounded-t-2xl flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -3526,12 +3510,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     const course = allCourses.find(c => (c.id || c.code) === s.course_id)
                     return (
                       <div key={s.id} className={`flex items-center gap-3 p-3 rounded-xl border ${s.active ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${s.active ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${s.active ? 'bg-green-200 text-green-900' : 'bg-gray-200 text-gray-700'}`}>
                           {s.name?.[0]?.toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-800">{s.name}</p>
-                          <p className="text-xs text-gray-500">{course?.name || s.course_id || '—'}{s.cedula ? ` · CI: ${s.cedula}` : ''}</p>
+                          <p className={`text-xs ${s.active ? 'text-green-700' : 'text-gray-500'}`}>{course?.name || s.course_id || '—'}{s.cedula ? ` · CI: ${s.cedula}` : ''}</p>
                         </div>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                           {s.active ? 'Activa' : 'Inactiva'}
@@ -3572,7 +3556,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Modal: Alumnas Retiradas */}
         {showRetiradasModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowRetiradasModal(false)}>
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-50" onClick={() => setShowRetiradasModal(false)}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="px-5 py-4 border-b bg-orange-600 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -3687,7 +3671,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       {/* Toast notification for new transfers */}
       {newTransferAlert && (
         <div
-          className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[60] bg-white border-l-4 border-green-500 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
+          className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[60] bg-green-50 shadow-2xl rounded-xl p-4 max-w-sm animate-bounce-in cursor-pointer"
           onClick={() => { setShowTransferVerification(true); setNewTransferAlert(null) }}
         >
           <div className="flex items-start gap-3">

@@ -144,7 +144,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
   return (
     <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center !p-0 sm:!p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col"
+        style={{ maxHeight: '92svh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
         {/* ── Header ── */}
         <div className="text-white rounded-t-2xl shrink-0 bg-[#551735]" style={{ padding: '36px 20px 16px' }}>
@@ -225,7 +226,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Scrollable content ── */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100svh - 270px)' }}>
+        <div className="overflow-y-auto flex-1 min-h-0">
 
           {/* Courtesy info banner */}
           {student.is_courtesy && (
@@ -599,53 +600,57 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           )}
 
           {/* Acciones principales */}
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-5 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
-            >
-              Cerrar
-            </button>
-            {onEdit && (
-              <button
-                onClick={() => { onClose(); onEdit(student) }}
-                className="px-4 py-3 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] active:scale-95 transition-all"
-                title="Editar alumna"
-              >
-                <Pencil size={18} />
-              </button>
-            )}
-            {onReprint && (
-              <button
-                onClick={() => onReprint(student)}
-                className="px-4 py-3 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 active:scale-95 transition-all"
-                title="Reimprimir último recibo"
-              >
-                <Printer size={18} />
-              </button>
-            )}
-            {(student.phone || student.parent_phone || student.payer_phone) && (
-              <button
-                onClick={handleWhatsApp}
-                className="px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 active:scale-95 transition-all"
-                title="Enviar recordatorio WhatsApp"
-              >
-                <MessageCircle size={18} />
-              </button>
-            )}
+          <div className="space-y-2">
+            {/* Acción primaria — full width */}
             {!student.is_courtesy && !isProgramFullyPaid && (
               <button
                 onClick={() => { onClose(); if (onPayment) onPayment(student) }}
-                className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+                className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
               >
                 <CreditCard size={16} /> Registrar Pago
               </button>
             )}
             {isProgramFullyPaid && (
-              <div className="flex-1 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
+              <div className="w-full py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
                 <CheckCircle size={16} /> Programa pagado completo
               </div>
             )}
+            {/* Fila secundaria: Cerrar + iconos auxiliares */}
+            <div className="flex gap-2">
+              <button
+                onClick={onClose}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
+              >
+                Cerrar
+              </button>
+              {onEdit && (
+                <button
+                  onClick={() => { onClose(); onEdit(student) }}
+                  className="px-4 py-2.5 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] active:scale-95 transition-all"
+                  title="Editar alumna"
+                >
+                  <Pencil size={17} />
+                </button>
+              )}
+              {onReprint && (
+                <button
+                  onClick={() => onReprint(student)}
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 active:scale-95 transition-all"
+                  title="Reimprimir último recibo"
+                >
+                  <Printer size={17} />
+                </button>
+              )}
+              {(student.phone || student.parent_phone || student.payer_phone) && (
+                <button
+                  onClick={handleWhatsApp}
+                  className="px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 active:scale-95 transition-all"
+                  title="Enviar recordatorio WhatsApp"
+                >
+                  <MessageCircle size={17} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -653,7 +658,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
       {/* Modal: Ver foto ampliada */}
       {photoPreview && !photoError && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-2 sm:p-4"
+          className="fixed inset-0 bg-[#1a0010]/80 flex items-center justify-center z-[70] p-2 sm:p-4"
           onClick={() => setPhotoPreview(false)}
         >
           <div className="relative max-w-xs w-full" onClick={e => e.stopPropagation()}>
@@ -664,7 +669,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             />
             <button
               onClick={() => setPhotoPreview(false)}
-              className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-full text-white hover:bg-black/70"
+              className="absolute top-2 right-2 bg-[#1a0010]/60 p-1.5 rounded-full text-white hover:bg-[#1a0010]/80"
             >
               <X size={16} />
             </button>
@@ -675,7 +680,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
       {/* Diálogo: Reactivar ciclo */}
       {showReactivateDialog && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
+        <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-2 sm:p-4 z-[60]">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5">
             <h3 className="text-lg font-bold text-gray-800 mb-1 text-center flex items-center justify-center gap-2">
               <RefreshCw size={20} className="text-[#6b2145]" /> Reactivar ciclo
