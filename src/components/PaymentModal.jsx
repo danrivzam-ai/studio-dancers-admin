@@ -51,6 +51,10 @@ export default function PaymentModal({
   const isOverdue = daysUntilDue <= 0
   const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0
 
+  // Alumna nueva en curso mensual: nunca ha pagado, el picker de inicio de ciclo
+  // permite elegir cualquier fecha (mismo mes = empieza pronto, mes siguiente = pago adelantado)
+  const isNewEnrollment = course?.priceType === 'mes' && !student?.next_payment_date && !hasBalance
+
   // Fecha de inicio del nuevo ciclo: por defecto = fecha que le correspondía (next_payment_date)
   // La recepcionista puede cambiarla si la alumna empezó clases en otra fecha
   const [cycleStartDate, setCycleStartDate] = useState(
@@ -234,11 +238,12 @@ export default function PaymentModal({
       discountValue: customFinalPrice !== '' ? (getBaseAmount() - parseFloat(formData.amount)).toFixed(2) : discountValue,
       discountAmount: getDiscountAmount().toFixed(2)
     } : null
-    // Solo pasar cycleStartDate al hook cuando el alumno está atrasado y tiene ciclo previo
-    // Así el hook sabe que la recepcionista eligió explícitamente el inicio del ciclo
-    const resolvedCycleStartDate = (isOverdue && !hasBalance && student?.next_payment_date)
-      ? cycleStartDate
-      : null
+    // Pasar cycleStartDate al hook cuando:
+    // a) Alumna atrasada con ciclo previo → la recepcionista elige desde cuándo correr el nuevo ciclo
+    // b) Alumna nueva en curso mensual → se elige explícitamente cuándo empieza (puede ser mes futuro)
+    const resolvedCycleStartDate = (
+      (isOverdue && !hasBalance && student?.next_payment_date) || isNewEnrollment
+    ) ? cycleStartDate : null
     setPendingPayment({
       amount: parseFloat(formData.amount),
       receiptNumber,
@@ -678,6 +683,40 @@ export default function PaymentModal({
               />
             </div>
           </div>
+
+          {/* Cycle Start Date — inscripción nueva en curso mensual */}
+          {isNewEnrollment && (
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 space-y-2">
+              <p className="text-sm font-semibold text-violet-800">
+                ¿Cuándo empieza clases?
+              </p>
+              <p className="text-xs text-violet-600 leading-relaxed">
+                El cobro siguiente siempre cae el 1er día de clase del mes siguiente a la fecha que elijas.
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={cycleStartDate}
+                  onChange={(e) => setCycleStartDate(e.target.value)}
+                  className="flex-1 px-3 py-2 text-sm border-2 border-violet-300 rounded-xl focus:ring-2 focus:ring-violet-200 focus:border-violet-500 outline-none bg-white font-medium text-gray-800"
+                />
+                {cycleStartDate !== getTodayEC() && (
+                  <button
+                    type="button"
+                    onClick={() => setCycleStartDate(getTodayEC())}
+                    className="text-xs text-violet-700 underline whitespace-nowrap shrink-0"
+                  >
+                    Hoy
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-violet-600 leading-relaxed">
+                {cycleStartDate <= getTodayEC()
+                  ? '✓ Empieza este mes — próximo cobro: primer día de clase del mes siguiente'
+                  : '📅 Empieza el mes siguiente — próximo cobro: primer día de clase del mes posterior'}
+              </p>
+            </div>
+          )}
 
           {/* Cycle Start Date - ciclo terminado, renovando */}
           {isOverdue && !hasBalance && student?.next_payment_date && (
