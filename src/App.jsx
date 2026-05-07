@@ -1158,7 +1158,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
 
             {/* ── Secundarias: chips compactos ── */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
               {!isRecepcion && can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
