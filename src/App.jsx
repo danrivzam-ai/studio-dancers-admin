@@ -1158,11 +1158,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             </div>
 
             {/* ── Secundarias: chips compactos ── */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
+            <div className="mt-1 pt-3 border-t border-gray-100">
+            <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-x-visible items-center sm:justify-center gap-1 sm:gap-1.5 pb-0.5 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {!isRecepcion && can('canExport') && (
                 <button
                   onClick={() => setShowExport(true)}
-                  className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed]"
+                  className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed] shrink-0"
                 >
                   <Download size={13} />
                   Exportar
@@ -1170,7 +1171,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               )}
               <button
                 onClick={() => setShowTransferVerification(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-medium relative active:scale-95 ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-medium relative active:scale-95 shrink-0 ${
                   pendingTransfers > 0
                     ? 'bg-[#1b3d6e] text-white'
                     : 'text-[#1b3d6e] hover:bg-blue-50'
@@ -1188,14 +1189,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <>
                   <button
                     onClick={() => setShowMonthlyClose(true)}
-                    className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed]"
+                    className="flex items-center gap-1.5 text-[#551735] px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed] shrink-0"
                   >
                     <Lock size={13} />
                     Cierre mensual
                   </button>
                   <button
                     onClick={() => setShowAuditLog(true)}
-                    className="flex items-center gap-1.5 text-slate-500 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-slate-100"
+                    className="flex items-center gap-1.5 text-slate-500 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-slate-100 shrink-0"
                   >
                     <ScrollText size={13} />
                     Auditoría
@@ -1205,12 +1206,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               {!isRecepcion && (isAdmin || userRole === 'contador') && (
                 <button
                   onClick={() => setShowContabilidad(true)}
-                  className="flex items-center gap-1.5 text-amber-700 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-amber-50"
+                  className="flex items-center gap-1.5 text-amber-700 px-3 py-1.5 rounded-lg active:scale-95 transition-all text-xs font-medium hover:bg-amber-50 shrink-0"
                 >
                   <FileText size={13} />
                   Contabilidad
                 </button>
               )}
+            </div>
             </div>
 
           </div>
