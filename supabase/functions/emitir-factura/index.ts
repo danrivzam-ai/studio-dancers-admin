@@ -95,10 +95,14 @@ serve(async (req) => {
         sendEmail: !!(buyer.email),
       }
 
-      // emissionPointId es opcional — Factuplan lo auto-detecta si hay uno solo
+      // Punto de emisión: UUID > códigos SRI > auto-detect
       if (settings?.factuplan_emission_point_id) {
         payload.emissionPointId = settings.factuplan_emission_point_id
+      } else if (settings?.sri_establishment && settings?.sri_emission_point) {
+        payload.establishment  = settings.sri_establishment   // '001'
+        payload.emissionPoint  = settings.sri_emission_point  // '001'
       }
+      // Si no hay ninguno: Factuplan auto-detecta (válido cuando hay un solo punto)
 
       const { ok, data: fp } = await factuplanFetch('/invoices', {
         method: 'POST',
