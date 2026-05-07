@@ -76,11 +76,13 @@ serve(async (req) => {
           ...(buyer.address ? { address: buyer.address } : {}),
         },
         items: [{
-          code:        'SERV-DANZA-001',
-          description: payment.description ?? 'Servicio de enseñanza de danza',
-          quantity:    1,
-          unitPrice:   parseFloat(payment.amount),
-          taxType:     'IVA_0',
+          code:           'SERV-DANZA-001',
+          description:    payment.description ?? 'Servicio de enseñanza de danza',
+          quantity:       1,
+          // El monto cobrado YA INCLUYE IVA 15% → enviamos la base imponible
+          unitPrice:      Math.round((parseFloat(payment.amount) / 1.15) * 10000) / 10000,
+          taxType:        'IVA_RATE',
+          taxPercentage:  15,
         }],
         payments: [{
           method:   toPaymentCode(payment.paymentMethod ?? 'efectivo'),
@@ -135,9 +137,10 @@ serve(async (req) => {
           buyer_email:           buyer.email ?? null,
           buyer_phone:           buyer.phone ?? null,
           buyer_address:         buyer.address ?? null,
-          subtotal_0:            parseFloat(payment.amount),
-          subtotal_12:           0,
-          iva_amount:            0,
+          // Precio total incluye IVA → desgloses para el SRI
+          subtotal_0:            0,
+          subtotal_12:           Math.round((parseFloat(payment.amount) / 1.15) * 100) / 100,
+          iva_amount:            Math.round((parseFloat(payment.amount) - parseFloat(payment.amount) / 1.15) * 100) / 100,
           total:                 parseFloat(payment.amount),
           payment_method_sri:    toPaymentCode(payment.paymentMethod ?? 'efectivo'),
           payment_id:            payment.id ?? null,

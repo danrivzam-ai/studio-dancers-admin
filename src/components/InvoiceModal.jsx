@@ -230,20 +230,27 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                   <CreditCard size={14} className="text-[#1e3a5f]" />
                   <span className="text-xs font-bold text-[#1e3a5f] uppercase tracking-wide">Detalle de la factura</span>
                 </div>
-                <div className="rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="px-4 py-3 flex justify-between text-sm">
-                    <span className="text-gray-600">Enseñanza de danza</span>
-                    <span className="font-medium text-gray-800">${amount}</span>
-                  </div>
-                  <div className="px-4 py-2 flex justify-between text-xs bg-gray-50 border-t border-gray-100">
-                    <span className="text-gray-400">IVA 0% — actividad P8549.03</span>
-                    <span className="text-gray-400">$0.00</span>
-                  </div>
-                  <div className="px-4 py-3 flex justify-between text-sm font-bold border-t border-gray-200 bg-[#f0f4fa]">
-                    <span className="text-[#1e3a5f]">TOTAL</span>
-                    <span className="text-[#1e3a5f]">${amount}</span>
-                  </div>
-                </div>
+                {(() => {
+                  const total    = parseFloat(payment?.amount || 0)
+                  const base     = Math.round(total / 1.15 * 100) / 100
+                  const iva      = Math.round((total - base) * 100) / 100
+                  return (
+                    <div className="rounded-xl border border-gray-200 overflow-hidden">
+                      <div className="px-4 py-3 flex justify-between text-sm">
+                        <span className="text-gray-600">Enseñanza de danza</span>
+                        <span className="font-medium text-gray-800">${base.toFixed(2)}</span>
+                      </div>
+                      <div className="px-4 py-2.5 flex justify-between text-sm bg-gray-50 border-t border-gray-100">
+                        <span className="text-gray-500">IVA 15%</span>
+                        <span className="text-gray-600">${iva.toFixed(2)}</span>
+                      </div>
+                      <div className="px-4 py-3 flex justify-between text-sm font-bold border-t border-gray-200 bg-[#f0f4fa]">
+                        <span className="text-[#1e3a5f]">TOTAL (IVA incluido)</span>
+                        <span className="text-[#1e3a5f]">${total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
 
               {!usesFactuplan && (
