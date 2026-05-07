@@ -10,6 +10,24 @@ import {
   generateItemDescription,
 } from '../lib/sriUtils'
 
+// ─── Factuplan via Edge Function ──────────────────────────────────────────────
+async function callEdgeFunction(body) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL
+  const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/emitir-factura`, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${session?.access_token}`,
+      'apikey':        supabaseAnon,
+    },
+    body: JSON.stringify(body),
+  })
+  return res.json()
+}
+
 export function useInvoices() {
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(false)
@@ -249,6 +267,44 @@ export function useInvoices() {
     }
   }, [])
 
+  // ── Factuplan: emitir factura real ─────────────────────────────────────────
+  /**
+   * Emite una factura electrónica vía Factuplan → SRI.
+   * @param {object} payment  - { id, amount, paymentMethod, description, studentName, courseName, studentId }
+   * @param {object} buyer    - { idType, idNumber, name, email, phone, address }
+   * @param {object} settings - school_settings completo
+   */
+  const submitToFactuplan = useCallback(async ({ payment, buyer, settings }) => {
+    setLoading(true)
+    try {
+      const result = await callEdgeFunction({ action: 'emit', payment, buyer, settings })
+      return result
+    } catch (err) {
+      setError(err.message)
+      return { success: false, error: err.message }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  /** Consulta el estado de una factura en Factuplan y actualiza la BD */
+  const checkFactuplanStatus = useCallback(async ({ invoiceId, factuplanId }) => {
+    try {
+      return await callEdgeFunction({ action: 'status', invoiceId, factuplanId })
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  }, [])
+
+  /** Obtiene las URLs de descarga (PDF/XML) desde Factuplan (expiran en 5 min) */
+  const downloadFactuplanDoc = useCallback(async ({ factuplanId }) => {
+    try {
+      return await callEdgeFunction({ action: 'download', factuplanId })
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  }, [])
+
   return {
     invoices,
     loading,
@@ -259,5 +315,9 @@ export function useInvoices() {
     getNextSequential,
     createDraftInvoice,
     voidInvoice,
+    // Factuplan
+    submitToFactuplan,
+    checkFactuplanStatus,
+    downloadFactuplanDoc,
   }
 }

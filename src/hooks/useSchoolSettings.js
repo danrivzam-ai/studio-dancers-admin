@@ -30,6 +30,7 @@ export function useSchoolSettings() {
     sri_main_activity: 'P8549.03',
     telegram_transfers_bot_token: '',
     telegram_transfers_chat_id: '',
+    factuplan_emission_point_id: '',
   })
   const [loading, setLoading] = useState(true)
 
