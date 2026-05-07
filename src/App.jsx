@@ -3172,6 +3172,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             }}
             onReprint={handleReprint}
             schoolName={settings?.school_name || settings?.name}
+            settings={settings}
           />
         )}
 

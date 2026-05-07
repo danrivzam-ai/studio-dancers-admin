@@ -5,6 +5,7 @@ import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
 import { openWhatsApp, buildReminderMessage } from '../lib/whatsapp'
+import InvoiceButton from './InvoiceButton'
 
 const METHOD_STYLE = {
   'Efectivo':      { bg: 'bg-green-100',  text: 'text-green-700'  },
@@ -14,7 +15,7 @@ const METHOD_STYLE = {
 }
 const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
@@ -558,6 +559,15 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                         )}
                         {payment.days_late > 0 && !payment.voided && (
                           <p className="text-[10px] text-red-400">{payment.days_late}d tarde</p>
+                        )}
+                        {!payment.voided && (
+                          <InvoiceButton
+                            payment={payment}
+                            student={student}
+                            courseName={courseProp?.name}
+                            settings={settings}
+                            variant="badge"
+                          />
                         )}
                       </div>
                     </div>
