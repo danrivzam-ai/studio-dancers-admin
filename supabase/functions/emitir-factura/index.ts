@@ -42,10 +42,14 @@ async function factuplanFetch(path: string, init?: RequestInit) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${FACTUPLAN_API_KEY}`,
+      'X-API-Key': FACTUPLAN_API_KEY!,
       ...(init?.headers ?? {}),
     },
   })
   const data = await res.json()
+  if (!res.ok) {
+    console.error(`[factuplan] ${res.status} ${path}:`, JSON.stringify(data))
+  }
   return { ok: res.ok, status: res.status, data }
 }
 
@@ -106,6 +110,7 @@ serve(async (req) => {
       }
       // Si no hay ninguno: Factuplan auto-detecta (válido cuando hay un solo punto)
 
+      console.log('[factuplan] payload:', JSON.stringify(payload))
       const { ok, data: fp } = await factuplanFetch('/invoices', {
         method: 'POST',
         body: JSON.stringify(payload),

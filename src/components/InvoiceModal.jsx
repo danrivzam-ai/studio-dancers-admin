@@ -82,7 +82,10 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
           setStep('done')
         }
       } else {
-        setErrorMsg(result.error || 'Error al conectar con Factuplan')
+        // Mostrar error detallado de Factuplan
+        const detail = result.code ? `[${result.code}] ` : ''
+        const extra  = result.details?.message || result.details?.detail || ''
+        setErrorMsg(`${detail}${result.error || 'Error Factuplan'}${extra ? ` — ${extra}` : ''}`)
         setStep('error')
       }
     } else {
