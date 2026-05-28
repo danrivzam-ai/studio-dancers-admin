@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause } from 'lucide-react'
+import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause, BadgeCheck } from 'lucide-react'
 import { formatDate, getPaymentStatus, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
 import { getCourseById as getCourseByIdHardcoded } from '../lib/courses'
 import { supabase } from '../lib/supabase'
@@ -231,6 +231,7 @@ export default function TransferVerification({
   const [rejectReason, setRejectReason] = useState('')
   const [processing, setProcessing] = useState(null)
   const [showManualForm, setShowManualForm] = useState(false)
+  const [confirmAlreadyCollected, setConfirmAlreadyCollected] = useState(null) // requestId | null
   // Estado por transferencia: ¿ya asistió al nuevo ciclo? + fecha de primera clase
   const [attendedInfo, setAttendedInfo] = useState({})
 
@@ -295,7 +296,24 @@ export default function TransferVerification({
     }
   }
 
-  const statusBadge = (status) => {
+  // Marca la transferencia como "ya cobrado por otro medio" sin registrar un nuevo pago
+  const handleAlreadyCollected = async (requestId) => {
+    setProcessing(requestId)
+    try {
+      await onReject(requestId, 'COBRADO_EXTERNAMENTE')
+      setConfirmAlreadyCollected(null)
+      toast.success('Marcada como ya cobrada')
+    } catch (err) {
+      toast.error(sanitizeError(err, 'Error al actualizar'))
+    } finally {
+      setProcessing(null)
+    }
+  }
+
+  const statusBadge = (status, rejectionReason) => {
+    if (status === 'rejected' && rejectionReason === 'COBRADO_EXTERNAMENTE') {
+      return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px] font-medium flex items-center gap-1"><BadgeCheck size={10} />Ya cobrado</span>
+    }
     switch (status) {
       case 'pending':  return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-medium flex items-center gap-1"><Clock size={10} />Pendiente</span>
       case 'approved': return <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium flex items-center gap-1"><CheckCircle size={10} />Aprobada</span>
@@ -406,7 +424,7 @@ export default function TransferVerification({
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-bold text-green-600">${parseFloat(req.amount).toFixed(2)}</p>
-                      {statusBadge(req.status)}
+                      {statusBadge(req.status, req.rejection_reason)}
                     </div>
                   </div>
 
@@ -536,22 +554,52 @@ export default function TransferVerification({
                             </button>
                           </div>
                         ) : (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleApprove(req)}
-                              disabled={processing === req.id}
-                              className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
-                            >
-                              <CheckCircle size={14} />
-                              {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
-                            </button>
-                            <button
-                              onClick={() => setRejectingId(req.id)}
-                              disabled={processing === req.id}
-                              className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
-                            >
-                              <XCircle size={14} />
-                            </button>
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleApprove(req)}
+                                disabled={processing === req.id}
+                                className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
+                              >
+                                <CheckCircle size={14} />
+                                {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
+                              </button>
+                              <button
+                                onClick={() => setRejectingId(req.id)}
+                                disabled={processing === req.id}
+                                className="px-3 py-3 bg-red-100 text-red-700 rounded-xl text-xs font-medium hover:bg-red-200 disabled:opacity-50 active:scale-95 transition-all"
+                              >
+                                <XCircle size={14} />
+                              </button>
+                            </div>
+                            {/* Ya cobrado por otro medio */}
+                            {confirmAlreadyCollected === req.id ? (
+                              <div className="flex items-center gap-2 bg-blue-50 rounded-xl px-3 py-2">
+                                <p className="text-xs text-blue-700 flex-1">¿Ya registraste este pago manualmente?</p>
+                                <button
+                                  onClick={() => handleAlreadyCollected(req.id)}
+                                  disabled={processing === req.id}
+                                  className="text-xs font-semibold text-blue-700 hover:text-blue-900 disabled:opacity-50"
+                                >
+                                  Confirmar
+                                </button>
+                                <button
+                                  onClick={() => setConfirmAlreadyCollected(null)}
+                                  className="text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmAlreadyCollected(req.id)}
+                                disabled={processing === req.id}
+                                className="flex items-center justify-center gap-1 py-1.5 text-[11px] text-blue-500 hover:text-blue-700 disabled:opacity-40 transition-colors"
+                              >
+                                <BadgeCheck size={12} />
+                                Ya cobré este pago por otro medio
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

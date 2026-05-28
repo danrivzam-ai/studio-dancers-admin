@@ -41,8 +41,7 @@ async function factuplanFetch(path: string, init?: RequestInit) {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${FACTUPLAN_API_KEY}`,
-      'X-API-Key': FACTUPLAN_API_KEY!,
+      'x-api-key': FACTUPLAN_API_KEY!,
       ...(init?.headers ?? {}),
     },
   })
@@ -80,25 +79,25 @@ serve(async (req) => {
           ...(buyer.address ? { address: buyer.address } : {}),
         },
         items: [{
-          code:           'SERV-DANZA-001',
-          description:    payment.description ?? 'Servicio de enseñanza de danza',
-          quantity:       1,
+          code:        'SERV-DANZA-001',
+          description: payment.description ?? 'Servicio de enseñanza de danza',
+          quantity:    1,
           // El monto cobrado YA INCLUYE IVA 15% → enviamos la base imponible
-          unitPrice:      Math.round((parseFloat(payment.amount) / 1.15) * 10000) / 10000,
-          taxType:        'IVA_RATE',
-          taxPercentage:  15,
+          unitPrice:   Math.round((parseFloat(payment.amount) / 1.15) * 10000) / 10000,
+          taxType:     'IVA_RATE',
+          // taxPercentage no existe en la API (campo eliminado)
         }],
         payments: [{
           method:   toPaymentCode(payment.paymentMethod ?? 'efectivo'),
           amount:   parseFloat(payment.amount),
           term:     0,
-          timeUnit: 'days',
+          timeUnit: 'dias',   // API espera español: dias | meses | anios
         }],
         additionalInfo: {
           ...(payment.studentName ? { Alumna: payment.studentName } : {}),
           ...(payment.courseName  ? { Programa: payment.courseName } : {}),
         },
-        sendEmail: !!(buyer.email),
+        // sendEmail no existe en la API (campo eliminado)
       }
 
       // Punto de emisión: UUID > códigos SRI > auto-detect
@@ -111,7 +110,7 @@ serve(async (req) => {
       // Si no hay ninguno: Factuplan auto-detecta (válido cuando hay un solo punto)
 
       console.log('[factuplan] payload:', JSON.stringify(payload))
-      const { ok, data: fp } = await factuplanFetch('/invoices', {
+      const { ok, data: fp } = await factuplanFetch('/developer/invoices', {
         method: 'POST',
         body: JSON.stringify(payload),
       })
@@ -159,15 +158,16 @@ serve(async (req) => {
         return json({ success: false, error: 'Error al guardar factura en base de datos', details: dbErr })
       }
 
-      // Guardar ítem de factura
+      // Guardar ítem de factura (base imponible sin IVA)
+      const basePrice = Math.round((parseFloat(payment.amount) / 1.15) * 100) / 100
       await db.from('invoice_items').insert({
         invoice_id: invoice.id,
         description: payment.description ?? 'Servicio de enseñanza de danza',
         quantity:    1,
-        unit_price:  parseFloat(payment.amount),
-        subtotal:    parseFloat(payment.amount),
-        iva_rate:    0,
-        iva_code:    '0',
+        unit_price:  basePrice,
+        subtotal:    basePrice,
+        iva_rate:    15,
+        iva_code:    '2',
       })
 
       return json({ success: true, data: invoice, factuplan: fp })
@@ -176,7 +176,7 @@ serve(async (req) => {
     // ── VERIFICAR ESTADO ────────────────────────────────────────────────────
     if (action === 'status') {
       const { invoiceId, factuplanId } = body
-      const { ok, data: fp } = await factuplanFetch(`/invoices/${factuplanId}/status`)
+      const { ok, data: fp } = await factuplanFetch(`/developer/receipts/${factuplanId}/status`)
 
       if (!ok) return json({ success: false, error: fp?.message ?? 'Error al consultar estado' })
 
@@ -196,11 +196,16 @@ serve(async (req) => {
     // ── OBTENER URLs DE DESCARGA ────────────────────────────────────────────
     if (action === 'download') {
       const { factuplanId } = body
-      const { ok, data: fp } = await factuplanFetch(`/invoices/${factuplanId}/download`)
+      // Factuplan uses separate endpoints for PDF and XML
+      const [pdfRes, xmlRes] = await Promise.all([
+        factuplanFetch(`/developer/receipts/${factuplanId}/pdf`),
+        factuplanFetch(`/developer/receipts/${factuplanId}/xml`),
+      ])
+      const fp = { pdf: pdfRes.data, xml: xmlRes.data, ok: pdfRes.ok || xmlRes.ok }
 
-      if (!ok) return json({ success: false, error: fp?.message ?? 'Error al obtener enlace de descarga' })
+      if (!fp.ok) return json({ success: false, error: 'Error al obtener enlaces de descarga' })
 
-      return json({ success: true, data: fp })
+      return json({ success: true, data: { pdfUrl: pdfRes.data?.url, xmlUrl: xmlRes.data?.url } })
     }
 
     return json({ success: false, error: 'Acción no válida' }, 400)

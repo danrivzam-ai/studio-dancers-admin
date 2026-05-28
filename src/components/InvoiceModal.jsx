@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { FileText, Download, X, AlertCircle, CheckCircle, Loader2, RefreshCw, ExternalLink, Receipt, User, CreditCard } from 'lucide-react'
 import { useInvoices } from '../hooks/useInvoices'
 import { detectBuyerIdType, resolveBuyerData, generateItemDescription } from '../lib/sriUtils'
-import { downloadRidePDF } from '../lib/rideGenerator'
 import Modal from './ui/Modal'
 
 const ID_TYPE_LABELS = { '04': 'RUC', '05': 'Cédula', '06': 'Pasaporte', '07': 'Consumidor Final' }
@@ -30,10 +29,15 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
   const amount = parseFloat(payment?.amount || 0).toFixed(2)
 
   // Verificar si ya hay factura para este pago
+  // Solo va a 'done' si está autorizada o procesando — los borradores permiten re-emitir
   useEffect(() => {
     if (!payment?.id) return
     getInvoiceByPayment(payment.id).then(r => {
-      if (r.success && r.data) { setInvoice(r.data); setStep('done') }
+      if (r.success && r.data) {
+        setInvoice(r.data)
+        if (r.data.status !== 'draft') setStep('done')
+        // Si es borrador, se queda en 'form' para poder re-emitir
+      }
     })
   }, [payment?.id]) // eslint-disable-line
 
@@ -96,13 +100,11 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
   }
 
   const handleDownloadPDF = async () => {
-    if (!invoice) return
-    if (invoice.factuplan_id) {
-      const r = await downloadFactuplanDoc({ factuplanId: invoice.factuplan_id })
-      const url = r?.data?.pdfUrl || r?.data?.pdf
-      if (url) { window.open(url, '_blank'); return }
-    }
-    downloadRidePDF(invoice, { logoBase64 })
+    if (!invoice?.factuplan_id) return
+    const r = await downloadFactuplanDoc({ factuplanId: invoice.factuplan_id })
+    const url = r?.data?.pdfUrl || r?.data?.pdf
+    if (url) { window.open(url, '_blank'); return }
+    alert('El PDF aún no está disponible. Espera a que el SRI autorice el comprobante.')
   }
 
   const handleDownloadXML = async () => {
@@ -256,6 +258,14 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
                 })()}
               </div>
 
+              {/* Aviso: borrador previo */}
+              {invoice?.status === 'draft' && (
+                <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-xl px-4 py-3">
+                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                  <span>Hay un intento previo pendiente para este pago. Al emitir se creará una nueva factura.</span>
+                </div>
+              )}
+
               {!usesFactuplan && (
                 <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-xl px-4 py-3">
                   <AlertCircle size={14} className="shrink-0 mt-0.5" />
@@ -343,17 +353,23 @@ export default function InvoiceModal({ payment, student, courseName, settings, o
               </div>
 
               <div className="space-y-2">
-                <button onClick={handleDownloadPDF}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-[#1e3a5f] hover:bg-[#162d4a] active:scale-[.98] transition">
-                  <Download size={15} />
-                  Descargar RIDE (PDF)
-                </button>
-                {invoice.factuplan_id && (
-                  <button onClick={handleDownloadXML}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-[.98] transition">
-                    <ExternalLink size={14} />
-                    Descargar XML
-                  </button>
+                {invoice.factuplan_id ? (
+                  <>
+                    <button onClick={handleDownloadPDF}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white bg-[#1e3a5f] hover:bg-[#162d4a] active:scale-[.98] transition">
+                      <Download size={15} />
+                      Descargar RIDE (PDF)
+                    </button>
+                    <button onClick={handleDownloadXML}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 active:scale-[.98] transition">
+                      <ExternalLink size={14} />
+                      Descargar XML
+                    </button>
+                  </>
+                ) : (
+                  <p className="text-center text-xs text-gray-400 py-2">
+                    PDF/XML disponibles al ser autorizada por el SRI
+                  </p>
                 )}
               </div>
             </div>

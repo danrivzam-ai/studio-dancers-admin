@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { Upload, Camera, X, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Upload, Camera, X, CheckCircle, ChevronDown, ChevronUp, Clock, XCircle, BadgeCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { notifyTelegram } from '../../lib/whatsappMetaApi'
 
@@ -41,6 +41,20 @@ export default function UploadComprobante({ auth, student }) {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef(null)
+
+  // Últimas solicitudes de transferencia del alumno
+  const [recentRequests, setRecentRequests] = useState([])
+
+  useEffect(() => {
+    if (!student?.id) return
+    supabase
+      .from('transfer_requests')
+      .select('id, amount, bank_name, status, rejection_reason, submitted_at, receipt_number')
+      .eq('student_id', student.id)
+      .order('submitted_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => { if (data) setRecentRequests(data) })
+  }, [student?.id, success]) // re-fetch after new submission
 
   // Reset form
   const resetForm = () => {
@@ -142,24 +156,73 @@ export default function UploadComprobante({ auth, student }) {
     )
   }
 
+  // ── Helpers de estado ─────────────────────────────────────────────
+  const statusConfig = (req) => {
+    if (req.status === 'approved') return {
+      icon: <CheckCircle size={15} className="text-green-500 shrink-0" />,
+      label: 'Pago confirmado',
+      sub: `$${parseFloat(req.amount).toFixed(2)} · ${req.bank_name}`,
+      bg: 'bg-green-50 border-green-200',
+      text: 'text-green-800',
+    }
+    if (req.status === 'rejected' && req.rejection_reason === 'COBRADO_EXTERNAMENTE') return {
+      icon: <BadgeCheck size={15} className="text-blue-500 shrink-0" />,
+      label: 'Pago procesado',
+      sub: `$${parseFloat(req.amount).toFixed(2)} · ${req.bank_name}`,
+      bg: 'bg-blue-50 border-blue-200',
+      text: 'text-blue-800',
+    }
+    if (req.status === 'rejected') return {
+      icon: <XCircle size={15} className="text-red-400 shrink-0" />,
+      label: 'Comprobante rechazado',
+      sub: req.rejection_reason || 'Contáctanos para más información',
+      bg: 'bg-red-50 border-red-200',
+      text: 'text-red-800',
+    }
+    // pending / default
+    return {
+      icon: <Clock size={15} className="text-amber-500 shrink-0" />,
+      label: 'En revisión…',
+      sub: `$${parseFloat(req.amount).toFixed(2)} · ${req.bank_name} · Te avisamos cuando se confirme`,
+      bg: 'bg-amber-50 border-amber-200',
+      text: 'text-amber-800',
+    }
+  }
+
   // ── Collapsed button ──────────────────────────────────────────────
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-between p-4 bg-[#fdf5f9] border border-[#f9e8f0] rounded-2xl hover:bg-[#f9e8f0] transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-[#6b2145] rounded-xl flex items-center justify-center shrink-0">
-            <Upload size={16} className="text-white" />
+      <div className="space-y-2">
+        {/* Historial de solicitudes recientes */}
+        {recentRequests.map(req => {
+          const cfg = statusConfig(req)
+          return (
+            <div key={req.id} className={`flex items-start gap-2.5 p-3 rounded-2xl border ${cfg.bg}`}>
+              {cfg.icon}
+              <div className="min-w-0">
+                <p className={`text-sm font-semibold ${cfg.text}`}>{cfg.label}</p>
+                <p className={`text-xs mt-0.5 ${cfg.text} opacity-75 leading-snug`}>{cfg.sub}</p>
+              </div>
+            </div>
+          )
+        })}
+
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center justify-between p-4 bg-[#fdf5f9] border border-[#f9e8f0] rounded-2xl hover:bg-[#f9e8f0] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-[#6b2145] rounded-xl flex items-center justify-center shrink-0">
+              <Upload size={16} className="text-white" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-[#441029]">Subir comprobante de pago</p>
+              <p className="text-xs text-[#7e2d55]">Transferencia o depósito bancario</p>
+            </div>
           </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold text-[#441029]">Subir comprobante de pago</p>
-            <p className="text-xs text-[#7e2d55]">Transferencia o depósito bancario</p>
-          </div>
-        </div>
-        <ChevronDown size={18} className="text-[#9e4d75]" />
-      </button>
+          <ChevronDown size={18} className="text-[#9e4d75]" />
+        </button>
+      </div>
     )
   }
 

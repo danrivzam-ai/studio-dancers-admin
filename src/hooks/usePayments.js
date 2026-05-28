@@ -35,25 +35,27 @@ export function usePayments() {
     fetchPayments()
   }, [])
 
-  // Generar número de recibo — usa el último receipt_number para evitar
-  // duplicados cuando dos pagos se registran simultáneamente o hay pagos eliminados.
+  // Generar número de recibo — usa el MÁXIMO receipt_number existente para evitar
+  // retrocesos cuando un pago reciente tiene un número bajo.
   const generateReceiptNumber = async () => {
     try {
+      // Traer los últimos 200 comprobantes y calcular el máximo en cliente
+      // (PostgREST no soporta MAX() directo en columnas de texto)
       const { data, error } = await supabase
         .from('payments')
         .select('receipt_number')
         .not('receipt_number', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+        .limit(200)
 
       if (error) throw error
 
-      const lastNum = data?.receipt_number
-        ? parseInt(String(data.receipt_number).replace(/\D/g, ''), 10)
-        : 0
-      const nextNumber = (isNaN(lastNum) ? 0 : lastNum) + 1
-      return nextNumber
+      const maxNum = (data || []).reduce((max, row) => {
+        const n = parseInt(String(row.receipt_number).replace(/\D/g, ''), 10)
+        return isNaN(n) ? max : Math.max(max, n)
+      }, 0)
+
+      return maxNum + 1
     } catch (err) {
       console.error('Error generating receipt number:', err)
       return Date.now() % 100000

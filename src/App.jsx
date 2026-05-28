@@ -152,6 +152,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
 
+  // Prompt: registrar cobro tras crear alumno nuevo
+  const [newStudentPaymentPrompt, setNewStudentPaymentPrompt] = useState(null) // student obj | null
+
   // Tablón de anuncios
   const [announcements, setAnnouncements] = useState([])
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
@@ -535,15 +538,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     let result
     if (editingStudent) {
       result = await updateStudent(editingStudent.id, formData)
+      if (result.success) {
+        syncStudentToMailerLite(formData)
+        resetForm()
+      } else {
+        alert('Error: ' + result.error)
+      }
     } else {
       result = await createStudent(formData)
-    }
-
-    if (result.success) {
-      syncStudentToMailerLite(formData)
-      resetForm()
-    } else {
-      alert('Error: ' + result.error)
+      if (result.success) {
+        syncStudentToMailerLite(formData)
+        resetForm()
+        // Preguntar si desea registrar el cobro ahora
+        setNewStudentPaymentPrompt(result.data)
+      } else {
+        alert('Error: ' + result.error)
+      }
     }
   }
 
@@ -1325,11 +1335,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {kpis && !kpisLoading && (
           <button
             onClick={() => setShowMonthlyClose(true)}
-            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-2.5 mb-3 flex items-center justify-between gap-2 hover:shadow-md hover:border-[#e8b4cc] transition-all text-left"
+            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-3 mb-4 flex items-center justify-between gap-2 hover:shadow-md hover:border-[#e8b4cc] transition-all text-left"
             title="Ver cierre mensual"
           >
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-[10px] text-gray-400 font-medium shrink-0">MES</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs text-gray-400 font-medium shrink-0">MES</span>
               <span className="text-sm font-bold ml-1 text-gray-800">
                 {hideIncome ? '••' : `$${kpis.incomeC.toFixed(0)}`}
               </span>
@@ -1344,15 +1354,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               )}
             </div>
             <div className="h-4 w-px bg-gray-200 shrink-0" />
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-[10px] text-gray-400 font-medium shrink-0">GASTOS</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs text-gray-400 font-medium shrink-0">GASTOS</span>
               <span className="text-sm font-bold ml-1 text-gray-700">
                 {hideIncome ? '••' : `$${kpis.expensesC.toFixed(0)}`}
               </span>
             </div>
             <div className="h-4 w-px bg-gray-200 shrink-0" />
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-[10px] text-gray-400 font-medium shrink-0">COBRO</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-xs text-gray-400 font-medium shrink-0">COBRO</span>
               {kpis.collectionRate !== null ? (
                 <span className={`text-sm font-bold ml-1 ${
                   kpis.collectionRate >= 80 ? 'text-emerald-600'
@@ -1370,9 +1380,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         )}
 
         {/* Global Search Bar */}
-        <div className="mb-3 sm:mb-4">
-          <div className="flex items-center gap-2.5 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-2.5 focus-within:border-[#9e4d75] focus-within:ring-2 focus-within:ring-[#f9e8f0] focus-within:shadow-md transition-all">
-            <Search className="text-[#9e4d75] shrink-0" size={16} />
+        <div className="mb-5 sm:mb-6">
+          <div className="flex items-center gap-3 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-3.5 focus-within:border-[#9e4d75] focus-within:ring-2 focus-within:ring-[#f9e8f0] focus-within:shadow-md transition-all">
+            <Search className="text-[#9e4d75] shrink-0" size={18} />
             <input
               ref={globalSearchRef}
               type="text"
@@ -3259,6 +3269,40 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         )}
 
         {/* Cierre Mensual */}
+        {/* Prompt: ¿Registrar cobro tras crear alumno nuevo? */}
+        {newStudentPaymentPrompt && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <div className="w-12 h-12 rounded-full bg-[#fdf5f9] flex items-center justify-center">
+                  <span className="text-2xl">✓</span>
+                </div>
+                <p className="font-bold text-gray-800 text-base">
+                  {newStudentPaymentPrompt.name} fue registrada
+                </p>
+                <p className="text-sm text-gray-500">¿Deseas registrar el cobro ahora?</p>
+              </div>
+              <button
+                onClick={() => {
+                  const s = newStudentPaymentPrompt
+                  setNewStudentPaymentPrompt(null)
+                  setSelectedStudent(s)
+                  setShowPaymentModal(true)
+                }}
+                className="w-full py-3 rounded-xl bg-[#7e2d55] text-white font-semibold text-sm hover:bg-[#6b2145] active:scale-[.98] transition"
+              >
+                Sí, registrar cobro
+              </button>
+              <button
+                onClick={() => setNewStudentPaymentPrompt(null)}
+                className="w-full py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition"
+              >
+                No, más tarde
+              </button>
+            </div>
+          </div>
+        )}
+
         {showMonthlyClose && (
           <MonthlyClose
             onClose={() => setShowMonthlyClose(false)}
