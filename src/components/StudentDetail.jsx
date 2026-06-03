@@ -581,93 +581,95 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
         {/* ── Footer ── */}
         <div className="shrink-0 border-t bg-white">
+
           {/* Panel "Más opciones" — se despliega hacia arriba */}
           {showMoreActions && (
-            <div className="px-4 pt-3 pb-1 border-b border-gray-100 space-y-1 bg-gray-50">
+            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50/80 space-y-0.5">
               {!student.is_courtesy && isRecurring && onReactivate && (
                 <button
                   onClick={() => { setShowMoreActions(false); setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#551735] hover:bg-[#fdf5f9] active:scale-[.98] transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-[#551735] hover:bg-[#fdf5f9] active:scale-[.98] transition-all"
                 >
-                  <RefreshCw size={15} className="shrink-0" />
+                  <RefreshCw size={16} className="shrink-0" />
                   Reactivar ciclo
                 </button>
               )}
               {!student.is_courtesy && isRecurring && onPause && (
                 <button
                   onClick={() => { setShowMoreActions(false); onPause(student) }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm active:scale-[.98] transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium active:scale-[.98] transition-all ${
                     student.is_paused ? 'text-emerald-700 hover:bg-emerald-50' : 'text-sky-700 hover:bg-sky-50'
                   }`}
                 >
                   {student.is_paused
-                    ? <><Play size={15} className="shrink-0 fill-emerald-700" /> Reanudar clases</>
-                    : <><Snowflake size={15} className="shrink-0" /> Pausar clases</>
+                    ? <><Play size={16} className="shrink-0 fill-emerald-700" /> Reanudar clases</>
+                    : <><Snowflake size={16} className="shrink-0" /> Pausar clases</>
                   }
                 </button>
               )}
               {onEdit && (
                 <button
                   onClick={() => { setShowMoreActions(false); onClose(); onEdit(student) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
                 >
-                  <Pencil size={15} className="shrink-0" /> Editar datos
+                  <Pencil size={16} className="shrink-0" /> Editar datos
                 </button>
               )}
               {onReprint && (
                 <button
                   onClick={() => { setShowMoreActions(false); onReprint(student) }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
                 >
-                  <Printer size={15} className="shrink-0" /> Reimprimir recibo
+                  <Printer size={16} className="shrink-0" /> Reimprimir recibo
                 </button>
               )}
               {(student.phone || student.parent_phone || student.payer_phone) && (
                 <button
                   onClick={() => { setShowMoreActions(false); handleWhatsApp() }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-green-700 hover:bg-green-50 active:scale-[.98] transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-green-700 hover:bg-green-50 active:scale-[.98] transition-all"
                 >
-                  <MessageCircle size={15} className="shrink-0" /> Enviar WhatsApp
+                  <MessageCircle size={16} className="shrink-0" /> Enviar WhatsApp
                 </button>
               )}
             </div>
           )}
 
-          {/* Fila de acciones principal */}
-          <div className="p-4 space-y-2">
+          {/* Acciones principales */}
+          <div className="px-4 pt-4 pb-4 space-y-3">
+
             {/* Botón primario */}
             {!student.is_courtesy && !isProgramFullyPaid && (
               <button
                 onClick={() => { onClose(); if (onPayment) onPayment(student) }}
-                className="w-full py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+                className="w-full py-4 bg-green-600 text-white rounded-2xl hover:bg-green-700 font-semibold flex items-center justify-center gap-2.5 text-sm active:scale-95 transition-all"
               >
-                <CreditCard size={16} /> Registrar Pago
+                <CreditCard size={17} /> Registrar Pago
               </button>
             )}
             {isProgramFullyPaid && (
-              <div className="w-full py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
-                <CheckCircle size={16} /> Programa pagado completo
+              <div className="w-full py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-semibold flex items-center justify-center gap-2.5 text-sm">
+                <CheckCircle size={17} /> Programa pagado completo
               </div>
             )}
-            {/* Cerrar + Más opciones */}
-            <div className="flex gap-2">
+
+            {/* Fila secundaria: Cerrar + Más */}
+            <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
+                className="flex-1 py-3.5 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
               >
                 Cerrar
               </button>
               <button
                 onClick={() => setShowMoreActions(v => !v)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-medium active:scale-95 transition-all ${
+                className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border font-medium text-sm active:scale-95 transition-all ${
                   showMoreActions
                     ? 'bg-[#551735] border-[#551735] text-white'
                     : 'bg-[#fdf5f9] border-[#e8b4cc] text-[#551735] hover:bg-[#f9e8f0]'
                 }`}
-                title="Más opciones"
               >
-                <MoreHorizontal size={16} />
-                <span className="text-xs">Más</span>
+                <MoreHorizontal size={17} />
+                Más
               </button>
             </div>
           </div>
