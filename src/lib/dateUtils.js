@@ -218,6 +218,27 @@ export const calculatePackageEndDate = (startDate, classDays, classesPerPackage 
 }
 
 /**
+ * Devuelve las próximas N fechas de clase a partir de fromDate (inclusive si es día de clase)
+ * Usado para calcular cuáles clases se saltan al pausar y cuándo expira la pausa.
+ * @param {Date|string} fromDate  - Fecha desde donde empezar a buscar
+ * @param {number[]}    classDays - Días de semana con clase (0=Dom … 6=Sáb)
+ * @param {number}      N         - Cuántas fechas de clase retornar
+ * @returns {Date[]} Array de N fechas de clase
+ */
+export const getNextNClassDays = (fromDate, classDays, N) => {
+  if (!classDays || classDays.length === 0 || N <= 0) return []
+  const results = []
+  let current = toNoonLocal(typeof fromDate === 'string' ? parseISO(fromDate) : fromDate)
+  let safety = 0
+  while (results.length < N && safety < 365) {
+    if (classDays.includes(getDay(current))) results.push(new Date(current))
+    current = addDays(current, 1)
+    safety++
+  }
+  return results
+}
+
+/**
  * Calcular la fecha del próximo pago para paquete
  * Es el día después de completar el paquete actual (el siguiente día de clase)
  * @param {Date} packageEndDate - Fecha en que termina el paquete actual

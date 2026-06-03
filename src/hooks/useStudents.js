@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
-import { calculateNextPaymentDate, getNextClassDay, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { calculateNextPaymentDate, getNextClassDay, getNextNClassDays, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { sendLeadEvent, sendPurchaseEvent } from '../lib/metaConversionsApi'
 
@@ -22,6 +22,30 @@ export function useStudents() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
+
+      // Auto-descongelar alumnos cuya pausa ya expiró
+      const todayStr = getTodayEC()
+      const toUnpause = (data || []).filter(s =>
+        s.is_paused && s.pause_until_date && s.pause_until_date <= todayStr
+      )
+      if (toUnpause.length > 0) {
+        await supabase
+          .from('students')
+          .update({ is_paused: false, pause_date: null, pause_until_date: null, pause_classes_count: 0 })
+          .in('id', toUnpause.map(s => s.id))
+        toUnpause.forEach(s => {
+          logAudit({ action: 'student_unpaused', tableName: 'students', recordId: s.id,
+            oldData: { is_paused: true, pause_until_date: s.pause_until_date },
+            newData: { is_paused: false, auto_unpaused: true } })
+        })
+        // Refleja en data local
+        data.forEach(s => {
+          if (toUnpause.find(u => u.id === s.id)) {
+            s.is_paused = false; s.pause_date = null; s.pause_until_date = null; s.pause_classes_count = 0
+          }
+        })
+      }
+
       setStudents(data || [])
     } catch (err) {
       setError(err.message)
@@ -583,7 +607,7 @@ export function useStudents() {
 
   // Pausar/Congelar 1 día de clase
   // Extiende el next_payment_date por los días hasta el siguiente día de clase
-  const pauseStudent = async (studentId) => {
+  const pauseStudent = async (studentId, classesCount = 1) => {
     try {
       const student = students.find(s => s.id === studentId)
       if (!student) throw new Error('Alumno no encontrado')
@@ -591,10 +615,6 @@ export function useStudents() {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
         throw new Error('Solo se pueden pausar alumnos con clases mensuales o por paquete')
-      }
-
-      if (student.is_paused) {
-        throw new Error('El alumno ya tiene una pausa activa')
       }
 
       if (!student.next_payment_date) {
@@ -605,53 +625,55 @@ export function useStudents() {
       const today = new Date()
       today.setHours(12, 0, 0, 0)
 
-      // Pausar = mover el próximo pago al siguiente día de clase después del actual
-      // Es decir, agregar exactamente 1 día de clase (no días calendario)
-      const currentNextPayment = new Date(student.next_payment_date + 'T12:00:00')
+      // Extender next_payment_date N días de clase hacia adelante
+      let newNextPayment = new Date(student.next_payment_date + 'T12:00:00')
+      for (let i = 0; i < classesCount; i++) {
+        newNextPayment = getNextClassDay(addDays(newNextPayment, 1), classDays)
+      }
 
-      // Obtener el siguiente día de clase después de la fecha actual de próximo pago
-      const newNextPayment = getNextClassDay(addDays(currentNextPayment, 1), classDays)
-
-      // Calcular cuántos días calendario se agregaron (para mostrar al usuario)
-      const daysToAdd = Math.round((newNextPayment - currentNextPayment) / (1000 * 60 * 60 * 24))
+      // Calcular las fechas de clases que se saltan (desde hoy) para la pausa automática
+      const skippedDates = getNextNClassDays(today, classDays, classesCount)
+      // La pausa expira el día DESPUÉS de la última clase saltada
+      const pauseUntilDate = skippedDates.length > 0
+        ? formatDateForInput(addDays(skippedDates[skippedDates.length - 1], 1))
+        : null
 
       const { error } = await supabase
         .from('students')
         .update({
-          next_payment_date: formatDateForInput(newNextPayment),
-          is_paused: true,
-          pause_date: formatDateForInput(today)
+          next_payment_date:   formatDateForInput(newNextPayment),
+          is_paused:           true,
+          pause_date:          formatDateForInput(today),
+          pause_until_date:    pauseUntilDate,
+          pause_classes_count: classesCount,
         })
         .eq('id', studentId)
 
       if (error) throw error
 
-      setStudents(prev => prev.map(s => {
-        if (s.id === studentId) {
-          return {
-            ...s,
-            next_payment_date: formatDateForInput(newNextPayment),
-            is_paused: true,
-            pause_date: formatDateForInput(today)
-          }
-        }
-        return s
-      }))
+      setStudents(prev => prev.map(s =>
+        s.id === studentId
+          ? { ...s, next_payment_date: formatDateForInput(newNextPayment),
+              is_paused: true, pause_date: formatDateForInput(today),
+              pause_until_date: pauseUntilDate, pause_classes_count: classesCount }
+          : s
+      ))
 
       logAudit({
         action: 'student_paused',
         tableName: 'students',
         recordId: studentId,
-        oldData: { next_payment_date: student.next_payment_date, is_paused: false },
+        oldData: { next_payment_date: student.next_payment_date, is_paused: student.is_paused },
         newData: {
           next_payment_date: formatDateForInput(newNextPayment),
           is_paused: true,
-          pause_date: formatDateForInput(today),
-          days_added: daysToAdd,
+          pause_until_date: pauseUntilDate,
+          pause_classes_count: classesCount,
+          skipped_dates: skippedDates.map(formatDateForInput),
         },
       })
 
-      return { success: true, daysAdded: daysToAdd }
+      return { success: true, newNextPaymentDate: formatDateForInput(newNextPayment), skippedDates, pauseUntilDate }
     } catch (err) {
       console.error('Error pausing student:', err)
       return { success: false, error: err.message }
