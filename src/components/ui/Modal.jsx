@@ -15,6 +15,14 @@ export default function Modal({ isOpen, onClose, ariaLabel, children, className 
   const overlayRef = useRef(null)
   const previousFocus = useRef(null)
 
+  // Scroll lock — impide que el fondo se desplace mientras el modal está abierto
+  useEffect(() => {
+    if (!isOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [isOpen])
+
   // Escape key handler
   useEffect(() => {
     if (!isOpen) return

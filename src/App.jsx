@@ -15,7 +15,8 @@ import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // ALL_COURSES se usa como fallback para enriquecer cursos que no tienen classDays en Supabase
 import { ALL_COURSES } from './lib/courses'
-import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC } from './lib/dateUtils'
+import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
+import { addDays } from 'date-fns'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
@@ -155,6 +156,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Prompt: registrar cobro tras crear alumno nuevo
   const [newStudentPaymentPrompt, setNewStudentPaymentPrompt] = useState(null) // student obj | null
 
+  // Modal de pausa multi-día
+  const [pauseDialog, setPauseDialog] = useState(null)   // { student, course } | null
+  const [pauseClasses, setPauseClasses] = useState(1)    // cuántas clases a pausar
+
   // Tablón de anuncios
   const [announcements, setAnnouncements] = useState([])
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
@@ -196,6 +201,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     ]
     const anyModalOpen = allModals.some(Boolean)
 
+    // Scroll lock — impide que el fondo se mueva con cualquier modal abierto
+    document.body.style.overflow = anyModalOpen ? 'hidden' : ''
+
     if (anyModalOpen) {
       // Push a state so back button has somewhere to go
       window.history.pushState({ modal: true }, '')
@@ -230,7 +238,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     }
 
     window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      document.body.style.overflow = '' // limpiar al desmontar
+    }
   }, [
     showForm, showSaleForm, showPaymentModal, showReceipt, showSettings,
     showExport, showManageItems, showQuickPayment, showPaymentHistory,
@@ -870,23 +881,26 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const handlePauseStudent = async (student) => {
     if (student.is_paused) {
       const result = await unpauseStudent(student.id)
-      if (!result.success) {
-        alert('Error: ' + result.error)
-      }
+      if (!result.success) alert('Error: ' + result.error)
     } else {
       const course = getCourseById(student.course_id)
       if (!course || (course.priceType !== 'mes' && course.priceType !== 'paquete')) {
         alert('Solo se pueden pausar alumnos con clases mensuales o por paquete')
         return
       }
-      if (confirm(`¿Pausar 1 clase para ${student.name}?\nSe extenderá la fecha de pago.`)) {
-        const result = await pauseStudent(student.id)
-        if (result.success) {
-          alert(`Pausa activada para ${student.name}.\nSe agregaron ${result.daysAdded} días al ciclo.`)
-        } else {
-          alert('Error: ' + result.error)
-        }
-      }
+      setPauseClasses(1)
+      setPauseDialog({ student, course })
+    }
+  }
+
+  // Confirmar pausa desde el modal
+  const handleConfirmPause = async () => {
+    if (!pauseDialog) return
+    const result = await pauseStudent(pauseDialog.student.id, pauseClasses)
+    if (result.success) {
+      setPauseDialog(null)
+    } else {
+      alert('Error: ' + result.error)
     }
   }
 
@@ -3269,6 +3283,99 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         )}
 
         {/* Cierre Mensual */}
+        {/* ── Modal: Pausa multi-día ───────────────────────────────────── */}
+        {pauseDialog && (() => {
+          const { student, course } = pauseDialog
+          const classDays = course.classDays || []
+          const today = new Date(); today.setHours(12,0,0,0)
+
+          // Calcular clases que se saltarán
+          const skipped = getNextNClassDays(today, classDays, pauseClasses)
+
+          // Calcular nueva next_payment_date
+          let newNextPayment = new Date(student.next_payment_date + 'T12:00:00')
+          for (let i = 0; i < pauseClasses; i++) {
+            newNextPayment = getNextClassDay(addDays(newNextPayment, 1), classDays)
+          }
+
+          const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+          const fmtShort = (d) => `${DAY_NAMES[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`
+
+          return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                {/* Header */}
+                <div className="bg-sky-600 text-white px-5 py-4 flex items-center gap-2.5">
+                  <Snowflake size={18} />
+                  <div>
+                    <p className="font-semibold text-sm">Pausar clases</p>
+                    <p className="text-xs text-sky-100 truncate">{student.name}</p>
+                  </div>
+                </div>
+
+                <div className="px-5 py-5 space-y-4">
+                  {/* Stepper */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">¿Cuántas clases va a faltar?</p>
+                    <div className="flex items-center justify-center gap-4">
+                      <button onClick={() => setPauseClasses(c => Math.max(1, c - 1))}
+                        className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold flex items-center justify-center active:scale-90 transition">−</button>
+                      <span className="text-3xl font-bold text-sky-700 w-10 text-center">{pauseClasses}</span>
+                      <button onClick={() => setPauseClasses(c => Math.min(8, c + 1))}
+                        className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-bold flex items-center justify-center active:scale-90 transition">+</button>
+                    </div>
+                  </div>
+
+                  {/* Clases que se saltan */}
+                  {skipped.length > 0 && (
+                    <div className="bg-sky-50 rounded-xl px-4 py-3 space-y-1">
+                      <p className="text-xs font-semibold text-sky-700 mb-1.5">Clases que se saltan:</p>
+                      {skipped.map((d, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm text-sky-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                          {fmtShort(d)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Preview nuevo vencimiento */}
+                  <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 text-sm overflow-hidden">
+                    <div className="flex justify-between px-4 py-2.5">
+                      <span className="text-gray-500">Vencimiento actual</span>
+                      <span className="text-gray-700">{formatDate(student.next_payment_date)}</span>
+                    </div>
+                    <div className="flex justify-between px-4 py-2.5 bg-sky-50">
+                      <span className="text-sky-700 font-semibold">Nuevo vencimiento</span>
+                      <span className="text-sky-700 font-bold">{formatDate(formatDateForInput(newNextPayment))}</span>
+                    </div>
+                  </div>
+
+                  {/* Nota auto-descongelar */}
+                  {skipped.length > 0 && (
+                    <p className="text-[11px] text-gray-400 text-center leading-snug">
+                      Se reactivará automáticamente el {fmtShort(addDays(skipped[skipped.length - 1], 1))}
+                    </p>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="px-5 pb-5 flex gap-2.5">
+                  <button onClick={() => setPauseDialog(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition">
+                    Cancelar
+                  </button>
+                  <button onClick={handleConfirmPause}
+                    className="flex-1 py-2.5 rounded-xl bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 active:scale-[.98] transition flex items-center justify-center gap-1.5">
+                    <Snowflake size={14} />
+                    Confirmar pausa
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Prompt: ¿Registrar cobro tras crear alumno nuevo? */}
         {newStudentPaymentPrompt && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">

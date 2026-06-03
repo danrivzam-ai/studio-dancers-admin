@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer, MoreHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getDaysUntilDue, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
@@ -18,6 +18,7 @@ const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-g
 export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showMoreActions, setShowMoreActions] = useState(false)
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
   const [reactivating, setReactivating] = useState(false)
   const [reactivateError, setReactivateError] = useState(null)
@@ -579,39 +580,62 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Footer ── */}
-        <div className="p-4 border-t bg-gray-50 space-y-3 shrink-0">
-          {/* Acciones secundarias */}
-          {!student.is_courtesy && isRecurring && (
-            <div className="flex gap-2">
-              {onReactivate && (
+        <div className="shrink-0 border-t bg-white">
+          {/* Panel "Más opciones" — se despliega hacia arriba */}
+          {showMoreActions && (
+            <div className="px-4 pt-3 pb-1 border-b border-gray-100 space-y-1 bg-gray-50">
+              {!student.is_courtesy && isRecurring && onReactivate && (
                 <button
-                  onClick={() => { setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
-                  className="flex-1 py-2.5 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+                  onClick={() => { setShowMoreActions(false); setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#551735] hover:bg-[#fdf5f9] active:scale-[.98] transition-all"
                 >
-                  <RefreshCw size={15} /> Reactivar ciclo
+                  <RefreshCw size={15} className="shrink-0" />
+                  Reactivar ciclo
                 </button>
               )}
-              {onPause && (
+              {!student.is_courtesy && isRecurring && onPause && (
                 <button
-                  onClick={() => onPause(student)}
-                  className={`flex-1 py-2.5 border rounded-xl font-medium flex items-center justify-center gap-2 text-sm active:scale-95 transition-all ${
-                    student.is_paused
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-sky-50 border-sky-200 text-sky-700 hover:bg-sky-100'
+                  onClick={() => { setShowMoreActions(false); onPause(student) }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm active:scale-[.98] transition-all ${
+                    student.is_paused ? 'text-emerald-700 hover:bg-emerald-50' : 'text-sky-700 hover:bg-sky-50'
                   }`}
                 >
                   {student.is_paused
-                    ? <><Play size={15} className="fill-emerald-700" /> Reanudar clase</>
-                    : <><Snowflake size={15} /> Pausar 1 clase</>
+                    ? <><Play size={15} className="shrink-0 fill-emerald-700" /> Reanudar clases</>
+                    : <><Snowflake size={15} className="shrink-0" /> Pausar clases</>
                   }
+                </button>
+              )}
+              {onEdit && (
+                <button
+                  onClick={() => { setShowMoreActions(false); onClose(); onEdit(student) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                >
+                  <Pencil size={15} className="shrink-0" /> Editar datos
+                </button>
+              )}
+              {onReprint && (
+                <button
+                  onClick={() => { setShowMoreActions(false); onReprint(student) }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                >
+                  <Printer size={15} className="shrink-0" /> Reimprimir recibo
+                </button>
+              )}
+              {(student.phone || student.parent_phone || student.payer_phone) && (
+                <button
+                  onClick={() => { setShowMoreActions(false); handleWhatsApp() }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-green-700 hover:bg-green-50 active:scale-[.98] transition-all"
+                >
+                  <MessageCircle size={15} className="shrink-0" /> Enviar WhatsApp
                 </button>
               )}
             </div>
           )}
 
-          {/* Acciones principales */}
-          <div className="space-y-2">
-            {/* Acción primaria — full width */}
+          {/* Fila de acciones principal */}
+          <div className="p-4 space-y-2">
+            {/* Botón primario */}
             {!student.is_courtesy && !isProgramFullyPaid && (
               <button
                 onClick={() => { onClose(); if (onPayment) onPayment(student) }}
@@ -625,41 +649,26 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <CheckCircle size={16} /> Programa pagado completo
               </div>
             )}
-            {/* Fila secundaria: Cerrar + iconos auxiliares */}
+            {/* Cerrar + Más opciones */}
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 font-medium text-sm active:scale-95 transition-all"
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
               >
                 Cerrar
               </button>
-              {onEdit && (
-                <button
-                  onClick={() => { onClose(); onEdit(student) }}
-                  className="px-4 py-2.5 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] active:scale-95 transition-all"
-                  title="Editar alumna"
-                >
-                  <Pencil size={17} />
-                </button>
-              )}
-              {onReprint && (
-                <button
-                  onClick={() => onReprint(student)}
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 active:scale-95 transition-all"
-                  title="Reimprimir último recibo"
-                >
-                  <Printer size={17} />
-                </button>
-              )}
-              {(student.phone || student.parent_phone || student.payer_phone) && (
-                <button
-                  onClick={handleWhatsApp}
-                  className="px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 rounded-xl hover:bg-green-100 active:scale-95 transition-all"
-                  title="Enviar recordatorio WhatsApp"
-                >
-                  <MessageCircle size={17} />
-                </button>
-              )}
+              <button
+                onClick={() => setShowMoreActions(v => !v)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm font-medium active:scale-95 transition-all ${
+                  showMoreActions
+                    ? 'bg-[#551735] border-[#551735] text-white'
+                    : 'bg-[#fdf5f9] border-[#e8b4cc] text-[#551735] hover:bg-[#f9e8f0]'
+                }`}
+                title="Más opciones"
+              >
+                <MoreHorizontal size={16} />
+                <span className="text-xs">Más</span>
+              </button>
             </div>
           </div>
         </div>
