@@ -3332,7 +3332,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
 
-                <div className="px-5 pb-5 space-y-4">
+                <div className="px-5 pb-6 space-y-4">
                   {/* Stepper — zona táctil generosa */}
                   <div className="bg-gray-50 rounded-2xl px-4 py-5">
                     <p className="text-[11px] text-gray-400 text-center mb-4 tracking-wide uppercase">¿Cuántas clases va a faltar?</p>

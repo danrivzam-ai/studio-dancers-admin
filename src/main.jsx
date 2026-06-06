@@ -1,6 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+
+// Cuando el service worker instala una nueva versión, recarga la página
+// automáticamente para que el usuario vea los cambios sin intervención manual.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload()
+  })
+}
 import App from './App.jsx'
 import ClientPortalApp from './components/ClientPortal/ClientPortalApp'
 import RecepcionApp from './components/Recepcion/RecepcionApp'
