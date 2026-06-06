@@ -3386,8 +3386,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </div>
                   )}
 
-                  {/* Botones — zona de pulgar, safe area iOS */}
-                  <div className="flex gap-3 pt-1 pb-[env(safe-area-inset-bottom)]">
+                  {/* Botones */}
+                  <div className="flex gap-3">
                     <button onClick={() => setPauseDialog(null)}
                       className="flex-1 h-12 rounded-2xl border border-gray-200 text-sm text-gray-500 active:bg-gray-50 transition font-medium">
                       Cancelar
