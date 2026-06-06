@@ -307,6 +307,13 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
         safety++
       }
     }
+    // classesPerCycle es la fuente autoritativa de duración del ciclo.
+    // El conteo de días reales puede diferir por ±1 cuando next_payment_date
+    // cae en un día de clase (getPrevClassDay lo incluye → 9 en vez de 8).
+    // Siempre que el curso tenga classesPerCycle configurado, usarlo.
+    if (classesPerCycle && classesPerCycle > 0) {
+      totalClasses = classesPerCycle
+    }
   } else {
     // Fallback: sin días de clase definidos, usar fechas crudas
     cycleStart = lastPay
