@@ -3293,7 +3293,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const skipped = getNextNClassDays(today, classDays, pauseClasses)
 
           // Calcular nueva next_payment_date
-          let newNextPayment = new Date(student.next_payment_date + 'T12:00:00')
+          // Guardia: next_payment_date puede ser null en alumnas sin ciclo activo
+          // (date-fns v4 lanza RangeError con Invalid Date → pantalla blanca)
+          const hasNextPayment = !!student.next_payment_date
+          let newNextPayment = hasNextPayment
+            ? new Date(student.next_payment_date + 'T12:00:00')
+            : new Date()   // fallback seguro — solo para render, no se usa si !hasNextPayment
           for (let i = 0; i < pauseClasses; i++) {
             newNextPayment = getNextClassDay(addDays(newNextPayment, 1), classDays)
           }
@@ -3339,17 +3344,24 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </div>
                   )}
 
-                  {/* Preview nuevo vencimiento */}
-                  <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 text-sm overflow-hidden">
-                    <div className="flex justify-between px-4 py-2.5">
-                      <span className="text-gray-500">Vencimiento actual</span>
-                      <span className="text-gray-700">{formatDate(student.next_payment_date)}</span>
+                  {/* Preview nuevo vencimiento — solo si hay fecha de vencimiento */}
+                  {hasNextPayment ? (
+                    <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 text-sm overflow-hidden">
+                      <div className="flex justify-between px-4 py-2.5">
+                        <span className="text-gray-500">Vencimiento actual</span>
+                        <span className="text-gray-700">{formatDate(student.next_payment_date)}</span>
+                      </div>
+                      <div className="flex justify-between px-4 py-2.5 bg-sky-50">
+                        <span className="text-sky-700 font-semibold">Nuevo vencimiento</span>
+                        <span className="text-sky-700 font-bold">{formatDate(formatDateForInput(newNextPayment))}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between px-4 py-2.5 bg-sky-50">
-                      <span className="text-sky-700 font-semibold">Nuevo vencimiento</span>
-                      <span className="text-sky-700 font-bold">{formatDate(formatDateForInput(newNextPayment))}</span>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-center">
+                      Esta alumna no tiene fecha de vencimiento activa.<br />
+                      La pausa se registrará igualmente.
+                    </p>
+                  )}
 
                   {/* Nota auto-descongelar */}
                   {skipped.length > 0 && (

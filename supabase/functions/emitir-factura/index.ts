@@ -35,6 +35,41 @@ function toLocalStatus(fp: string): string {
   return ({ PROCESSING: 'processing', AUTHORIZED: 'authorized', COMPLETED: 'authorized', ERROR: 'draft', REJECTED: 'rejected' } as Record<string, string>)[fp] ?? 'draft'
 }
 
+// ─── Autorización ────────────────────────────────────────────────────────────
+// Esta función usa el SERVICE ROLE (bypassa RLS) y dispara cargos reales en
+// Factuplan/SRI — por eso valida explícitamente que quien llama sea un
+// usuario autenticado del panel admin con un rol habilitado para facturar
+// (admin o contador). Antes NO existía ninguna verificación: cualquiera con
+// la URL de la función y la anon key podía emitir/consultar/descargar
+// facturas sin estar autenticado.
+const INVOICING_ROLES = ['admin', 'contador']
+
+async function verifyInvoicingAuth(req: Request, db: ReturnType<typeof createClient>) {
+  const authHeader = req.headers.get('authorization') ?? req.headers.get('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return { ok: false as const, status: 401, error: 'No autenticado' }
+  }
+
+  const token = authHeader.slice('Bearer '.length)
+  const { data: { user }, error: authErr } = await db.auth.getUser(token)
+  if (authErr || !user?.email) {
+    return { ok: false as const, status: 401, error: 'Sesión inválida o expirada' }
+  }
+
+  const { data: roleRow } = await db
+    .from('user_roles')
+    .select('role')
+    .eq('email', user.email)
+    .maybeSingle()
+
+  if (!roleRow?.role || !INVOICING_ROLES.includes(roleRow.role)) {
+    console.warn(`[emitir-factura] Acceso denegado a ${user.email} (rol: ${roleRow?.role ?? 'ninguno'})`)
+    return { ok: false as const, status: 403, error: 'No tienes permiso para emitir/consultar facturas' }
+  }
+
+  return { ok: true as const, user, role: roleRow.role }
+}
+
 /** Llama a Factuplan con manejo de errores estándar */
 async function factuplanFetch(path: string, init?: RequestInit) {
   const res = await fetch(`${FACTUPLAN_BASE_URL}${path}`, {
@@ -61,9 +96,17 @@ serve(async (req) => {
       return json({ success: false, error: 'FACTUPLAN_API_KEY no configurado en Supabase secrets' })
     }
 
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+    // Validar que quien llama es un usuario autenticado con rol admin/contador.
+    // (ver verifyInvoicingAuth — antes esta función no validaba nada)
+    const auth = await verifyInvoicingAuth(req, db)
+    if (!auth.ok) {
+      return json({ success: false, error: auth.error }, auth.status)
+    }
+
     const body = await req.json()
     const { action } = body
-    const db = createClient(SUPABASE_URL, SUPABASE_KEY)
 
     // ── EMITIR FACTURA ──────────────────────────────────────────────────────
     if (action === 'emit') {

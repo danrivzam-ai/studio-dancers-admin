@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-// SECURITY WARNING: bcryptjs runs client-side, exposing hashed passwords to the browser.
-// TODO: Migrate to a Supabase Edge Function (e.g. POST /functions/v1/instructor-login)
-// that accepts {cedula, password}, compares server-side, and returns a session token.
-import bcrypt from 'bcryptjs'
-import { supabase } from '../../lib/supabase'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
 export default function InstructoraLogin({ onLogin }) {
   const [cedula, setCedula]     = useState('')
@@ -20,42 +17,39 @@ export default function InstructoraLogin({ onLogin }) {
     setLoading(true)
 
     try {
-      const { data, error: dbError } = await supabase
-        .from('instructors')
-        .select('id, name, email, cedula, password, active, must_change_password')
-        .eq('cedula', cedula.trim())
-        .maybeSingle()
+      // La verificación de credenciales ocurre server-side (Edge Function
+      // staff-login): el navegador nunca ve el hash de la contraseña.
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/staff-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'instructora',
+          identifier: cedula.trim(),
+          password
+        })
+      })
+      const result = await res.json().catch(() => ({}))
 
-      if (dbError || !data) {
-        setError('Cédula o contraseña incorrectos')
-        return
-      }
-
-      if (!data.active) {
-        setError('Tu cuenta está desactivada. Contacta a la administración.')
-        return
-      }
-
-      const match = await bcrypt.compare(password, data.password)
-      if (!match) {
-        setError('Cédula o contraseña incorrectos')
+      if (!res.ok) {
+        setError(result.error || 'Cédula o contraseña incorrectos')
         return
       }
 
       const storage = remember ? localStorage : sessionStorage
       storage.setItem('instructora_auth', '1')
-      storage.setItem('instructora_id', data.id)
-      storage.setItem('instructora_name', data.name)
-      storage.setItem('instructora_must_change_pw', data.must_change_password ? '1' : '0')
+      storage.setItem('instructora_id', result.id)
+      storage.setItem('instructora_name', result.name)
+      storage.setItem('instructora_must_change_pw', result.mustChangePw ? '1' : '0')
       storage.setItem('instructora_remember', remember ? '1' : '0')
 
       onLogin({
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        mustChangePw: !!data.must_change_password,
+        id: result.id,
+        name: result.name,
+        email: result.email,
+        mustChangePw: !!result.mustChangePw,
       })
     } catch (err) {
+      console.error('[InstructoraLogin] error:', err)
       setError('Error al iniciar sesión. Intenta de nuevo.')
     } finally {
       setLoading(false)

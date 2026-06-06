@@ -21,10 +21,13 @@ export default function InvoiceButton({ payment, student, courseName, settings, 
   const [existingInvoice, setExistingInvoice] = useState(null)
   const [checked, setChecked] = useState(false)
 
-  // No mostrar si la facturación no está habilitada
-  if (!settings?.sri_invoicing_enabled) return null
+  const invoicingEnabled = !!settings?.sri_invoicing_enabled
 
+  // El useEffect SIEMPRE se declara (orden de hooks estable); internamente
+  // decide si tiene trabajo que hacer. El early-return por "no habilitado"
+  // ocurre después de declarar todos los hooks — nunca antes.
   useEffect(() => {
+    if (!invoicingEnabled) return
     async function check() {
       if (!payment?.id) return
       const result = await getInvoiceByPayment(payment.id)
@@ -34,7 +37,10 @@ export default function InvoiceButton({ payment, student, courseName, settings, 
       setChecked(true)
     }
     check()
-  }, [payment?.id, getInvoiceByPayment])
+  }, [invoicingEnabled, payment?.id, getInvoiceByPayment])
+
+  // No mostrar si la facturación no está habilitada
+  if (!invoicingEnabled) return null
 
   if (!checked) return null
 

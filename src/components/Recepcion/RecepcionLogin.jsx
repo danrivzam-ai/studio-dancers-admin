@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import bcrypt from 'bcryptjs'
 import { Eye, EyeOff } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
 export default function RecepcionLogin({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -15,50 +15,34 @@ export default function RecepcionLogin({ onLogin }) {
     setError('')
     setLoading(true)
 
-    const { data, error: dbError } = await supabase
-      .from('receptionists')
-      .select('id, name, password, active')
-      .eq('username', username.trim().toLowerCase())
-      .single()
+    try {
+      // La verificación de credenciales ocurre server-side (Edge Function
+      // staff-login): el navegador nunca ve el hash de la contraseña.
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/staff-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'recepcion',
+          identifier: username.trim().toLowerCase(),
+          password
+        })
+      })
+      const result = await res.json().catch(() => ({}))
 
-    if (dbError || !data) {
-      setError('Usuario o contraseña incorrectos')
-      setLoading(false)
-      return
-    }
-
-    if (!data.active) {
-      setError('Esta cuenta está desactivada')
-      setLoading(false)
-      return
-    }
-
-    // Support both bcrypt-hashed and legacy plaintext passwords
-    const isBcrypt = data.password?.startsWith('$2')
-    const valid = isBcrypt
-      ? await bcrypt.compare(password, data.password)
-      : password === data.password
-
-    if (!valid) {
-      setError('Usuario o contraseña incorrectos')
-      setLoading(false)
-      return
-    }
-
-    // Auto-migrate legacy plaintext password to bcrypt
-    if (!isBcrypt) {
-      try {
-        const hashed = await bcrypt.hash(password, 10)
-        await supabase.from('receptionists').update({ password: hashed }).eq('id', data.id)
-      } catch (e) {
-        console.error('[RecepcionLogin] Auto-migrate password failed:', e)
+      if (!res.ok) {
+        setError(result.error || 'Usuario o contraseña incorrectos')
+        return
       }
-    }
 
-    sessionStorage.setItem('recepcion_auth', '1')
-    sessionStorage.setItem('recepcion_name', data.name)
-    onLogin(data.name)
-    setLoading(false)
+      sessionStorage.setItem('recepcion_auth', '1')
+      sessionStorage.setItem('recepcion_name', result.name)
+      onLogin(result.name)
+    } catch (err) {
+      console.error('[RecepcionLogin] error:', err)
+      setError('Error al iniciar sesión. Intenta de nuevo.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

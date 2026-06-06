@@ -526,42 +526,48 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   return (
                     <div
                       key={payment.id}
-                      className={`rounded-xl p-3 flex items-center gap-3 border ${
+                      className={`rounded-xl px-3 py-2.5 border ${
                         payment.voided ? 'bg-red-50 border-red-200 opacity-60' : 'bg-white border-gray-100'
                       }`}
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${payment.voided ? 'bg-red-100' : 'bg-green-100'}`}>
-                        {payment.voided
-                          ? <Ban size={13} className="text-red-500" />
-                          : <CheckCircle size={13} className="text-green-600" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className={`text-sm font-bold ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                            ${parseFloat(payment.amount).toFixed(2)}
-                          </p>
-                          {payment.discount_amount && !payment.voided && (
-                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
-                              -{payment.discount_amount}
-                            </span>
+                      {/* Fila principal: icono + monto/fecha + método/comprobante */}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${payment.voided ? 'bg-red-100' : 'bg-green-100'}`}>
+                          {payment.voided
+                            ? <Ban size={13} className="text-red-500" />
+                            : <CheckCircle size={13} className="text-green-600" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className={`text-sm font-bold ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                              ${parseFloat(payment.amount).toFixed(2)}
+                            </p>
+                            {payment.discount_amount && !payment.voided && (
+                              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
+                                -{payment.discount_amount}
+                              </span>
+                            )}
+                            {payment.payment_type === 'installment' && !payment.voided && (
+                              <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-medium">Abono</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">{formatDate(payment.payment_date)}</p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ms.bg} ${ms.text}`}>
+                            {payment.payment_method}
+                          </span>
+                          {payment.receipt_number && (
+                            <p className="text-[10px] text-gray-300 mt-0.5">{payment.receipt_number}</p>
                           )}
-                          {payment.payment_type === 'installment' && !payment.voided && (
-                            <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-medium">Abono</span>
+                          {payment.days_late > 0 && !payment.voided && (
+                            <p className="text-[10px] text-red-400 mt-0.5">{payment.days_late}d tarde</p>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400">{formatDate(payment.payment_date)}</p>
                       </div>
-                      <div className="shrink-0 text-right space-y-1">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ms.bg} ${ms.text}`}>
-                          {payment.payment_method}
-                        </span>
-                        {payment.receipt_number && (
-                          <p className="text-[10px] text-gray-300">{payment.receipt_number}</p>
-                        )}
-                        {payment.days_late > 0 && !payment.voided && (
-                          <p className="text-[10px] text-red-400">{payment.days_late}d tarde</p>
-                        )}
-                        {!payment.voided && (
+                      {/* Fila secundaria: InvoiceButton con espacio propio */}
+                      {!payment.voided && (
+                        <div className="mt-2 pl-11">
                           <InvoiceButton
                             payment={payment}
                             student={student}
@@ -569,8 +575,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                             settings={settings}
                             variant="badge"
                           />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

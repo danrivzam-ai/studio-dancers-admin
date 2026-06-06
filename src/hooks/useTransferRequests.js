@@ -145,35 +145,11 @@ export function useTransferRequests() {
           // Play sound
           playNotificationSound()
 
-          // Telegram notification (admin tiene sesión auth — no hay problema de RLS)
-          try {
-            const { data: cfg } = await supabase
-              .from('school_settings')
-              .select('telegram_transfers_bot_token, telegram_transfers_chat_id')
-              .eq('id', 1)
-              .single()
-            if (cfg?.telegram_transfers_bot_token && cfg?.telegram_transfers_chat_id) {
-              const hora  = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
-              const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
-              fetch(`https://api.telegram.org/bot${cfg.telegram_transfers_bot_token}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  chat_id: cfg.telegram_transfers_chat_id,
-                  parse_mode: 'Markdown',
-                  text:
-                    `💸 *Nueva transferencia recibida*\n\n` +
-                    `👤 *Alumna:* ${studentName}\n` +
-                    `🏦 *Banco:* ${method}\n` +
-                    `💰 *Monto:* $${amount}` +
-                    (newReq.receipt_number ? `\n🔢 *Comprobante:* ${newReq.receipt_number}` : '') +
-                    (newReq.notes ? `\n📝 *Nota:* ${newReq.notes}` : '') +
-                    `\n\n🕐 ${fecha} · ${hora}\n` +
-                    `_Revisa la sección de Transferencias en el sistema._`,
-                }),
-              }).catch(() => {})
-            }
-          } catch { /* silencioso */ }
+          // Nota: la notificación de Telegram ahora se envía server-side desde
+          // el portal de alumnas (Edge Function notify-transfer) en el momento
+          // exacto en que se sube el comprobante — funciona aunque este panel
+          // esté cerrado. Mantenerla aquí también duplicaría el mensaje cuando
+          // el panel SÍ está abierto, así que se removió de este lado.
 
           // Browser notification
           sendNotification(

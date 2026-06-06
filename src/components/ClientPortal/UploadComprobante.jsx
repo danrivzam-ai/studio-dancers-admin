@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Upload, Camera, X, CheckCircle, ChevronDown, ChevronUp, Clock, XCircle, BadgeCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { notifyTelegram } from '../../lib/whatsappMetaApi'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
 const BANKS = [
   'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
@@ -106,27 +107,20 @@ export default function UploadComprobante({ auth, student }) {
         })
       if (insertError) throw insertError
 
-      // 3. Notificar a Telegram
+      // 3. Notificar a Telegram — vía Edge Function server-side. El token del
+      // bot vive en school_settings y se lee con el service role; el portal
+      // (superficie pública) nunca lo recibe ni lo expone en el bundle.
       try {
-        const botToken = import.meta.env.VITE_TELEGRAM_TRANSFERS_BOT_TOKEN
-        const chatId   = import.meta.env.VITE_TELEGRAM_TRANSFERS_CHAT_ID
-        if (botToken && chatId) {
-          const hora  = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })
-          const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'short', timeZone: 'America/Guayaquil' })
-          const text =
-            `💸 *Nueva transferencia recibida*\n\n` +
-            `👤 *Alumna:* ${student?.name || '—'}\n` +
-            `🏦 *Banco:* ${bank}\n` +
-            `💰 *Monto:* $${parseFloat(amount).toFixed(2)}` +
-            (receiptNo.trim() ? `\n🔢 *Comprobante:* ${receiptNo.trim()}` : '') +
-            `\n\n🕐 ${fecha} · ${hora}\n` +
-            `_Revisa la sección de Transferencias en el sistema._`
-          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+        await fetch(`${SUPABASE_URL}/functions/v1/notify-transfer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: student?.name || '—',
+            amount: parseFloat(amount),
+            bankName: bank,
+            receiptNumber: receiptNo.trim() || null
           })
-        }
+        })
       } catch {
         // Silencioso — no bloquea el flujo del portal
       }
