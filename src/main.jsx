@@ -7,6 +7,7 @@ import RecepcionApp from './components/Recepcion/RecepcionApp'
 import InstructoraApp from './components/Instructora/InstructoraApp'
 import LandingPage from './components/LandingPage'
 import { ToastProvider } from './components/Toast'
+import { ModalProvider } from './context/ModalContext'
 
 const params = window.location.search
 
@@ -21,12 +22,14 @@ const isInstructora = !isRecepcion && !isPortal && !isAliados && params.includes
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ToastProvider>
-      {isRecepcion ? <RecepcionApp />
-        : isPortal ? <ClientPortalApp />
-        : isAliados ? <LandingPage />
-        : isInstructora ? <InstructoraApp />
-        : <App />}
-    </ToastProvider>
+    <ModalProvider>
+      <ToastProvider>
+        {isRecepcion ? <RecepcionApp />
+          : isPortal ? <ClientPortalApp />
+          : isAliados ? <LandingPage />
+          : isInstructora ? <InstructoraApp />
+          : <App />}
+      </ToastProvider>
+    </ModalProvider>
   </StrictMode>,
 )
