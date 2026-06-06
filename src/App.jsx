@@ -3307,48 +3307,55 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const fmtShort = (d) => `${DAY_NAMES[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`
 
           return (
-            <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[70] p-0 sm:p-4">
-              <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden">
+            <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[70]"
+              onClick={() => setPauseDialog(null)}>
+              <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm"
+                onClick={e => e.stopPropagation()}>
+
+                {/* Handle — solo mobile */}
+                <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                  <div className="w-9 h-1 rounded-full bg-gray-200" />
+                </div>
 
                 {/* Header */}
-                <div className="px-6 pt-6 pb-4 flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center shrink-0">
-                    <Snowflake size={20} className="text-sky-600" />
+                <div className="px-5 pt-3 sm:pt-5 pb-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
+                    <Snowflake size={18} className="text-sky-500" />
                   </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <p className="font-semibold text-gray-900 text-base leading-tight">Pausar clases</p>
-                    <p className="text-sm text-gray-400 truncate mt-0.5">{student.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-[15px] leading-tight">Pausar clases</p>
+                    <p className="text-xs text-gray-400 truncate mt-0.5">{student.name}</p>
                   </div>
                   <button onClick={() => setPauseDialog(null)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition shrink-0 mt-0.5">
-                    <X size={14} className="text-gray-500" />
+                    className="w-8 h-8 rounded-full bg-gray-100 active:bg-gray-200 flex items-center justify-center shrink-0">
+                    <X size={14} className="text-gray-400" />
                   </button>
                 </div>
 
-                <div className="px-6 pb-6 space-y-5">
-                  {/* Stepper */}
-                  <div className="bg-gray-50 rounded-2xl p-4">
-                    <p className="text-xs text-gray-400 text-center mb-3">Clases que va a faltar</p>
-                    <div className="flex items-center justify-center gap-5">
+                <div className="px-5 pb-5 space-y-4">
+                  {/* Stepper — zona táctil generosa */}
+                  <div className="bg-gray-50 rounded-2xl px-4 py-5">
+                    <p className="text-[11px] text-gray-400 text-center mb-4 tracking-wide uppercase">¿Cuántas clases va a faltar?</p>
+                    <div className="flex items-center justify-between">
                       <button onClick={() => setPauseClasses(c => Math.max(1, c - 1))}
-                        className="w-11 h-11 rounded-xl bg-white border border-gray-200 text-gray-600 text-xl font-light flex items-center justify-center hover:border-sky-300 hover:text-sky-600 active:scale-90 transition shadow-sm">−</button>
+                        className="w-14 h-14 rounded-2xl bg-white border border-gray-200 text-gray-500 text-2xl flex items-center justify-center active:scale-90 active:bg-gray-50 transition shadow-sm">−</button>
                       <div className="text-center">
-                        <span className="text-4xl font-bold text-sky-600 leading-none">{pauseClasses}</span>
-                        <p className="text-[10px] text-gray-400 mt-1">{pauseClasses === 1 ? 'clase' : 'clases'}</p>
+                        <span className="text-5xl font-bold text-sky-600 leading-none tabular-nums">{pauseClasses}</span>
+                        <p className="text-xs text-gray-400 mt-1.5">{pauseClasses === 1 ? 'clase' : 'clases'}</p>
                       </div>
                       <button onClick={() => setPauseClasses(c => Math.min(8, c + 1))}
-                        className="w-11 h-11 rounded-xl bg-white border border-gray-200 text-gray-600 text-xl font-light flex items-center justify-center hover:border-sky-300 hover:text-sky-600 active:scale-90 transition shadow-sm">+</button>
+                        className="w-14 h-14 rounded-2xl bg-white border border-gray-200 text-gray-500 text-2xl flex items-center justify-center active:scale-90 active:bg-gray-50 transition shadow-sm">+</button>
                     </div>
                   </div>
 
-                  {/* Clases que se saltan — chips */}
+                  {/* Chips de días saltados */}
                   {skipped.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-gray-400 mb-2">Días que se salta</p>
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wide mb-2.5">Días que se salta</p>
                       <div className="flex flex-wrap gap-2">
                         {skipped.map((d, i) => (
-                          <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 text-sky-700 text-xs font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                          <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 text-xs font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
                             {fmtShort(d)}
                           </span>
                         ))}
@@ -3358,35 +3365,35 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
                   {/* Preview vencimiento */}
                   {hasNextPayment ? (
-                    <div className="rounded-2xl overflow-hidden border border-gray-100">
-                      <div className="flex items-center justify-between px-4 py-3 bg-white">
-                        <span className="text-xs text-gray-400">Vencimiento actual</span>
-                        <span className="text-sm text-gray-600 font-medium">{formatDate(student.next_payment_date)}</span>
+                    <div className="rounded-2xl overflow-hidden border border-gray-100 text-sm">
+                      <div className="flex items-center justify-between px-4 py-3.5">
+                        <span className="text-gray-400">Vencimiento actual</span>
+                        <span className="text-gray-700 font-medium">{formatDate(student.next_payment_date)}</span>
                       </div>
-                      <div className="flex items-center justify-between px-4 py-3 bg-sky-50">
-                        <span className="text-xs font-semibold text-sky-700">Nuevo vencimiento</span>
-                        <span className="text-sm font-bold text-sky-700">{formatDate(formatDateForInput(newNextPayment))}</span>
+                      <div className="flex items-center justify-between px-4 py-3.5 bg-sky-50">
+                        <span className="font-semibold text-sky-700">Nuevo vencimiento</span>
+                        <span className="font-bold text-sky-700">{formatDate(formatDateForInput(newNextPayment))}</span>
                       </div>
                       {skipped.length > 0 && (
-                        <div className="px-4 py-2.5 bg-gray-50 flex items-center gap-1.5">
-                          <span className="text-[10px] text-gray-400">↻ Se reactiva el {fmtShort(addDays(skipped[skipped.length - 1], 1))}</span>
+                        <div className="px-4 py-2.5 bg-gray-50">
+                          <span className="text-[11px] text-gray-400">↻ Se reactiva el {fmtShort(addDays(skipped[skipped.length - 1], 1))}</span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-center">
+                    <div className="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3.5 text-center">
                       <p className="text-xs text-amber-700 leading-relaxed">Sin fecha de vencimiento activa.<br />La pausa se registrará igualmente.</p>
                     </div>
                   )}
 
-                  {/* Footer */}
-                  <div className="flex gap-3 pt-1">
+                  {/* Botones — zona de pulgar, safe area iOS */}
+                  <div className="flex gap-3 pt-1 pb-[env(safe-area-inset-bottom)]">
                     <button onClick={() => setPauseDialog(null)}
-                      className="flex-1 py-3 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition font-medium">
+                      className="flex-1 h-12 rounded-2xl border border-gray-200 text-sm text-gray-500 active:bg-gray-50 transition font-medium">
                       Cancelar
                     </button>
                     <button onClick={handleConfirmPause}
-                      className="flex-1 py-3 rounded-xl bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 active:scale-[.98] transition flex items-center justify-center gap-2">
+                      className="flex-1 h-12 rounded-2xl bg-sky-600 text-white text-sm font-semibold active:bg-sky-700 active:scale-[.98] transition flex items-center justify-center gap-2">
                       <Snowflake size={15} />
                       Confirmar
                     </button>
