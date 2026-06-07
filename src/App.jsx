@@ -3309,7 +3309,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           return (
             <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[70]"
               onClick={() => setPauseDialog(null)}>
-              <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm"
+              <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden"
                 onClick={e => e.stopPropagation()}>
 
                 {/* Handle — solo mobile */}
@@ -3318,7 +3318,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
 
                 {/* Header */}
-                <div className="px-5 pt-3 sm:pt-5 pb-3 flex items-center gap-3">
+                <div className="px-5 pt-3 sm:pt-5 pb-4 flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center shrink-0">
                     <Snowflake size={18} className="text-sky-500" />
                   </div>
@@ -3332,8 +3332,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 </div>
 
-                <div className="px-5 pb-6 space-y-4">
-                  {/* Stepper — zona táctil generosa */}
+                {/* Contenido */}
+                <div className="px-5 space-y-4">
+                  {/* Stepper */}
                   <div className="bg-gray-50 rounded-2xl px-4 py-5">
                     <p className="text-[11px] text-gray-400 text-center mb-4 tracking-wide uppercase">¿Cuántas clases va a faltar?</p>
                     <div className="flex items-center justify-between">
@@ -3385,19 +3386,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       <p className="text-xs text-amber-700 leading-relaxed">Sin fecha de vencimiento activa.<br />La pausa se registrará igualmente.</p>
                     </div>
                   )}
+                </div>
 
-                  {/* Botones */}
-                  <div className="flex gap-3">
-                    <button onClick={() => setPauseDialog(null)}
-                      className="flex-1 h-12 rounded-2xl border border-gray-200 text-sm text-gray-500 active:bg-gray-50 transition font-medium">
-                      Cancelar
-                    </button>
-                    <button onClick={handleConfirmPause}
-                      className="flex-1 h-12 rounded-2xl bg-sky-600 text-white text-sm font-semibold active:bg-sky-700 active:scale-[.98] transition flex items-center justify-center gap-2">
-                      <Snowflake size={15} />
-                      Confirmar
-                    </button>
-                  </div>
+                {/* Footer — separado del contenido, padding propio garantizado */}
+                <div className="px-5 pt-4 pb-5 mt-4 border-t border-gray-100 flex gap-3">
+                  <button onClick={() => setPauseDialog(null)}
+                    className="flex-1 h-12 rounded-2xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 active:bg-gray-100 transition font-medium">
+                    Cancelar
+                  </button>
+                  <button onClick={handleConfirmPause}
+                    className="flex-1 h-12 rounded-2xl bg-sky-600 text-white text-sm font-semibold hover:bg-sky-700 active:scale-[.98] transition flex items-center justify-center gap-2">
+                    <Snowflake size={15} />
+                    Confirmar
+                  </button>
                 </div>
               </div>
             </div>
