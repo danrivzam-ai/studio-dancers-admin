@@ -434,9 +434,16 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Selection color */
+/* Selection color — amarillo brand + guinda opacos para que funcione
+   en cualquier fondo (claro o guinda oscuro). Antes era guinda semi-
+   transparente sobre guinda → texto invisible al sombrear el header
+   de modales como StudentDetail. */
 ::selection {
-  background: rgba(126, 45, 85, 0.2);
+  background: #fffb7a;
+  color: #551735;
+}
+::-moz-selection {
+  background: #fffb7a;
   color: #551735;
 }
 
