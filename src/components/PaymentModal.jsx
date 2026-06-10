@@ -89,7 +89,8 @@ export default function PaymentModal({
     paymentDate: getTodayEC(),
     bankId: '',
     transferReceipt: '',
-    notes: ''
+    notes: '',
+    monthsAhead: 1, // cuántos meses paga (1 = mes corriente, >1 = adelanta)
   })
 
   useEffect(() => {
@@ -271,7 +272,8 @@ export default function PaymentModal({
       coursePrice: studentFee,
       courseName: course?.name || 'Sin curso',
       discount: discountInfo,
-      cycleStartDate: resolvedCycleStartDate
+      cycleStartDate: resolvedCycleStartDate,
+      monthsAhead: formData.monthsAhead || 1,
     })
     setConfirmStep(true)
   }
@@ -691,6 +693,58 @@ export default function PaymentModal({
               </div>
             )}
           </div>
+
+          {/* Adelantar meses — solo cursos mensuales, sin saldo previo */}
+          {course?.priceType === 'mes' && !hasBalance && !prorrateo && formData.paymentType === 'full' && (
+            <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-700">¿Adelanta meses?</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {formData.monthsAhead === 1
+                      ? 'Paga el mes corriente'
+                      : `Cubre ${formData.monthsAhead} meses — vencimiento avanza ${formData.monthsAhead} meses`}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = Math.max(1, formData.monthsAhead - 1)
+                      setFormData(prev => ({ ...prev, monthsAhead: next, amount: (studentFee * next).toFixed(2) }))
+                      if (discountEnabled) {
+                        setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
+                      }
+                    }}
+                    className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-600 text-lg flex items-center justify-center active:scale-90 transition shadow-sm"
+                    disabled={formData.monthsAhead <= 1}
+                  >−</button>
+                  <div className="min-w-[44px] text-center">
+                    <p className="text-2xl font-bold text-[#7e2d55] leading-none tabular-nums">{formData.monthsAhead}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{formData.monthsAhead === 1 ? 'mes' : 'meses'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = Math.min(12, formData.monthsAhead + 1)
+                      setFormData(prev => ({ ...prev, monthsAhead: next, amount: (studentFee * next).toFixed(2) }))
+                      if (discountEnabled) {
+                        setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
+                      }
+                    }}
+                    className="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-600 text-lg flex items-center justify-center active:scale-90 transition shadow-sm"
+                    disabled={formData.monthsAhead >= 12}
+                  >+</button>
+                </div>
+              </div>
+              {formData.monthsAhead > 1 && (
+                <div className="mt-2.5 pt-2.5 border-t border-gray-200 flex justify-between text-xs">
+                  <span className="text-gray-500">{formData.monthsAhead} × ${studentFee.toFixed(2)}</span>
+                  <span className="font-bold text-[#7e2d55]">= ${(studentFee * formData.monthsAhead).toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Amount and Date */}
           <div className="grid grid-cols-2 gap-3">

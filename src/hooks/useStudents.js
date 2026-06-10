@@ -421,9 +421,11 @@ export function useStudents() {
                     : effectiveCycleDate
                   const vigenciaDias = course?.vigenciaDias ?? null
                   const vigenciaMeses = course?.vigenciaMeses ?? 1
+                  // monthsAhead multiplica la vigencia para cubrir varios ciclos.
+                  const factor = Math.max(1, parseInt(paymentData.monthsAhead) || 1)
                   const nextDate = vigenciaDias
-                    ? addDays(base, vigenciaDias)
-                    : addMonths(base, vigenciaMeses)
+                    ? addDays(base, vigenciaDias * factor)
+                    : addMonths(base, vigenciaMeses * factor)
                   nextPayment = formatDateForInput(nextDate)
                 } else if (!currentNextPaymentDate) {
                   // Primer pago o sin ciclo previo: calcular desde effectiveCycleDate
@@ -436,6 +438,21 @@ export function useStudents() {
                   // Pago a tiempo o en mora: nuevo ciclo desde effectiveCycleDate
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
                   nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)
+                }
+
+                // Si la usuaria adelantó N meses (>1) en modo día-fijo (no rolling),
+                // avanzar next_payment_date N-1 veces más a partir del cálculo base.
+                const factor = Math.max(1, parseInt(paymentData.monthsAhead) || 1)
+                if (!course?.renovacionRolling && factor > 1 && nextPayment) {
+                  let chainDate = nextPayment
+                  for (let i = 1; i < factor; i++) {
+                    chainDate = calculateNextPaymentDate(
+                      typeof chainDate === 'string' ? new Date(chainDate + 'T12:00:00') : chainDate,
+                      classDays,
+                      classesPerCycle
+                    )
+                  }
+                  nextPayment = chainDate
                 }
               }
             }
