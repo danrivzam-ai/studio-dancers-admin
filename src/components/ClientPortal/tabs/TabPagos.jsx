@@ -1,4 +1,4 @@
-import { LogOut, Phone, MapPin, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import { LogOut, Phone, MapPin, CheckCircle, AlertCircle, Clock, Calendar, Flag } from 'lucide-react'
 import UploadComprobante from '../UploadComprobante'
 
 const STUDIO_WHATSAPP = '593963741884'
@@ -8,6 +8,14 @@ function formatFecha(dateStr) {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-EC', {
     day: 'numeric', month: 'long', year: 'numeric'
   })
+}
+
+function todayECStr() {
+  // Fecha de hoy en Ecuador como yyyy-mm-dd, comparable con DATE de Postgres.
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Guayaquil', year: 'numeric', month: '2-digit', day: '2-digit'
+  })
+  return fmt.format(new Date())
 }
 
 // DB values: 'paid' | 'pending' | 'partial' | 'overdue'
@@ -39,12 +47,21 @@ const ESTADO_CFG = {
     border: 'border-red-400',
     label: 'Pago vencido',
   },
+  ciclo_finalizado: {
+    Icon: Flag,
+    color: 'text-slate-600',
+    bg: 'bg-slate-50',
+    border: 'border-slate-400',
+    label: 'Ciclo finalizado',
+  },
 }
 
 export default function TabPagos({ auth, student, onLogout }) {
-  const { name, course_name, payment_status, next_payment_date } = student
+  const { name, course_name, payment_status, next_payment_date, ciclo_inicio, ciclo_fin } = student
 
-  const sc  = ESTADO_CFG[normPS(payment_status)]
+  // Si el ciclo escolar ya terminó, override del estado de pago
+  const cicloFinalizado = ciclo_fin && todayECStr() > ciclo_fin
+  const sc  = cicloFinalizado ? ESTADO_CFG.ciclo_finalizado : ESTADO_CFG[normPS(payment_status)]
   const Icon = sc.Icon
 
   return (
@@ -69,7 +86,11 @@ export default function TabPagos({ auth, student, onLogout }) {
             <Icon size={24} className={sc.color} />
             <div>
               <p className={`font-bold ${sc.color}`}>{sc.label}</p>
-              {next_payment_date && (
+              {cicloFinalizado ? (
+                <p className="text-xs text-slate-500 mt-0.5">
+                  El ciclo escolar finalizó el {formatFecha(ciclo_fin)}
+                </p>
+              ) : next_payment_date && (
                 <p className="text-xs text-gray-500 mt-0.5">
                   Próximo pago: {formatFecha(next_payment_date)}
                 </p>
@@ -78,6 +99,26 @@ export default function TabPagos({ auth, student, onLogout }) {
           </div>
         </div>
       </div>
+
+      {/* Ciclo escolar (si el curso lo tiene configurado) */}
+      {(ciclo_inicio || ciclo_fin) && !cicloFinalizado && (
+        <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar size={16} className="text-[#7e2d55]" />
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Ciclo escolar</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-gray-400">Inicio</p>
+              <p className="font-semibold text-gray-700 mt-0.5">{formatFecha(ciclo_inicio)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400">Fin</p>
+              <p className="font-semibold text-gray-700 mt-0.5">{formatFecha(ciclo_fin)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload comprobante */}
       <UploadComprobante auth={auth} student={student} />
