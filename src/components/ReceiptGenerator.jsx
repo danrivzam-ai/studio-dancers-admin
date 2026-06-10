@@ -272,9 +272,15 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
             {/* Cycle Info & Next Payment - for monthly and package courses */}
             {!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date && (() => {
               const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-              const cycleBaseDate = payment.cycle_start_date || payment.payment_date
+              let cycleBaseDate = payment.cycle_start_date || payment.payment_date
+              let cycleEndForRcpt = student.next_payment_date
+              // Clamp al ciclo escolar (consistente con StudentDetail/App.jsx).
+              const _cicloIni = course?.cicloInicio || course?.ciclo_inicio
+              const _cicloFin = course?.cicloFin || course?.ciclo_fin
+              if (_cicloIni && cycleBaseDate && cycleBaseDate < _cicloIni) cycleBaseDate = _cicloIni
+              if (_cicloFin && cycleEndForRcpt && cycleEndForRcpt > _cicloFin) cycleEndForRcpt = _cicloFin
               const cycleInfo = cycleBaseDate
-                ? getCycleInfo(cycleBaseDate, student.next_payment_date, course?.classDays, cycleClasses)
+                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses)
                 : null
               const dayNames = { 0: 'Domingos', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábados' }
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''

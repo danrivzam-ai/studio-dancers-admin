@@ -72,8 +72,19 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
   const todayEC = getTodayEC()
   const showOldCycle = student.prepaid && student.prepaid_old_start && student.last_payment_date && todayEC < student.last_payment_date
-  const baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
-  const cycleEndDate = showOldCycle ? student.last_payment_date : student.next_payment_date
+  let baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
+  let cycleEndDate = showOldCycle ? student.last_payment_date : student.next_payment_date
+  // Clamp al ciclo escolar: si pagó antes del inicio del ciclo, el ciclo
+  // visible empieza el día del ciclo escolar, no el día del pago.
+  // Mismo principio que en App.jsx + useStudents.registerPayment.
+  const cicloInicioStr = course?.cicloInicio || course?.ciclo_inicio
+  const cicloFinStr = course?.cicloFin || course?.ciclo_fin
+  if (cicloInicioStr && baseDate && baseDate < cicloInicioStr) {
+    baseDate = cicloInicioStr
+  }
+  if (cicloFinStr && cycleEndDate && cycleEndDate > cicloFinStr) {
+    cycleEndDate = cicloFinStr
+  }
   const cycleInfo = isRecurring && baseDate
     ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses)
     : null

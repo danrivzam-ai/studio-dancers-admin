@@ -141,9 +141,17 @@ const resolveCycleDates = (student, course) => {
   if (course && student.last_payment_date && student.next_payment_date &&
       (course.classDays || course.class_days) &&
       (course.classesPerCycle || course.classesPerPackage)) {
+    // Clamp al ciclo escolar para que el mensaje al padre muestre la fecha
+    // real de inicio del ciclo (no la fecha del pago si pagó antes).
+    let base = student.last_payment_date
+    let end = student.next_payment_date
+    const cicloIni = course.cicloInicio || course.ciclo_inicio
+    const cicloFin = course.cicloFin || course.ciclo_fin
+    if (cicloIni && base < cicloIni) base = cicloIni
+    if (cicloFin && end > cicloFin) end = cicloFin
     const info = getCycleInfo(
-      student.last_payment_date,
-      student.next_payment_date,
+      base,
+      end,
       course.classDays || course.class_days,
       course.classesPerCycle || course.classesPerPackage
     )
