@@ -408,9 +408,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   })
 
   // Adultas con ciclo finalizado (vencidas, sin importar días — no usan gracia/mora)
+  // Helper: ¿el ciclo escolar del curso ya finalizó?
+  // Si sí, la alumna NO debe aparecer en "por renovar" ni "inactivas" — el
+  // sistema dejó de pedir cobros automáticos (badge "Ciclo finalizado").
+  const isCycleEnded = (courseObj) => {
+    const cicloFin = courseObj?.cicloFin || courseObj?.ciclo_fin
+    if (!cicloFin) return false
+    return getTodayEC() > cicloFin
+  }
+
   const adultRenewalStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
     const course = getCourseById(s.course_id)
+    if (isCycleEnded(course)) return false
     const isAdult = (course?.ageMin ?? 0) >= 18
     if (!isAdult) return false
     const days = getDaysUntilDue(s.next_payment_date)
@@ -420,6 +430,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Alumnos inactivos definitivos (días autoInactiveDays+1 en adelante)
   const inactiveStudents = recurringStudents.filter(s => {
     if (!s.next_payment_date || s.payment_status === 'pending') return false
+    const course = getCourseById(s.course_id)
+    if (isCycleEnded(course)) return false
     const days = getDaysUntilDue(s.next_payment_date)
     return days < 0 && Math.abs(days) > autoInactiveDays
   })
