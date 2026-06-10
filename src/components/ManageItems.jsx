@@ -137,6 +137,9 @@ export default function ManageItems({
     renovacionRolling: false,
     vigenciaMeses: 1,
     vigenciaDias: null,
+    // Ciclo escolar (opcional)
+    cicloInicio: '',
+    cicloFin: '',
     imageUrl: '',
     benefits: '',
     requirements: '',
@@ -249,6 +252,8 @@ export default function ManageItems({
         renovacionRolling: item.renovacionRolling ?? item.renovacion_rolling ?? false,
         vigenciaMeses: item.vigenciaMeses ?? item.vigencia_meses ?? 1,
         vigenciaDias: item.vigenciaDias ?? item.vigencia_dias ?? null,
+        cicloInicio: item.cicloInicio ?? item.ciclo_inicio ?? '',
+        cicloFin: item.cicloFin ?? item.ciclo_fin ?? '',
         imageUrl: item.imageUrl || '',
         benefits: item.benefits || '',
         requirements: item.requirements || '',
@@ -312,6 +317,9 @@ export default function ManageItems({
         renovacionRolling: formData.priceType === 'mes' ? !!formData.renovacionRolling : false,
         vigenciaMeses: formData.priceType === 'mes' ? (parseInt(formData.vigenciaMeses) || 1) : 1,
         vigenciaDias: formData.priceType === 'mes' && formData.vigenciaDias ? parseInt(formData.vigenciaDias) : null,
+        // Ciclo escolar (aplica a cualquier tipo, pero útil sobre todo para mes)
+        cicloInicio: formData.cicloInicio || null,
+        cicloFin: formData.cicloFin || null,
         imageUrl: formData.imageUrl || null,
         benefits: formData.benefits || null,
         requirements: formData.requirements || null,
@@ -792,6 +800,65 @@ export default function ManageItems({
                             <option value="d7">Semanal (7 días)</option>
                             <option value="d1">Diario (1 día)</option>
                           </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Ciclo escolar (opcional) — disponible para todos los tipos de cobro */}
+                  {formData.type === 'course' && (
+                    <div className="rounded-2xl border border-gray-100 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const enabled = !!(formData.cicloInicio || formData.cicloFin)
+                          if (enabled) {
+                            setFormData({...formData, cicloInicio: '', cicloFin: ''})
+                          } else {
+                            // Pre-cargar con fecha sugerida (1 año desde hoy)
+                            const hoy = new Date()
+                            const enUnAnio = new Date(hoy)
+                            enUnAnio.setFullYear(hoy.getFullYear() + 1)
+                            setFormData({
+                              ...formData,
+                              cicloInicio: hoy.toISOString().slice(0, 10),
+                              cicloFin: enUnAnio.toISOString().slice(0, 10),
+                            })
+                          }
+                        }}
+                        className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <div className="text-left">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ciclo escolar (opcional)</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">
+                            Si el curso tiene un inicio y fin (ej: marzo–enero), no se piden cobros pasada la fecha de fin.
+                          </p>
+                        </div>
+                        <div className={`w-10 h-6 rounded-full p-0.5 transition ${(formData.cicloInicio || formData.cicloFin) ? 'bg-[#7e2d55]' : 'bg-gray-300'}`}>
+                          <div className={`w-5 h-5 rounded-full bg-white shadow transition ${(formData.cicloInicio || formData.cicloFin) ? 'translate-x-4' : ''}`} />
+                        </div>
+                      </button>
+
+                      {(formData.cicloInicio || formData.cicloFin) && (
+                        <div className="grid grid-cols-2 gap-3 p-4 bg-white">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Inicio del ciclo</label>
+                            <input
+                              type="date"
+                              value={formData.cicloInicio || ''}
+                              onChange={(e) => setFormData({...formData, cicloInicio: e.target.value})}
+                              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1.5">Fin del ciclo</label>
+                            <input
+                              type="date"
+                              value={formData.cicloFin || ''}
+                              onChange={(e) => setFormData({...formData, cicloFin: e.target.value})}
+                              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] bg-white outline-none transition-all text-sm"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

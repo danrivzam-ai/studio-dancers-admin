@@ -76,6 +76,8 @@ const normalizeCourse = (course) => {
     renovacionRolling: course.renovacionRolling ?? course.renovacion_rolling ?? false,
     vigenciaMeses:     course.vigenciaMeses     ?? course.vigencia_meses     ?? 1,
     vigenciaDias:      course.vigenciaDias      ?? course.vigencia_dias      ?? null,
+    cicloInicio:       course.cicloInicio       ?? course.ciclo_inicio       ?? null,
+    cicloFin:          course.cicloFin          ?? course.ciclo_fin          ?? null,
   }
 }
 

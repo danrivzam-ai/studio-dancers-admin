@@ -397,6 +397,22 @@ export const getMonthName = (date) => {
 // moraDays:         días hasta suspender asistencia (default 20)
 // autoInactiveDays: días hasta marcar como inactiva definitivamente (default 60)
 export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDays = 5, moraDays = 20) => {
+  // Ciclo escolar finalizado — si hoy > course.cicloFin, no se piden más cobros.
+  // Aplica a cualquier tipo de cobro. Devuelve badge gris (no es mora).
+  const cicloFin = course?.cicloFin || course?.ciclo_fin
+  if (cicloFin) {
+    const hoy = getTodayEC()
+    if (hoy > cicloFin) {
+      return {
+        status: 'cycle_ended',
+        label: 'Ciclo finalizado',
+        color: 'bg-slate-100 text-slate-600 border border-slate-200',
+        colorCode: 'gray',
+        priority: 5
+      }
+    }
+  }
+
   // Si es pago por clase
   if (course?.priceType === 'clase' || course?.price_type === 'clase') {
     return {

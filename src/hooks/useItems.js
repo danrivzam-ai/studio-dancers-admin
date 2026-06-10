@@ -83,6 +83,8 @@ export function useItems() {
             renovacionRolling: c.renovacion_rolling ?? false,
             vigenciaMeses: c.vigencia_meses ?? 1,
             vigenciaDias: c.vigencia_dias ?? null,
+            cicloInicio: c.ciclo_inicio ?? null,
+            cicloFin: c.ciclo_fin ?? null,
             imageUrl: c.image_url || null,
             benefits: c.benefits || null,
             requirements: c.requirements || null,
@@ -229,6 +231,8 @@ export function useItems() {
           renovacion_rolling: !!courseData.renovacionRolling,
           vigencia_meses: courseData.vigenciaMeses ?? 1,
           vigencia_dias: courseData.vigenciaDias ?? null,
+          ciclo_inicio: courseData.cicloInicio || null,
+          ciclo_fin: courseData.cicloFin || null,
           image_url: courseData.imageUrl || courseData.image_url || null,
           benefits: courseData.benefits || null,
           requirements: courseData.requirements || null,
@@ -476,6 +480,8 @@ export function useItems() {
       renovacionRolling: found.renovacionRolling ?? found.renovacion_rolling ?? false,
       vigenciaMeses:     found.vigenciaMeses     ?? found.vigencia_meses     ?? 1,
       vigenciaDias:      found.vigenciaDias      ?? found.vigencia_dias      ?? null,
+      cicloInicio:       found.cicloInicio       ?? found.ciclo_inicio       ?? null,
+      cicloFin:          found.cicloFin          ?? found.ciclo_fin          ?? null,
     }
   }
 
