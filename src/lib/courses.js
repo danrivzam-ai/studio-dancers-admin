@@ -59,11 +59,32 @@ export const BANKS = [
   { id: 'otro', name: 'Otro' },
 ]
 
+/**
+ * Normaliza un curso para que SIEMPRE tenga los campos del modelo de cobros
+ * (renovacionRolling, vigenciaMeses, vigenciaDias). Defaults seguros:
+ * - renovacionRolling = false (día fijo del mes, comportamiento histórico)
+ * - vigenciaMeses = 1 (mensual)
+ * - vigenciaDias = null (usar vigenciaMeses)
+ *
+ * Acepta tanto las llaves camelCase del catálogo estático como las
+ * snake_case que vienen de Supabase (courses_per_cycle, etc.).
+ */
+const normalizeCourse = (course) => {
+  if (!course) return null
+  return {
+    ...course,
+    renovacionRolling: course.renovacionRolling ?? course.renovacion_rolling ?? false,
+    vigenciaMeses:     course.vigenciaMeses     ?? course.vigencia_meses     ?? 1,
+    vigenciaDias:      course.vigenciaDias      ?? course.vigencia_dias      ?? null,
+  }
+}
+
 // Obtener curso por ID (busca en dinámicos primero, luego en hardcodeados)
 export const getCourseById = (courseId) => {
   if (!courseId) return null
-  return _dynamicCourses.find(c => c.id === courseId || c.code === courseId)
+  const found = _dynamicCourses.find(c => c.id === courseId || c.code === courseId)
     || ALL_COURSES.find(c => c.id === courseId)
+  return normalizeCourse(found)
 }
 
 // Obtener cursos sugeridos por edad

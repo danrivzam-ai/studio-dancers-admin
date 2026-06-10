@@ -410,7 +410,22 @@ export function useStudents() {
                 const currentNextPaymentDate = student?.next_payment_date ? new Date(student.next_payment_date + 'T12:00:00') : null
                 const classesPerCycle = course?.classesPerCycle || null
 
-                if (!currentNextPaymentDate) {
+                // Modelo rolling: vence X tiempo desde el pago, sin importar días de clase.
+                // Ej: alumno paga 15jun → próximo cobro 15jul (vigencia 1 mes).
+                // Soporta vigenciaDias (semanal/quincenal/diario) y vigenciaMeses (1/3/6/12).
+                if (course?.renovacionRolling) {
+                  // Base: desde el pago actual (rolling se reinicia con cada pago, no encadena)
+                  // si está en mora o al día. Si pagó anticipado, encadenar al ciclo siguiente.
+                  const base = (currentNextPaymentDate && currentNextPaymentDate > effectiveCycleDate)
+                    ? currentNextPaymentDate
+                    : effectiveCycleDate
+                  const vigenciaDias = course?.vigenciaDias ?? null
+                  const vigenciaMeses = course?.vigenciaMeses ?? 1
+                  const nextDate = vigenciaDias
+                    ? addDays(base, vigenciaDias)
+                    : addMonths(base, vigenciaMeses)
+                  nextPayment = formatDateForInput(nextDate)
+                } else if (!currentNextPaymentDate) {
                   // Primer pago o sin ciclo previo: calcular desde effectiveCycleDate
                   const startDate = classDays ? getNextClassDay(effectiveCycleDate, classDays) : effectiveCycleDate
                   nextPayment = calculateNextPaymentDate(startDate, classDays, classesPerCycle)

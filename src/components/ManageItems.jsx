@@ -133,6 +133,10 @@ export default function ManageItems({
     category: '',
     classDays: [],
     classesPerCycle: '',
+    // Modelo de cobros (rolling vs día fijo, vigencia)
+    renovacionRolling: false,
+    vigenciaMeses: 1,
+    vigenciaDias: null,
     imageUrl: '',
     benefits: '',
     requirements: '',
@@ -242,6 +246,9 @@ export default function ManageItems({
         stock: '',
         classDays: item.classDays || [],
         classesPerCycle: item.classesPerCycle || item.classesPerPackage || '',
+        renovacionRolling: item.renovacionRolling ?? item.renovacion_rolling ?? false,
+        vigenciaMeses: item.vigenciaMeses ?? item.vigencia_meses ?? 1,
+        vigenciaDias: item.vigenciaDias ?? item.vigencia_dias ?? null,
         imageUrl: item.imageUrl || '',
         benefits: item.benefits || '',
         requirements: item.requirements || '',
@@ -301,6 +308,10 @@ export default function ManageItems({
         installmentCount: formData.allowsInstallments ? formData.installmentCount : 1,
         classDays: formData.classDays.length > 0 ? formData.classDays : null,
         classesPerCycle: formData.classesPerCycle ? parseInt(formData.classesPerCycle) : null,
+        // Modelo de cobros: solo aplica a cursos mensuales
+        renovacionRolling: formData.priceType === 'mes' ? !!formData.renovacionRolling : false,
+        vigenciaMeses: formData.priceType === 'mes' ? (parseInt(formData.vigenciaMeses) || 1) : 1,
+        vigenciaDias: formData.priceType === 'mes' && formData.vigenciaDias ? parseInt(formData.vigenciaDias) : null,
         imageUrl: formData.imageUrl || null,
         benefits: formData.benefits || null,
         requirements: formData.requirements || null,
@@ -712,6 +723,77 @@ export default function ManageItems({
                       <p className="text-xs text-gray-400 mt-1">
                         Cuántas clases completa un ciclo. Ej: L-M-J = 12, Sáb = 4.
                       </p>
+                    </div>
+                  )}
+
+                  {/* Modelo de cobros — solo cursos mensuales */}
+                  {formData.type === 'course' && formData.priceType === 'mes' && (
+                    <div className="bg-gray-50 rounded-2xl p-4 space-y-3 border border-gray-100">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2.5">¿Cuándo vence el próximo cobro?</p>
+                        <div className="space-y-2">
+                          <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white border-2 cursor-pointer transition"
+                            style={{ borderColor: !formData.renovacionRolling ? '#7e2d55' : '#e5e7eb' }}>
+                            <input
+                              type="radio"
+                              name="renovacion"
+                              checked={!formData.renovacionRolling}
+                              onChange={() => setFormData({...formData, renovacionRolling: false})}
+                              className="mt-0.5 accent-[#7e2d55]"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-800">Día fijo del mes</p>
+                              <p className="text-xs text-gray-400 mt-0.5">Escuela tradicional. Se calcula según los días de clase configurados.</p>
+                            </div>
+                          </label>
+                          <label className="flex items-start gap-2.5 p-3 rounded-xl bg-white border-2 cursor-pointer transition"
+                            style={{ borderColor: formData.renovacionRolling ? '#7e2d55' : '#e5e7eb' }}>
+                            <input
+                              type="radio"
+                              name="renovacion"
+                              checked={!!formData.renovacionRolling}
+                              onChange={() => setFormData({...formData, renovacionRolling: true})}
+                              className="mt-0.5 accent-[#7e2d55]"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-800">Rolling (desde el pago)</p>
+                              <p className="text-xs text-gray-400 mt-0.5">Vence un tiempo fijo después de cada pago. Ej: entra 15jun → próximo cobro 15jul.</p>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Vigencia — solo aplica al rolling */}
+                      {formData.renovacionRolling && (
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Vigencia del plan</label>
+                          <select
+                            value={
+                              formData.vigenciaDias === 1 ? 'd1' :
+                              formData.vigenciaDias === 7 ? 'd7' :
+                              formData.vigenciaDias === 15 ? 'd15' :
+                              `m${formData.vigenciaMeses || 1}`
+                            }
+                            onChange={(e) => {
+                              const v = e.target.value
+                              if (v.startsWith('d')) {
+                                setFormData({...formData, vigenciaDias: parseInt(v.slice(1)), vigenciaMeses: 1})
+                              } else {
+                                setFormData({...formData, vigenciaDias: null, vigenciaMeses: parseInt(v.slice(1))})
+                              }
+                            }}
+                            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-white focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
+                          >
+                            <option value="m1">Mensual (1 mes)</option>
+                            <option value="m3">Trimestral (3 meses)</option>
+                            <option value="m6">Semestral (6 meses)</option>
+                            <option value="m12">Anual (12 meses)</option>
+                            <option value="d15">Quincenal (15 días)</option>
+                            <option value="d7">Semanal (7 días)</option>
+                            <option value="d1">Diario (1 día)</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>

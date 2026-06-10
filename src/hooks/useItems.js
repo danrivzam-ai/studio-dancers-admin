@@ -80,6 +80,9 @@ export function useItems() {
             classDays: c.class_days || defaultCourse?.classDays || null,
             classesPerCycle: c.classes_per_cycle || defaultCourse?.classesPerCycle || null,
             classesPerPackage: c.classes_per_cycle || defaultCourse?.classesPerPackage || null,
+            renovacionRolling: c.renovacion_rolling ?? false,
+            vigenciaMeses: c.vigencia_meses ?? 1,
+            vigenciaDias: c.vigencia_dias ?? null,
             imageUrl: c.image_url || null,
             benefits: c.benefits || null,
             requirements: c.requirements || null,
@@ -223,6 +226,9 @@ export function useItems() {
           installment_count: courseData.installmentCount || courseData.installment_count || 1,
           class_days: courseData.classDays || null,
           classes_per_cycle: courseData.classesPerCycle || null,
+          renovacion_rolling: !!courseData.renovacionRolling,
+          vigencia_meses: courseData.vigenciaMeses ?? 1,
+          vigencia_dias: courseData.vigenciaDias ?? null,
           image_url: courseData.imageUrl || courseData.image_url || null,
           benefits: courseData.benefits || null,
           requirements: courseData.requirements || null,
@@ -459,10 +465,18 @@ export function useItems() {
     }
   }
 
-  // Obtener curso por ID/código
+  // Obtener curso por ID/código — normaliza campos del modelo de cobros
+  // (ver src/lib/courses.js normalizeCourse — mismos defaults)
   const getCourseById = (courseId) => {
     if (!courseId) return null
-    return courses.find(c => c.id === courseId || c.code === courseId)
+    const found = courses.find(c => c.id === courseId || c.code === courseId)
+    if (!found) return null
+    return {
+      ...found,
+      renovacionRolling: found.renovacionRolling ?? found.renovacion_rolling ?? false,
+      vigenciaMeses:     found.vigenciaMeses     ?? found.vigencia_meses     ?? 1,
+      vigenciaDias:      found.vigenciaDias      ?? found.vigencia_dias      ?? null,
+    }
   }
 
   // Obtener producto por ID/código
