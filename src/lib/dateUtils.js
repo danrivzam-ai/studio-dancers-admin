@@ -154,6 +154,83 @@ export const getNextClassDay = (fromDate, classDays) => {
 }
 
 /**
+ * Calcula el monto prorrateado sugerido cuando una alumna entra a un curso
+ * mensual DESPUÉS de que el ciclo del mes ya empezó. La idea: si solo va a
+ * recibir 5 de las 12 clases del mes, no debería pagar el mes completo.
+ *
+ * Fórmula:
+ *   - Si el curso tiene classDays: cuenta clases reales restantes en el mes
+ *     desde hoy hasta fin de mes, y compara contra el total del mes.
+ *   - Si no, cae a prorrateo por días calendario.
+ *
+ * Solo devuelve sugerencia si:
+ *   - priceType === 'mes' (mensual, no paquete ni programa)
+ *   - Es primer pago de la alumna (sin next_payment_date previa)
+ *   - Quedan al menos 1 clase pero menos del total del mes
+ *
+ * @param {object} course - Curso con classDays + price
+ * @param {string|Date} fechaPago - Fecha en que la alumna paga (yyyy-mm-dd o Date)
+ * @returns {{ sugerido: number, clasesRestantes: number, clasesTotales: number, motivo: string } | null}
+ *   null si no aplica prorrateo (paga mes completo).
+ */
+export const calcularProrrateo = (course, fechaPago) => {
+  if (!course) return null
+  const priceType = course.priceType || course.price_type
+  if (priceType !== 'mes') return null
+
+  const precioMes = parseFloat(course.price || 0)
+  if (!precioMes || precioMes <= 0) return null
+
+  const fecha = typeof fechaPago === 'string'
+    ? new Date(fechaPago + 'T12:00:00')
+    : new Date(fechaPago)
+
+  const finDeMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0, 12, 0, 0)
+  const inicioDeMes = new Date(fecha.getFullYear(), fecha.getMonth(), 1, 12, 0, 0)
+
+  // Caso 1: con classDays → contar clases reales
+  const classDays = course.classDays || course.class_days
+  if (Array.isArray(classDays) && classDays.length > 0) {
+    let clasesRestantes = 0
+    let clasesTotales = 0
+    const cursor = new Date(inicioDeMes)
+    while (cursor <= finDeMes) {
+      if (classDays.includes(cursor.getDay())) {
+        clasesTotales++
+        if (cursor >= fecha) clasesRestantes++
+      }
+      cursor.setDate(cursor.getDate() + 1)
+    }
+
+    if (clasesTotales === 0) return null
+    if (clasesRestantes >= clasesTotales) return null  // entra al inicio: mes completo
+    if (clasesRestantes <= 0) return null              // ya no hay más clases este mes
+
+    const sugerido = Math.round((precioMes * clasesRestantes / clasesTotales) * 100) / 100
+    return {
+      sugerido,
+      clasesRestantes,
+      clasesTotales,
+      motivo: `${clasesRestantes} de ${clasesTotales} clases del mes`
+    }
+  }
+
+  // Caso 2: sin classDays → prorrateo por días calendario
+  const diasTotales = finDeMes.getDate()
+  const diasRestantes = diasTotales - fecha.getDate() + 1
+  if (diasRestantes >= diasTotales) return null
+  if (diasRestantes <= 0) return null
+
+  const sugerido = Math.round((precioMes * diasRestantes / diasTotales) * 100) / 100
+  return {
+    sugerido,
+    clasesRestantes: diasRestantes,
+    clasesTotales: diasTotales,
+    motivo: `${diasRestantes} de ${diasTotales} días del mes`
+  }
+}
+
+/**
  * Calcular próxima fecha de pago basado en ciclo de clases
  * Para cursos con classDays y classesPerCycle: cuenta N días de clase desde el inicio
  * y el pago vence en el siguiente día de clase después del último del ciclo.

@@ -448,7 +448,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const studentsWithBalance = students.filter(s => {
     if (s.payment_status !== 'partial') return false
     const amountPaid = parseFloat(s.amount_paid || 0)
-    return amountPaid > 0 && parseFloat(s.balance || 0) > 0
+    if (!(amountPaid > 0 && parseFloat(s.balance || 0) > 0)) return false
+    // Excluir alumnas con ciclo escolar finalizado: si el ciclo terminó,
+    // dejamos de empujar el saldo en la UI principal (sigue accesible desde
+    // el detalle del alumno si la admin quiere cobrarlo igual).
+    const course = getCourseById(s.course_id)
+    if (isCycleEnded(course)) return false
+    return true
   }).map(s => {
     const course = getCourseById(s.course_id)
     const amountPaid = parseFloat(s.amount_paid || 0)

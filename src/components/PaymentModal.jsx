@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -37,6 +37,14 @@ export default function PaymentModal({
   const hasGrandfatheredRate = isRecurring && studentFee < coursePrice
   // Cursos de ciclo libre (adultas): sin lenguaje de "vencido/atrasado"
   const isAdultCycleCourse = isRecurring && (course?.ageMin ?? 0) >= 18
+
+  // Sugerencia de prorrateo: si es el PRIMER pago de la alumna en un curso
+  // mensual, y el mes ya empezó, sugerir el monto proporcional a las clases
+  // que efectivamente va a recibir este mes.
+  const isFirstPayment = !student?.next_payment_date && !student?.last_payment_date
+  const prorrateo = (isFirstPayment && course?.priceType === 'mes')
+    ? calcularProrrateo({ ...course, price: studentFee }, getTodayEC())
+    : null
 
   // Calcular saldo pendiente del estudiante (funciona para programas, mensuales y paquetes)
   const amountPaid = parseFloat(student?.amount_paid || 0)
@@ -463,6 +471,37 @@ export default function PaymentModal({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Sugerencia de prorrateo (primer pago, mes ya empezado) */}
+          {prorrateo && (
+            <div className="rounded-xl border border-sky-200 bg-sky-50 p-3">
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-sky-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <Percent size={14} className="text-sky-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-sky-900">Sugerencia: pagar prorrateado</p>
+                  <p className="text-xs text-sky-700 mt-0.5 leading-snug">
+                    Asistirá a {prorrateo.motivo}. Valor sugerido: <strong>${prorrateo.sugerido.toFixed(2)}</strong> (en lugar de ${studentFee.toFixed(2)} completo).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Aplicar como descuento (customFinalPrice) — así el backend lo
+                    // procesa como pago completo del mes (con descuento), no como
+                    // abono parcial que dejaría saldo pendiente.
+                    setDiscountEnabled(true)
+                    setCustomFinalPrice(prorrateo.sugerido.toFixed(2))
+                    setFormData(prev => ({ ...prev, amount: prorrateo.sugerido.toFixed(2), paymentType: 'full' }))
+                  }}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 active:scale-95 transition"
+                >
+                  Usar
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Payment Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
