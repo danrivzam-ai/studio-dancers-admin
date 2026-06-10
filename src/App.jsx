@@ -3049,10 +3049,28 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {(course?.priceType === 'mes' || course?.priceType === 'paquete') && (() => {
                                   const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
                                   const today = getTodayEC()
+                                  // Ciclo escolar definido → respetarlo:
+                                  // - Si todavía no inicia: mostrar fecha de inicio en vez del contador
+                                  // - Si ya terminó: no mostrar nada (badge "Ciclo finalizado" cubre)
+                                  const cicloInicio = course?.cicloInicio || course?.ciclo_inicio
+                                  const cicloFin = course?.cicloFin || course?.ciclo_fin
+                                  if (cicloFin && today > cicloFin) return null
+                                  if (cicloInicio && today < cicloInicio) {
+                                    return (
+                                      <p className="text-[10px] text-[#6b2145] font-semibold mt-0.5">
+                                        Inicia {cicloInicio.split('-').reverse().slice(0, 2).join('/')}
+                                      </p>
+                                    )
+                                  }
                                   // Si pagó anticipado y el nuevo ciclo aún no empieza → mostrar ciclo viejo
                                   const showOldCycle = student.prepaid && student.prepaid_old_start && student.last_payment_date && today < student.last_payment_date
-                                  const baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
+                                  let baseDate = showOldCycle ? student.prepaid_old_start : (student.last_payment_date || student.enrollment_date)
                                   const endDate  = showOldCycle ? student.last_payment_date : student.next_payment_date
+                                  // Clamp baseDate al ciclo escolar: si pagó antes del inicio del ciclo,
+                                  // el conteo debe empezar desde el inicio del ciclo (no desde el pago).
+                                  if (cicloInicio && baseDate && baseDate < cicloInicio) {
+                                    baseDate = cicloInicio
+                                  }
                                   if (!baseDate || !endDate) return null
                                   const cycleInfo = getCycleInfo(baseDate, endDate, course?.classDays, cycleClasses)
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
