@@ -321,9 +321,20 @@ export function useStudents() {
       // --- Separar fecha de pago (contable) vs fecha de inicio de ciclo (operativa) ---
       // effectiveCycleDate = desde cuándo calcular el ciclo de clases
       // paymentDate = siempre la fecha real del dinero (para caja/reportes)
-      const effectiveCycleDate = paymentData.cycleStartDate
+      let effectiveCycleDate = paymentData.cycleStartDate
         ? new Date(paymentData.cycleStartDate + 'T12:00:00')
         : paymentDate
+
+      // Clamp al ciclo escolar: si el alumno paga ANTES de que arranque el ciclo
+      // (ej: paga 8/06 pero el ciclo escolar empieza 15/06), el primer mes cubierto
+      // arranca el 15/06, no el 8/06. Así next_payment_date queda en 15/07, no en 8/07.
+      const cicloInicioStr = course?.cicloInicio || course?.ciclo_inicio
+      if (cicloInicioStr) {
+        const cicloInicioDate = new Date(cicloInicioStr + 'T12:00:00')
+        if (effectiveCycleDate < cicloInicioDate) {
+          effectiveCycleDate = cicloInicioDate
+        }
+      }
 
       // Calcular días de atraso
       const studentNextPaymentDate = student?.next_payment_date
