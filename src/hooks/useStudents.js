@@ -59,8 +59,10 @@ export function useStudents() {
     fetchStudents()
   }, [])
 
-  // Verificar duplicados antes de crear
-  const checkDuplicateStudent = async (name, cedula) => {
+  // Verificar duplicados antes de crear o editar.
+  // excludeId: si se provee, se omite ese student del resultado (para que
+  // al editar la propia alumna no se cuente como duplicado de sí misma).
+  const checkDuplicateStudent = async (name, cedula, excludeId = null) => {
     try {
       const conditions = []
       // Coincidencia exacta por nombre (case-insensitive)
@@ -79,9 +81,9 @@ export function useStudents() {
         if (byCedula?.length) conditions.push(...byCedula)
       }
 
-      // Deduplicar por id
+      // Deduplicar por id y excluir el self (caso edición)
       const unique = Array.from(new Map(conditions.map(s => [s.id, s])).values())
-      return unique
+      return excludeId ? unique.filter(s => s.id !== excludeId) : unique
     } catch {
       return []
     }

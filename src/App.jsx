@@ -819,11 +819,29 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   // Handler para crear/actualizar estudiante desde StudentForm
   const handleStudentFormSubmit = async (formData, forceCreate = false) => {
-    // Verificar duplicados solo al crear (no al editar)
-    if (!editingStudent && !forceCreate) {
-      const matches = await checkDuplicateStudent(formData.name, formData.cedula)
+    // Verificar duplicados SIEMPRE (crear y editar), excluyendo self al editar.
+    // El índice único en BD (lower(name), course_id) WHERE active=true falla
+    // silenciosamente si no validamos antes. Bug histórico: gente terminaba
+    // agregando sufijos como '9:2' al nombre para esquivar el constraint.
+    if (!forceCreate) {
+      const matches = await checkDuplicateStudent(
+        formData.name,
+        formData.cedula,
+        editingStudent?.id || null
+      )
       if (matches.length > 0) {
-        setDuplicateWarning({ show: true, matches, pendingData: formData })
+        // Si el match está ACTIVO y en el MISMO curso, el guardado romperá
+        // el índice único. Bloqueamos el "forzar" en ese caso.
+        const wouldBreakConstraint = matches.some(
+          m => m.active && m.course_id === formData.courseId
+        )
+        setDuplicateWarning({
+          show: true,
+          matches,
+          pendingData: formData,
+          isEditing: !!editingStudent,
+          wouldBreakConstraint,
+        })
         return
       }
     }
@@ -3724,18 +3742,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {duplicateWarning.show && (
           <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-[60]" onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-              <div className="px-5 py-4 border-b bg-amber-50 rounded-t-2xl flex items-center justify-between">
+              <div className={`px-5 py-4 border-b rounded-t-2xl flex items-center justify-between ${duplicateWarning.wouldBreakConstraint ? 'bg-red-50' : 'bg-amber-50'}`}>
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="text-amber-500" size={18} />
-                  <span className="font-semibold text-amber-700 text-sm">Posible duplicado</span>
+                  <AlertCircle className={duplicateWarning.wouldBreakConstraint ? 'text-red-500' : 'text-amber-500'} size={18} />
+                  <span className={`font-semibold text-sm ${duplicateWarning.wouldBreakConstraint ? 'text-red-700' : 'text-amber-700'}`}>
+                    {duplicateWarning.wouldBreakConstraint ? 'Conflicto con alumna existente' : 'Posible duplicado'}
+                  </span>
                 </div>
-                <button onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })} className="p-1.5 hover:bg-amber-100 rounded-xl transition-colors">
-                  <X size={16} className="text-amber-500" />
+                <button onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })} className="p-1.5 hover:bg-white/40 rounded-xl transition-colors">
+                  <X size={16} className={duplicateWarning.wouldBreakConstraint ? 'text-red-500' : 'text-amber-500'} />
                 </button>
               </div>
               <div className="p-5">
                 <p className="text-sm text-gray-600 mb-3">
-                  Ya existe una alumna con el mismo nombre o cédula:
+                  {duplicateWarning.wouldBreakConstraint
+                    ? 'Ya hay una alumna activa con ese nombre en el mismo curso. No se puede guardar el cambio.'
+                    : 'Ya existe una alumna con el mismo nombre o cédula:'}
                 </p>
                 <div className="space-y-2 mb-4">
                   {duplicateWarning.matches.map(s => {
@@ -3746,30 +3768,48 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           {s.name?.[0]?.toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-800">{s.name}</p>
-                          <p className={`text-xs ${s.active ? 'text-green-700' : 'text-gray-500'}`}>{course?.name || s.course_id || '—'}{s.cedula ? ` · CI: ${s.cedula}` : ''}</p>
+                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
+                          <p className={`text-xs ${s.active ? 'text-green-700' : 'text-gray-500'} truncate`}>{course?.name || s.course_id || '—'}{s.cedula ? ` · CI: ${s.cedula}` : ''}</p>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {s.active ? 'Activa' : 'Inactiva'}
-                        </span>
+                        {s.active && (
+                          <button
+                            onClick={() => {
+                              const studentObj = students.find(x => x.id === s.id)
+                              if (studentObj) {
+                                setDuplicateWarning({ show: false, matches: [], pendingData: null })
+                                setShowForm(false)
+                                setEditingStudent(null)
+                                setShowStudentDetail(studentObj)
+                              }
+                            }}
+                            className="text-[11px] px-2 py-1 rounded-lg bg-white border border-green-200 text-green-700 hover:bg-green-100 font-medium shrink-0"
+                          >
+                            Ver perfil
+                          </button>
+                        )}
                       </div>
                     )
                   })}
                 </div>
-                <p className="text-xs text-gray-400 mb-4">¿Deseas registrarla de todas formas?</p>
+                {!duplicateWarning.wouldBreakConstraint && (
+                  <p className="text-xs text-gray-400 mb-4">¿Deseas registrarla de todas formas?</p>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}
                     className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
                   >
-                    Cancelar
+                    {duplicateWarning.wouldBreakConstraint ? 'Volver' : 'Cancelar'}
                   </button>
-                  <button
-                    onClick={() => handleStudentFormSubmit(duplicateWarning.pendingData, true)}
-                    className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors text-sm font-semibold"
-                  >
-                    Registrar de todas formas
-                  </button>
+                  {/* "Registrar de todas formas" solo si NO rompería el constraint */}
+                  {!duplicateWarning.wouldBreakConstraint && (
+                    <button
+                      onClick={() => handleStudentFormSubmit(duplicateWarning.pendingData, true)}
+                      className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors text-sm font-semibold"
+                    >
+                      {duplicateWarning.isEditing ? 'Guardar de todas formas' : 'Registrar de todas formas'}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
