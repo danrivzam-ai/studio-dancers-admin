@@ -93,6 +93,11 @@ export default function PaymentModal({
     monthsAhead: 1, // cuántos meses paga (1 = mes corriente, >1 = adelanta)
   })
 
+  // IMPORTANTE: depender de student?.id y course?.id (estables), NO de los
+  // objetos completos. getCourseById normaliza el curso y devuelve un objeto
+  // NUEVO en cada render → si usamos [student, course], el useEffect dispara
+  // en cada render y resetea formData.amount, borrando el descuento aplicado.
+  // (Bug raíz del caso Valentina/Alina: descuento no quedaba en el monto.)
   useEffect(() => {
     if (student && course) {
       let initialAmount = studentFee
@@ -114,7 +119,8 @@ export default function PaymentModal({
 
       generateReceiptNumber().then(num => setReceiptNumber(num))
     }
-  }, [student, course])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [student?.id, course?.id])
 
   // Calcular monto final con descuento
   const getBaseAmount = () => {
