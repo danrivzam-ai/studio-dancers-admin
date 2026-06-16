@@ -247,13 +247,30 @@ export default function PaymentModal({
     e.preventDefault()
     const selectedBank = BANKS.find(b => b.id === formData.bankId)
     let dbPaymentType = formData.paymentType === 'custom' ? 'full' : formData.paymentType
-    const discountInfo = discountEnabled ? {
-      hasDiscount: true,
-      originalPrice: getBaseAmount(),
-      discountType: customFinalPrice !== '' ? 'custom' : discountType,
-      discountValue: customFinalPrice !== '' ? (getBaseAmount() - parseFloat(formData.amount)).toFixed(2) : discountValue,
-      discountAmount: getDiscountAmount().toFixed(2)
-    } : null
+
+    // Construir discountInfo SOLO si la matemática cuadra. Antes había un bug
+    // donde el modal grababa amount=$45 + discount_amount=$5 + original=$45
+    // (inconsistente: $45 ≠ $45 - $5). Ahora forzamos:
+    //   amount === originalPrice - discountAmount  (margen $0.01 por float)
+    // Si no cuadra, ignoramos el descuento y avisamos al usuario.
+    let discountInfo = null
+    if (discountEnabled) {
+      const originalPrice = getBaseAmount()
+      const discountAmount = getDiscountAmount()
+      const finalAmount = parseFloat(formData.amount)
+      const isMathConsistent = Math.abs((originalPrice - discountAmount) - finalAmount) < 0.01
+      if (!isMathConsistent) {
+        toast.error(`El monto no coincide con el descuento (precio $${originalPrice.toFixed(2)} − descuento $${discountAmount.toFixed(2)} = $${(originalPrice - discountAmount).toFixed(2)} ≠ monto $${finalAmount.toFixed(2)}). Revisá los valores.`)
+        return
+      }
+      discountInfo = {
+        hasDiscount: true,
+        originalPrice,
+        discountType: customFinalPrice !== '' ? 'custom' : discountType,
+        discountValue: customFinalPrice !== '' ? (originalPrice - finalAmount).toFixed(2) : discountValue,
+        discountAmount: discountAmount.toFixed(2),
+      }
+    }
     // Pasar cycleStartDate al hook cuando:
     // a) Alumna atrasada con ciclo previo → la recepcionista elige desde cuándo correr el nuevo ciclo
     // b) Alumna nueva en curso mensual → se elige explícitamente cuándo empieza (puede ser mes futuro)

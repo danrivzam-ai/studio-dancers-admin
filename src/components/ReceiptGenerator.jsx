@@ -209,21 +209,42 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
 
             {/* Payment Details */}
             <div className="border-t-2 border-b-2 border-dashed border-gray-300 py-4 mb-4">
-              {/* Descuento aplicado */}
-              {payment.discount?.hasDiscount && (
-                <>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-gray-500 text-sm">Precio regular:</span>
-                    <span className="text-sm text-gray-400 line-through">${parseFloat(payment.discount.originalPrice).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-green-600 text-sm font-medium">Descuento:</span>
-                    <span className="text-sm font-medium text-green-600">-${parseFloat(payment.discount.discountAmount).toFixed(2)}</span>
-                  </div>
-                </>
-              )}
+              {/* Descuento aplicado — solo si la matemática cuadra
+                 (original - descuento ≈ amount). Si no cuadra, se omite el
+                 desglose para no mostrar comprobantes inconsistentes. */}
+              {(() => {
+                const hasDiscount = payment.discount?.hasDiscount
+                if (!hasDiscount) return null
+                const orig = parseFloat(payment.discount.originalPrice) || 0
+                const disc = parseFloat(payment.discount.discountAmount) || 0
+                const amt = parseFloat(payment.amount) || 0
+                const expected = orig - disc
+                const isConsistent = Math.abs(expected - amt) < 0.01
+                if (!isConsistent) return null
+                return (
+                  <>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-500 text-sm">Precio regular:</span>
+                      <span className="text-sm text-gray-400 line-through">${orig.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-green-600 text-sm font-medium">Descuento:</span>
+                      <span className="text-sm font-medium text-green-600">-${disc.toFixed(2)}</span>
+                    </div>
+                  </>
+                )
+              })()}
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">{payment.discount?.hasDiscount ? 'Total pagado:' : 'Monto pagado:'}</span>
+                <span className="text-gray-600">{(() => {
+                  // Solo decir 'Total pagado' si el descuento se mostró
+                  // (i.e. matemática consistente). Si no, 'Monto pagado'.
+                  const hasDiscount = payment.discount?.hasDiscount
+                  if (!hasDiscount) return 'Monto pagado:'
+                  const orig = parseFloat(payment.discount.originalPrice) || 0
+                  const disc = parseFloat(payment.discount.discountAmount) || 0
+                  const amt = parseFloat(payment.amount) || 0
+                  return Math.abs((orig - disc) - amt) < 0.01 ? 'Total pagado:' : 'Monto pagado:'
+                })()}</span>
                 <span className="text-2xl font-bold text-green-600">${parseFloat(payment.amount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
