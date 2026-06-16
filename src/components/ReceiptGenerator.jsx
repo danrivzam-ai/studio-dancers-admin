@@ -5,11 +5,32 @@ import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
 export default function ReceiptGenerator({
-  payment,
+  payment: paymentRaw,
   student,
   settings,
   onClose
 }) {
+  // Adapter: el modal nuevo genera payment.discount (objeto camelCase).
+  // Pero cuando se reimprime desde historial, payment viene de BD con
+  // campos snake_case planos (discount_original_price, discount_amount...).
+  // Sin este adapter, los recibos del historial nunca mostraban descuento.
+  const payment = (() => {
+    if (!paymentRaw) return paymentRaw
+    if (paymentRaw.discount && typeof paymentRaw.discount === 'object') return paymentRaw
+    const orig = parseFloat(paymentRaw.discount_original_price ?? 0)
+    const disc = parseFloat(paymentRaw.discount_amount ?? 0)
+    if (!orig || !disc) return paymentRaw
+    return {
+      ...paymentRaw,
+      discount: {
+        hasDiscount: true,
+        originalPrice: orig,
+        discountAmount: disc,
+        discountType: paymentRaw.discount_type || 'fixed',
+        discountValue: paymentRaw.discount_value || disc.toFixed(2),
+      },
+    }
+  })()
   const receiptRef = useRef(null)
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
