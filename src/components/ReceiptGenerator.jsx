@@ -321,14 +321,32 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               const _cicloFin = course?.cicloFin || course?.ciclo_fin
               if (_cicloIni && cycleBaseDate && cycleBaseDate < _cicloIni) cycleBaseDate = _cicloIni
               if (_cicloFin && cycleEndForRcpt && cycleEndForRcpt > _cicloFin) cycleEndForRcpt = _cicloFin
+              // Plan promocional aplicado en ESTE pago → contador X/N coherente
+              const _planMonths = payment.plan_months || payment.planMonths || null
               const cycleInfo = cycleBaseDate
-                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses)
+                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses, _planMonths)
                 : null
               const dayNames = { 0: 'Domingos', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábados' }
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''
 
+              // Plan promocional aplicado (de BD o del modal)
+              const planName = payment.plan_name || payment.planName
+              const planMonths = payment.plan_months || payment.planMonths
+
               return (
                 <div className="bg-[#fdf5f9] border border-[#e8b4cc] rounded-xl p-3 mb-4">
+                  {planName && (
+                    <div className="text-center mb-3 pb-2 border-b border-[#e8b4cc]">
+                      <span className="inline-block bg-[#7e2d55] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                        Plan {planName}
+                      </span>
+                      {planMonths && (
+                        <p className="text-[10px] text-[#7e2d55] mt-1.5">
+                          Cubre {planMonths} {planMonths === 1 ? 'mes' : 'meses'}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {cycleInfo && (
                     <div className="text-center mb-3 pb-2 border-b border-[#e8b4cc]">
                       <p className="text-xs font-bold text-[#551735] mb-1">CICLO PAGADO</p>

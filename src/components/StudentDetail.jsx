@@ -85,8 +85,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   if (cicloFinStr && cycleEndDate && cycleEndDate > cicloFinStr) {
     cycleEndDate = cicloFinStr
   }
+  // Si el último pago aplicó un plan promocional (trimestral/semestral...),
+  // pasamos plan_months para que el contador muestre X/24 en vez de X/8.
+  const lastPaymentRecord = payments?.find(p => !p.voided)
+  const planMonths = lastPaymentRecord?.plan_months || null
   const cycleInfo = isRecurring && baseDate
-    ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses)
+    ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses, planMonths)
     : null
 
   const coursePrice = course?.price || 0

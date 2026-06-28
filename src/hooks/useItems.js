@@ -572,6 +572,91 @@ export function useItems() {
     }
   }
 
+  // ─── COURSE PLANS (planes de pago: trimestral, semestral, anual...) ───
+  // El courseId puede ser UUID (cursos dinámicos) o slug (cursos estáticos).
+  // course_plans solo soporta UUID porque tiene FK a courses(id). Si el id
+  // es slug, intentamos resolver al UUID buscando por code en la tabla.
+  const resolveCourseUuid = async (courseId) => {
+    if (!courseId) return null
+    if (/^[0-9a-f]{8}-/i.test(courseId)) return courseId // ya es UUID
+    const { data } = await supabase
+      .from('courses')
+      .select('id')
+      .eq('code', courseId)
+      .maybeSingle()
+    return data?.id ?? null
+  }
+
+  const fetchCoursePlans = async (courseId) => {
+    try {
+      const uuid = await resolveCourseUuid(courseId)
+      if (!uuid) return { success: true, data: [] }
+      const { data, error } = await supabase
+        .from('course_plans')
+        .select('*')
+        .eq('course_id', uuid)
+        .eq('active', true)
+        .order('sort_order', { ascending: true })
+        .order('months', { ascending: true })
+      if (error) throw error
+      return { success: true, data: data || [] }
+    } catch (err) {
+      console.error('Error fetching course plans:', err)
+      return { success: false, data: [], error: err.message }
+    }
+  }
+
+  const saveCoursePlan = async (planData, isEdit = false) => {
+    try {
+      const uuid = await resolveCourseUuid(planData.courseId || planData.course_id)
+      if (!uuid) return { success: false, error: 'Curso sin UUID en BD. Guardá el curso primero.' }
+      const dbData = {
+        course_id: uuid,
+        name: planData.name?.trim(),
+        months: parseInt(planData.months),
+        price: parseFloat(planData.price),
+        active: planData.active ?? true,
+        sort_order: parseInt(planData.sortOrder ?? planData.sort_order ?? 0),
+        updated_at: new Date().toISOString(),
+      }
+      let result
+      if (isEdit && planData.id) {
+        result = await supabase
+          .from('course_plans')
+          .update(dbData)
+          .eq('id', planData.id)
+          .select()
+          .single()
+      } else {
+        result = await supabase
+          .from('course_plans')
+          .insert(dbData)
+          .select()
+          .single()
+      }
+      if (result.error) throw result.error
+      return { success: true, data: result.data }
+    } catch (err) {
+      console.error('Error saving course plan:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  const deleteCoursePlan = async (planId) => {
+    try {
+      // Soft delete: marca como inactive (preserva snapshots en payments)
+      const { error } = await supabase
+        .from('course_plans')
+        .update({ active: false, updated_at: new Date().toISOString() })
+        .eq('id', planId)
+      if (error) throw error
+      return { success: true }
+    } catch (err) {
+      console.error('Error deleting course plan:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
   // Agrupar cursos por categoría
   const coursesByCategory = {
     regular: courses.filter(c =>
@@ -607,6 +692,9 @@ export function useItems() {
     getCourseById,
     getProductById,
     getSuggestedCourses,
+    fetchCoursePlans,
+    saveCoursePlan,
+    deleteCoursePlan,
     adjustStock,
     getInventoryMovements
   }

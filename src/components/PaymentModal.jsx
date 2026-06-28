@@ -16,7 +16,8 @@ export default function PaymentModal({
   student,
   autoInactiveDays = 10,
   onClose,
-  onPaymentComplete
+  onPaymentComplete,
+  onFetchCoursePlans,
 }) {
   const { generateReceiptNumber } = usePayments()
   const toast = useToast()
@@ -24,6 +25,9 @@ export default function PaymentModal({
   const [loading, setLoading] = useState(false)
   const [confirmStep, setConfirmStep] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
+  // Planes del curso (trimestral, semestral, etc.) cargados de la BD
+  const [coursePlans, setCoursePlans] = useState([])
+  const [selectedPlan, setSelectedPlan] = useState(null) // null = mensual base
 
   const course = getCourseById(student?.course_id)
   const coursePrice = course?.price || 0
@@ -118,6 +122,14 @@ export default function PaymentModal({
       }))
 
       generateReceiptNumber().then(num => setReceiptNumber(num))
+
+      // Cargar planes promocionales del curso (si tiene)
+      if (onFetchCoursePlans && course.id) {
+        onFetchCoursePlans(course.id).then(r => {
+          if (r.success && r.data?.length) setCoursePlans(r.data)
+          else setCoursePlans([])
+        })
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [student?.id, course?.id])
@@ -297,6 +309,10 @@ export default function PaymentModal({
       discount: discountInfo,
       cycleStartDate: resolvedCycleStartDate,
       monthsAhead: formData.monthsAhead || 1,
+      // Plan promocional snapshot (si la admin seleccionó uno)
+      planId: selectedPlan?.id || null,
+      planMonths: selectedPlan?.months || null,
+      planName: selectedPlan?.name || null,
     })
     setConfirmStep(true)
   }
@@ -523,6 +539,70 @@ export default function PaymentModal({
                 >
                   Usar
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Planes de pago (trimestral / semestral / anual...) */}
+          {coursePlans.length > 0 && !hasBalance && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Plan de pago
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {/* Mensual base */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlan(null)
+                    setFormData(prev => ({ ...prev, amount: studentFee.toFixed(2), paymentType: 'full', monthsAhead: 1 }))
+                    if (discountEnabled) {
+                      setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
+                    }
+                  }}
+                  className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                    !selectedPlan
+                      ? 'border-[#7e2d55] bg-[#fdf2f7] text-[#551735]'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <p className="font-semibold">Mensual</p>
+                  <p className="text-xs mt-1">${studentFee.toFixed(2)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">1 mes</p>
+                </button>
+
+                {/* Planes promocionales */}
+                {coursePlans.map(plan => {
+                  const lineal = studentFee * plan.months
+                  const ahorro = lineal - parseFloat(plan.price)
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlan(plan)
+                        setFormData(prev => ({ ...prev, amount: parseFloat(plan.price).toFixed(2), paymentType: 'full', monthsAhead: plan.months }))
+                        if (discountEnabled) {
+                          setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
+                        }
+                      }}
+                      className={`p-3 rounded-xl border-2 text-sm transition-all relative ${
+                        selectedPlan?.id === plan.id
+                          ? 'border-[#7e2d55] bg-[#fdf2f7] text-[#551735]'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {ahorro > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                          -${ahorro.toFixed(0)}
+                        </span>
+                      )}
+                      <p className="font-semibold">{plan.name}</p>
+                      <p className="text-xs mt-1">${parseFloat(plan.price).toFixed(2)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{plan.months} {plan.months === 1 ? 'mes' : 'meses'}</p>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}

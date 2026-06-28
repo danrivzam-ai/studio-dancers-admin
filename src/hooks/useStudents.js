@@ -592,6 +592,13 @@ export function useStudents() {
         paymentInsert.discount_value = paymentData.discount.discountValue?.toString() || null
       }
 
+      // Snapshot del plan promocional si aplica
+      if (paymentData.planId) {
+        paymentInsert.plan_id = paymentData.planId
+        paymentInsert.plan_months = paymentData.planMonths
+        paymentInsert.plan_name = paymentData.planName
+      }
+
       const { data: paymentRecord, error: paymentError } = await supabase
         .from('payments')
         .insert([paymentInsert])

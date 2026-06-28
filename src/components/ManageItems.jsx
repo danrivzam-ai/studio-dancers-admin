@@ -72,7 +72,10 @@ export default function ManageItems({
   onAdjustStock,
   onGetInventoryMovements,
   onClose,
-  onRequestPin
+  onRequestPin,
+  onFetchCoursePlans,
+  onSaveCoursePlan,
+  onDeleteCoursePlan,
 }) {
   const toast = useToast()
   const [activeTab, setActiveTab] = useState('courses')
@@ -80,6 +83,10 @@ export default function ManageItems({
   const [editingItem, setEditingItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [errorMessage, setErrorMessage] = useState(null)
+  // Planes de pago del curso en edición
+  const [coursePlans, setCoursePlans] = useState([])
+  const [editingPlanIdx, setEditingPlanIdx] = useState(null) // null=ninguno, -1=nuevo, n=índice existente
+  const [planDraft, setPlanDraft] = useState({ name: '', months: '', price: '' })
   // Stock adjustment modal
   const [stockModal, setStockModal] = useState(null)
   const [adjustQty, setAdjustQty] = useState('')
@@ -264,6 +271,20 @@ export default function ManageItems({
     }
     setEditingItem(item)
     setShowForm(true)
+    // Cargar planes existentes del curso (solo cursos, no productos)
+    if (!isProduct && item?.supabase_id && onFetchCoursePlans) {
+      onFetchCoursePlans(item.supabase_id).then(r => {
+        if (r.success) setCoursePlans(r.data || [])
+      })
+    } else if (!isProduct && item?.id && /^[0-9a-f]{8}-/i.test(item.id) && onFetchCoursePlans) {
+      onFetchCoursePlans(item.id).then(r => {
+        if (r.success) setCoursePlans(r.data || [])
+      })
+    } else {
+      setCoursePlans([])
+    }
+    setEditingPlanIdx(null)
+    setPlanDraft({ name: '', months: '', price: '' })
   }
 
   const handleSubmit = async (e) => {
@@ -933,6 +954,153 @@ export default function ManageItems({
                       <option key={cat.key} value={cat.key}>{cat.label}</option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {/* Planes de pago (trimestral, semestral, anual...) */}
+              {formData.type === 'course' && formData.priceType === 'mes' && editingItem?.supabase_id && (
+                <div className="rounded-2xl border border-[#e8b4cc] bg-[#fdf2f7] p-4 space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-[#7e2d55] uppercase tracking-wide">Planes de pago</p>
+                    <p className="text-[11px] text-[#a05c7e] mt-0.5 leading-snug">
+                      Promos de varios meses con precio fijo (no se multiplica). Ej: trimestral $120 cuando mensual sería $44×3=$132.
+                    </p>
+                  </div>
+
+                  {/* Lista de planes existentes */}
+                  {coursePlans.length > 0 && (
+                    <div className="space-y-2">
+                      {coursePlans.map((p, idx) => (
+                        <div key={p.id} className="flex items-center gap-3 bg-white rounded-xl border border-[#e8b4cc] px-3 py-2.5">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800">{p.name}</p>
+                            <p className="text-[11px] text-gray-500">{p.months} {p.months === 1 ? 'mes' : 'meses'} · ${parseFloat(p.price).toFixed(2)}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingPlanIdx(idx)
+                              setPlanDraft({ name: p.name, months: String(p.months), price: String(p.price) })
+                            }}
+                            className="text-[11px] px-2 py-1 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 text-gray-600"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!onDeleteCoursePlan) return
+                              const r = await onDeleteCoursePlan(p.id)
+                              if (r.success) {
+                                setCoursePlans(coursePlans.filter(x => x.id !== p.id))
+                                toast.success('Plan eliminado')
+                              } else {
+                                toast.error(r.error || 'Error al eliminar')
+                              }
+                            }}
+                            className="text-[11px] px-2 py-1 rounded-lg bg-red-50 border border-red-200 hover:bg-red-100 text-red-600"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Form de plan (nuevo o editando) */}
+                  {editingPlanIdx !== null ? (
+                    <div className="bg-white rounded-xl border border-[#7e2d55] p-3 space-y-2.5">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Nombre</label>
+                          <input
+                            type="text"
+                            value={planDraft.name}
+                            onChange={(e) => setPlanDraft({ ...planDraft, name: e.target.value })}
+                            className="w-full px-2.5 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-[#7e2d55] outline-none"
+                            placeholder="Trimestral"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Meses</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="36"
+                            value={planDraft.months}
+                            onChange={(e) => setPlanDraft({ ...planDraft, months: e.target.value })}
+                            className="w-full px-2.5 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-[#7e2d55] outline-none"
+                            placeholder="3"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Precio $</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={planDraft.price}
+                            onChange={(e) => setPlanDraft({ ...planDraft, price: e.target.value })}
+                            className="w-full px-2.5 py-2 border-2 border-gray-200 rounded-lg text-sm focus:border-[#7e2d55] outline-none"
+                            placeholder="120"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { setEditingPlanIdx(null); setPlanDraft({ name: '', months: '', price: '' }) }}
+                          className="flex-1 py-2 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!planDraft.name?.trim() || !planDraft.months || !planDraft.price) {
+                              toast.error('Completá nombre, meses y precio')
+                              return
+                            }
+                            const planData = {
+                              name: planDraft.name.trim(),
+                              months: parseInt(planDraft.months),
+                              price: parseFloat(planDraft.price),
+                              courseId: editingItem.supabase_id,
+                              sortOrder: parseInt(planDraft.months),
+                            }
+                            const isEditing = editingPlanIdx >= 0
+                            if (isEditing) planData.id = coursePlans[editingPlanIdx].id
+                            const r = await onSaveCoursePlan(planData, isEditing)
+                            if (r.success) {
+                              if (isEditing) {
+                                const newPlans = [...coursePlans]
+                                newPlans[editingPlanIdx] = r.data
+                                setCoursePlans(newPlans)
+                              } else {
+                                setCoursePlans([...coursePlans, r.data])
+                              }
+                              setEditingPlanIdx(null)
+                              setPlanDraft({ name: '', months: '', price: '' })
+                              toast.success('Plan guardado')
+                            } else {
+                              toast.error(r.error || 'Error al guardar')
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-lg bg-[#7e2d55] text-white text-xs font-semibold hover:bg-[#6b2145]"
+                        >
+                          {editingPlanIdx >= 0 ? 'Actualizar' : 'Agregar'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setEditingPlanIdx(-1); setPlanDraft({ name: '', months: '', price: '' }) }}
+                      className="w-full py-2 rounded-xl border border-dashed border-[#c98daa] text-[#7e2d55] text-xs font-medium hover:bg-white transition"
+                    >
+                      + Agregar plan promocional
+                    </button>
+                  )}
                 </div>
               )}
 

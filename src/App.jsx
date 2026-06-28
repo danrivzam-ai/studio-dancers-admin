@@ -83,7 +83,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { generateReceiptNumber } = usePayments()
-  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock } = useItems()
+  const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, fetchCoursePlans, saveCoursePlan, deleteCoursePlan } = useItems()
   const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
@@ -2806,6 +2806,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               setSelectedStudent(null)
             }}
             onPaymentComplete={handlePaymentComplete}
+            onFetchCoursePlans={fetchCoursePlans}
           />
         )}
 
@@ -2851,6 +2852,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onSaveProduct={saveProduct}
             onDeleteProduct={deleteProduct}
             onAdjustStock={adjustStock}
+            onFetchCoursePlans={fetchCoursePlans}
+            onSaveCoursePlan={saveCoursePlan}
+            onDeleteCoursePlan={deleteCoursePlan}
             onClose={() => setShowManageItems(false)}
             onRequestPin={(pin) => {
               // Verificar PIN

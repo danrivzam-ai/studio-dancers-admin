@@ -356,7 +356,7 @@ export const getDaysUntilDue = (nextPaymentDate) => {
  * @param {number} classesPerCycle - Clases por ciclo (8 para MTJ, 4 para Sábados)
  * @returns {{ cycleStart: string, cycleEnd: string, totalClasses: number, label: string } | null}
  */
-export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, classesPerCycle) => {
+export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, classesPerCycle, planMonths = null) => {
   if (!lastPaymentDate || !nextPaymentDate) return null
 
   const lastPay = toNoonLocal(lastPaymentDate)
@@ -389,13 +389,17 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
     // cae en un día de clase (getPrevClassDay lo incluye → 9 en vez de 8).
     // Siempre que el curso tenga classesPerCycle configurado, usarlo.
     if (classesPerCycle && classesPerCycle > 0) {
-      totalClasses = classesPerCycle
+      // Si el pago fue por un plan promocional (3/6/12 meses), multiplicar
+      // por la cantidad de meses para mostrar el contador del plan completo.
+      // Ej: plan trimestral con 8 clases/mes → 24 clases.
+      const months = planMonths && planMonths > 1 ? planMonths : 1
+      totalClasses = classesPerCycle * months
     }
   } else {
     // Fallback: sin días de clase definidos, usar fechas crudas
     cycleStart = lastPay
     cycleEnd = subDays(nextPay, 1)
-    totalClasses = classesPerCycle || null
+    totalClasses = classesPerCycle ? classesPerCycle * (planMonths || 1) : null
   }
 
   // Calcular cuántas clases han pasado desde el inicio del ciclo
