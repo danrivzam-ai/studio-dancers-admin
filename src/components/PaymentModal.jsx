@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { usePayments } from '../hooks/usePayments'
-import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo, calculateNextPaymentDate } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 
@@ -79,6 +79,17 @@ export default function PaymentModal({
   })()
 
   const [cycleStartDate, setCycleStartDate] = useState(_defaultCycleStart)
+
+  // Fecha real del próximo cobro para una alumna nueva — MISMA lógica que
+  // useStudents al registrar el pago (getNextClassDay → calculateNextPaymentDate).
+  // Antes el texto tenía el mes "junio" hardcodeado: mostraba siempre junio sin
+  // importar la fecha real de inicio. Se recalcula al cambiar cycleStartDate.
+  const _nextCobroDate = (() => {
+    if (!isNewEnrollment) return null
+    const cd = course?.classDays
+    const start = (cd && cd.length > 0) ? getNextClassDay(cycleStartDate, cd) : cycleStartDate
+    return calculateNextPaymentDate(start, cd, course?.classesPerCycle)
+  })()
 
   // Estado de descuento
   const [discountEnabled, setDiscountEnabled] = useState(false)
@@ -919,8 +930,9 @@ export default function PaymentModal({
               </div>
               <p className="text-[11px] text-violet-600 leading-relaxed">
                 {cycleStartDate <= getTodayEC()
-                  ? '✓ Empieza este mes — próximo cobro: 1er día de clase de junio'
-                  : '📅 Empieza el mes siguiente — próximo cobro: 1er día de clase del mes posterior'}
+                  ? '✓ Empieza este mes'
+                  : '📅 Empieza el mes siguiente'}
+                {_nextCobroDate && ` — próximo cobro: ${formatDate(_nextCobroDate, "EEEE d 'de' MMMM")}`}
               </p>
             </div>
           )}
