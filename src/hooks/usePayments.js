@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function usePayments() {
   const [payments, setPayments] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   // Cargar historial de pagos
@@ -31,9 +31,9 @@ export function usePayments() {
     }
   }
 
-  useEffect(() => {
-    fetchPayments()
-  }, [])
+  // Sin carga automática al montar: App, PaymentModal y QuickPayment solo usan
+  // generateReceiptNumber, y traer todo el historial en cada apertura era costoso.
+  // Quien necesite la lista debe llamar a fetchPayments() explícitamente.
 
   // Generar número de recibo — usa el MÁXIMO receipt_number existente para evitar
   // retrocesos cuando un pago reciente tiene un número bajo.
@@ -69,6 +69,7 @@ export function usePayments() {
         .from('payments')
         .select('*')
         .eq('student_id', studentId)
+        .eq('voided', false)
         .order('payment_date', { ascending: false })
 
       if (error) throw error

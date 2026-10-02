@@ -5,6 +5,7 @@
  */
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { getTodayEC } from '../lib/dateUtils'
 
 const sum = (arr, field = 'amount') =>
   (arr || []).reduce((t, r) => t + parseFloat(r[field] || 0), 0)
@@ -71,7 +72,7 @@ export function useFinancialKPIs() {
 
       // Tasa de cobro: alumnas con curso 'mes' que pagaron este mes
       // = next_payment_date > hoy (ya pagaron el ciclo actual)
-      const todayStr = now.toISOString().slice(0, 10)
+      const todayStr = getTodayEC()
       const monthlyStudents = students.filter(s => {
         // solo las que tienen curso mensual (tienen next_payment_date)
         return s.next_payment_date != null

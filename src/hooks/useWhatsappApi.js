@@ -11,7 +11,7 @@
  */
 
 import { useCallback } from 'react'
-import { format } from 'date-fns'
+import { format, parseISO, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { supabase } from '../lib/supabase'
 import { getTodayEC } from '../lib/dateUtils'
@@ -82,9 +82,7 @@ async function alreadySentToday(studentId, templateName) {
 async function alreadySentWithinDays(studentId, templateName, days = 7) {
   if (!studentId) return false
   try {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - days)
-    const cutoffStr = cutoff.toISOString().substring(0, 10)
+    const cutoffStr = format(subDays(parseISO(getTodayEC()), days), 'yyyy-MM-dd')
     const { data } = await supabase
       .from('whatsapp_messages_log')
       .select('id')
@@ -274,9 +272,7 @@ export function useWhatsappApi(settings) {
     const templateName = 'saldo_pendiente_representante'
 
     // Corte: saldo con más de 15 días de antigüedad (last_payment_date o enrollment_date)
-    const cutoff15 = new Date()
-    cutoff15.setDate(cutoff15.getDate() - 15)
-    const cutoff15Str = cutoff15.toISOString().substring(0, 10)
+    const cutoff15Str = format(subDays(parseISO(getTodayEC()), 15), 'yyyy-MM-dd')
 
     const targets = students.filter(s => {
       if (s.payment_status !== 'partial') return false

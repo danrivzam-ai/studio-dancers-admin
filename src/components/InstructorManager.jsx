@@ -8,6 +8,7 @@ import {
 // TODO: Migrate to Supabase Edge Function for instructor password management.
 import bcrypt from 'bcryptjs'
 import { supabase } from '../lib/supabase'
+import { getTodayEC } from '../lib/dateUtils'
 import { sanitizeError } from '../lib/errorUtils'
 import { syncToMailerLite } from '../lib/mailerlite'
 import DeleteConfirmModal from './DeleteConfirmModal'
@@ -211,7 +212,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
               tipo: 'instructora',
               ritmos: form.rhythms.join(', '),
               estado: form.active ? 'activa' : 'inactiva',
-              fecha_alta: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+              fecha_alta: getTodayEC(), // YYYY-MM-DD (hora Ecuador)
             },
           })
         }

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getTodayEC } from './dateUtils'
 
 // IDs de cursos de adultas — excluir del gestor de clases niñas
 const ADULTAS_COURSE_IDS = ['ballet-adultos-semana', 'ballet-adultos-sabados']
@@ -67,7 +68,7 @@ export async function updateCiclo(cicloId, { objetivoCiclo, totalClases }) {
 }
 
 export async function closeCiclo(cicloId) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayEC()
   const { data, error } = await supabase
     .from('cycles')
     .update({ estado: 'cerrado', fecha_fin: today })

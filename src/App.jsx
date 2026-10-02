@@ -952,6 +952,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         .from('payments')
         .select('*')
         .eq('student_id', student.id)
+        .eq('voided', false)
         .order('created_at', { ascending: false })
         .limit(1)
       if (!payments?.length) return
