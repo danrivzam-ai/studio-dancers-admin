@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import { COURSES, NINAS, DANCE_CAMP, PRODUCTS, setDynamicCourses } from '../lib/courses'
 
 // Combinar cursos predeterminados como fallback
@@ -274,6 +275,11 @@ export function useItems() {
         }
 
         if (result.error) throw result.error
+        const prevCourse = courses.find(c => c.code === code || (courseData.supabase_id && c.supabase_id === courseData.supabase_id))
+        logAudit({
+          action: prevCourse ? 'course_updated' : 'course_created', tableName: 'courses', recordId: result.data?.id,
+          oldData: prevCourse ? { name: prevCourse.name, price: prevCourse.price } : null, newData: dbData
+        })
         await fetchCourses()
         return { success: true, data: result.data }
       }
@@ -314,6 +320,7 @@ export function useItems() {
           .eq('code', courseId)
 
         if (error && error.code !== 'PGRST116') throw error
+        logAudit({ action: 'course_deactivated', tableName: 'courses', recordId: course?.supabase_id || null, oldData: course ? { code: course.code, name: course.name, price: course.price } : { code: courseId } })
 
         // Si es predeterminado, guardarlo en lista de eliminados
         if (course?.is_default) {
@@ -397,6 +404,11 @@ export function useItems() {
         }
 
         if (result.error) throw result.error
+        const prevProduct = products.find(p => p.code === code || (productData.supabase_id && p.supabase_id === productData.supabase_id))
+        logAudit({
+          action: prevProduct ? 'product_updated' : 'product_created', tableName: 'products', recordId: result.data?.id,
+          oldData: prevProduct ? { name: prevProduct.name, price: prevProduct.price, stock: prevProduct.stock } : null, newData: dbData
+        })
         await fetchProducts()
         return { success: true, data: result.data }
       }
@@ -436,6 +448,7 @@ export function useItems() {
           .eq('code', productId)
 
         if (error && error.code !== 'PGRST116') throw error
+        logAudit({ action: 'product_deactivated', tableName: 'products', recordId: product?.supabase_id || null, oldData: product ? { code: product.code, name: product.name, price: product.price, stock: product.stock } : { code: productId } })
 
         // Si es predeterminado, guardarlo en lista de eliminados
         if (product?.is_default) {
@@ -516,6 +529,7 @@ export function useItems() {
           .eq('code', productCode)
 
         if (updateError) throw updateError
+        logAudit({ action: 'stock_adjusted', tableName: 'products', recordId: product.supabase_id || null, oldData: { code: product.code || productCode, stock: currentStock }, newData: { stock: newStock, quantity, movementType, notes: notes || null } })
 
         // Registrar movimiento de inventario
         const supabaseProduct = product.supabase_id || product.id
@@ -635,6 +649,7 @@ export function useItems() {
           .single()
       }
       if (result.error) throw result.error
+      logAudit({ action: isEdit ? 'course_plan_updated' : 'course_plan_created', tableName: 'course_plans', recordId: result.data?.id, newData: dbData })
       return { success: true, data: result.data }
     } catch (err) {
       console.error('Error saving course plan:', err)
@@ -650,6 +665,7 @@ export function useItems() {
         .update({ active: false, updated_at: new Date().toISOString() })
         .eq('id', planId)
       if (error) throw error
+      logAudit({ action: 'course_plan_deactivated', tableName: 'course_plans', recordId: planId })
       return { success: true }
     } catch (err) {
       console.error('Error deleting course plan:', err)

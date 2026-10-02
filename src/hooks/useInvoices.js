@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 import {
   detectBuyerIdType,
   mapPaymentMethodSRI,
@@ -232,6 +233,7 @@ export function useInvoices() {
         })
 
       if (itemError) throw itemError
+      logAudit({ action: 'invoice_created', tableName: 'invoices', recordId: invoice.id, newData: { invoice_number: invoice.invoice_number, total: invoice.total, payment_id: invoice.payment_id, buyer_name: invoice.buyer_name } })
 
       // 8. Refetch con items
       const result = await getInvoice(invoice.id)
@@ -261,6 +263,7 @@ export function useInvoices() {
         .single()
 
       if (voidError) throw voidError
+      logAudit({ action: 'invoice_voided', tableName: 'invoices', recordId: invoiceId, newData: { invoice_number: data?.invoice_number, total: data?.total, voided_reason: reason } })
       return { success: true, data }
     } catch (err) {
       return { success: false, error: err.message }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { getTodayEC } from '../lib/dateUtils'
+import { logAudit } from '../lib/auditLog'
 
 export function useSalePlans() {
   const [plans, setPlans]     = useState([])
@@ -53,6 +54,7 @@ export function useSalePlans() {
         .single()
 
       if (error) throw error
+      logAudit({ action: 'sale_plan_created', tableName: 'sale_plans', recordId: data.id, newData: data })
       await fetchPlans()
       return { success: true, data }
     } catch (err) {
@@ -106,6 +108,11 @@ export function useSalePlans() {
 
       if (updErr) throw updErr
 
+      logAudit({
+        action: 'sale_plan_payment_registered', tableName: 'sale_plan_payments', recordId: payment.id,
+        oldData: { amount_paid: plan.amount_paid, status: plan.status },
+        newData: { plan_id: planId, amount: payment.amount, payment_method: paymentMethod, amount_paid: newAmountPaid, status: newStatus }
+      })
       await fetchPlans()
       return {
         success:           true,
@@ -135,6 +142,7 @@ export function useSalePlans() {
         .update({ total_amount: total, status, updated_at: new Date().toISOString() })
         .eq('id', planId)
       if (error) throw error
+      logAudit({ action: 'sale_plan_total_updated', tableName: 'sale_plans', recordId: planId, oldData: { total_amount: plan.total_amount, status: plan.status }, newData: { total_amount: total, status } })
       await fetchPlans()
       return { success: true }
     } catch (err) {
@@ -151,6 +159,8 @@ export function useSalePlans() {
         .eq('id', planId)
 
       if (error) throw error
+      const cancelled = plans.find(p => p.id === planId)
+      logAudit({ action: 'sale_plan_cancelled', tableName: 'sale_plans', recordId: planId, oldData: cancelled ? { customer_name: cancelled.customer_name, total_amount: cancelled.total_amount, amount_paid: cancelled.amount_paid, status: cancelled.status } : null })
       await fetchPlans()
       return { success: true }
     } catch (err) {
@@ -168,6 +178,8 @@ export function useSalePlans() {
         .eq('amount_paid', 0)
 
       if (error) throw error
+      const deleted = plans.find(p => p.id === planId)
+      logAudit({ action: 'sale_plan_deleted', tableName: 'sale_plans', recordId: planId, oldData: deleted || null })
       await fetchPlans()
       return { success: true }
     } catch (err) {
@@ -184,6 +196,7 @@ export function useSalePlans() {
         .eq('id', planId)
 
       if (error) throw error
+      logAudit({ action: delivered ? 'sale_plan_delivered' : 'sale_plan_undelivered', tableName: 'sale_plans', recordId: planId })
       await fetchPlans()
       return { success: true }
     } catch (err) {

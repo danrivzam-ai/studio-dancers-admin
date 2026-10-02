@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 
 export const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
@@ -145,12 +146,15 @@ export function useHonorarios() {
     const { error: dErr } = await supabase.from('payment_details').insert(detailRows)
     if (dErr) throw dErr
 
+    logAudit({ action: 'honorarios_period_created', tableName: 'payment_periods', recordId: period.id, newData: { instructor: instructor.name, numero_comprobante: numero, fecha_inicio: fechaInicio, fecha_fin: fechaFin, total_horas, total_pagar } })
     return { ...period, payment_details: detailRows }
   }
 
   const deletePeriodo = async (id) => {
+    const deleted = periodos.find(p => p.id === id)
     const { error } = await supabase.from('payment_periods').delete().eq('id', id)
     if (error) throw error
+    logAudit({ action: 'honorarios_period_deleted', tableName: 'payment_periods', recordId: id, oldData: deleted ? { numero_comprobante: deleted.numero_comprobante, fecha_inicio: deleted.fecha_inicio, fecha_fin: deleted.fecha_fin, total_pagar: deleted.total_pagar } : null })
     setPeriodos(prev => prev.filter(p => p.id !== id))
   }
 

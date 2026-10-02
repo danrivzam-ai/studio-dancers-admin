@@ -40,6 +40,32 @@ const ACTION_CONFIG = {
   subcategory_reactivated: { label: 'Subcategoria reactivada', icon: RotateCcw, color: 'text-green-500', bg: 'bg-green-50' },
   // Settings
   settings_updated: { label: 'Configuracion actualizada', icon: Settings, color: 'text-gray-600', bg: 'bg-gray-100' },
+  // Cursos, productos e inventario
+  course_created: { label: 'Curso creado', icon: Plus, color: 'text-[#6b2145]', bg: 'bg-[#fdf5f9]' },
+  course_updated: { label: 'Curso actualizado', icon: Edit2, color: 'text-blue-600', bg: 'bg-blue-50' },
+  course_deactivated: { label: 'Curso desactivado', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
+  course_plan_created: { label: 'Plan de curso creado', icon: Plus, color: 'text-[#6b2145]', bg: 'bg-[#fdf5f9]' },
+  course_plan_updated: { label: 'Plan de curso actualizado', icon: Edit2, color: 'text-blue-600', bg: 'bg-blue-50' },
+  course_plan_deactivated: { label: 'Plan de curso desactivado', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
+  product_created: { label: 'Producto creado', icon: Plus, color: 'text-green-600', bg: 'bg-green-50' },
+  product_updated: { label: 'Producto actualizado', icon: Edit2, color: 'text-blue-600', bg: 'bg-blue-50' },
+  product_deactivated: { label: 'Producto desactivado', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
+  stock_adjusted: { label: 'Stock ajustado', icon: Edit2, color: 'text-amber-600', bg: 'bg-amber-50' },
+  // Planes de abono
+  sale_plan_created: { label: 'Plan de abonos creado', icon: Plus, color: 'text-green-600', bg: 'bg-green-50' },
+  sale_plan_payment_registered: { label: 'Abono registrado', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+  sale_plan_payment_date_fixed: { label: 'Fecha de abono corregida', icon: Edit2, color: 'text-amber-600', bg: 'bg-amber-50' },
+  sale_plan_total_updated: { label: 'Total de plan modificado', icon: Edit2, color: 'text-amber-600', bg: 'bg-amber-50' },
+  sale_plan_cancelled: { label: 'Plan de abonos cancelado', icon: Trash2, color: 'text-red-600', bg: 'bg-red-50' },
+  sale_plan_deleted: { label: 'Plan de abonos eliminado', icon: Trash2, color: 'text-red-700', bg: 'bg-red-100' },
+  sale_plan_delivered: { label: 'Plan entregado', icon: LogOut, color: 'text-blue-600', bg: 'bg-blue-50' },
+  sale_plan_undelivered: { label: 'Entrega revertida', icon: RotateCcw, color: 'text-gray-600', bg: 'bg-gray-100' },
+  // Facturas, honorarios y cierres
+  invoice_created: { label: 'Factura creada', icon: Plus, color: 'text-blue-600', bg: 'bg-blue-50' },
+  invoice_voided: { label: 'Factura anulada', icon: Trash2, color: 'text-red-700', bg: 'bg-red-100' },
+  honorarios_period_created: { label: 'Liquidación de honorarios', icon: DollarSign, color: 'text-[#6b2145]', bg: 'bg-[#fdf5f9]' },
+  honorarios_period_deleted: { label: 'Liquidación eliminada', icon: Trash2, color: 'text-red-700', bg: 'bg-red-100' },
+  month_closed: { label: 'Mes cerrado', icon: LogOut, color: 'text-gray-700', bg: 'bg-gray-100' },
 }
 
 const DEFAULT_CONFIG = { label: 'Accion', icon: Eye, color: 'text-gray-600', bg: 'bg-gray-100' }
@@ -55,6 +81,14 @@ const TABLE_LABELS = {
   expense_categories: 'Categorias',
   expense_subcategories: 'Subcategorias',
   school_settings: 'Configuracion',
+  courses: 'Cursos',
+  course_plans: 'Planes de curso',
+  products: 'Productos',
+  sale_plans: 'Planes de abono',
+  sale_plan_payments: 'Abonos',
+  invoices: 'Facturas',
+  payment_periods: 'Honorarios',
+  monthly_closes: 'Cierres mensuales',
 }
 
 function timeAgo(dateStr) {

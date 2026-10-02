@@ -5,6 +5,7 @@
  */
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logAudit } from '../lib/auditLog'
 
 const sum = (arr, field = 'amount') =>
   arr.reduce((t, r) => t + parseFloat(r[field] || 0), 0)
@@ -161,6 +162,7 @@ export function useMonthlyClose() {
         .single()
 
       if (error) throw error
+      logAudit({ action: 'month_closed', tableName: 'monthly_closes', recordId: data.id, newData: { periodo, total_ingresos: data.total_ingresos, total_egresos: data.total_egresos, saldo_neto: data.saldo_neto }, userId })
       await fetchCloses()
       return { success: true, data }
     } catch (err) {
