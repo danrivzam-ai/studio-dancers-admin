@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, UserPlus, Trash2, Shield, User, Eye, Mail, Check, AlertCircle } from 'lucide-react'
+import { X, UserPlus, Trash2, Shield, User, Eye, Mail, Check, AlertCircle, Calculator, UserCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
 import { ROLES } from '../hooks/useAuth'
@@ -8,6 +8,8 @@ import Modal from './ui/Modal'
 const ROLE_LABELS = {
   admin: { label: 'Administrador', color: 'bg-[#f9e8f0] text-[#551735]', icon: Shield },
   receptionist: { label: 'Recepcionista', color: 'bg-blue-100 text-blue-700', icon: User },
+  supervisor: { label: 'Supervisora', color: 'bg-purple-100 text-purple-700', icon: UserCheck },
+  contador: { label: 'Contador(a)', color: 'bg-emerald-100 text-emerald-700', icon: Calculator },
   viewer: { label: 'Solo Lectura', color: 'bg-gray-100 text-gray-700', icon: Eye }
 }
 
@@ -21,7 +23,8 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
   const [newUser, setNewUser] = useState({
     email: '',
     displayName: '',
-    role: 'receptionist'
+    role: 'receptionist',
+    password: ''
   })
 
   useEffect(() => {
@@ -57,34 +60,33 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
       setError('Email y nombre son requeridos')
       return
     }
+    if (newUser.password.length < 8) {
+      setError('La contraseña temporal debe tener al menos 8 caracteres')
+      return
+    }
 
     try {
-      // Verificar si ya existe
-      const { data: existing } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('email', newUser.email.toLowerCase())
-        .single()
-
-      if (existing) {
-        setError('Este email ya tiene acceso')
+      // La cuenta se crea en el servidor (Edge Function create-staff-user):
+      // ya no hace falta que la persona se registre sola en el login.
+      const { data, error } = await supabase.functions.invoke('create-staff-user', {
+        body: {
+          email: newUser.email.trim().toLowerCase(),
+          displayName: newUser.displayName.trim(),
+          role: newUser.role,
+          password: newUser.password
+        }
+      })
+      if (error || !data?.success) {
+        let message = data?.error
+        if (!message && error?.context?.json) {
+          try { message = (await error.context.json())?.error } catch { /* sin cuerpo */ }
+        }
+        setError(message || 'No se pudo crear el usuario')
         return
       }
 
-      // Agregar usuario
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          email: newUser.email.toLowerCase(),
-          display_name: newUser.displayName,
-          role: newUser.role,
-          created_by: currentUserId
-        })
-
-      if (error) throw error
-
-      setSuccess(`Usuario ${newUser.email} agregado. Debe crear su cuenta en la página de login.`)
-      setNewUser({ email: '', displayName: '', role: 'receptionist' })
+      setSuccess(`Usuario ${newUser.email} creado. Compártele su contraseña temporal; puede cambiarla con "¿Olvidaste tu contraseña?" en el login.`)
+      setNewUser({ email: '', displayName: '', role: 'receptionist', password: '' })
       setShowAddForm(false)
       fetchUsers()
     } catch (err) {
@@ -219,9 +221,26 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                   className="form-input"
                 >
                   <option value="receptionist">Recepcionista - Operaciones diarias</option>
+                  <option value="supervisor">Supervisora - Operaciones y reportes</option>
+                  <option value="contador">Contador(a) - Solo contabilidad (lectura)</option>
                   <option value="viewer">Solo Lectura - Ver información</option>
                   <option value="admin">Administrador - Acceso total</option>
                 </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label">Contraseña temporal</label>
+                <input
+                  type="text"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="off"
+                  className="form-input"
+                  required
+                  minLength={8}
+                />
+                <p className="text-xs text-gray-500 mt-1">Compártela con la persona; podrá cambiarla desde "¿Olvidaste tu contraseña?".</p>
               </div>
 
               <div className="flex gap-2">
@@ -299,7 +318,9 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                         }`}
                       >
                         <option value="admin">Admin</option>
+                        <option value="supervisor">Supervisora</option>
                         <option value="receptionist">Recepcionista</option>
+                        <option value="contador">Contador(a)</option>
                         <option value="viewer">Solo Lectura</option>
                       </select>
 
@@ -334,6 +355,14 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
               <div className="flex items-center gap-2">
                 <Eye size={16} className="text-gray-600" />
                 <span><strong>Lectura:</strong> Solo ver</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <UserCheck size={16} className="text-purple-600" />
+                <span><strong>Supervisora:</strong> Operaciones y reportes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calculator size={16} className="text-emerald-600" />
+                <span><strong>Contador(a):</strong> Panel contable, solo lectura</span>
               </div>
             </div>
           </div>
