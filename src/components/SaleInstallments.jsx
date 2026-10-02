@@ -918,7 +918,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
                       if (res.success) { setEditingTotal(false); setNewTotal('') }
                       else setEditError(res.error || 'Error al guardar')
                     }} disabled={editSaving}
-                      className="flex-1 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 disabled:opacity-50">
+                      className="flex-1 sd-btn sd-btn-primary sd-btn-sm">
                       {editSaving ? 'Guardando...' : 'Guardar'}
                     </button>
                     <button type="button" onClick={() => { setEditingTotal(false); setNewTotal(''); setEditError('') }}

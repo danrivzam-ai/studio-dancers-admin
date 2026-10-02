@@ -597,7 +597,7 @@ export default function CashRegister({ onClose, settings }) {
                   {parseFloat(openingAmount) !== parseFloat(cashRegister.opening_amount) && (
                     <button
                       onClick={handleUpdateOpening}
-                      className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-medium active:scale-95 transition-all"
+                      className="sd-btn sd-btn-secondary sd-btn-sm"
                     >
                       Actualizar
                     </button>
@@ -710,7 +710,7 @@ export default function CashRegister({ onClose, settings }) {
 
                   <button
                     onClick={handleCloseRegister}
-                    className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium active:scale-95 transition-all"
+                    className="sd-btn sd-btn-primary sd-btn-lg sd-btn-full"
                   >
                     Cerrar Caja
                   </button>
@@ -726,7 +726,7 @@ export default function CashRegister({ onClose, settings }) {
                   {isToday && (
                     <button
                       onClick={handleReopenRegister}
-                      className="text-sm px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-medium active:scale-95 transition-all"
+                      className="sd-btn sd-btn-secondary sd-btn-sm"
                     >
                       Reabrir Caja
                     </button>

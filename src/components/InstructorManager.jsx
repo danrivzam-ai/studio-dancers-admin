@@ -13,16 +13,8 @@ import { sanitizeError } from '../lib/errorUtils'
 import { syncToMailerLite } from '../lib/mailerlite'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
-const COURSE_COLORS = [
-  'bg-[#f9e8f0] text-[#551735] border-[#e8b4cc]',
-  'bg-blue-100 text-blue-700 border-blue-200',
-  'bg-green-100 text-green-700 border-green-200',
-  'bg-orange-100 text-orange-700 border-orange-200',
-  'bg-pink-100 text-pink-700 border-pink-200',
-  'bg-teal-100 text-teal-700 border-teal-200',
-  'bg-yellow-100 text-yellow-700 border-yellow-200',
-  'bg-red-100 text-red-700 border-red-200',
-]
+// Chips de curso neutros: el color se reserva para estados
+const COURSE_COLORS = ['bg-surface-alt text-ink-soft border-line']
 
 const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyrical', 'Ritmos Tropicales']
 
@@ -449,10 +441,10 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl font-medium active:scale-95 transition-all text-sm"
+          className="sd-btn sd-btn-primary sd-btn-sm"
         >
           <Plus size={16} />
-          Nueva Instructora
+          Nueva instructora
         </button>
       </div>
 
@@ -477,11 +469,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           <button
             key={val}
             onClick={() => setFilterActive(val)}
-            className={`px-3 py-2 rounded-xl text-sm font-medium active:scale-95 transition-all ${
-              filterActive === val
-                ? 'bg-[#6b2145] text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-[#fdf5f9]'
-            }`}
+            aria-pressed={filterActive === val}
+            className="sd-chip"
           >
             {label}
           </button>
@@ -510,35 +499,31 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
             return (
               <div
                 key={inst.id}
-                className={`bg-white rounded-xl shadow border-l-4 ${inst.active ? 'border-[#7e2d55]' : 'border-gray-300'} p-4 flex flex-col gap-3`}
+                className="sd-card p-4 flex flex-col gap-3"
               >
                 {/* Cabecera */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${inst.active ? 'bg-[#7e2d55]' : 'bg-gray-400'}`}>
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${inst.active ? 'bg-brand-soft text-brand-ink' : 'bg-surface-alt text-ink-muted'}`}>
                         {inst.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-800 text-sm leading-tight">{inst.name}</p>
-                        <p className="text-xs text-gray-400">CI: {inst.cedula}</p>
+                        <p className="font-semibold text-ink text-sm leading-tight">{inst.name}</p>
+                        <p className="text-xs text-ink-muted">CI: {inst.cedula}</p>
                       </div>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${inst.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`text-xs font-semibold shrink-0 ${inst.active ? 'sd-status-ok' : 'text-ink-muted'}`}>
                     {inst.active ? 'Activa' : 'Inactiva'}
                   </span>
                 </div>
 
                 {/* Ritmos */}
                 {(instructorRhythms[inst.id] || []).length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {instructorRhythms[inst.id].map(r => (
-                      <span key={r} className="text-xs px-2 py-0.5 rounded-full bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-700 font-medium">
-                        {r}
-                      </span>
-                    ))}
-                  </div>
+                  <p className="text-xs text-ink-soft">
+                    <span className="text-ink-muted">Ritmos: </span>{instructorRhythms[inst.id].join(' · ')}
+                  </p>
                 )}
 
                 {/* Cursos asignados */}
@@ -552,17 +537,16 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400 italic">Sin cursos asignados</p>
+                    <p className="text-xs text-ink-muted italic">Sin cursos asignados</p>
                   )}
                 </div>
 
                 {/* Acciones — fila 1: paneles */}
-                <div className="flex gap-2 pt-1 border-t border-gray-100">
+                <div className="flex gap-2 pt-3 border-t border-line">
                   <button
                     onClick={() => isCoursePanelOpen ? closeCoursePanel() : openCoursePanel(inst.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
-                      isCoursePanelOpen ? 'bg-[#6b2145] text-white' : 'bg-[#fdf5f9] hover:bg-[#f9e8f0] text-[#551735]'
-                    }`}
+                    aria-expanded={isCoursePanelOpen}
+                    className={`flex-1 sd-btn sd-btn-sm ${isCoursePanelOpen ? 'sd-btn-primary' : 'sd-btn-secondary'}`}
                   >
                     <BookOpen size={13} />
                     Cursos
@@ -570,9 +554,8 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   </button>
                   <button
                     onClick={() => isSchedulePanelOpen ? closeSchedulePanel() : openSchedulePanel(inst.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
-                      isSchedulePanelOpen ? 'bg-blue-600 text-white' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
-                    }`}
+                    aria-expanded={isSchedulePanelOpen}
+                    className={`flex-1 sd-btn sd-btn-sm ${isSchedulePanelOpen ? 'sd-btn-primary' : 'sd-btn-secondary'}`}
                   >
                     <Clock size={13} />
                     Horario
@@ -584,25 +567,23 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEdit(inst)}
-                    className="flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 active:scale-95 transition-all"
+                    className="flex-1 sd-btn sd-btn-ghost sd-btn-sm"
                   >
                     <Edit2 size={13} />
                     Editar
                   </button>
                   <button
                     onClick={() => toggleActive(inst)}
-                    className={`flex-1 flex items-center justify-center gap-1 text-sm font-medium px-3 py-2 rounded-xl active:scale-95 transition-all ${
-                      inst.active
-                        ? 'bg-amber-50 hover:bg-amber-100 text-amber-600'
-                        : 'bg-green-50 hover:bg-green-100 text-green-600'
-                    }`}
+                    className="flex-1 sd-btn sd-btn-ghost sd-btn-sm"
                   >
                     {inst.active ? <UserX size={13} /> : <UserCheck size={13} />}
                     {inst.active ? 'Pausar' : 'Activar'}
                   </button>
                   <button
                     onClick={() => openDelete(inst)}
-                    className="flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 active:scale-95 transition-all"
+                    className="sd-btn sd-btn-ghost sd-btn-sm hover:!text-[#b42318]"
+                    title="Eliminar instructora"
+                    aria-label={`Eliminar a ${inst.name}`}
                   >
                     <Trash2 size={13} />
                   </button>

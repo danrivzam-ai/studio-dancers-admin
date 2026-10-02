@@ -2139,15 +2139,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           return (
             <div className="space-y-4">
               {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Megaphone size={20} className="text-[#6b2145]" />
-                  <h2 className="text-lg font-semibold text-gray-800">Tablón de anuncios</h2>
-                  <span className="text-xs text-gray-500">{announcements.filter(a => a.active).length} activos</span>
-                </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-ink-muted">
+                  {announcements.filter(a => a.active).length} aviso{announcements.filter(a => a.active).length !== 1 ? 's' : ''} activo{announcements.filter(a => a.active).length !== 1 ? 's' : ''} · los ven las familias en el portal
+                </p>
                 <button
                   onClick={() => { setEditingAnnouncement(null); setAnnouncementForm({ title: '', body: '', color: 'purple', pinned: false, expires_at: '' }); setShowAnnouncementForm(true) }}
-                  className="flex items-center gap-1.5 bg-[#6b2145] hover:bg-[#551735] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  className="sd-btn sd-btn-primary sd-btn-sm shrink-0"
                 >
                   <Plus size={15} /> Nuevo aviso
                 </button>
@@ -2155,25 +2153,25 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
               {/* Create/Edit form */}
               {showAnnouncementForm && (
-                <div className="bg-white rounded-xl shadow border border-[#f9e8f0] p-4 space-y-3">
-                  <h3 className="font-semibold text-gray-800 text-sm">{editingAnnouncement ? 'Editar aviso' : 'Nuevo aviso'}</h3>
+                <div className="sd-card p-4 space-y-3">
+                  <h3 className="font-semibold text-ink text-sm">{editingAnnouncement ? 'Editar aviso' : 'Nuevo aviso'}</h3>
                   <input
                     type="text"
                     value={announcementForm.title}
                     onChange={e => setAnnouncementForm(f => ({ ...f, title: e.target.value }))}
                     placeholder="Título del aviso *"
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] outline-none transition-all"
+                    className="w-full px-3 py-2.5 bg-surface border border-line-strong rounded-xl text-base text-ink placeholder:text-ink-muted focus:ring-4 focus:ring-brand-soft focus:border-brand outline-none transition-all"
                   />
                   <textarea
                     value={announcementForm.body}
                     onChange={e => setAnnouncementForm(f => ({ ...f, body: e.target.value }))}
                     placeholder="Contenido del aviso *"
                     rows={3}
-                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-[#c98daa] focus:border-[#9e4d75] resize-none outline-none transition-all"
+                    className="w-full px-3 py-2.5 bg-surface border border-line-strong rounded-xl text-base text-ink placeholder:text-ink-muted focus:ring-4 focus:ring-brand-soft focus:border-brand resize-none outline-none transition-all"
                   />
                   {/* Color picker */}
                   <div>
-                    <p className="text-xs text-gray-500 mb-1.5 font-medium">Color</p>
+                    <p className="text-xs text-ink-muted mb-1.5 font-medium">Color del aviso</p>
                     <div className="flex gap-2 flex-wrap">
                       {COLORS.map(c => (
                         <button
@@ -2196,16 +2194,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         onChange={e => setAnnouncementForm(f => ({ ...f, pinned: e.target.checked }))}
                         className="w-4 h-4 accent-[#6b2145]"
                       />
-                      <span className="text-sm text-gray-700 flex items-center gap-1"><Pin size={13} /> Fijar al tope</span>
+                      <span className="text-sm text-ink flex items-center gap-1"><Pin size={13} /> Fijar arriba</span>
                     </label>
                     {/* Expiry */}
                     <div className="flex items-center gap-2">
-                      <label className="text-sm text-gray-600">Vence:</label>
+                      <label className="text-sm text-ink-soft">Vence:</label>
                       <input
                         type="date"
                         value={announcementForm.expires_at}
                         onChange={e => setAnnouncementForm(f => ({ ...f, expires_at: e.target.value }))}
-                        className="px-2 py-1 border-2 border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#c98daa] outline-none transition-all"
+                        className="px-2 py-1.5 bg-surface border border-line-strong rounded-xl text-sm text-ink focus:ring-4 focus:ring-brand-soft outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -2213,13 +2211,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     <button
                       onClick={saveAnnouncement}
                       disabled={!announcementForm.title.trim() || !announcementForm.body.trim()}
-                      className="flex-1 bg-[#6b2145] hover:bg-[#551735] disabled:opacity-40 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
+                      className="flex-1 sd-btn sd-btn-primary"
                     >
                       {editingAnnouncement ? 'Guardar cambios' : 'Publicar aviso'}
                     </button>
                     <button
                       onClick={() => { setShowAnnouncementForm(false); setEditingAnnouncement(null) }}
-                      className="px-4 py-2 rounded-xl border text-sm text-gray-600 hover:bg-gray-50"
+                      className="sd-btn sd-btn-secondary"
                     >
                       Cancelar
                     </button>
@@ -2229,35 +2227,34 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
               {/* Announcement list */}
               {announcements.length === 0 && (
-                <div className="bg-white rounded-xl shadow p-8 text-center">
-                  <Megaphone size={40} className="mx-auto mb-3 text-gray-300" />
-                  <p className="text-gray-500">No hay avisos aún. Crea el primero.</p>
+                <div className="sd-card p-8 text-center">
+                  <Megaphone size={32} className="mx-auto mb-3 text-ink-muted" />
+                  <p className="text-sm text-ink-soft">Todavía no hay avisos. Publica el primero para las familias.</p>
                 </div>
               )}
               {announcements.map(a => {
                 const cfg = colorCfg(a.color)
                 return (
-                  <div key={a.id} className={`bg-white rounded-xl shadow border overflow-hidden ${!a.active ? 'opacity-50' : ''}`}>
+                  <div key={a.id} className={`sd-card overflow-hidden ${!a.active ? 'opacity-60' : ''}`}>
                     <div className={`flex items-center gap-2 px-4 py-2.5 ${cfg.bg}`}>
                       {a.pinned && <Pin size={13} className={cfg.text} />}
                       <span className={`font-semibold text-sm flex-1 ${cfg.text}`}>{a.title}</span>
-                      {a.expires_at && <span className="text-xs text-gray-400">Vence: {formatDate(a.expires_at)}</span>}
-                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${a.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {a.active ? 'Activo' : 'Inactivo'}
-                      </span>
+                      {a.expires_at && <span className={`text-xs ${cfg.text} opacity-80`}>Vence {formatDate(a.expires_at)}</span>}
                     </div>
                     <div className="px-4 py-3">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{a.body}</p>
-                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
-                        <span className="text-xs text-gray-400 flex-1">{formatDate(a.created_at)}</span>
-                        <button onClick={() => openEditAnnouncement(a)} className="p-1.5 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-[#6b2145] active:scale-95 transition-all">
-                          <Edit2 size={14} />
+                      <p className="text-sm text-ink whitespace-pre-wrap leading-relaxed">{a.body}</p>
+                      <div className="flex items-center gap-1 mt-3 pt-2 border-t border-line -mr-2">
+                        <span className="text-xs text-ink-muted flex-1">
+                          {formatDate(a.created_at)} · <span className={a.active ? 'sd-status-ok font-semibold' : ''}>{a.active ? 'Visible' : 'Oculto'}</span>
+                        </span>
+                        <button onClick={() => openEditAnnouncement(a)} className="w-10 h-10 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-alt" title="Editar aviso" aria-label="Editar aviso">
+                          <Edit2 size={16} />
                         </button>
-                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className={`p-1.5 rounded-xl active:scale-95 transition-all ${a.active ? 'hover:bg-red-50 text-red-400 hover:text-red-500' : 'hover:bg-green-50 text-green-500 hover:text-green-600'}`}>
-                          {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
+                        <button onClick={() => toggleAnnouncementActive(a.id, a.active)} className="w-10 h-10 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-alt" title={a.active ? 'Ocultar del portal' : 'Mostrar en el portal'} aria-label={a.active ? 'Ocultar del portal' : 'Mostrar en el portal'}>
+                          {a.active ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
-                        <button onClick={() => deleteAnnouncement(a.id)} className="p-1.5 hover:bg-red-50 rounded-xl text-red-400 hover:text-red-500 active:scale-95 transition-all">
-                          <Trash2 size={14} />
+                        <button onClick={() => deleteAnnouncement(a.id)} className="w-10 h-10 flex items-center justify-center rounded-full text-ink-muted hover:text-[#b42318] hover:bg-surface-alt" title="Eliminar aviso" aria-label="Eliminar aviso">
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
@@ -2311,7 +2308,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
                 <div className="px-5 pb-4 pt-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag size={20} className="text-green-600" />
+                  <ShoppingBag size={20} className="text-brand-ink" />
                   <h2 className="text-xl font-semibold text-gray-800">Nueva Venta</h2>
                 </div>
                 <button onClick={() => { setShowSaleForm(false); setCartItems([]); setProductSearch('') }} className="p-2 hover:bg-gray-100 rounded-xl active:scale-95 transition-all">
@@ -2442,7 +2439,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         type="button"
                         onClick={handleAddToCart}
                         disabled={!saleForm.productId}
-                        className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl text-sm font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 sd-btn sd-btn-secondary sd-btn-sm !text-brand-ink active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
                         <Plus size={15} />
                         Agregar al carrito
@@ -2525,7 +2522,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   <button
                     type="submit"
                     disabled={cartItems.length === 0 || !saleForm.customerName}
-                    className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-semibold"
+                    className="flex-1 sd-btn sd-btn-primary sd-btn-lg flex items-center justify-center gap-2 font-semibold"
                   >
                     <Check size={18} />
                     Registrar venta

@@ -668,21 +668,17 @@ export default function HonorariosPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <DollarSign size={20} className="text-[#6b2145]"/>
-          <h2 className="text-lg font-semibold text-gray-800">Honorarios Docentes</h2>
-          <span className="text-xs text-gray-400">{instructors.length} instructoras activas</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold text-ink leading-tight">Honorarios docentes</h2>
+          <p className="text-xs text-ink-muted">{instructors.length} instructora{instructors.length !== 1 ? 's' : ''} activa{instructors.length !== 1 ? 's' : ''}</p>
         </div>
-        <button
-          onClick={() => setShowMultiPrint(true)}
-          className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-[#fdf5f9] hover:border-[#c98daa] hover:text-[#551735] transition-all text-xs font-medium"
-        >
+        <button onClick={() => setShowMultiPrint(true)} className="sd-btn sd-btn-secondary sd-btn-sm shrink-0">
           <Layers size={14}/> Hoja combinada
         </button>
       </div>
 
-      <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-xs">
+      <div className="flex items-start gap-2 p-3 bg-surface-alt border border-line rounded-xl text-ink-soft text-xs">
         <AlertCircle size={13} className="shrink-0 mt-0.5"/>
         <span>
           Configura la <strong>tarifa/hora</strong> en <strong>Instructoras → Editar perfil</strong>.

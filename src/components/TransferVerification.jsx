@@ -192,7 +192,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+        className="sd-btn sd-btn-primary sd-btn-full flex items-center justify-center gap-1.5"
       >
         {loading ? 'Registrando...' : (
           <><Upload size={14} /> Registrar transferencia</>
@@ -550,7 +550,7 @@ export default function TransferVerification({
                               <button
                                 onClick={() => handleApprove(req)}
                                 disabled={processing === req.id}
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-3 bg-green-600 text-white rounded-xl text-xs font-medium hover:bg-green-700 disabled:opacity-50 active:scale-95 transition-all"
+                                className="flex-1 sd-btn sd-btn-primary !text-xs !whitespace-normal"
                               >
                                 <CheckCircle size={14} />
                                 {processing === req.id ? 'Procesando...' : 'Aprobar y registrar pago'}
