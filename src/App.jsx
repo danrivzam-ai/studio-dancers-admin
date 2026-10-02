@@ -332,6 +332,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showNewPlan, setShowNewPlan] = useState(false)
   // Tienda: una vista a la vez (antes los abonos quedaban al final, bajo el catálogo)
   const [storeView, setStoreView] = useState('ventas')
+  // Productos: búsqueda por nombre y filtro "por reponer"
+  const [catalogSearch, setCatalogSearch] = useState('')
+  const [catalogLowOnly, setCatalogLowOnly] = useState(false)
 
   // Configuración de períodos de mora
   const graceDays       = settings.grace_days       ?? 5
@@ -1667,6 +1670,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', products: otros })
           const hasStockInfo = (p) => p.stock !== null && p.stock !== undefined
           const stockAlerts = allProducts.filter(p => hasStockInfo(p) && p.stock <= 3).length
+          // Búsqueda sin tildes ni mayúsculas ("matricula" encuentra "Matrícula")
+          const norm = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+          const catalogQuery = norm(catalogSearch.trim())
+          const isFilteringCatalog = catalogQuery.length > 0 || catalogLowOnly
+          const visibleCategories = categorized
+            .map(cat => ({
+              ...cat,
+              products: cat.products.filter(p =>
+                (!catalogQuery || norm(p.name).includes(catalogQuery)) &&
+                (!catalogLowOnly || (hasStockInfo(p) && p.stock <= 3))
+              ),
+            }))
+            .filter(cat => cat.products.length > 0)
           const todaySales = sales.filter(s => s.sale_date === todayStr)
           const todaySalesTotal = todaySales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
           const METHOD_LABEL = { cash: 'Efectivo', transfer: 'Transferencia', card: 'Tarjeta' }
@@ -1829,11 +1845,45 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               )}
             </div>
 
-            {categorized.map(cat => {
-              const collapsed = collapsedCats.has(cat.key)
+            {/* Buscar por nombre + ver solo lo que hay que reponer */}
+            <div className="flex gap-2">
+              <div className="flex-1 flex items-center gap-2 h-11 px-3 bg-surface border border-line-strong rounded-xl focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft transition-all">
+                <Search size={16} className="text-ink-muted shrink-0" />
+                <input
+                  type="text"
+                  value={catalogSearch}
+                  onChange={e => setCatalogSearch(e.target.value)}
+                  placeholder="Buscar artículo"
+                  className="flex-1 min-w-0 text-base outline-none bg-transparent text-ink placeholder:text-ink-muted"
+                />
+                {catalogSearch && (
+                  <button onClick={() => setCatalogSearch('')} className="-mr-1.5 w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink rounded-full shrink-0" aria-label="Limpiar búsqueda">
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+              {stockAlerts > 0 && (
+                <button onClick={() => setCatalogLowOnly(v => !v)} aria-pressed={catalogLowOnly} className="sd-chip shrink-0 !min-h-11">
+                  Por reponer <span className="tabular-nums opacity-80">{stockAlerts}</span>
+                </button>
+              )}
+            </div>
+
+            {visibleCategories.length === 0 && (
+              <div className="sd-card p-6 text-center">
+                <p className="text-sm text-ink-soft">
+                  {catalogLowOnly && !catalogQuery ? 'Ningún artículo por reponer' : `Sin artículos para "${catalogSearch.trim()}"`}
+                </p>
+                <button onClick={() => { setCatalogSearch(''); setCatalogLowOnly(false) }} className="sd-btn sd-btn-ghost sd-btn-sm mt-2">Ver todo el catálogo</button>
+              </div>
+            )}
+
+            {visibleCategories.map(cat => {
+              // Al buscar, las categorías con resultados se muestran abiertas
+              const collapsed = !isFilteringCatalog && collapsedCats.has(cat.key)
               return (
                 <div key={cat.key} className="sd-card overflow-hidden">
-                  <button type="button" onClick={() => toggleCat(cat.key)} aria-expanded={!collapsed}
+                  <button type="button" onClick={() => !isFilteringCatalog && toggleCat(cat.key)} aria-expanded={!collapsed}
                     className="w-full flex items-center justify-between px-4 min-h-[48px] hover:bg-surface-alt transition-colors">
                     <span className="sd-section-title">
                       {cat.label} <span className="normal-case tracking-normal font-medium">· {cat.products.length}</span>
