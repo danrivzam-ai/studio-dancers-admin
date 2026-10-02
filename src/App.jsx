@@ -328,6 +328,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [newPlanPreselect, setNewPlanPreselect] = useState(null)
   const [collapsedCats, setCollapsedCats] = useState(new Set())
   const [showNewPlan, setShowNewPlan] = useState(false)
+  // Tienda: una vista a la vez (antes los abonos quedaban al final, bajo el catálogo)
+  const [storeView, setStoreView] = useState('ventas')
 
   // Configuración de períodos de mora
   const graceDays       = settings.grace_days       ?? 5
@@ -1641,8 +1643,32 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           })
           const filteredTotal = filteredSales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
+          // "Nuevo plan" abierto desde una venta → mostrar la vista de abonos
+          const currentStoreView = showNewPlan ? 'abonos' : storeView
           return (
           <div className="space-y-4">
+          {/* Selector de vista: Ventas | Abonos */}
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-surface border border-line" role="tablist" aria-label="Vista de tienda">
+            {[
+              { id: 'ventas', label: 'Ventas', meta: `${sales.filter(s => s.sale_date === todayStr).length} hoy` },
+              { id: 'abonos', label: 'Abonos', meta: `$${totalDebt.toFixed(0)} por cobrar` },
+            ].map(v => (
+              <button
+                key={v.id}
+                role="tab"
+                aria-selected={currentStoreView === v.id}
+                onClick={() => setStoreView(v.id)}
+                className={`min-h-[48px] rounded-lg px-3 py-1.5 text-left transition-colors ${
+                  currentStoreView === v.id ? 'bg-brand text-white' : 'text-ink-soft hover:bg-surface-alt'
+                }`}
+              >
+                <span className="block text-sm font-semibold leading-tight">{v.label}</span>
+                <span className={`block text-[11px] tabular-nums ${currentStoreView === v.id ? 'text-white/80' : 'text-ink-muted'}`}>{v.meta}</span>
+              </button>
+            ))}
+          </div>
+
+          {currentStoreView === 'ventas' && (
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <div className="flex items-center justify-between mb-3">
@@ -1865,12 +1891,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             )}
           </div>
 
+          )}
+
           {/* Ventas en Abonos */}
-          <div className="mt-2">
-            <div className="px-1 mb-3">
-              <h2 className="text-lg font-bold text-brand-ink">Ventas en abonos</h2>
-              <p className="text-xs text-ink-muted">Planes de pago · uniformes, vestuario, entradas</p>
-            </div>
+          {currentStoreView === 'abonos' && (
+          <div>
+            <p className="text-xs text-ink-muted px-1 mb-3">Planes de pago · uniformes, vestuario, entradas</p>
             <div>
               <SaleInstallments
                 allProducts={allProducts}
@@ -1890,10 +1916,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 onMarkDelivered={markDelivered}
                 externalShowNew={showNewPlan}
                 externalPreselect={newPlanPreselect}
-                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null) }}
+                onExternalClose={() => { setShowNewPlan(false); setNewPlanPreselect(null); setStoreView('abonos') }}
               />
             </div>
           </div>
+          )}
           </div>
           )
         })()}
