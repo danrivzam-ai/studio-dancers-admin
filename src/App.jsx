@@ -1653,177 +1653,89 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const filterLabels = { today: 'Hoy', week: '7 días', month: 'Este mes', all: 'Historial' }
           // "Nuevo plan" abierto desde una venta → mostrar la vista de abonos
           const currentStoreView = showNewPlan ? 'abonos' : storeView
+          // Productos: catálogo por categoría (antes mezclado con el historial de ventas)
+          const CATS = [
+            { key: 'entradas',  label: 'Entradas' },
+            { key: 'vestuario', label: 'Vestuario' },
+            { key: 'uniformes', label: 'Uniformes' },
+            { key: 'bar',       label: 'Bar' },
+          ]
+          const catKeys = CATS.map(c => c.key)
+          const categorized = CATS.map(cat => ({ ...cat, products: allProducts.filter(p => p.category === cat.key) }))
+            .filter(c => c.products.length > 0)
+          const otros = allProducts.filter(p => !catKeys.includes(p.category))
+          if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', products: otros })
+          const hasStockInfo = (p) => p.stock !== null && p.stock !== undefined
+          const stockAlerts = allProducts.filter(p => hasStockInfo(p) && p.stock <= 3).length
+          const todaySales = sales.filter(s => s.sale_date === todayStr)
+          const todaySalesTotal = todaySales.reduce((sum, s) => sum + (parseFloat(s.total) || 0), 0)
+          const METHOD_LABEL = { cash: 'Efectivo', transfer: 'Transferencia', card: 'Tarjeta' }
+          const toggleCat = (key) => setCollapsedCats(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) next.delete(key); else next.add(key)
+            return next
+          })
+
           return (
           <div className="space-y-4">
-          {/* Selector de vista: Ventas | Abonos */}
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-surface border border-line" role="tablist" aria-label="Vista de tienda">
+          {/* Selector de vista: Ventas | Abonos | Productos */}
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-surface border border-line" role="tablist" aria-label="Vista de tienda">
             {[
-              { id: 'ventas', label: 'Ventas', meta: `${sales.filter(s => s.sale_date === todayStr).length} hoy` },
+              { id: 'ventas', label: 'Ventas', meta: `$${todaySalesTotal.toFixed(0)} hoy` },
               { id: 'abonos', label: 'Abonos', meta: `$${totalDebt.toFixed(0)} por cobrar` },
+              { id: 'productos', label: 'Productos', meta: stockAlerts > 0 ? `${stockAlerts} por reponer` : `${allProducts.length} artículos` },
             ].map(v => (
               <button
                 key={v.id}
                 role="tab"
                 aria-selected={currentStoreView === v.id}
                 onClick={() => setStoreView(v.id)}
-                className={`min-h-[48px] rounded-lg px-3 py-1.5 text-left transition-colors ${
+                className={`min-h-[48px] rounded-lg px-2.5 py-1.5 text-left transition-colors ${
                   currentStoreView === v.id ? 'bg-brand text-white' : 'text-ink-soft hover:bg-surface-alt'
                 }`}
               >
                 <span className="block text-sm font-semibold leading-tight">{v.label}</span>
-                <span className={`block text-[11px] tabular-nums ${currentStoreView === v.id ? 'text-white/80' : 'text-ink-muted'}`}>{v.meta}</span>
+                <span className={`block text-[11px] tabular-nums truncate ${currentStoreView === v.id ? 'text-white/80' : 'text-ink-muted'}`}>{v.meta}</span>
               </button>
             ))}
           </div>
 
+          {/* ── Ventas: lo vendido en el periodo ── */}
           {currentStoreView === 'ventas' && (
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="font-semibold text-gray-800">Ventas de Artículos</h2>
-                  <p className="text-sm text-gray-500">
-                    {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} · Total: <span className="font-semibold text-green-700">${filteredTotal.toFixed(2)}</span>
-                    <span className="text-gray-400 ml-1">({filterLabels[salesDateFilter]})</span>
-                  </p>
-                </div>
+          <div className="space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-2xl font-bold text-ink tabular-nums leading-tight">
+                  ${filteredTotal.toFixed(2)} <span className="text-sm font-medium text-ink-muted">{filterLabels[salesDateFilter].toLowerCase()}</span>
+                </p>
+                <p className="text-xs text-ink-muted">{filteredSales.length} artículo{filteredSales.length !== 1 ? 's' : ''} vendido{filteredSales.length !== 1 ? 's' : ''}</p>
               </div>
-              <div className="flex gap-1.5 flex-wrap">
-                {[
-                  { value: 'today', label: 'Hoy' },
-                  { value: 'week', label: '7 días' },
-                  { value: 'month', label: 'Este mes' },
-                  { value: 'all', label: 'Todo' },
-                ].map(f => (
-                  <button
-                    key={f.value}
-                    onClick={() => setSalesDateFilter(f.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                      salesDateFilter === f.value
-                        ? 'bg-green-600 text-white shadow-sm'
-                        : 'bg-white text-gray-500 border border-gray-200 hover:border-green-300 hover:text-green-700'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
+              <button onClick={() => setShowSaleForm(true)} className="sd-btn sd-btn-primary sd-btn-sm shrink-0">
+                <Plus size={16} /> Nueva venta
+              </button>
             </div>
 
-            {/* Catálogo por categoría */}
-            {(() => {
-              const CATS = [
-                { key: 'entradas',  label: 'Entradas',  emoji: '🎟️' },
-                { key: 'vestuario', label: 'Vestuario', emoji: '👗' },
-                { key: 'uniformes', label: 'Uniformes', emoji: '📦' },
-                { key: 'bar',       label: 'Bar',       emoji: '🥤' },
-              ]
-              const catKeys = CATS.map(c => c.key)
-              const categorized = CATS.map(cat => ({
-                ...cat,
-                products: allProducts.filter(p => p.category === cat.key)
-              })).filter(c => c.products.length > 0)
-              const otros = allProducts.filter(p => !catKeys.includes(p.category))
-              if (otros.length > 0) categorized.push({ key: 'otros', label: 'Otros', emoji: '🎁', products: otros })
-
-              const toggleCat = (key) => setCollapsedCats(prev => {
-                const next = new Set(prev)
-                if (next.has(key)) next.delete(key); else next.add(key)
-                return next
-              })
-
-              return (
-                <div className="p-4 border-b space-y-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-700 flex items-center gap-2 text-sm">
-                      <Tag size={15} /> Catálogo
-                    </h3>
-                    {isAdmin && (
-                      <button onClick={() => setShowManageItems(true)}
-                        className="text-xs text-[#6b2145] hover:text-[#551735] flex items-center gap-1 font-medium">
-                        <Package size={13} /> Gestionar
-                      </button>
-                    )}
-                  </div>
-                  {categorized.map(cat => {
-                    const collapsed = collapsedCats.has(cat.key)
-                    return (
-                    <div key={cat.key} className="border border-gray-100 rounded-2xl overflow-hidden">
-                      <button type="button" onClick={() => toggleCat(cat.key)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition-colors">
-                        <span className="text-sm font-semibold text-gray-700">
-                          {cat.emoji} {cat.label}
-                          <span className="ml-2 text-xs font-normal text-gray-400">{cat.products.length} {cat.products.length === 1 ? 'artículo' : 'artículos'}</span>
-                        </span>
-                        <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} />
-                      </button>
-                      {!collapsed && (
-                      <div className="p-3">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {cat.products.map(product => {
-                          const hasStock = product.stock !== null && product.stock !== undefined
-                          const outOfStock = hasStock && product.stock === 0
-                          const lowStock = hasStock && product.stock > 0 && product.stock <= 3
-                          return (
-                            <div key={product.id}
-                              className={`bg-white rounded-2xl border p-3 shadow-sm flex flex-col gap-2 ${outOfStock ? 'opacity-50' : 'hover:shadow-md transition-shadow'}`}>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-800 leading-tight">{product.name}</p>
-                                <div className="flex items-center gap-1.5 mt-1">
-                                  <span className="text-green-600 font-bold text-sm">${product.price}</span>
-                                  {hasStock && (
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                                      outOfStock ? 'bg-red-100 text-red-600' :
-                                      lowStock   ? 'bg-amber-100 text-amber-700' :
-                                                   'bg-blue-50 text-blue-600'
-                                    }`}>
-                                      {outOfStock ? 'Agotado' : `${product.stock} ud`}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex gap-1 mt-auto">
-                                <button
-                                  disabled={outOfStock}
-                                  onClick={() => { setSaleForm(f => ({ ...f, productId: product.id })); setShowSaleForm(true) }}
-                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                                  Vender
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setNewPlanPreselect(product)
-                                    setShowNewPlan(true)
-                                  }}
-                                  className="flex-1 py-1.5 text-[11px] font-semibold rounded-xl border-2 border-[#c98daa] text-[#551735] hover:bg-[#fdf5f9] transition-colors">
-                                  Abonar
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                      </div>
-                      )}
-                    </div>
-                    )
-                  })}
-                </div>
-              )
-            })()}
+            <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                { value: 'today', label: 'Hoy' },
+                { value: 'week', label: '7 días' },
+                { value: 'month', label: 'Este mes' },
+                { value: 'all', label: 'Todo' },
+              ].map(fl => (
+                <button key={fl.value} onClick={() => setSalesDateFilter(fl.value)} aria-pressed={salesDateFilter === fl.value} className="sd-chip shrink-0">
+                  {fl.label}
+                </button>
+              ))}
+            </div>
 
             {filteredSales.length === 0 ? (
-              <div className="p-12 text-center text-gray-500">
-                <ShoppingBag size={48} className="mx-auto mb-4 opacity-50" />
-                <p>{salesDateFilter === 'today' ? 'Sin ventas hoy' : salesDateFilter === 'week' ? 'Sin ventas esta semana' : salesDateFilter === 'month' ? 'Sin ventas este mes' : 'No hay ventas registradas'}</p>
-                <button
-                  onClick={() => setShowSaleForm(true)}
-                  className="mt-4 text-green-600 hover:text-green-700 font-medium"
-                >
-                  Registrar primera venta
-                </button>
+              <div className="sd-card p-8 text-center">
+                <ShoppingBag size={32} className="mx-auto mb-3 text-ink-muted" />
+                <p className="text-sm text-ink-soft">{salesDateFilter === 'today' ? 'Sin ventas hoy' : salesDateFilter === 'week' ? 'Sin ventas esta semana' : salesDateFilter === 'month' ? 'Sin ventas este mes' : 'No hay ventas registradas'}</p>
+                <button onClick={() => setShowSaleForm(true)} className="sd-btn sd-btn-secondary sd-btn-sm mt-4">Registrar una venta</button>
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="sd-card overflow-hidden">
                 {(() => {
                   // Agrupar ventas: agrupadas por sale_group_id, o individuales (null)
                   const groups = []
@@ -1832,63 +1744,65 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     if (sale.sale_group_id) {
                       if (seen.has(sale.sale_group_id)) continue
                       seen.add(sale.sale_group_id)
-                      const items = filteredSales.filter(s => s.sale_group_id === sale.sale_group_id)
+                      const items = filteredSales.filter(x => x.sale_group_id === sale.sale_group_id)
                       groups.push({ isGroup: true, id: sale.sale_group_id, items, sale })
                     } else {
                       groups.push({ isGroup: false, id: sale.id, items: [sale], sale })
                     }
                   }
                   return groups.map(group => {
-                    const groupTotal = group.items.reduce((s, i) => s + parseFloat(i.total || 0), 0)
+                    const groupTotal = group.items.reduce((sum, i) => sum + parseFloat(i.total || 0), 0)
+                    const first = group.items[0]
+                    const extra = group.items.length - 1
                     return (
-                      <div key={group.id} className="p-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            {group.isGroup ? (
-                              <div className="space-y-0.5">
-                                {group.items.map((item, i) => (
-                                  <p key={i} className="text-sm text-gray-800">
-                                    {item.product_name} <span className="text-gray-500">×{item.quantity}</span>
-                                    <span className="text-gray-500 ml-1">${parseFloat(item.total).toFixed(2)}</span>
-                                  </p>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="font-medium text-gray-800">{group.sale.product_name} ×{group.sale.quantity}</p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">Cliente: {group.sale.customer_name}{group.sale.program && <span className="ml-2 text-blue-500">· {group.sale.program}</span>}</p>
-                            <p className="text-xs text-gray-400">{formatDate(group.sale.sale_date)}{group.sale.receipt_number && <span className="ml-2 text-[#9e4d75]">{group.sale.receipt_number}</span>}</p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <p className="font-bold text-green-600">${groupTotal.toFixed(2)}</p>
-                            {group.sale.receipt_number && (
-                              <button
-                                onClick={() => {
-                                  setLastSaleReceipt({
-                                    receiptNumber: group.sale.receipt_number,
-                                    customerName: group.sale.customer_name,
-                                    program: group.sale.program || null,
-                                    items: group.items.map(i => ({ productName: i.product_name, quantity: i.quantity, unitPrice: i.unit_price })),
-                                    total: groupTotal,
-                                    date: group.sale.sale_date,
-                                    paymentMethod: group.sale.payment_method || 'cash'
-                                  })
-                                  setShowSaleReceipt(true)
-                                }}
-                                className="p-1.5 text-[#7e2d55] hover:text-[#551735] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
-                                title="Ver comprobante"
-                              >
-                                <ScrollText size={16} />
-                              </button>
-                            )}
-                            {!isRecepcion && (
-                              <button
-                                onClick={() => group.items.forEach(i => handleDeleteSale(i))}
-                                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
+                      <div key={group.id} className="flex items-start gap-3 px-4 py-3 border-b border-line last:border-b-0">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-ink leading-snug">
+                            {first.product_name} <span className="font-normal text-ink-muted">×{first.quantity}</span>
+                            {extra > 0 && <span className="font-normal text-ink-muted"> · +{extra} más</span>}
+                          </p>
+                          <p className="text-xs text-ink-muted truncate">
+                            {group.sale.customer_name}{group.sale.program ? ` · ${group.sale.program}` : ''}
+                          </p>
+                          <p className="text-[11px] text-ink-muted">
+                            {formatDate(group.sale.sale_date)} · {METHOD_LABEL[group.sale.payment_method] || group.sale.payment_method || 'Efectivo'}
+                            {group.sale.receipt_number && <span> · {group.sale.receipt_number}</span>}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end shrink-0">
+                          <p className="text-sm font-bold text-ink tabular-nums">${groupTotal.toFixed(2)}</p>
+                          <div className="flex items-center -mr-2">
+                          {group.sale.receipt_number && (
+                            <button
+                              onClick={() => {
+                                setLastSaleReceipt({
+                                  receiptNumber: group.sale.receipt_number,
+                                  customerName: group.sale.customer_name,
+                                  program: group.sale.program || null,
+                                  items: group.items.map(i => ({ productName: i.product_name, quantity: i.quantity, unitPrice: i.unit_price })),
+                                  total: groupTotal,
+                                  date: group.sale.sale_date,
+                                  paymentMethod: group.sale.payment_method || 'cash'
+                                })
+                                setShowSaleReceipt(true)
+                              }}
+                              className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-alt"
+                              title="Ver comprobante"
+                              aria-label="Ver comprobante"
+                            >
+                              <ScrollText size={16} />
+                            </button>
+                          )}
+                          {!isRecepcion && (
+                            <button
+                              onClick={() => group.items.forEach(i => handleDeleteSale(i))}
+                              className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:text-[#b42318] hover:bg-surface-alt"
+                              title="Eliminar venta"
+                              aria-label="Eliminar venta"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                           </div>
                         </div>
                       </div>
@@ -1898,7 +1812,71 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
             )}
           </div>
+          )}
 
+          {/* ── Productos: catálogo con stock ── */}
+          {currentStoreView === 'productos' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-ink-muted">
+                {allProducts.length} artículo{allProducts.length !== 1 ? 's' : ''}
+                {stockAlerts > 0 && <span className="sd-status-warn font-semibold"> · {stockAlerts} con poco stock</span>}
+              </p>
+              {isAdmin && (
+                <button onClick={() => setShowManageItems(true)} className="sd-btn sd-btn-secondary sd-btn-sm shrink-0">
+                  <Package size={15} /> Gestionar
+                </button>
+              )}
+            </div>
+
+            {categorized.map(cat => {
+              const collapsed = collapsedCats.has(cat.key)
+              return (
+                <div key={cat.key} className="sd-card overflow-hidden">
+                  <button type="button" onClick={() => toggleCat(cat.key)} aria-expanded={!collapsed}
+                    className="w-full flex items-center justify-between px-4 min-h-[48px] hover:bg-surface-alt transition-colors">
+                    <span className="sd-section-title">
+                      {cat.label} <span className="normal-case tracking-normal font-medium">· {cat.products.length}</span>
+                    </span>
+                    <ChevronDown size={16} className={`text-ink-muted transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} />
+                  </button>
+                  {!collapsed && cat.products.map(product => {
+                    const hasStock = hasStockInfo(product)
+                    const outOfStock = hasStock && product.stock === 0
+                    const lowStock = hasStock && product.stock > 0 && product.stock <= 3
+                    return (
+                      <div key={product.id} className={`flex items-center gap-3 px-4 py-2.5 border-t border-line ${outOfStock ? 'opacity-60' : ''}`}>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-ink leading-snug">{product.name}</p>
+                          <p className="text-xs tabular-nums">
+                            <span className="font-semibold text-ink">${product.price}</span>
+                            {hasStock && (
+                              <span className={outOfStock ? 'sd-status-danger font-semibold' : lowStock ? 'sd-status-warn font-semibold' : 'text-ink-muted'}>
+                                {' · '}{outOfStock ? 'Agotado' : `${product.stock} en stock`}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => { setNewPlanPreselect(product); setShowNewPlan(true) }}
+                          className="sd-btn sd-btn-ghost sd-btn-sm"
+                        >
+                          Abonar
+                        </button>
+                        <button
+                          disabled={outOfStock}
+                          onClick={() => { setSaleForm(fm => ({ ...fm, productId: product.id })); setShowSaleForm(true) }}
+                          className="sd-btn sd-btn-secondary sd-btn-sm !text-brand-ink"
+                        >
+                          Vender
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
           )}
 
           {/* Ventas en Abonos */}
