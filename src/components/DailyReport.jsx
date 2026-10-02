@@ -58,7 +58,7 @@ export default function DailyReport() {
     <div className="space-y-4">
       {/* Header con fecha */}
       <div className="flex flex-wrap items-center gap-2 justify-between">
-        <h2 className="text-lg font-bold text-gray-800">Reporte del Día</h2>
+        <p className="text-sm text-ink-muted first-letter:uppercase">{formatDateDisplay(date)}</p>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => changeDate(-1)}
@@ -86,7 +86,7 @@ export default function DailyReport() {
           {!isToday && (
             <button
               onClick={() => setDate(today)}
-              className="px-2.5 py-2 bg-blue-600 text-white text-xs rounded-xl hover:bg-blue-700 active:scale-95 transition-all font-medium"
+              className="sd-btn sd-btn-primary sd-btn-sm"
             >
               Hoy
             </button>
@@ -96,12 +96,10 @@ export default function DailyReport() {
             className="p-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl active:scale-95 transition-all"
             title="Actualizar"
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin text-blue-500' : 'text-gray-500'} />
+            <RefreshCw size={16} className={loading ? 'animate-spin text-brand-ink' : 'text-ink-muted'} />
           </button>
         </div>
       </div>
-
-      <p className="text-sm text-gray-500 capitalize -mt-2">{formatDateDisplay(date)}</p>
 
       {/* Estado de caja */}
       {r.cashRegister ? (
