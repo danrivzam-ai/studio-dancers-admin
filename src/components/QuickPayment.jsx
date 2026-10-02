@@ -321,10 +321,10 @@ export default function QuickPayment({
           </div>
 
           {/* Total */}
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+          <div className="bg-surface-alt border border-line rounded-2xl p-4">
             <div className="flex justify-between items-center">
-              <span className="text-green-700 font-medium">Total a cobrar:</span>
-              <span className="text-3xl font-extrabold text-green-700">
+              <span className="text-ink font-semibold">Total a cobrar</span>
+              <span className="text-3xl font-extrabold text-brand-ink tabular-nums">
                 ${parseFloat(formData.amount || 0).toFixed(2)}
               </span>
             </div>

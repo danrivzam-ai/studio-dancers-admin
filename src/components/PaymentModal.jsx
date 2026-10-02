@@ -649,7 +649,7 @@ export default function PaymentModal({
                 onClick={() => handlePaymentTypeChange('full')}
                 className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                   formData.paymentType === 'full'
-                    ? 'border-green-500 bg-green-50 text-green-700'
+                    ? 'border-brand bg-brand-soft text-brand-ink'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
@@ -923,11 +923,11 @@ export default function PaymentModal({
 
           {/* Cycle Start Date — inscripción nueva */}
           {isNewEnrollment && (
-            <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 space-y-2">
-              <p className="text-sm font-semibold text-violet-800">
+            <div className="bg-surface-alt border border-line rounded-xl p-3 space-y-2">
+              <p className="text-sm font-semibold text-ink">
                 Primer día de clase
               </p>
-              <p className="text-xs text-violet-600 leading-relaxed">
+              <p className="text-xs text-ink-muted leading-relaxed">
                 Cambia la fecha si la alumna empieza en un día diferente al calculado.
               </p>
               <div className="flex items-center gap-2">
@@ -935,19 +935,19 @@ export default function PaymentModal({
                   type="date"
                   value={cycleStartDate}
                   onChange={(e) => setCycleStartDate(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm border-2 border-violet-300 rounded-xl focus:ring-2 focus:ring-violet-200 focus:border-violet-500 outline-none bg-white font-medium text-gray-800"
+                  className="flex-1 px-3 py-2 text-sm border border-line-strong rounded-xl focus:ring-4 focus:ring-brand-soft focus:border-brand outline-none bg-white font-medium text-gray-800"
                 />
                 {cycleStartDate !== _defaultCycleStart && (
                   <button
                     type="button"
                     onClick={() => setCycleStartDate(_defaultCycleStart)}
-                    className="text-xs text-violet-700 underline whitespace-nowrap shrink-0"
+                    className="text-xs text-brand-ink underline whitespace-nowrap shrink-0"
                   >
                     Restablecer
                   </button>
                 )}
               </div>
-              <p className="text-[11px] text-violet-600 leading-relaxed">
+              <p className="text-[11px] text-ink-muted leading-relaxed">
                 {cycleStartDate <= getTodayEC()
                   ? '✓ Empieza este mes'
                   : '📅 Empieza el mes siguiente'}
@@ -1018,15 +1018,15 @@ export default function PaymentModal({
           </div>
 
           {/* Summary */}
-          <div className="rounded-2xl p-4 bg-green-50 border border-green-200">
+          <div className="rounded-2xl p-4 bg-surface-alt border border-line">
             {showDiscountSummary && (
-              <div className="flex justify-between items-center mb-2 pb-2 border-b border-green-200">
+              <div className="flex justify-between items-center mb-2 pb-2 border-b border-line">
                 <span className="text-sm text-gray-500">Precio regular:</span>
                 <span className="text-sm text-gray-400 line-through">${baseAmount.toFixed(2)}</span>
               </div>
             )}
             {showDiscountSummary && (
-              <div className="flex justify-between items-center mb-2 pb-2 border-b border-green-200">
+              <div className="flex justify-between items-center mb-2 pb-2 border-b border-line">
                 <span className="text-sm text-green-600 flex items-center gap-1">
                   <Tag size={14} />
                   Descuento:
@@ -1036,20 +1036,20 @@ export default function PaymentModal({
             )}
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-green-700 font-medium">Total a cobrar:</span>
+                <span className="text-ink font-semibold">Total a cobrar</span>
                 {formData.paymentType === 'installment' && (
-                  <p className="text-xs text-green-600">Abono (cuota {amountPaid > 0 ? '2' : '1'} de {installmentCount})</p>
+                  <p className="text-xs text-ink-muted">Abono (cuota {amountPaid > 0 ? '2' : '1'} de {installmentCount})</p>
                 )}
                 {formData.paymentType === 'balance' && (
-                  <p className="text-xs text-green-600">Pago de saldo pendiente</p>
+                  <p className="text-xs text-ink-muted">Pago de saldo pendiente</p>
                 )}
               </div>
-              <span className="text-3xl font-extrabold text-green-700">
+              <span className="text-3xl font-extrabold text-brand-ink tabular-nums">
                 ${finalAmount.toFixed(2)}
               </span>
             </div>
             {formData.paymentMethod === 'transferencia' && formData.bankId && (
-              <p className="text-xs text-green-600 mt-2">
+              <p className="text-xs text-ink-muted mt-2">
                 Transferencia desde: {BANKS.find(b => b.id === formData.bankId)?.name}
               </p>
             )}
@@ -1060,17 +1060,17 @@ export default function PaymentModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
+              className="sd-btn sd-btn-secondary sd-btn-lg flex-1"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading || !formData.amount || parseFloat(formData.amount) <= 0 || (formData.paymentMethod === 'transferencia' && (!formData.bankId || !formData.transferReceipt))}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="sd-btn sd-btn-primary sd-btn-lg flex-1 min-w-0"
             >
               <Check size={20} />
-              {loading ? 'Procesando...' : 'Confirmar Pago'}
+              {loading ? 'Procesando…' : 'Confirmar pago'}
             </button>
           </div>
         </form>
@@ -1095,9 +1095,9 @@ export default function PaymentModal({
                 <span className="text-sm text-gray-500">Curso</span>
                 <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{pendingPayment.courseName}</span>
               </div>
-              <div className="flex justify-between items-center px-4 py-3 bg-green-50">
-                <span className="text-sm text-gray-600 font-medium">Monto</span>
-                <span className="text-2xl font-extrabold text-green-700">${pendingPayment.amount.toFixed(2)}</span>
+              <div className="flex justify-between items-center px-4 py-3 bg-brand-soft">
+                <span className="text-sm text-ink-soft font-medium">Monto</span>
+                <span className="text-2xl font-extrabold text-brand-ink tabular-nums">${pendingPayment.amount.toFixed(2)}</span>
               </div>
               {pendingPayment.discount?.hasDiscount && (
                 <div className="flex justify-between items-center px-4 py-2.5 bg-green-50/50">
@@ -1128,11 +1128,11 @@ export default function PaymentModal({
             </div>
             <div className="flex gap-3 mt-auto pt-2">
               <button type="button" onClick={() => setConfirmStep(false)}
-                className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 active:scale-95 transition-all">
+                className="sd-btn sd-btn-secondary sd-btn-lg flex-1">
                 ← Editar
               </button>
               <button type="button" onClick={handleConfirm} disabled={loading}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-semibold">
+                className="sd-btn sd-btn-primary sd-btn-lg flex-1 min-w-0">
                 <Check size={20} />
                 {loading ? 'Procesando...' : 'Sí, registrar'}
               </button>

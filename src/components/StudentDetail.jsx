@@ -7,13 +7,7 @@ import { getCourseById, ALL_COURSES } from '../lib/courses'
 import { openWhatsApp, buildReminderMessage } from '../lib/whatsapp'
 import InvoiceButton from './InvoiceButton'
 
-const METHOD_STYLE = {
-  'Efectivo':      { bg: 'bg-green-100',  text: 'text-green-700'  },
-  'Transferencia': { bg: 'bg-blue-100',   text: 'text-blue-700'   },
-  'Tarjeta':       { bg: 'bg-[#f9e8f0]', text: 'text-[#551735]' },
-  'PayPhone (Tarjeta)': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
-}
-const methodStyle = (m) => METHOD_STYLE[m] || { bg: 'bg-gray-100', text: 'text-gray-600' }
+const methodStyle = () => ({ bg: 'bg-surface-alt', text: 'text-ink-soft' })
 
 export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings }) {
   const [payments, setPayments] = useState([])
@@ -160,12 +154,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   }
 
   return (
-    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center !p-0 sm:!p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col"
-        style={{ maxHeight: '92svh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center lg:!items-stretch lg:!justify-end !p-0 sm:!p-4 lg:!p-0 lg:!bg-transparent">
+      <div className="bg-paper rounded-t-2xl sm:rounded-2xl lg:rounded-none shadow-xl w-full sm:max-w-lg lg:max-w-md flex flex-col max-h-[92svh] lg:max-h-none lg:h-full"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
         {/* ── Header ── */}
-        <div className="text-white rounded-t-2xl shrink-0 bg-[#551735]" style={{ padding: '36px 20px 16px' }}>
+        <div className="text-white rounded-t-2xl lg:rounded-none shrink-0 bg-brand px-5 pt-5 pb-4">
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">
@@ -198,8 +192,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             </div>
 
             {/* Close */}
-            <button onClick={onClose} aria-label="Cerrar" className="p-2 hover:bg-white/20 rounded-xl transition-colors shrink-0">
-              <X size={18} />
+            <button onClick={onClose} aria-label="Cerrar" className="-mr-2 -mt-1 w-10 h-10 flex items-center justify-center hover:bg-white/15 rounded-full transition-colors shrink-0">
+              <X size={20} />
             </button>
           </div>
 
@@ -261,88 +255,80 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             </div>
           )}
 
-          {/* Payment cards grid */}
-          {!student.is_courtesy && <div className="p-4 grid grid-cols-2 gap-3">
-            <div className={`border rounded-xl p-3 text-center ${hasGrandfatheredRate ? 'bg-amber-50 border-amber-200' : 'bg-violet-50 border-violet-100'}`}>
-              <p className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${hasGrandfatheredRate ? 'text-amber-500' : 'text-violet-400'}`}>Tarifa</p>
-              <p className={`text-xl font-bold ${hasGrandfatheredRate ? 'text-amber-700' : 'text-violet-700'}`}>${studentFee.toFixed(2)}</p>
-              <p className={`text-xs mt-0.5 ${hasGrandfatheredRate ? 'text-amber-400' : 'text-violet-300'}`}>
-                {course?.priceType === 'mes' ? (course?.classesPerCycle ? `${course.classesPerCycle} clases` : 'mensual')
-                  : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases`
-                  : course?.priceType === 'programa' ? 'programa completo'
-                  : 'por clase'}
-              </p>
-              {hasGrandfatheredRate && (
-                <p className="text-[9px] text-amber-500 font-semibold mt-1 uppercase tracking-wide">Tarifa histórica</p>
-              )}
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-              <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-medium mb-1">Último pago</p>
-              <p className="text-sm font-bold text-gray-800">
-                {student.last_payment_date ? formatDate(student.last_payment_date) : '—'}
-              </p>
-              {validPayments.length > 0 && (
-                <p className="text-xs text-green-600 mt-0.5 font-medium">${parseFloat(validPayments[0].amount).toFixed(2)}</p>
-              )}
-            </div>
-
-            {isRecurring && (
-              <div className={`rounded-xl p-3 text-center border ${
-                daysUntilDue !== null && daysUntilDue < 0
-                  ? isAdultCycleCourse ? 'bg-sky-50 border-sky-200' : 'bg-red-50 border-red-200'
-                  : daysUntilDue !== null && daysUntilDue <= 5 ? 'bg-amber-50 border-amber-200'
-                  : 'bg-sky-50 border-sky-100'
-              }`}>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">
-                  {isAdultCycleCourse ? 'Próxima renovación' : 'Próximo cobro'}
-                </p>
-                <p className="text-sm font-bold text-gray-800">
-                  {student.next_payment_date ? formatDate(student.next_payment_date) : '—'}
-                </p>
-                {daysUntilDue !== null && (
-                  <p className={`text-xs mt-0.5 font-medium ${
-                    daysUntilDue < 0
-                      ? isAdultCycleCourse ? 'text-sky-600' : 'text-red-600'
-                      : daysUntilDue === 0 ? 'text-amber-600'
-                      : 'text-gray-400'
-                  }`}>
-                    {daysUntilDue < 0
-                      ? isAdultCycleCourse
-                        ? `${Math.abs(daysUntilDue)}d sin renovar`
-                        : `${Math.abs(daysUntilDue)}d vencido`
-                      : daysUntilDue === 0 ? 'Hoy'
-                      : `en ${daysUntilDue} días`}
+          {/* Datos de pago: una tarjeta neutra; color solo para estados */}
+          {!student.is_courtesy && (
+            <div className="px-4 pt-4 pb-3">
+              <div className="sd-card grid grid-cols-2 overflow-hidden">
+                <div className="p-3.5 border-b border-r border-line">
+                  <p className="sd-section-title !text-[10px] mb-1">Tarifa</p>
+                  <p className="text-xl font-bold text-ink tabular-nums">${studentFee.toFixed(2)}</p>
+                  <p className="text-xs text-ink-muted">
+                    {course?.priceType === 'mes' ? (course?.classesPerCycle ? `${course.classesPerCycle} clases` : 'mensual')
+                      : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases`
+                      : course?.priceType === 'programa' ? 'programa completo'
+                      : 'por clase'}
+                    {hasGrandfatheredRate && <span className="sd-status-warn font-semibold"> · tarifa histórica</span>}
                   </p>
+                </div>
+
+                <div className="p-3.5 border-b border-line">
+                  <p className="sd-section-title !text-[10px] mb-1">Último pago</p>
+                  <p className="text-base font-bold text-ink tabular-nums">
+                    {student.last_payment_date ? formatDate(student.last_payment_date) : '—'}
+                  </p>
+                  {validPayments.length > 0 && (
+                    <p className="text-xs text-ink-muted tabular-nums">${parseFloat(validPayments[0].amount).toFixed(2)}</p>
+                  )}
+                </div>
+
+                {isRecurring && (
+                  <div className="p-3.5 border-r border-line">
+                    <p className="sd-section-title !text-[10px] mb-1">
+                      {isAdultCycleCourse ? 'Próxima renovación' : 'Próximo cobro'}
+                    </p>
+                    <p className="text-base font-bold text-ink tabular-nums">
+                      {student.next_payment_date ? formatDate(student.next_payment_date) : '—'}
+                    </p>
+                    {daysUntilDue !== null && (
+                      <p className={`text-xs font-semibold ${
+                        daysUntilDue < 0
+                          ? isAdultCycleCourse ? 'sd-status-warn' : 'sd-status-danger'
+                          : daysUntilDue <= 5 ? 'sd-status-warn'
+                          : 'text-ink-muted'
+                      }`}>
+                        {daysUntilDue < 0
+                          ? isAdultCycleCourse
+                            ? `${Math.abs(daysUntilDue)}d sin renovar`
+                            : `${Math.abs(daysUntilDue)}d vencido`
+                          : daysUntilDue === 0 ? 'Hoy'
+                          : `en ${daysUntilDue} días`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {(isRecurring || isProgram) && (
+                  <div className="p-3.5">
+                    <p className="sd-section-title !text-[10px] mb-1">
+                      {hasBalance ? 'Saldo pendiente' : 'Pagado del ciclo'}
+                    </p>
+                    <p className={`text-xl font-bold tabular-nums ${hasBalance ? 'sd-status-warn' : 'text-ink'}`}>
+                      {hasBalance ? `$${balance.toFixed(2)}` : amountPaid > 0 ? `$${amountPaid.toFixed(2)}` : '—'}
+                    </p>
+                    {hasBalance && <p className="text-xs text-ink-muted tabular-nums">de ${coursePrice.toFixed(2)}</p>}
+                  </div>
                 )}
               </div>
-            )}
-
-            {(isRecurring || isProgram) && (
-              <div className={`rounded-xl p-3 text-center border ${hasBalance ? 'bg-orange-50 border-orange-200' : 'bg-emerald-50 border-emerald-100'}`}>
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-1">
-                  {hasBalance ? 'Saldo pendiente' : 'Pagado ciclo'}
-                </p>
-                <p className={`text-xl font-bold ${hasBalance ? 'text-orange-600' : 'text-green-600'}`}>
-                  {hasBalance ? `$${balance.toFixed(2)}` : amountPaid > 0 ? `$${amountPaid.toFixed(2)}` : '—'}
-                </p>
-                {hasBalance && <p className="text-xs text-orange-400 mt-0.5">de ${coursePrice.toFixed(2)}</p>}
-              </div>
-            )}
-          </div>}
+            </div>
+          )}
 
           {/* Fidelidad */}
           {!student.is_courtesy && isRecurring && loyalty.months > 0 && (() => {
-            const lc = loyalty.tier === 'oro'
-              ? { card: 'bg-amber-50 border-amber-300', icon: 'text-amber-600', title: 'text-amber-800', pct: 'text-amber-700' }
-              : loyalty.tier === 'plata'
-              ? { card: 'bg-slate-50 border-slate-300', icon: 'text-slate-500', title: 'text-slate-700', pct: 'text-slate-600' }
-              : loyalty.tier === 'bronce'
-              ? { card: 'bg-orange-50 border-orange-300', icon: 'text-orange-600', title: 'text-orange-800', pct: 'text-orange-700' }
-              : { card: 'bg-gray-50 border-gray-200', icon: 'text-gray-400', title: 'text-gray-700', pct: 'text-gray-600' }
+            const tierIcon = loyalty.tier === 'oro' ? 'text-[#b8860b]' : loyalty.tier === 'plata' ? 'text-[#7d8590]' : loyalty.tier === 'bronce' ? 'text-[#a0522d]' : 'text-ink-muted'
+            const lc = { card: 'sd-card !shadow-none', icon: tierIcon, title: 'text-ink', pct: 'text-brand-ink' }
             return (
               <div className="px-4 pb-3">
-                <div className={`rounded-xl border p-3 ${lc.card}`}>
+                <div className={`p-3.5 ${lc.card}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Award size={16} className={lc.icon} />
@@ -350,7 +336,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                         <p className={`text-sm font-bold ${lc.title}`}>
                           {loyalty.tier ? `Nivel ${loyalty.label}` : 'Acumulando fidelidad'}
                         </p>
-                        <p className="text-xs text-gray-500">{loyalty.months} {loyalty.months === 1 ? 'mes' : 'meses'} consecutivo{loyalty.months !== 1 ? 's' : ''}</p>
+                        <p className="text-xs text-ink-muted">{loyalty.months} {loyalty.months === 1 ? 'mes' : 'meses'} consecutivo{loyalty.months !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
                     {loyalty.tier && (
@@ -360,7 +346,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                     )}
                   </div>
                   {loyalty.next && (
-                    <p className="text-[11px] text-gray-400 mt-1.5 text-center">
+                    <p className="text-[11px] text-ink-muted mt-1.5">
                       {loyalty.nextMonths} {loyalty.nextMonths === 1 ? 'mes' : 'meses'} más para nivel {loyalty.next}
                     </p>
                   )}
@@ -386,9 +372,9 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
             return (
               <div className="px-4 pb-3">
-                <div className="bg-[#fdf5f9] border border-[#f9e8f0] rounded-xl p-4">
+                <div className="sd-card !shadow-none p-4">
                   {/* Encabezado */}
-                  <p className="text-[10px] font-bold text-[#7e2d55] uppercase tracking-widest mb-3 text-center">
+                  <p className="sd-section-title mb-3 text-center">
                     {showOldCycle ? 'Ciclo en curso · Próximo ya pagado'
                       : isMultiCycle ? `Promo ${totalMonths} meses`
                       : 'Ciclo actual'}
@@ -418,30 +404,30 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   {/* Fechas de inicio/fin */}
                   <div className="grid grid-cols-2 gap-4 mb-2">
                     <div className="text-center">
-                      <p className="text-[10px] text-[#9e4d75] uppercase">Primera clase</p>
-                      <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleStart}</p>
+                      <p className="text-[10px] text-ink-muted uppercase tracking-wide">Primera clase</p>
+                      <p className="text-sm font-bold text-ink">{cycleInfo.cycleStart}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-[10px] text-[#9e4d75] uppercase">Última clase</p>
-                      <p className="text-sm font-bold text-[#551735]">{cycleInfo.cycleEnd}</p>
+                      <p className="text-[10px] text-ink-muted uppercase tracking-wide">Última clase</p>
+                      <p className="text-sm font-bold text-ink">{cycleInfo.cycleEnd}</p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-center text-[#7e2d55] mb-1">
+                  <p className="text-xs text-center text-ink-soft mb-1">
                     Clases: <span className="font-semibold">{cycleInfo.daysLabel}</span>
                   </p>
 
                   {/* Contador de clases */}
-                  <p className="text-center text-lg font-bold text-[#551735] mb-2">
+                  <p className="text-center text-lg font-bold text-brand-ink mb-2 tabular-nums">
                     {isMultiCycle
                       ? `Clase ${progressInMonth}/${totalInMonth} · ${taken}/${totalPkg} total`
                       : `Clase ${cycleInfo.classesPassed}/${cycleInfo.totalClasses}`}
                   </p>
 
                   {/* Barra de progreso del mes actual (no del total) */}
-                  <div className="bg-[#f9e8f0] rounded-full h-2 overflow-hidden">
+                  <div className="bg-line rounded-full h-2 overflow-hidden">
                     <div
-                      className="bg-[#7e2d55] h-2 rounded-full transition-all"
+                      className="bg-brand h-2 rounded-full transition-all"
                       style={{ width: `${Math.min(100, Math.round((progressInMonth / totalInMonth) * 100))}%` }}
                     />
                   </div>
@@ -467,24 +453,24 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
 
           {/* Contacto */}
           <div className="px-4 pb-3">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Contacto</p>
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2.5">
+            <p className="sd-section-title mb-2 px-1">Contacto</p>
+            <div className="sd-card !shadow-none p-3.5 space-y-3">
               {student.phone && (
                 <a href={`tel:${student.phone}`} className="flex items-center gap-2.5 group">
-                  <Phone size={14} className="text-[#9e4d75] shrink-0" />
-                  <span className="text-sm text-gray-700 group-hover:text-[#6b2145] transition-colors">{student.phone}</span>
+                  <Phone size={14} className="text-ink-muted shrink-0" />
+                  <span className="text-sm text-ink group-hover:text-brand-ink transition-colors">{student.phone}</span>
                 </a>
               )}
               {student.email && (
                 <a href={`mailto:${student.email}`} className="flex items-center gap-2.5 group">
-                  <Mail size={14} className="text-[#9e4d75] shrink-0" />
-                  <span className="text-sm text-gray-700 group-hover:text-[#6b2145] transition-colors truncate">{student.email}</span>
+                  <Mail size={14} className="text-ink-muted shrink-0" />
+                  <span className="text-sm text-ink group-hover:text-brand-ink transition-colors truncate">{student.email}</span>
                 </a>
               )}
               {student.parent_name && (
                 <div className="flex items-center gap-2.5">
-                  <User size={14} className="text-[#9e4d75] shrink-0" />
-                  <span className="text-sm text-gray-700">{student.parent_name}</span>
+                  <User size={14} className="text-ink-muted shrink-0" />
+                  <span className="text-sm text-ink">{student.parent_name}</span>
                   {student.parent_phone && student.parent_phone !== student.phone && (
                     <a href={`tel:${student.parent_phone}`} className="text-xs text-[#7e2d55] hover:text-[#551735] ml-auto shrink-0">
                       {student.parent_phone}
@@ -494,8 +480,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
               )}
               {student.payer_name && student.payer_name !== student.parent_name && student.payer_name !== student.name && (
                 <div className="flex items-center gap-2.5">
-                  <Wallet size={14} className="text-[#9e4d75] shrink-0" />
-                  <span className="text-sm text-gray-700">Pagador: {student.payer_name}</span>
+                  <Wallet size={14} className="text-ink-muted shrink-0" />
+                  <span className="text-sm text-ink">Pagador: {student.payer_name}</span>
                 </div>
               )}
               {student.enrollment_date && (
@@ -510,10 +496,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           {/* Notas */}
           {student.notes && (
             <div className="px-4 pb-3">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Notas</p>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex gap-2">
-                <FileText size={14} className="text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800 leading-relaxed">{student.notes}</p>
+              <p className="sd-section-title mb-2 px-1">Notas</p>
+              <div className="sd-card !shadow-none p-3.5 flex gap-2">
+                <FileText size={14} className="text-ink-muted shrink-0 mt-0.5" />
+                <p className="text-sm text-ink leading-relaxed">{student.notes}</p>
               </div>
             </div>
           )}
@@ -521,8 +507,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           {/* Historial de pagos */}
           {!student.is_courtesy && <div className="px-4 pb-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Historial de pagos</p>
-              <p className="text-xs text-gray-400">
+              <p className="sd-section-title px-1">Historial de pagos</p>
+              <p className="text-xs text-ink-muted tabular-nums">
                 {validPayments.length} pago{validPayments.length !== 1 ? 's' : ''} · ${totalHistoricPaid.toFixed(2)}
               </p>
             </div>
@@ -535,26 +521,24 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <p className="text-sm">Sin pagos registrados</p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="sd-card !shadow-none overflow-hidden">
                 {payments.map(payment => {
                   const ms = methodStyle(payment.payment_method)
                   return (
                     <div
                       key={payment.id}
-                      className={`rounded-xl px-3 py-2.5 border ${
-                        payment.voided ? 'bg-red-50 border-red-200 opacity-60' : 'bg-white border-gray-100'
-                      }`}
+                      className={`px-3.5 py-3 border-b border-line last:border-b-0 ${payment.voided ? 'opacity-55' : ''}`}
                     >
                       {/* Fila principal: icono + monto/fecha + método/comprobante */}
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${payment.voided ? 'bg-red-100' : 'bg-green-100'}`}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-surface-alt">
                           {payment.voided
-                            ? <Ban size={13} className="text-red-500" />
-                            : <CheckCircle size={13} className="text-green-600" />}
+                            ? <Ban size={14} className="sd-status-danger" />
+                            : <CheckCircle size={14} className="sd-status-ok" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className={`text-sm font-bold ${payment.voided ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                            <p className={`text-sm font-bold tabular-nums ${payment.voided ? 'text-ink-muted line-through' : 'text-ink'}`}>
                               ${parseFloat(payment.amount).toFixed(2)}
                             </p>
                             {payment.discount_amount && !payment.voided && (
@@ -566,7 +550,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                               <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-medium">Abono</span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-400">{formatDate(payment.payment_date)}</p>
+                          <p className="text-xs text-ink-muted">{formatDate(payment.payment_date)}</p>
                         </div>
                         <div className="shrink-0 text-right">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ms.bg} ${ms.text}`}>
@@ -601,11 +585,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
         </div>
 
         {/* ── Footer ── */}
-        <div className="shrink-0 border-t bg-white">
+        <div className="shrink-0 border-t border-line bg-surface">
 
           {/* Panel "Más opciones" — se despliega hacia arriba */}
           {showMoreActions && (
-            <div className="px-4 py-2 border-b border-gray-100 bg-gray-50/80 space-y-0.5">
+            <div className="px-3 py-2 border-b border-line bg-surface-alt space-y-0.5">
               {!student.is_courtesy && isRecurring && onReactivate && (
                 <button
                   onClick={() => { setShowMoreActions(false); setShowReactivateDialog(true); setReactivateError(null); setReactivateSuccess(false) }}
@@ -656,43 +640,31 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           )}
 
           {/* Acciones principales */}
-          <div className="px-4 pt-4 pb-4 space-y-3">
-
-            {/* Botón primario */}
+          <div className="px-4 py-3 flex gap-2.5">
+            <button
+              onClick={() => setShowMoreActions(v => !v)}
+              aria-expanded={showMoreActions}
+              className={`sd-btn sd-btn-lg ${showMoreActions ? 'sd-btn-primary' : 'sd-btn-secondary'}`}
+            >
+              <MoreHorizontal size={18} />
+              Más
+            </button>
             {!student.is_courtesy && !isProgramFullyPaid && (
               <button
                 onClick={() => { onClose(); if (onPayment) onPayment(student) }}
-                className="w-full py-4 bg-green-600 text-white rounded-2xl hover:bg-green-700 font-semibold flex items-center justify-center gap-2.5 text-sm active:scale-95 transition-all"
+                className="sd-btn sd-btn-primary sd-btn-lg flex-1"
               >
-                <CreditCard size={17} /> Registrar Pago
+                <CreditCard size={18} /> Registrar pago
               </button>
             )}
             {isProgramFullyPaid && (
-              <div className="w-full py-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl font-semibold flex items-center justify-center gap-2.5 text-sm">
-                <CheckCircle size={17} /> Programa pagado completo
+              <div className="flex-1 min-h-[52px] rounded-[0.875rem] border border-line flex items-center justify-center gap-2 text-sm font-semibold sd-status-ok">
+                <CheckCircle size={17} /> Programa pagado
               </div>
             )}
-
-            {/* Fila secundaria: Cerrar + Más */}
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 py-3.5 border border-gray-200 text-gray-600 rounded-2xl hover:bg-gray-50 font-medium text-sm active:scale-95 transition-all"
-              >
-                Cerrar
-              </button>
-              <button
-                onClick={() => setShowMoreActions(v => !v)}
-                className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border font-medium text-sm active:scale-95 transition-all ${
-                  showMoreActions
-                    ? 'bg-[#551735] border-[#551735] text-white'
-                    : 'bg-[#fdf5f9] border-[#e8b4cc] text-[#551735] hover:bg-[#f9e8f0]'
-                }`}
-              >
-                <MoreHorizontal size={17} />
-                Más
-              </button>
-            </div>
+            {student.is_courtesy && (
+              <button onClick={onClose} className="sd-btn sd-btn-secondary sd-btn-lg flex-1">Cerrar</button>
+            )}
           </div>
         </div>
       </div>

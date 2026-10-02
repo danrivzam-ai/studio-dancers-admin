@@ -2583,7 +2583,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {showStudentListModal && (
           <div className="fixed inset-0 bg-[#1a0010]/60 flex items-stretch sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
             {/* Celular: pantalla completa. PC: panel centrado */}
-            <div className="bg-paper sm:bg-surface sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl h-[100svh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
+            <div className={`bg-paper sm:bg-surface sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl h-[100svh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col transition-[margin] ${showStudentDetail ? "lg:mr-[28rem]" : ""}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
               {/* Cabecera */}
               <div className="flex items-center gap-2 px-2 sm:px-4 h-14 shrink-0 bg-surface border-b border-line">
                 <button
@@ -2734,7 +2734,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       const course = enrichCourse(getCourseById(student.course_id))
                       const paymentStatus = getPaymentStatus(student, course, autoInactiveDays, graceDays, moraDays)
                       const isCamp = student.course_id?.startsWith('camp-')
-                      const openDetail = () => { setShowStudentListModal(false); setShowStudentDetail(student) }
+                      // En PC la lista queda abierta y la ficha se abre al costado
+                      const openDetail = () => { if (window.innerWidth < 1024) setShowStudentListModal(false); setShowStudentDetail(student) }
 
                       return (
                         <div
