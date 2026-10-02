@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
-import { usePayments } from '../hooks/usePayments'
 import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo, calculateNextPaymentDate } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
@@ -19,9 +18,7 @@ export default function PaymentModal({
   onPaymentComplete,
   onFetchCoursePlans,
 }) {
-  const { generateReceiptNumber } = usePayments()
   const toast = useToast()
-  const [receiptNumber, setReceiptNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [confirmStep, setConfirmStep] = useState(false)
   const [pendingPayment, setPendingPayment] = useState(null)
@@ -131,8 +128,6 @@ export default function PaymentModal({
         amount: initialAmount.toString(),
         paymentType: initialPaymentType
       }))
-
-      generateReceiptNumber().then(num => setReceiptNumber(num))
 
       // Cargar planes promocionales del curso (si tiene)
       if (onFetchCoursePlans && course.id) {
@@ -309,7 +304,6 @@ export default function PaymentModal({
     ) ? cycleStartDate : null
     setPendingPayment({
       amount: parseFloat(formData.amount),
-      receiptNumber,
       paymentMethod: PAYMENT_METHODS.find(m => m.id === formData.paymentMethod)?.name || 'Efectivo',
       paymentType: dbPaymentType,
       paymentDate: formData.paymentDate,
@@ -386,7 +380,7 @@ export default function PaymentModal({
             </button>
           </div>
           <p className="text-sm text-white/70 mt-2 ml-1 px-6 pb-4">
-            Comprobante N° {receiptNumber}
+            El N° de comprobante se asigna al confirmar
           </p>
         </div>
 

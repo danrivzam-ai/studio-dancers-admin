@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Check, CreditCard, Banknote, Smartphone, Building2, Zap, Search } from 'lucide-react'
 import { BANKS } from '../lib/courses'
-import { usePayments } from '../hooks/usePayments'
 import { getTodayEC } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
@@ -23,7 +22,6 @@ export default function QuickPayment({
   onPaymentComplete,
   students = []
 }) {
-  const { generateReceiptNumber } = usePayments()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [confirmStep, setConfirmStep] = useState(false)
@@ -99,7 +97,6 @@ export default function QuickPayment({
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const receiptNumber = await generateReceiptNumber()
     const selectedBank = BANKS.find(b => b.id === formData.bankId)
     setPendingPayment({
       type: 'quick',
@@ -109,7 +106,6 @@ export default function QuickPayment({
       classType: formData.classType,
       className: selectedClass?.name || 'Clase Diaria',
       amount: parseFloat(formData.amount),
-      receiptNumber,
       paymentMethod: PAYMENT_METHODS.find(m => m.id === formData.paymentMethod)?.name || 'Efectivo',
       bankName: selectedBank?.name || null,
       transferReceipt: formData.transferReceipt || null,

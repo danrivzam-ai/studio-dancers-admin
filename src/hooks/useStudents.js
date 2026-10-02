@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
+import { getNextReceiptNumber } from '../lib/receipts'
 import { calculateNextPaymentDate, getNextClassDay, getNextNClassDays, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { sendLeadEvent, sendPurchaseEvent } from '../lib/metaConversionsApi'
@@ -299,6 +300,10 @@ export function useStudents() {
         return { success: false, error: 'No se pueden registrar pagos para alumnos de cortesía' }
       }
 
+      // Número de comprobante: se pide antes de escribir nada para no dejar la
+      // alumna actualizada sin su pago si la generación falla.
+      const receiptNumber = await getNextReceiptNumber()
+
       // Usar fecha de pago del formulario o fecha actual
       const paymentDate = paymentData.paymentDate
         ? new Date(paymentData.paymentDate + 'T12:00:00')
@@ -553,7 +558,7 @@ export function useStudents() {
         student_id: studentId,
         amount: paymentData.amount,
         payment_date: formatDateForInput(paymentDate),
-        receipt_number: paymentData.receiptNumber,
+        receipt_number: receiptNumber,
         payment_method: paymentData.paymentMethod || 'Efectivo',
         payment_type: paymentData.paymentType || 'full',
         bank_name: paymentData.bankName || null,

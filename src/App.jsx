@@ -22,6 +22,7 @@ import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
 import { lazyLoad } from './lib/lazyLoad'
+import { getNextReceiptNumber } from './lib/receipts'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -695,6 +696,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     try {
       // Guardar en la tabla quick_payments
       const { supabase } = await import('./lib/supabase')
+      const receiptNumber = await getNextReceiptNumber()
       const { error } = await supabase
         .from('quick_payments')
         .insert([{
@@ -704,7 +706,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           class_type: paymentData.classType,
           class_name: paymentData.className,
           amount: paymentData.amount,
-          receipt_number: paymentData.receiptNumber,
+          receipt_number: receiptNumber,
           payment_method: paymentData.paymentMethod,
           bank_name: paymentData.bankName,
           transfer_receipt: paymentData.transferReceipt,
@@ -723,8 +725,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       })
       setLastPayment({
         amount: paymentData.amount,
-        receipt_number: paymentData.receiptNumber,
-        receiptNumber: paymentData.receiptNumber,
+        receipt_number: receiptNumber,
+        receiptNumber,
         payment_date: paymentData.date,
         payment_method: paymentData.paymentMethod,
         bank_name: paymentData.bankName,
