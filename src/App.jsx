@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw, Snowflake
+  Search, ShoppingBag, Tag, Settings, ArrowLeft, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw, Snowflake
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -1244,7 +1244,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 if (e.target.value && activeTab !== 'students') {
                   setActiveTab('students')
                 }
-                if (e.target.value) {
+                if (e.target.value && !showStudentListModal) {
+                  // Buscar desde el inicio = buscar entre todas, sin filtros previos
+                  setFilterPayment('all')
+                  setFilterCourse('all')
                   setShowStudentListModal(true)
                 }
               }}
@@ -1272,7 +1275,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {(() => {
               const upcomingSoonCount = upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length
               const counters = [
-                { label: 'Alumnas', value: students.length, tone: 'text-ink', onClick: () => setShowStudentListModal(true) },
+                { label: 'Alumnas', value: students.length, tone: 'text-ink', onClick: () => { setFilterPayment('all'); setFilterCourse('all'); setShowStudentListModal(true) } },
                 { label: 'Próximos', value: upcomingSoonCount, tone: upcomingSoonCount > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => { setFilterPayment('upcoming'); setShowStudentListModal(true) } },
                 { label: 'Saldos', value: studentsWithBalance.length, tone: studentsWithBalance.length > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => studentsWithBalance.length > 0 && setShowBalanceAlerts(true) },
                 { label: 'Inactivas', value: inactiveStudents.length, tone: 'text-ink-muted', onClick: () => { setFilterPayment('inactive'); setShowStudentListModal(true) } },
@@ -2531,66 +2534,70 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Student Detail Modal */}
         {/* Student List Modal */}
         {showStudentListModal && (
-          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-end sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
-            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl max-h-[92svh] sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <div className="p-3 sm:p-5 border-b bg-[#551735] text-white rounded-t-2xl sm:rounded-t-2xl">
-                {/* Pill handle — mobile only */}
-                <div className="flex justify-center mb-2 sm:hidden">
-                  <div className="w-10 h-1 rounded-full bg-white/30" />
+          <div className="fixed inset-0 bg-[#1a0010]/60 flex items-stretch sm:items-center justify-center sm:p-4 z-50" onClick={() => setShowStudentListModal(false)}>
+            {/* Celular: pantalla completa. PC: panel centrado */}
+            <div className="bg-paper sm:bg-surface sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl h-[100svh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} onClick={(e) => e.stopPropagation()}>
+              {/* Cabecera */}
+              <div className="flex items-center gap-2 px-2 sm:px-4 h-14 shrink-0 bg-surface border-b border-line">
+                <button
+                  onClick={() => setShowStudentListModal(false)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface-alt"
+                  aria-label="Volver"
+                  title="Volver"
+                >
+                  <ArrowLeft size={20} className="sm:hidden" />
+                  <X size={20} className="hidden sm:block" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-bold text-brand-ink leading-tight truncate">
+                    {filteredStudents.length === students.length
+                      ? `${students.length} alumnas`
+                      : `${filteredStudents.length} de ${students.length} alumnas`}
+                  </h2>
+                  <p className="text-xs text-ink-muted truncate">
+                    {filterPayment === 'overdue' ? 'Por renovar' :
+                     filterPayment === 'mora' ? 'Suspendidas' :
+                     filterPayment === 'upcoming' ? 'Próximas a vencer' :
+                     filterPayment === 'inactive' ? 'Inactivas' :
+                     filterCourse !== 'all' ? 'Filtradas por curso' :
+                     'Toca una alumna para ver su ficha'}
+                  </p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="bg-white/20 p-1.5 sm:p-2 rounded-xl">
-                      <Users size={20} />
-                    </div>
-                    <div>
-                      <h2 className="text-base sm:text-lg font-bold">
-                        {filteredStudents.length === students.length
-                          ? `${students.length} alumnas`
-                          : `${filteredStudents.length} de ${students.length} alumnas`}
-                      </h2>
-                      <p className="text-xs text-white/70">
-                        {filterPayment === 'overdue' ? 'Filtro: Por renovar' :
-                         filterPayment === 'upcoming' ? 'Filtro: Próximas a vencer' :
-                         filterPayment === 'inactive' ? 'Filtro: Inactivas' :
-                         filterCourse !== 'all' ? 'Filtro: Por curso' :
-                         'Gestiona tu lista de alumnas'}
-                      </p>
-                    </div>
-                  </div>
-                  <button onClick={() => setShowStudentListModal(false)} className="p-2 hover:bg-white/20 rounded-xl transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setShowStudentListModal(false); setShowForm(true) }}
+                  className="sd-btn sd-btn-primary sd-btn-sm"
+                >
+                  <Plus size={16} />
+                  <span>Alumna</span>
+                </button>
               </div>
 
-              {/* Search and Filters */}
-              <div className="p-3 sm:p-4 border-b bg-gray-50 space-y-2.5">
-                {/* Fila 1: Búsqueda + Curso */}
+              {/* Búsqueda y filtros */}
+              <div className="px-4 pt-3 pb-2 bg-surface border-b border-line space-y-2.5 shrink-0">
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#c98daa] focus-within:border-[#9e4d75] px-3 py-2 bg-white transition-all">
-                    <Search className="text-gray-400 shrink-0" size={16} />
+                  <div className="sm:flex-1 flex items-center gap-2 h-11 px-3 bg-surface border border-line-strong rounded-xl focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft transition-all">
+                    <Search className="text-ink-muted shrink-0" size={17} />
                     <input
                       type="text"
-                      placeholder="Buscar por nombre o cédula..."
+                      placeholder="Nombre, cédula o representante"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full text-base outline-none bg-transparent"
+                      className="w-full text-base outline-none bg-transparent text-ink placeholder:text-ink-muted"
                     />
                     {searchTerm && (
                       <button
                         onClick={() => setSearchTerm('')}
-                        className="p-0.5 text-gray-400 hover:text-red-500 rounded-full transition-colors shrink-0"
+                        className="-mr-1.5 w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink rounded-full shrink-0"
+                        aria-label="Limpiar búsqueda"
                       >
-                        <X size={14} />
+                        <X size={15} />
                       </button>
                     )}
                   </div>
                   <select
                     value={filterCourse}
                     onChange={(e) => setFilterCourse(e.target.value)}
-                    className="px-3 py-2 text-base border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c98daa] bg-white text-gray-700 sm:max-w-[160px]"
+                    className="h-11 px-3 text-base border border-line-strong rounded-xl bg-surface text-ink sm:max-w-[200px]"
                   >
                     <option value="all">Todos los cursos</option>
                     {(() => {
@@ -2618,46 +2625,31 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </select>
                 </div>
 
-                {/* Fila 2: Chips de estado de pago */}
-                <div className="flex gap-1.5 flex-wrap">
+                {/* Filtros de estado: neutros, el activo en guinda; deslizables en celular */}
+                <div className="-mx-4 px-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {[
-                    { value: 'all',      label: 'Todas',         active: 'bg-[#6b2145] text-white shadow-sm',        inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-[#c98daa] hover:text-[#6b2145]' },
-                    { value: 'overdue',  label: 'Por renovar',   active: 'bg-red-600 text-white shadow-sm',           inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600' },
-                    { value: 'mora',     label: 'Suspendidas',   active: 'bg-rose-700 text-white shadow-sm',          inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-rose-400 hover:text-rose-700' },
-                    { value: 'upcoming', label: 'Próximas',      active: 'bg-amber-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-amber-300 hover:text-amber-600' },
-                    { value: 'inactive', label: 'Inactivas',     active: 'bg-slate-500 text-white shadow-sm',         inactive: 'bg-white text-gray-500 border border-gray-200 hover:border-slate-300 hover:text-slate-600' },
+                    { value: 'all', label: 'Todas', count: null },
+                    { value: 'overdue', label: 'Por renovar', count: graceStudents.length + overduePayments.length },
+                    { value: 'mora', label: 'Suspendidas', count: moraStudents.length },
+                    { value: 'upcoming', label: 'Próximas', count: upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length },
+                    { value: 'inactive', label: 'Inactivas', count: inactiveStudents.length },
                   ].map(chip => (
                     <button
                       key={chip.value}
                       onClick={() => setFilterPayment(chip.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                        filterPayment === chip.value ? chip.active : chip.inactive
-                      }`}
+                      aria-pressed={filterPayment === chip.value}
+                      className="sd-chip shrink-0"
                     >
                       {chip.label}
-                      {chip.value === 'overdue' && (graceStudents.length + overduePayments.length) > 0 && (
-                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'overdue' ? 'bg-white/30' : 'bg-red-100 text-red-700'}`}>
-                          {graceStudents.length + overduePayments.length}
-                        </span>
-                      )}
-                      {chip.value === 'mora' && moraStudents.length > 0 && (
-                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'mora' ? 'bg-white/30' : 'bg-rose-100 text-rose-700'}`}>
-                          {moraStudents.length}
-                        </span>
-                      )}
-                      {chip.value === 'upcoming' && upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
-                        <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${filterPayment === 'upcoming' ? 'bg-white/30' : 'bg-amber-100 text-amber-700'}`}>
-                          {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
-                        </span>
-                      )}
+                      {chip.count > 0 && <span className="tabular-nums opacity-80">{chip.count}</span>}
                     </button>
                   ))}
                   {(searchTerm || filterCourse !== 'all' || filterPayment !== 'all') && (
                     <button
                       onClick={() => { setSearchTerm(''); setFilterCourse('all'); setFilterPayment('all') }}
-                      className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-200"
+                      className="sd-chip shrink-0 !border-transparent !bg-transparent text-brand-ink"
                     >
-                      Limpiar filtros
+                      Limpiar
                     </button>
                   )}
                 </div>
@@ -2690,34 +2682,33 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     )}
                   </div>
                 ) : (
-                  <div className="divide-y">
+                  <div className="bg-surface sm:bg-transparent">
                     {filteredStudents.map(student => {
                       const course = enrichCourse(getCourseById(student.course_id))
                       const paymentStatus = getPaymentStatus(student, course, autoInactiveDays, graceDays, moraDays)
                       const isCamp = student.course_id?.startsWith('camp-')
-
-                      const rowBg = isCamp
-                        ? 'bg-pink-50/40 hover:bg-pink-50/70'
-                        : paymentStatus.status === 'mora'
-                          ? 'bg-rose-50/50 hover:bg-rose-50/70'
-                          : paymentStatus.status === 'overdue' || paymentStatus.status === 'due_today'
-                            ? 'bg-red-50/40 hover:bg-red-50/60'
-                            : paymentStatus.status === 'grace'
-                              ? 'bg-amber-50/30 hover:bg-amber-50/50'
-                              : paymentStatus.status === 'urgent' || paymentStatus.status === 'upcoming'
-                                ? 'bg-amber-50/40 hover:bg-amber-50/60'
-                                : 'hover:bg-gray-50'
+                      const openDetail = () => { setShowStudentListModal(false); setShowStudentDetail(student) }
 
                       return (
-                        <div key={student.id} className={`p-3 sm:p-4 transition-colors ${rowBg}`}>
+                        <div
+                          key={student.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={openDetail}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail() } }}
+                          className="px-4 py-3 border-b border-line cursor-pointer hover:bg-surface-alt focus-visible:bg-surface-alt transition-colors"
+                        >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                               <StudentAvatar student={student} isCamp={isCamp} />
                               <div className="min-w-0">
-                                <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{student.name}</h3>
-                                <p className="text-xs sm:text-sm text-gray-500 truncate">
-                                  {student.age} años • {course?.name || 'Sin curso'}
+                                <h3 className="font-semibold text-ink text-sm sm:text-base leading-snug line-clamp-2">{student.name}</h3>
+                                <p className="text-xs sm:text-sm text-ink-muted truncate">
+                                  {student.age ? `${student.age} años · ` : ''}{course?.name || 'Sin curso'}
                                 </p>
+                                <span className={`sm:hidden inline-block mt-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${paymentStatus.color}`}>
+                                  {paymentStatus.label}
+                                </span>
                                 {searchTerm && student.parent_name && student.parent_name.toLowerCase().includes(searchTerm.toLowerCase()) && (
                                   <p className="text-[10px] text-gray-400 truncate">Representante: {student.parent_name}</p>
                                 )}
@@ -2762,15 +2753,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 {student.prepaid && (
                                   <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-semibold">✓ Mes anticipado</span>
                                 )}
-                                {paymentStatus.status === 'mora' && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full text-[10px] font-semibold">🚫 No puede asistir</span>
-                                )}
                               </div>
                             </div>
 
                             <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                               <div className="text-right">
-                                <p className="font-semibold text-gray-800 text-sm hidden sm:block">
+                                <p className="font-semibold text-ink text-sm hidden sm:block tabular-nums">
                                   ${student.monthly_fee}
                                   {(() => {
                                     const c = getCourseById(student.course_id)
@@ -2781,34 +2769,29 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                       : null
                                   })()}
                                 </p>
-                                <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${paymentStatus.color}`}>
+                                <span className={`hidden sm:inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide ${paymentStatus.color}`}>
                                   {paymentStatus.label}
                                 </span>
                               </div>
 
                               <div className="flex gap-0.5 sm:gap-1">
-                                <button
-                                  onClick={() => { setShowStudentListModal(false); setShowStudentDetail(student) }}
-                                  className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
-                                  title="Ver detalle"
-                                >
-                                  <Eye size={17} />
-                                </button>
                                 {!(course?.priceType === 'programa' && (
                                   paymentStatus.status === 'paid' ||
                                   (parseFloat(student.amount_paid || 0) > 0 && parseFloat(student.balance || 0) <= 0)
                                 )) && (
                                   <button
-                                    onClick={() => { setShowStudentListModal(false); openPaymentModal(student) }}
-                                    className="p-2 text-gray-500 hover:text-green-700 hover:bg-green-50 rounded-xl active:scale-95 transition-all"
+                                    onClick={(e) => { e.stopPropagation(); setShowStudentListModal(false); openPaymentModal(student) }}
+                                    className="w-11 h-11 flex items-center justify-center rounded-full text-brand hover:bg-brand-soft active:scale-95 transition-all"
                                     title="Registrar pago"
+                                    aria-label={`Registrar pago de ${student.name}`}
                                   >
-                                    <CreditCard size={17} />
+                                    <CreditCard size={19} />
                                   </button>
                                 )}
                                 {/* Acciones secundarias: solo visible en desktop */}
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation()
                                     const phone = student.payer_phone || student.parent_phone || student.phone
                                     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
                                     const courseObj = enrichCourse(getCourseById(student.course_id))
@@ -2822,7 +2805,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                   <MessageCircle size={16} />
                                 </button>
                                 <button
-                                  onClick={() => { setShowStudentListModal(false); handleEdit(student) }}
+                                  onClick={(e) => { e.stopPropagation(); setShowStudentListModal(false); handleEdit(student) }}
                                   className="hidden sm:flex p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
                                   title="Editar"
                                 >
@@ -2830,7 +2813,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 </button>
                                 {!isRecepcion && (
                                   <button
-                                    onClick={() => handleDelete(student)}
+                                    onClick={(e) => { e.stopPropagation(); handleDelete(student) }}
                                     className="hidden sm:flex p-2 text-orange-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl active:scale-95 transition-all"
                                     title="Dar de baja"
                                   >
@@ -2848,8 +2831,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
 
               {/* Footer */}
-              <div className="p-3 sm:p-4 border-t bg-gray-50 flex items-center justify-between gap-2">
-                <p className="text-xs text-gray-400 hidden sm:block shrink-0">
+              <div className="px-4 py-2.5 border-t border-line bg-surface flex items-center justify-between gap-2 shrink-0">
+                <p className="text-xs text-ink-muted hidden sm:block shrink-0">
                   {filteredStudents.length} resultado{filteredStudents.length !== 1 ? 's' : ''}
                 </p>
                 <div className="flex gap-2 flex-1 sm:flex-none justify-end flex-wrap">
@@ -2862,21 +2845,21 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         setLoadingRetiradas(false)
                         setShowRetiradasModal(true)
                       }}
-                      className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-orange-500 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors font-medium text-xs"
+                      className="sd-btn sd-btn-ghost sd-btn-sm"
                     >
-                      {loadingRetiradas ? <RefreshCw size={13} className="animate-spin" /> : <UserMinus size={13} />}
+                      {loadingRetiradas ? <RefreshCw size={14} className="animate-spin" /> : <UserMinus size={14} />}
                       Ver retiradas
                     </button>
                   )}
                   <button
                     onClick={() => { setShowStudentListModal(false); setShowCobranzaReport(true) }}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#fdf5f9] border border-[#e8b4cc] text-[#551735] rounded-xl hover:bg-[#f9e8f0] transition-colors font-medium text-xs"
+                    className="sd-btn sd-btn-ghost sd-btn-sm"
                   >
-                    <FileText size={13} /> Reporte cobranza
+                    <FileText size={14} /> Reporte cobranza
                   </button>
                   <button
                     onClick={() => setShowStudentListModal(false)}
-                    className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors font-medium text-sm"
+                    className="hidden sm:inline-flex sd-btn sd-btn-secondary sd-btn-sm"
                   >
                     Cerrar
                   </button>
