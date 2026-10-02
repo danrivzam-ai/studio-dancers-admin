@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { getTodayEC } from '../lib/dateUtils'
 import { logAudit } from '../lib/auditLog'
+import { getNextSaleReceiptNumber } from '../lib/receipts'
 
 export function useSales() {
   const [sales, setSales] = useState([])
@@ -86,8 +87,8 @@ export function useSales() {
     try {
       const groupId = crypto.randomUUID()
       const saleDate = date || getTodayEC()
-      // Número de comprobante: VTA-YYYYMMDD-XXXX
-      const receiptNumber = `VTA-${saleDate.replace(/-/g, '')}-${Math.floor(Math.random() * 9000 + 1000)}`
+      // Número de comprobante único: VTA-YYYYMMDD-NNNNN (secuencia en BD)
+      const receiptNumber = await getNextSaleReceiptNumber(saleDate)
 
       const rows = items.map(item => ({
         customer_name: customerName,

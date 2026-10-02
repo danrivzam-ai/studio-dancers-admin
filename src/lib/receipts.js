@@ -11,3 +11,13 @@ export async function getNextReceiptNumber() {
   }
   return data
 }
+
+// Número de comprobante de venta: VTA-YYYYMMDD-NNNNN, sufijo de una secuencia
+// en BD (database-update-v44-sale-receipt-sequence.sql). Antes era aleatorio.
+export async function getNextSaleReceiptNumber(saleDate) {
+  const { data, error } = await supabase.rpc('next_sale_receipt_number', { p_sale_date: saleDate })
+  if (error || !data) {
+    throw new Error('No se pudo generar el número de comprobante de la venta. Revisa tu conexión e intenta de nuevo.')
+  }
+  return data
+}
