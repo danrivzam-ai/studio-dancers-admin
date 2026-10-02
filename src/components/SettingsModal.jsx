@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Send } from 'lucide-react'
+import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Send, Landmark, Plus, Trash2 } from 'lucide-react'
 import { lazyLoad } from '../lib/lazyLoad'
 const BackupExport = lazyLoad(() => import('./BackupExport'))
 import Modal from './ui/Modal'
@@ -57,6 +57,10 @@ export default function SettingsModal({
         mailerlite_instructors_group_id: settings.mailerlite_instructors_group_id || '',
         telegram_transfers_bot_token: settings.telegram_transfers_bot_token || '',
         telegram_transfers_chat_id: settings.telegram_transfers_chat_id || '',
+        // Solo si la columna existe (v47); si no, no se envía para no romper el guardado
+        ...(settings.portal_bank_accounts !== undefined
+          ? { portal_bank_accounts: Array.isArray(settings.portal_bank_accounts) ? settings.portal_bank_accounts : [] }
+          : {}),
       })
     }
   }, [settings])
@@ -576,6 +580,59 @@ export default function SettingsModal({
             </div>
           </div>
 
+
+          {/* Cuentas bancarias que ve el portal de alumnas */}
+          {Array.isArray(formData.portal_bank_accounts) && (
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Landmark size={16} className="text-[#6b2145]" />
+                <label className="text-sm font-medium text-gray-700">Cuentas para transferencias (portal)</label>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Las alumnas ven estas cuentas en Mi Studio al pagar por transferencia.
+              </p>
+              <div className="space-y-3">
+                {formData.portal_bank_accounts.map((acc, i) => {
+                  const setField = (field, value) => setFormData(prev => ({
+                    ...prev,
+                    portal_bank_accounts: prev.portal_bank_accounts.map((a, j) => j === i ? { ...a, [field]: value } : a)
+                  }))
+                  const inputCls = 'w-full px-3 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] text-base outline-none transition-all'
+                  return (
+                    <div key={i} className="rounded-xl border border-gray-200 p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input value={acc.bank || ''} onChange={e => setField('bank', e.target.value)} className={inputCls} placeholder="Banco (ej. Produbanco)" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, portal_bank_accounts: prev.portal_bank_accounts.filter((_, j) => j !== i) }))}
+                          className="p-2 text-gray-400 hover:text-red-600 rounded-lg shrink-0"
+                          aria-label="Quitar cuenta"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input value={acc.account || ''} onChange={e => setField('account', e.target.value)} className={`${inputCls} font-mono`} placeholder="Nro. de cuenta" />
+                        <input value={acc.type || ''} onChange={e => setField('type', e.target.value)} className={inputCls} placeholder="Cuenta de Ahorros" />
+                        <input value={acc.holder || ''} onChange={e => setField('holder', e.target.value)} className={inputCls} placeholder="Titular" />
+                        <input value={acc.holder_id || ''} onChange={e => setField('holder_id', e.target.value)} className={`${inputCls} font-mono`} placeholder="Cédula / RUC del titular" />
+                      </div>
+                    </div>
+                  )
+                })}
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
+                    portal_bank_accounts: [...prev.portal_bank_accounts, { bank: '', account: '', type: 'Cuenta de Ahorros', holder: '', holder_id: '' }]
+                  }))}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[#6b2145] hover:text-[#551735]"
+                >
+                  <Plus size={15} /> Agregar cuenta
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Telegram — Notificaciones de Transferencias */}
           <div className="border-t pt-4 mt-4">
