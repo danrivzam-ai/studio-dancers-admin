@@ -284,15 +284,15 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                 return (
                   <div
                     key={user.id}
-                    className={`bg-white border rounded-xl p-4 flex items-center justify-between ${
+                    className={`bg-white border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 ${
                       isCurrentUser ? 'border-[#c98daa] bg-[#fdf5f9]' : 'border-gray-200'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${roleInfo.color}`}>
+                    <div className="flex items-center gap-3 min-w-0 flex-1 basis-60">
+                      <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center ${roleInfo.color}`}>
                         <RoleIcon size={20} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="font-medium text-gray-800">
                           {user.display_name || 'Sin nombre'}
                           {isCurrentUser && (
@@ -301,14 +301,14 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1">
-                          <Mail size={14} />
-                          {user.email}
+                        <div className="text-sm text-gray-500 flex items-center gap-1 min-w-0">
+                          <Mail size={14} className="shrink-0" />
+                          <span className="truncate">{user.email}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <select
                         value={user.role}
                         onChange={(e) => handleChangeRole(user.id, e.target.value)}

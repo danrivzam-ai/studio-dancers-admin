@@ -20,7 +20,6 @@ import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
-import SettingsModal from './components/SettingsModal'
 import { lazyLoad } from './lib/lazyLoad'
 import { getNextReceiptNumber } from './lib/receipts'
 import { paymentMethodSalesCode, bankNameById } from './lib/paymentMethods'
@@ -29,35 +28,38 @@ import { HomeSection, HomeRow } from './components/home/HomeSection'
 import SideNav from './components/SideNav'
 import ThemeToggle from './components/ui/ThemeToggle'
 import ErrorBoundary from './components/ui/ErrorBoundary'
-import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
-import PaymentHistory from './components/PaymentHistory'
 import StudentDetail from './components/StudentDetail'
 import DeleteConfirmModal from './components/DeleteConfirmModal'
 import PinPromptModal from './components/PinPromptModal'
-import CashRegister from './components/CashRegister'
-import ExpenseManager from './components/ExpenseManager'
-import CashMovements from './components/CashMovements'
-import ManageCategories from './components/ManageCategories'
-import DailyReport from './components/DailyReport'
-import AuditLog from './components/AuditLog'
-import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
 import { useSalePlans } from './hooks/useSalePlans'
-import InstructorManager from './components/InstructorManager'
-import ReportesManager from './components/ReportesManager'
-import ClasesAdultasManager from './components/ClasesAdultasManager'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
-import ReceptionistManager from './components/ReceptionistManager'
 import ScreenLock from './components/ScreenLock'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
 import BottomNav from './components/BottomNav'
 import './App.css'
 
-// Cargados bajo demanda: usan xlsx/jspdf y solo se muestran al abrirlos
+// Cargados bajo demanda: ventanas y paneles que solo se muestran al abrirlos
+// (xlsx/jspdf incluidos). Lo de uso diario (lista, ficha, cobro, recibo) queda en el paquete principal.
+const SettingsModal = lazyLoad(() => import('./components/SettingsModal'))
+const ManageItems = lazyLoad(() => import('./components/ManageItems'))
+const PaymentHistory = lazyLoad(() => import('./components/PaymentHistory'))
+const CashRegister = lazyLoad(() => import('./components/CashRegister'))
+const ExpenseManager = lazyLoad(() => import('./components/ExpenseManager'))
+const CashMovements = lazyLoad(() => import('./components/CashMovements'))
+const ManageCategories = lazyLoad(() => import('./components/ManageCategories'))
+const DailyReport = lazyLoad(() => import('./components/DailyReport'))
+const AuditLog = lazyLoad(() => import('./components/AuditLog'))
+const TransferVerification = lazyLoad(() => import('./components/TransferVerification'))
+const InstructorManager = lazyLoad(() => import('./components/InstructorManager'))
+const ReportesManager = lazyLoad(() => import('./components/ReportesManager'))
+const ClasesAdultasManager = lazyLoad(() => import('./components/ClasesAdultasManager'))
+const ReceptionistManager = lazyLoad(() => import('./components/ReceptionistManager'))
+const UserManagement = lazyLoad(() => import('./components/UserManagement'))
 const ExportStudents = lazyLoad(() => import('./components/ExportStudents'))
 const SaleInstallments = lazyLoad(() => import('./components/SaleInstallments'))
 const HonorariosPanel = lazyLoad(() => import('./components/HonorariosPanel'))
@@ -332,6 +334,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showNewPlan, setShowNewPlan] = useState(false)
   // Tienda: una vista a la vez (antes los abonos quedaban al final, bajo el catálogo)
   const [storeView, setStoreView] = useState('ventas')
+  const [showUserManagement, setShowUserManagement] = useState(false)
   // Productos: búsqueda por nombre y filtro "por reponer"
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogLowOnly, setCatalogLowOnly] = useState(false)
@@ -1055,6 +1058,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     ...(!isRecepcion && isAdmin ? [
       { id: 'close', icon: Lock, label: 'Cierre mensual', onClick: () => setShowMonthlyClose(true) },
       { id: 'audit', icon: ScrollText, label: 'Auditoría', onClick: () => setShowAuditLog(true) },
+      { id: 'users', icon: UserCheck, label: 'Usuarios', onClick: () => setShowUserManagement(true) },
       { id: 'accounting', icon: FileText, label: 'Contabilidad', onClick: () => setShowContabilidad(true) },
     ] : []),
     ...(!isRecepcion && can('canExport') ? [
@@ -1184,6 +1188,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             <>
               <button onClick={() => setShowMonthlyClose(true)} className="sd-chip"><Lock size={13} />Cierre mensual</button>
               <button onClick={() => setShowAuditLog(true)} className="sd-chip"><ScrollText size={13} />Auditoría</button>
+              <button onClick={() => setShowUserManagement(true)} className="sd-chip"><UserCheck size={13} />Usuarios</button>
             </>
           )}
           {!isRecepcion && (isAdmin || userRole === 'contador') && (
@@ -2571,6 +2576,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         )}
 
         {/* Settings Modal */}
+        {showUserManagement && isAdmin && (
+          <UserManagement isOpen={true} onClose={() => setShowUserManagement(false)} currentUserId={user?.id} />
+        )}
+
         {showSettings && (
           <ErrorBoundary compact>
             <SettingsModal

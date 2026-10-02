@@ -502,7 +502,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
             <button
               onClick={exportarExcel}
               disabled={loading || asientos.length === 0}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white px-3 py-2 rounded-xl text-sm font-medium transition-all active:scale-95"
+              className="sd-btn sd-btn-secondary sd-btn-sm"
             >
               <Download size={16} />
               Excel

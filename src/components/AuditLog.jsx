@@ -233,7 +233,7 @@ export default function AuditLog({ onClose }) {
             <button
               onClick={handleFilter}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-3 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-sm font-medium active:scale-95 transition-all disabled:opacity-50"
+              className="sd-btn sd-btn-primary"
             >
               <Search size={14} />
               Buscar

@@ -86,12 +86,12 @@ function SummaryCard({ summary, loading }) {
       </div>
 
       {/* Saldo neto */}
-      <div className={`border rounded-xl p-3 ${summary.saldoNeto >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
+      <div className="border border-line bg-surface-alt rounded-xl p-3">
         <div className="flex items-center justify-between">
-          <p className={`text-sm font-bold ${summary.saldoNeto >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-            💰 Saldo neto del mes
+          <p className="text-sm font-bold text-ink">
+            Saldo neto del mes
           </p>
-          <span className={`text-2xl font-bold ${summary.saldoNeto >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+          <span className={`text-2xl font-bold tabular-nums ${summary.saldoNeto >= 0 ? 'text-ink' : 'sd-status-danger'}`}>
             {fmtMoney(summary.saldoNeto)}
           </span>
         </div>
