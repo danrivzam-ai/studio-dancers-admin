@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import { getTodayEC } from '../../lib/dateUtils'
+import { getTodayEC, getPaymentStatus } from '../../lib/dateUtils'
+import { getCourseById } from '../../lib/courses'
 import {
   TrendingUp, TrendingDown, DollarSign, FileText, LogOut,
   BookOpen, BarChart3, Calendar, Download, RefreshCw, Eye, EyeOff,
@@ -67,7 +68,7 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
           .order('expense_date', { ascending: false }),
         supabase
           .from('students')
-          .select('id, name, balance, course_id, next_payment_date, last_payment_date, payment_status')
+          .select('*')
           .is('deleted_at', null)
           .eq('is_courtesy', false)
           .gt('balance', 0)
@@ -397,18 +398,13 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
                             return `en ${diff}d`
                           })()
                         : '—'
-                      const statusLabel = {
-                        overdue: 'Vencido', mora: 'En mora', urgent: 'Urgente',
-                        due_today: 'Hoy', partial: 'Parcial', pending: 'Pendiente',
-                      }[st.payment_status] || st.payment_status || '—'
-                      const statusColor = {
-                        overdue: 'text-red-600 bg-red-50',
-                        mora: 'text-red-700 bg-red-100',
-                        urgent: 'text-orange-600 bg-orange-50',
-                        due_today: 'text-orange-500 bg-orange-50',
-                        partial: 'text-amber-600 bg-amber-50',
-                        pending: 'text-gray-500 bg-gray-100',
-                      }[st.payment_status] || 'text-gray-500 bg-gray-100'
+                      // Mismo estado calculado que ve el admin (no el payment_status guardado)
+                      const status = getPaymentStatus(
+                        st, getCourseById(st.course_id),
+                        settings?.auto_inactive_days ?? 60, settings?.grace_days ?? 5, settings?.mora_days ?? 20
+                      )
+                      const statusLabel = status?.label || '—'
+                      const statusColor = status?.color || 'text-gray-500 bg-gray-100'
                       return (
                         <tr key={st.id} className="hover:bg-amber-50/30 transition-colors">
                           <td className="px-5 py-3 font-medium text-gray-800">{st.name}</td>
