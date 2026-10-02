@@ -1863,12 +1863,12 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           </div>
 
           {/* Ventas en Abonos */}
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <h2 className="font-semibold text-gray-800">Ventas en Abonos</h2>
-              <p className="text-sm text-gray-500">Planes de pago · uniformes, vestuario, entradas</p>
+          <div className="mt-2">
+            <div className="px-1 mb-3">
+              <h2 className="text-lg font-bold text-brand-ink">Ventas en abonos</h2>
+              <p className="text-xs text-ink-muted">Planes de pago · uniformes, vestuario, entradas</p>
             </div>
-            <div className="p-4">
+            <div>
               <SaleInstallments
                 allProducts={allProducts}
                 students={students}

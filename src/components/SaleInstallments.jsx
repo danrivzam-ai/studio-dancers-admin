@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import PaymentMethodPicker from './ui/PaymentMethodPicker'
 import { paymentMethodName, bankNameById } from '../lib/paymentMethods'
+import { getTodayEC } from '../lib/dateUtils'
 
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 const fmt = (n) => `$${parseFloat(n || 0).toFixed(2)}`
@@ -717,6 +718,13 @@ function buildWALink(plan) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
 }
 
+function daysSinceLastActivity(plan) {
+  const dates = (plan.sale_plan_payments || []).map(p => p.payment_date).filter(Boolean).sort()
+  const last = dates.length ? dates[dates.length - 1] : (plan.created_at || '').slice(0, 10)
+  if (!last) return null
+  return Math.max(0, Math.round((new Date(getTodayEC() + 'T12:00:00') - new Date(last.slice(0, 10) + 'T12:00:00')) / 86400000))
+}
+
 function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelivered, students = [] }) {
   const [expanded, setExpanded] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
@@ -786,82 +794,85 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
     doc.save(`Plan_${(plan.student_name || plan.customer_name).replace(/\s+/g, '_')}.pdf`)
   }
 
+  const isOpen = plan.status !== 'paid' && plan.status !== 'cancelled'
+  const daysIdle = isOpen ? daysSinceLastActivity(plan) : null
+  const idleTone = daysIdle >= 30 ? 'sd-status-danger' : daysIdle >= 15 ? 'sd-status-warn' : 'text-ink-muted'
+  const hasRep = plan.student_name && plan.customer_name && plan.student_name !== plan.customer_name
+
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${plan.status === 'paid' ? 'border-green-200' : 'border-gray-200'}`}>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-800 text-sm truncate">
-              {plan.student_name || plan.customer_name}
-            </p>
-            {plan.student_name && plan.customer_name && plan.student_name !== plan.customer_name && (
-              <p className="text-xs text-[#6b2145] font-medium truncate mt-0.5">
-                👤 Rep: {plan.customer_name}
-              </p>
+    <div className="sd-card overflow-hidden">
+      {/* Toda la parte superior abre el detalle */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setShowDetail(true)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowDetail(true) } }}
+        className="px-4 pt-3 pb-2.5 cursor-pointer hover:bg-surface-alt transition-colors"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-semibold text-ink text-sm leading-snug">{plan.student_name || plan.customer_name}</p>
+            {hasRep && <p className="text-xs text-ink-muted truncate">Rep. {plan.customer_name}</p>}
+            <p className="text-xs text-ink-muted truncate">{itemsLabel}</p>
+          </div>
+          <div className="text-right shrink-0">
+            {isOpen ? (
+              <>
+                <p className="text-lg font-bold text-ink tabular-nums leading-tight">{fmt(balance)}</p>
+                {daysIdle !== null && (
+                  <p className={`text-[11px] font-semibold ${idleTone}`}>
+                    {daysIdle === 0 ? 'Abonó hoy' : `${daysIdle} días sin abonar`}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm font-semibold sd-status-ok">Pagado</p>
             )}
-            <p className="text-xs text-gray-500 mt-0.5 truncate">{itemsLabel}</p>
           </div>
-          <StatusBadge status={plan.status} />
         </div>
+        <div className="h-1 bg-line rounded-full mt-2.5 overflow-hidden">
+          <div className="h-1 bg-brand rounded-full transition-all" style={{ width: `${paidPct}%` }} />
+        </div>
+        <p className="text-[11px] text-ink-muted mt-1 tabular-nums">
+          {fmt(plan.amount_paid)} de {fmt(plan.total_amount)} · {payments.length} abono{payments.length !== 1 ? 's' : ''}
+        </p>
+      </div>
 
-        {/* Progreso */}
-        <div className="mt-3">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>Pagado: <strong className="text-gray-700">{fmt(plan.amount_paid)}</strong></span>
-            <span>Total: <strong className="text-gray-700">{fmt(plan.total_amount)}</strong></span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-            <div
-              className={`h-2 rounded-full transition-all ${plan.status === 'paid' ? 'bg-green-500' : 'bg-amber-400'}`}
-              style={{ width: `${paidPct}%` }}
-            />
-          </div>
-          {plan.status !== 'paid' && balance > 0 && (
-            <p className="text-xs text-amber-700 font-semibold mt-1">Saldo pendiente: {fmt(balance)}</p>
-          )}
-        </div>
-
-        {/* Acciones */}
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
-          {plan.status !== 'paid' && plan.status !== 'cancelled' && (
-            <button onClick={() => onPay(plan)}
-              className="flex-1 py-2 rounded-xl bg-[#6b2145] text-white text-xs font-semibold hover:bg-[#551735] transition-all">
-              + Abonar
-            </button>
-          )}
-          <button
-            onClick={() => onMarkDelivered(plan.id, !plan.delivered)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all
-              ${plan.delivered
-                ? 'border-green-400 bg-green-50 text-green-700'
-                : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-            <PackageCheck size={13} />
-            {plan.delivered ? 'Entregado' : 'Sin entregar'}
+      {/* Acciones */}
+      <div className="flex items-center gap-1 px-2 pb-2">
+        {isOpen && (
+          <button onClick={() => onPay(plan)} className="sd-btn sd-btn-secondary sd-btn-sm !text-brand-ink">
+            <Plus size={14} /> Abonar
           </button>
-          {/* Ojo: ver detalle */}
-          <button onClick={() => setShowDetail(true)}
-            className="p-2 rounded-xl border-2 border-gray-200 text-gray-500 hover:border-[#c98daa] hover:text-[#6b2145] transition-all"
-            title="Ver detalle">
-            <Eye size={14} />
-          </button>
-          {/* WhatsApp: solo si tiene teléfono y hay saldo */}
-          {effectivePhone && balance > 0 && (
-            <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
-              className="p-2 rounded-xl border-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-400 transition-all"
-              title="Enviar recordatorio por WhatsApp">
-              <MessageCircle size={14} />
-            </a>
-          )}
-          <button onClick={() => setExpanded(v => !v)}
-            className="p-2 rounded-xl border-2 border-gray-200 text-gray-500 hover:border-gray-300 transition-all">
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-        </div>
+        )}
+        <button
+          onClick={() => onMarkDelivered(plan.id, !plan.delivered)}
+          className={`sd-btn sd-btn-sm ${plan.delivered ? 'sd-btn-ghost !text-[#1f7a4d]' : !isOpen ? 'sd-btn-secondary !text-brand-ink' : 'sd-btn-ghost'}`}
+          title={plan.delivered ? 'Marcar como no entregado' : 'Marcar como entregado'}
+        >
+          <PackageCheck size={14} />
+          {plan.delivered ? 'Entregado' : !isOpen ? 'Marcar entregado' : 'Sin entregar'}
+        </button>
+        <span className="flex-1" />
+        {effectivePhone && balance > 0 && (
+          <a href={buildWALink({ ...plan, customer_phone: effectivePhone })} target="_blank" rel="noopener noreferrer"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:text-[#1f7a4d] hover:bg-surface-alt"
+            title="Enviar recordatorio por WhatsApp" aria-label="Enviar recordatorio por WhatsApp">
+            <MessageCircle size={17} />
+          </a>
+        )}
+        <button onClick={() => setExpanded(v => !v)}
+          className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt"
+          aria-expanded={expanded}
+          title={expanded ? 'Ocultar historial y opciones' : 'Ver historial y opciones'}
+          aria-label={expanded ? 'Ocultar historial y opciones' : 'Ver historial y opciones'}>
+          {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+        </button>
       </div>
 
       {/* Historial */}
       {expanded && (
-        <div className="border-t border-gray-100 px-4 pb-4">
+        <div className="border-t border-line px-4 pb-4">
           {payments.length === 0 ? (
             <p className="text-xs text-gray-400 text-center py-3">Sin abonos registrados aún</p>
           ) : (
@@ -869,7 +880,7 @@ function PlanCard({ plan, onPay, onCancel, onDelete, onUpdateTotal, onMarkDelive
               {[...payments]
                 .sort((a, b) => a.installment_number - b.installment_number)
                 .map(pmt => (
-                  <div key={pmt.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2">
+                  <div key={pmt.id} className="flex items-center justify-between bg-surface-alt rounded-xl px-3 py-2">
                     <div>
                       <p className="text-xs font-semibold text-gray-700">Abono #{pmt.installment_number} · {fmt(pmt.amount)}</p>
                       <p className="text-xs text-gray-400">{fmtDate(pmt.payment_date)} · {pmt.payment_method}</p>
@@ -1115,7 +1126,10 @@ export default function SaleInstallments({
   const preselect = externalShowNew ? externalPreselect : null
   const closeNew  = () => { setShowNew(false); if (onExternalClose) onExternalClose() }
 
-  const basePlans = tab === 'active' ? activePlans : paidPlans
+  // Por cobrar: primero quien lleva más días sin abonar. Por entregar: pagados aún no entregados.
+  const deliverPlans = paidPlans.filter(p => !p.delivered)
+  const sortedActive = [...activePlans].sort((a, b) => (daysSinceLastActivity(b) ?? 0) - (daysSinceLastActivity(a) ?? 0))
+  const basePlans = tab === 'active' ? sortedActive : tab === 'deliver' ? deliverPlans : paidPlans
   const visiblePlans = search.trim().length < 2
     ? basePlans
     : basePlans.filter(p => {
@@ -1183,55 +1197,55 @@ export default function SaleInstallments({
 
       {!dbError && (
         <>
-          {/* Resumen */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl border border-gray-200 p-4 text-center">
-              <p className="text-2xl font-bold text-gray-800">{activePlans.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">Planes activos</p>
+          {/* Resumen en una línea + nuevo plan */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-2xl font-bold text-ink tabular-nums leading-tight">
+                {fmt(totalDebt)} <span className="text-sm font-medium text-ink-muted">por cobrar</span>
+              </p>
+              <p className="text-xs text-ink-muted">
+                {activePlans.length} activo{activePlans.length !== 1 ? 's' : ''} · {deliverPlans.length} pagado{deliverPlans.length !== 1 ? 's' : ''} sin entregar
+              </p>
             </div>
-            <div className="bg-amber-50 rounded-2xl border border-amber-100 p-3 text-center">
-              <p className="text-base sm:text-xl font-bold text-amber-700">{fmt(totalDebt)}</p>
-              <p className="text-xs text-amber-600 mt-0.5">Por cobrar</p>
-            </div>
-            <div className="bg-green-50 rounded-2xl border border-green-100 p-4 text-center">
-              <p className="text-2xl font-bold text-green-700">{paidPlans.length}</p>
-              <p className="text-xs text-green-600 mt-0.5">Pagados</p>
-            </div>
-          </div>
-
-          {/* Tabs + botón nuevo */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
-              {[['active', 'Activos'], ['paid', 'Pagados']].map(([key, label]) => (
-                <button key={key} onClick={() => setTab(key)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
-                    ${tab === key ? 'bg-white shadow text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowNew(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#6b2145] text-white rounded-xl text-sm font-semibold hover:bg-[#551735] transition-all shadow-sm">
+            <button onClick={() => setShowNew(true)} className="sd-btn sd-btn-primary sd-btn-sm shrink-0">
               <Plus size={16} /> Nuevo plan
             </button>
           </div>
 
+          {/* Filtros con conteo */}
+          <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              ['active', 'Por cobrar', activePlans.length],
+              ['deliver', 'Por entregar', deliverPlans.length],
+              ['paid', 'Pagados', paidPlans.length],
+            ].map(([key, label, count]) => (
+              <button key={key} onClick={() => setTab(key)} aria-pressed={tab === key} className="sd-chip shrink-0">
+                {label}
+                <span className="tabular-nums opacity-80">{count}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Búsqueda */}
-          <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 focus-within:ring-4 focus-within:ring-[#f9e8f0] focus-within:border-[#7e2d55] transition-all bg-white">
-            <Search size={15} className="text-gray-400 shrink-0" />
+          <div className="flex items-center gap-2 h-11 px-3 bg-surface border border-line-strong rounded-xl focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft transition-all">
+            <Search size={16} className="text-ink-muted shrink-0" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar por alumna o representante..."
-              className="flex-1 py-2.5 text-sm outline-none bg-transparent"
+              placeholder="Alumna o representante"
+              className="flex-1 text-base outline-none bg-transparent text-ink placeholder:text-ink-muted"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600 shrink-0">
-                <X size={14} />
+              <button onClick={() => setSearch('')} className="-mr-1.5 w-8 h-8 flex items-center justify-center text-ink-muted hover:text-ink rounded-full shrink-0" aria-label="Limpiar búsqueda">
+                <X size={15} />
               </button>
             )}
           </div>
+
+          {tab === 'active' && visiblePlans.length > 1 && (
+            <p className="text-[11px] text-ink-muted px-1 -mt-1">Ordenado por más días sin abonar</p>
+          )}
 
           {/* Lista */}
           {loading ? (
@@ -1242,11 +1256,11 @@ export default function SaleInstallments({
               <p className="text-gray-400 text-sm">
                 {search.trim().length >= 2
                   ? `Sin resultados para "${search}"`
-                  : tab === 'active' ? 'No hay planes de abono activos' : 'No hay planes pagados aún'}
+                  : tab === 'active' ? 'No hay planes de abono activos' : tab === 'deliver' ? 'Todo lo pagado ya fue entregado' : 'No hay planes pagados aún'}
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {visiblePlans.map(plan => (
                 <PlanCard
                   key={plan.id}
