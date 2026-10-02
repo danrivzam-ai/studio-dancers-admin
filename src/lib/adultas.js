@@ -163,8 +163,7 @@ export function getExpectedClassDates(fechaInicio, totalClases, classDays) {
  */
 export function formatClassDateShort(dateStr) {
   if (!dateStr) return ''
-  const [, m, d] = dateStr.split('-')
-  const month = parseInt(m, 10)
+  const [, , d] = dateStr.split('-')
   const day = parseInt(d, 10)
   // Obtener día de la semana
   const date = new Date(dateStr + 'T12:00:00')

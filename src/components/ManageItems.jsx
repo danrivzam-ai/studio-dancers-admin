@@ -156,7 +156,7 @@ export default function ManageItems({
   // Derive dynamic product categories from existing products
   const productCategories = (() => {
     const existing = new Set(products.map(p => p.category).filter(Boolean))
-    const cats = DEFAULT_PRODUCT_CATEGORIES.filter(c => true) // always show defaults
+    const cats = DEFAULT_PRODUCT_CATEGORIES // always show defaults
     existing.forEach(key => {
       if (!cats.find(c => c.key === key)) {
         cats.push({ key, label: key.charAt(0).toUpperCase() + key.slice(1) })
@@ -191,18 +191,6 @@ export default function ManageItems({
     setShowForm(false)
     setShowExtras(false)
     setEditingItem(null)
-  }
-
-  const handleAgeGroupChange = (groupId) => {
-    const group = AGE_GROUPS.find(g => g.id === groupId)
-    if (group) {
-      setFormData({
-        ...formData,
-        ageGroup: groupId,
-        ageMin: group.ageMin,
-        ageMax: group.ageMax
-      })
-    }
   }
 
   const handleTypeChange = (type) => {

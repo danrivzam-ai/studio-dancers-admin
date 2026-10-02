@@ -26,6 +26,7 @@ export default function ExpenseManager({ onClose, cashRegisterId, settings }) {
   // Recargar cuando cambia la fecha del historial
   useEffect(() => {
     if (activeTab === 'history') fetchExpenses(historyDate)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarga solo al cambiar fecha o pestaña
   }, [historyDate, activeTab])
 
   const changeHistoryDate = (days) => {

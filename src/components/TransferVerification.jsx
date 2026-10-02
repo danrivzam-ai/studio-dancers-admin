@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause, BadgeCheck } from 'lucide-react'
-import { formatDate, getPaymentStatus, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
+import { formatDate, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
 import { getCourseById as getCourseByIdHardcoded } from '../lib/courses'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
@@ -221,7 +221,6 @@ export default function TransferVerification({
   onPaymentRegistered,
   onDeleteRejected,
   getCourseById,
-  enrichCourse,
   students
 }) {
   const toast = useToast()

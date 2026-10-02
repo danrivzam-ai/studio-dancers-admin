@@ -107,7 +107,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
       ))
       setSuccess('Rol actualizado')
       setTimeout(() => setSuccess(''), 3000)
-    } catch (err) {
+    } catch {
       setError('Error al cambiar rol')
     }
   }
@@ -126,7 +126,7 @@ export default function UserManagement({ isOpen, onClose, currentUserId }) {
       setUsers(users.filter(u => u.id !== userId))
       setSuccess('Usuario eliminado')
       setTimeout(() => setSuccess(''), 3000)
-    } catch (err) {
+    } catch {
       setError('Error al eliminar usuario')
     }
   }

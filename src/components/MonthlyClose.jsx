@@ -258,6 +258,7 @@ export default function MonthlyClose({
 
   useEffect(() => {
     fetchCloses()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial al montar
   }, [])
 
   useEffect(() => {
@@ -266,6 +267,7 @@ export default function MonthlyClose({
     if (!alreadyClosed) {
       getMonthSummary(selectedYear, selectedMonth)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recalcula solo al cambiar de mes
   }, [selectedYear, selectedMonth, alreadyClosed])
 
   async function handleClose() {

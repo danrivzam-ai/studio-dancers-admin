@@ -175,7 +175,7 @@ export function useItems() {
           // Filtrar los predeterminados eliminados
           const filteredDefaults = DEFAULT_COURSES.filter(c => !deletedCourses.includes(c.id) && !deletedCourses.includes(c.code))
           setCourses([...filteredDefaults, ...customCourses])
-        } catch (e) {
+        } catch {
           console.log('No hay cursos en localStorage')
           const filteredDefaults = DEFAULT_COURSES.filter(c => !deletedCourses.includes(c.id) && !deletedCourses.includes(c.code))
           setCourses(filteredDefaults)
@@ -192,7 +192,7 @@ export function useItems() {
           // Filtrar los predeterminados eliminados
           const filteredDefaults = DEFAULT_PRODUCTS.filter(p => !deletedProducts.includes(p.id) && !deletedProducts.includes(p.code))
           setProducts([...filteredDefaults, ...customProducts])
-        } catch (e) {
+        } catch {
           console.log('No hay productos en localStorage')
           const filteredDefaults = DEFAULT_PRODUCTS.filter(p => !deletedProducts.includes(p.id) && !deletedProducts.includes(p.code))
           setProducts(filteredDefaults)

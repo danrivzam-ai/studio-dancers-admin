@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { getTodayEC } from '../lib/dateUtils'
 import { logAudit } from '../lib/auditLog'
 
 export function useExpenses() {

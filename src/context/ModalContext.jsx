@@ -39,6 +39,7 @@ export function ModalProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook junto a su provider
 export function useModal() {
   return useContext(ModalContext)
 }

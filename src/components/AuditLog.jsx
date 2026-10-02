@@ -86,13 +86,18 @@ function getDescription(log) {
   return parts.length > 0 ? parts.join(' · ') : null
 }
 
+// Fecha 'yyyy-MM-dd' de hace N días, en hora Ecuador
+function daysAgoEC(days) {
+  const d = getNowEC()
+  d.setDate(d.getDate() - days)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export default function AuditLog({ onClose }) {
   const { logs, loading, hasMore, fetchLogs, loadMore } = useAuditLog()
 
   const today = getTodayEC()
-  const weekAgoDate = getNowEC()
-  weekAgoDate.setDate(weekAgoDate.getDate() - 7)
-  const weekAgo = `${weekAgoDate.getFullYear()}-${String(weekAgoDate.getMonth() + 1).padStart(2, '0')}-${String(weekAgoDate.getDate()).padStart(2, '0')}`
+  const weekAgo = daysAgoEC(7)
 
   const [dateFrom, setDateFrom] = useState(weekAgo)
   const [dateTo, setDateTo] = useState(today)
@@ -103,6 +108,7 @@ export default function AuditLog({ onClose }) {
 
   useEffect(() => {
     fetchLogs(filters)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga inicial al abrir; luego se filtra con el botón
   }, [])
 
   const handleFilter = () => {
@@ -111,7 +117,7 @@ export default function AuditLog({ onClose }) {
 
   const setPreset = (days) => {
     const to = today
-    const from = new Date(Date.now() - days * 86400000).toISOString().split('T')[0]
+    const from = daysAgoEC(days)
     setDateFrom(from)
     setDateTo(to)
     fetchLogs({ dateFrom: from, dateTo: to, tableName: filterTable || undefined })

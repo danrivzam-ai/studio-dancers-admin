@@ -58,7 +58,7 @@ function ChangePasswordModal({ instructorId, instructorName, onChanged }) {
         }
       })
       onChanged()
-    } catch (err) {
+    } catch {
       setError('No se pudo actualizar la contraseña. Intenta de nuevo.')
     } finally {
       setSaving(false)

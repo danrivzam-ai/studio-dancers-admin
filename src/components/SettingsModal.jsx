@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, Building2, Lock, Eye, EyeOff, Shield, Mail, Send } from 'lucide-react'
-import BackupExport from './BackupExport'
+import { lazyLoad } from '../lib/lazyLoad'
+const BackupExport = lazyLoad(() => import('./BackupExport'))
 import Modal from './ui/Modal'
 import { useToast } from './Toast'
 import { hashPin, verifyPin } from '../lib/pinUtils'
@@ -30,7 +31,6 @@ export default function SettingsModal({
   })
   const toast = useToast()
   const [loading, setLoading] = useState(false)
-  const [showPin, setShowPin] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
   const [changingPin, setChangingPin] = useState(false)
   const [currentPinInput, setCurrentPinInput] = useState('')

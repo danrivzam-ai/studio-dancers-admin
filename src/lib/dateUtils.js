@@ -83,7 +83,7 @@ const normalizeClassDays = (classDays) => {
       if (Array.isArray(parsed)) return normalizeClassDays(parsed)
     } catch { /* no es JSON válido */ }
     // Formato PostgreSQL: "{6}" o "{1,4}"
-    const nums = classDays.replace(/[{}\[\]]/g, '').split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n))
+    const nums = classDays.replace(/[{}[\]]/g, '').split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n))
     return nums.length > 0 ? nums : null
   }
   return null

@@ -103,6 +103,7 @@ export default function ScreenLock({ isLocked, onUnlock, schoolName, securityPin
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga/reinicio intencional del estado en el efecto
     if (!isLocked) { setPin(''); setError(''); setAttempts(0); setBlocked(false); setBlockTimer(0) }
     else { setTimeout(() => inputRef.current?.focus(), 100) }
   }, [isLocked])

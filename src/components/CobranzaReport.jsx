@@ -53,7 +53,6 @@ const STATUS_BADGE = {
 
 export default function CobranzaReport({
   students,
-  courses,
   settings,
   graceDays = 5,
   moraDays  = 20,
@@ -97,6 +96,7 @@ export default function CobranzaReport({
         if (oa !== ob) return oa - ob
         return a.days - b.days  // más vencidas primero
       })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- getCourseById/enrichCourse llegan como funciones nuevas en cada render
   }, [students, graceDays, moraDays, autoInactiveDays])
 
   const filtered = filterStatus === 'all'

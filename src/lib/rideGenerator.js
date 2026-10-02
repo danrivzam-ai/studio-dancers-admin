@@ -31,7 +31,7 @@ export function generateRidePDF(invoice, options = {}) {
   if (options.logoBase64) {
     try {
       doc.addImage(options.logoBase64, 'PNG', margin, y, 25, 25)
-    } catch (e) {
+    } catch {
       // Si falla el logo, continuar sin él
     }
   }

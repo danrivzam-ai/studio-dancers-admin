@@ -270,6 +270,7 @@ function MultiPrintModal({ instructors, onClose }) {
       setLoading(false)
     }
     load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga una vez al abrir el modal; fetchPeriodosByInstructor no es estable
   }, [])
 
   const toggleSelect = (periodoId, periodo, instructor) => {
@@ -371,6 +372,7 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
   useEffect(() => {
     if (!fechaInicio || !fechaFin || fechaFin < fechaInicio) { setDetails([]); return }
     setDetails(buildDetails(scheduleSlots, fechaInicio, fechaFin, instructor.tarifa_hora || 0))
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- scheduleSlots e instructor no cambian mientras el modal está abierto
   }, [fechaInicio, fechaFin])
 
   const updateDetail = (idx, field, value) => {
@@ -650,8 +652,6 @@ export default function HonorariosPanel() {
   const [loading, setLoading] = useState(true)
   const [showMultiPrint, setShowMultiPrint] = useState(false)
 
-  useEffect(() => { fetchInstructors() }, [])
-
   const fetchInstructors = async () => {
     setLoading(true)
     const { data } = await supabase
@@ -662,6 +662,9 @@ export default function HonorariosPanel() {
     setInstructors(data || [])
     setLoading(false)
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- carga/reinicio intencional del estado en el efecto
+  useEffect(() => { fetchInstructors() }, [])
 
   return (
     <div className="space-y-4">

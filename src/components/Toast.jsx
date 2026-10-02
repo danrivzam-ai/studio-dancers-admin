@@ -1,13 +1,15 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useRef, createContext, useContext } from 'react'
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react'
 
 const ToastContext = createContext(null)
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
+  // Contador incremental: Date.now() repetía ids si salían dos toasts en el mismo ms
+  const nextId = useRef(0)
 
   const addToast = (message, type = 'success', duration = 3000) => {
-    const id = Date.now()
+    const id = ++nextId.current
     setToasts(prev => [...prev, { id, message, type }])
 
     if (duration > 0) {
@@ -64,6 +66,7 @@ export function ToastProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook junto a su provider
 export function useToast() {
   const context = useContext(ToastContext)
   if (!context) {

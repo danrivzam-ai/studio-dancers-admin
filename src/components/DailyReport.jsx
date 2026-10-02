@@ -9,7 +9,7 @@ import { getTodayEC } from '../lib/dateUtils'
 
 const fmt = (n) => `$${parseFloat(n || 0).toLocaleString('es-EC', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-export default function DailyReport({ cashRegister }) {
+export default function DailyReport() {
   const { report, loading, date, setDate, fetchReport } = useDailyReport()
 
   useEffect(() => {

@@ -27,14 +27,15 @@ export default function ReportesManager() {
   const [showNota,  setShowNota]  = useState({})   // { [id]: bool }
   const [saving,    setSaving]    = useState({})   // { [id]: true }
 
-  useEffect(() => { load() }, [])
-
   async function load() {
     setLoading(true)
     const { data } = await getReportesPendientes()
     setReportes(data)
     setLoading(false)
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- carga/reinicio intencional del estado en el efecto
+  useEffect(() => { load() }, [])
 
   async function handleAprobar(id) {
     setSaving(s => ({ ...s, [id]: true }))

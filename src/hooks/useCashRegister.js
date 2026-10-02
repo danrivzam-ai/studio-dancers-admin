@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { getTodayEC } from '../lib/dateUtils'
 
 export function useCashRegister() {
   const [todayRegister, setTodayRegister] = useState(null)

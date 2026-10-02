@@ -39,6 +39,7 @@ export default function AsistenciaAdmin({ allCourses = [], students = [] }) {
   // Auto-seleccionar primer curso cuando cargan
   useEffect(() => {
     if (!courseId && allCourses.length > 0) setCourseId(allCourses[0].id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- autoselección solo cuando cambia la lista de cursos
   }, [allCourses])
 
   // Cargar asistencia al cambiar curso o fecha

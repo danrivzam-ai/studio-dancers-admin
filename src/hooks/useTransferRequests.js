@@ -52,7 +52,7 @@ function playNotificationSound() {
       osc2.start()
       osc2.stop(ctx.currentTime + 0.15)
     }, 180)
-  } catch (e) {
+  } catch {
     // Silently fail if audio context not available
   }
 }
@@ -121,7 +121,7 @@ export function useTransferRequests() {
               .eq('id', newReq.student_id)
               .single()
             if (student) studentName = student.name
-          } catch (e) { /* ignore */ }
+          } catch { /* ignore */ }
 
           const amount = parseFloat(newReq.amount || 0).toFixed(2)
           const method = newReq.bank_name || 'Transferencia'

@@ -163,7 +163,7 @@ export default function AdminClasesPanel() {
     dailyClass, weeklyClass, allClasses,
     loading, error, uploading, uploadProgress,
     fetchActiveClasses, fetchAllClasses,
-    uploadClass, deleteClass, setError, setUploadProgress,
+    uploadClass, deleteClass, setUploadProgress,
   } = useClasesOnline()
 
   const [message, setMessage] = useState(null)

@@ -117,6 +117,7 @@ export default function PaymentHistory({
 
   useEffect(() => {
     fetchPayments()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarga solo al cambiar el rango de fechas
   }, [dateFrom, dateTo])
 
   // Filtrar por búsqueda (excluir anulados del total pero mostrarlos)

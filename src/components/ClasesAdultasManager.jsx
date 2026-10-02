@@ -321,6 +321,7 @@ export default function ClasesAdultasManager() {
     setLoading(false)
   }, [])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- carga/reinicio intencional del estado en el efecto
   useEffect(() => { loadAll() }, [loadAll])
 
   const selectedCourse = courses.find(c => c.code === selectedCourseCode) || null
@@ -332,6 +333,7 @@ export default function ClasesAdultasManager() {
   }, [loadAll])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga/reinicio intencional del estado en el efecto
     if (!selectedCourseCode) { setCiclos([]); return }
     fetchCiclos(selectedCourseCode)
   }, [selectedCourseCode, fetchCiclos])

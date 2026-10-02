@@ -83,7 +83,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   const fetchAll = async () => {
     setLoading(true)
     try {
-      const [{ data: instData, error: e1 }, { data: assignData, error: e2 }, { data: rhythmData, error: e3 }] = await Promise.all([
+      const [{ data: instData, error: e1 }, { data: assignData, error: e2 }, { data: rhythmData }] = await Promise.all([
         supabase.from('instructors').select('*').order('name'),
         supabase.from('instructor_courses').select('instructor_id, course_id'),
         supabase.from('instructor_rhythms').select('instructor_id, ritmo'),
@@ -501,7 +501,7 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((inst, idx) => {
+          {filtered.map((inst) => {
             const courseIds = assignments[inst.id] || []
             const courseObjs = courseIds.map(getCourseInfo).filter(Boolean)
             const isCoursePanelOpen = coursePanel === inst.id

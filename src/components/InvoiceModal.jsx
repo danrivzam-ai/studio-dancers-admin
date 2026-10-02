@@ -6,7 +6,7 @@ import Modal from './ui/Modal'
 
 const ID_TYPE_LABELS = { '04': 'RUC', '05': 'Cédula', '06': 'Pasaporte', '07': 'Consumidor Final' }
 
-export default function InvoiceModal({ payment, student, courseName, settings, onClose, logoBase64 }) {
+export default function InvoiceModal({ payment, student, courseName, settings, onClose }) {
   const { submitToFactuplan, checkFactuplanStatus, downloadFactuplanDoc,
           getInvoiceByPayment, createDraftInvoice, loading } = useInvoices()
 

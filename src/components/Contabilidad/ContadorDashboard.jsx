@@ -387,10 +387,11 @@ export default function ContadorDashboard({ user, settings, onSignOut }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {cartera.map((st, i) => {
+                    {cartera.map((st) => {
                       const daysStr = st.next_payment_date
                         ? (() => {
-                            const diff = Math.floor((new Date(st.next_payment_date) - new Date()) / 86400000)
+                            // Días en hora Ecuador, comparando ambas fechas al mediodía (sin desfase UTC)
+                            const diff = Math.round((new Date(st.next_payment_date.slice(0, 10) + 'T12:00:00') - new Date(getTodayEC() + 'T12:00:00')) / 86400000)
                             if (diff < 0) return `${Math.abs(diff)}d vencido`
                             if (diff === 0) return 'hoy'
                             return `en ${diff}d`

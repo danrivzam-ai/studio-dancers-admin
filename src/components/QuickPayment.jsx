@@ -21,7 +21,6 @@ const DAILY_CLASSES = [
 export default function QuickPayment({
   onClose,
   onPaymentComplete,
-  settings,
   students = []
 }) {
   const { generateReceiptNumber } = usePayments()

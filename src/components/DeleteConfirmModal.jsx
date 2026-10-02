@@ -25,7 +25,6 @@ export default function DeleteConfirmModal({
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [reason, setReason] = useState('')
-  const [step, setStep] = useState('confirm') // 'confirm' | 'reason' for alumno
 
   const isVoid = itemType === 'venta'
   const isAlumno = itemType === 'alumno'
@@ -50,7 +49,6 @@ export default function DeleteConfirmModal({
       await onConfirm(isAlumno ? reason : undefined)
       setPin('')
       setReason('')
-      setStep('confirm')
       onClose()
     } catch (err) {
       setError(sanitizeError(err))
@@ -63,7 +61,6 @@ export default function DeleteConfirmModal({
     setPin('')
     setError('')
     setReason('')
-    setStep('confirm')
     onClose()
   }
 

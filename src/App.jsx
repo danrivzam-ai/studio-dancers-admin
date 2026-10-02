@@ -7,7 +7,6 @@ import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
 import { useSales } from './hooks/useSales'
 import { useSchoolSettings } from './hooks/useSchoolSettings'
-import { usePayments } from './hooks/usePayments'
 import { useItems } from './hooks/useItems'
 import { useDailyIncome } from './hooks/useDailyIncome'
 import { useCashRegister } from './hooks/useCashRegister'
@@ -22,7 +21,7 @@ import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsa
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
-import ExportStudents from './components/ExportStudents'
+import { lazyLoad } from './lib/lazyLoad'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -38,24 +37,27 @@ import DailyReport from './components/DailyReport'
 import AuditLog from './components/AuditLog'
 import TransferVerification from './components/TransferVerification'
 import SaleReceipt from './components/SaleReceipt'
-import SaleInstallments from './components/SaleInstallments'
 import { useSalePlans } from './hooks/useSalePlans'
 import InstructorManager from './components/InstructorManager'
 import ReportesManager from './components/ReportesManager'
 import ClasesAdultasManager from './components/ClasesAdultasManager'
-import HonorariosPanel from './components/HonorariosPanel'
-import CobranzaReport from './components/CobranzaReport'
-import MonthlyClose from './components/MonthlyClose'
 import { useMonthlyClose } from './hooks/useMonthlyClose'
 import { useFinancialKPIs } from './hooks/useFinancialKPIs'
 import ReceptionistManager from './components/ReceptionistManager'
 import ScreenLock from './components/ScreenLock'
 import { useTransferRequests } from './hooks/useTransferRequests'
 import LoginPage from './components/Auth/LoginPage'
-import ContabilidadPanel from './components/Contabilidad/ContabilidadPanel'
-import ContadorDashboard from './components/Contabilidad/ContadorDashboard'
 import BottomNav from './components/BottomNav'
 import './App.css'
+
+// Cargados bajo demanda: usan xlsx/jspdf y solo se muestran al abrirlos
+const ExportStudents = lazyLoad(() => import('./components/ExportStudents'))
+const SaleInstallments = lazyLoad(() => import('./components/SaleInstallments'))
+const HonorariosPanel = lazyLoad(() => import('./components/HonorariosPanel'))
+const CobranzaReport = lazyLoad(() => import('./components/CobranzaReport'))
+const MonthlyClose = lazyLoad(() => import('./components/MonthlyClose'))
+const ContabilidadPanel = lazyLoad(() => import('./components/Contabilidad/ContabilidadPanel'))
+const ContadorDashboard = lazyLoad(() => import('./components/Contabilidad/ContadorDashboard'))
 
 // Mini-component: shows avatar photo from Supabase storage, falls back to initials
 function StudentAvatar({ student, isCamp }) {
@@ -80,11 +82,10 @@ function StudentAvatar({ student, isCamp }) {
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, isContador, can } = useAuth()
   const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
-  const { sales, loading: salesLoading, createSale, createSaleGroup, deleteSale, totalSalesIncome } = useSales()
+  const { sales, loading: salesLoading, createSaleGroup, deleteSale } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
-  const { generateReceiptNumber } = usePayments()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, fetchCoursePlans, saveCoursePlan, deleteCoursePlan } = useItems()
-  const { todayIncome, todayPaymentsCount, refreshIncome } = useDailyIncome()
+  const { todayIncome, refreshIncome } = useDailyIncome()
   const { isOpen: isCashOpen, notOpened: isCashNotOpened, refresh: refreshCash, todayRegister } = useCashRegister()
   const { todayExpensesTotal, refreshExpenses } = useExpenses()
   const { requests: transferRequests, pendingCount: pendingTransfers, fetchRequests: fetchTransferRequests, approveRequest, rejectRequest, newTransferAlert, setNewTransferAlert, onNewTransferRef } = useTransferRequests()
@@ -150,7 +151,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [showMonthlyClose,  setShowMonthlyClose]      = useState(false)
   const [showContabilidad, setShowContabilidad] = useState(false)
   const [isScreenLocked, setIsScreenLocked] = useState(false)
-  const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, isMonthClosed, getMonthSummary, closeMonth } = useMonthlyClose()
+  const { closes, loading: closesLoading, summaryLoading, summary, fetchCloses, getMonthSummary, closeMonth } = useMonthlyClose()
   const globalSearchRef = useRef(null)
 
   // Prompt: registrar cobro tras crear alumno nuevo
@@ -209,7 +210,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       window.history.pushState({ modal: true }, '')
     }
 
-    const handlePopState = (e) => {
+    const handlePopState = () => {
       // Close modals in reverse priority order
       if (showPinPrompt) { setShowPinPrompt(false); setPendingSettingsAccess(false); return }
       if (deleteModal.isOpen) { setDeleteModal({ isOpen: false, type: '', id: null, name: '' }); return }
@@ -301,22 +302,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     window.addEventListener('keydown', handleCtrlK)
     return () => window.removeEventListener('keydown', handleCtrlK)
   }, [])
-
-  const [formData, setFormData] = useState({
-    name: '',
-    age: '',
-    phone: '',
-    email: '',
-    parentName: '',
-    parentPhone: '',
-    // Pagador (si es diferente al representante)
-    hasDifferentPayer: false,
-    payerName: '',
-    payerPhone: '',
-    payerCedula: '',
-    courseId: '',
-    notes: ''
-  })
 
   const [saleForm, setSaleForm] = useState({
     customerName: '',
@@ -439,11 +424,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Total de alumnos que necesitan atención urgente (vencidas + mora)
   const urgentCount = overduePayments.length + moraStudents.length
 
-  const totalMonthlyIncome = recurringStudents.reduce((sum, s) => sum + parseFloat(s.monthly_fee || 0), 0)
-  const campStudents = students.filter(s => s.course_id?.startsWith('camp-'))
-  const sabadosStudents = students.filter(s => s.course_id?.startsWith('sabados-'))
-  const regularStudents = students.filter(s => !s.course_id?.startsWith('camp-') && !s.course_id?.startsWith('sabados-'))
-
   // Alumnos con saldos pendientes (abonos parciales)
   const studentsWithBalance = students.filter(s => {
     if (s.payment_status !== 'partial') return false
@@ -461,14 +441,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const effectivePrice = parseFloat(s.total_program_price || course?.price || 0)
     return { ...s, courseName: course?.name, amountPaid, coursePrice: effectivePrice, balance: parseFloat(s.balance || 0) }
   })
-
-  // Manejar cambio de curso
-  const handleCourseChange = (courseId) => {
-    setFormData({
-      ...formData,
-      courseId
-    })
-  }
 
   // Sincronizar alumno con MailerLite segmentado por edad (fire-and-forget)
   // Funciona tanto para nuevos alumnos como para actualizaciones de datos
@@ -558,33 +530,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     })
     console.log('[MailerLite] Sincronización masiva enviada:', synced, 'de', students.length)
     localStorage.setItem('ml_bulk_sync_v1', Date.now().toString())
-  }, [settings.mailerlite_api_key, students, studentsLoading])
-
-  // Crear/Editar estudiante
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    let result
-    if (editingStudent) {
-      result = await updateStudent(editingStudent.id, formData)
-      if (result.success) {
-        syncStudentToMailerLite(formData)
-        resetForm()
-      } else {
-        alert('Error: ' + result.error)
-      }
-    } else {
-      result = await createStudent(formData)
-      if (result.success) {
-        syncStudentToMailerLite(formData)
-        resetForm()
-        // Preguntar si desea registrar el cobro ahora
-        setNewStudentPaymentPrompt(result.data)
-      } else {
-        alert('Error: ' + result.error)
-      }
-    }
-  }
+  }, [settings.mailerlite_api_key, settings.mailerlite_group_id, students, studentsLoading])
 
   // Agregar ítem al carrito
   const handleAddToCart = () => {
@@ -737,25 +683,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     setEditingAnnouncement(a)
     setAnnouncementForm({ title: a.title, body: a.body, color: a.color || 'purple', pinned: a.pinned || false, expires_at: a.expires_at || '' })
     setShowAnnouncementForm(true)
-  }
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      age: '',
-      phone: '',
-      email: '',
-      parentName: '',
-      parentPhone: '',
-      hasDifferentPayer: false,
-      payerName: '',
-      payerPhone: '',
-      payerCedula: '',
-      courseId: '',
-      notes: ''
-    })
-    setShowForm(false)
-    setEditingStudent(null)
   }
 
   const handleEdit = (student) => {
@@ -1547,7 +1474,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </div>
                 <div className="space-y-1.5">
                   {adultRenewalStudents.slice(0, 3).map(s => {
-                    const course = enrichCourse(getCourseById(s.course_id))
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
                     return (
                       <div key={s.id} className="flex items-center justify-between text-sm">
@@ -1633,7 +1559,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   {overduePayments.slice(0, 3).map(s => {
                     const course = enrichCourse(getCourseById(s.course_id))
                     const days = Math.abs(getDaysUntilDue(s.next_payment_date))
-                    const { contactName, contactPhone, contactRelation } = getContactInfo(s)
+                    const { contactName, contactRelation } = getContactInfo(s)
                     return (
                       <div key={s.id} className="flex items-center gap-2 bg-red-50 rounded-xl pl-3 pr-2 py-2.5">
                         <div className="flex-1 min-w-0">
@@ -2801,7 +2727,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {showPaymentModal && selectedStudent && (
           <PaymentModal
             student={selectedStudent}
-            autoInactiveDays={autoInactiveDays}
+            paymentStatus={getPaymentStatus(selectedStudent, enrichCourse(getCourseById(selectedStudent.course_id)), autoInactiveDays, graceDays, moraDays)}
             onClose={() => {
               setShowPaymentModal(false)
               setSelectedStudent(null)

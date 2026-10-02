@@ -100,7 +100,6 @@ export function useStudents() {
       // Obtener información del curso
       const course = getCourseById(studentData.courseId)
       const coursePrice = course?.price || 0
-      const isMonthly = course?.priceType === 'mes'
 
       // NO calcular próximo pago al registrar - se calculará cuando haga el primer pago
       const nextPayment = null

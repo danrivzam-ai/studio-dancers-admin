@@ -212,6 +212,7 @@ export default function ContabilidadPanel({ settings, onClose }) {
 
   useEffect(() => {
     cargarDatos()
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarga solo al cambiar el rango de fechas
   }, [rangoFechas])
 
   // ─── Libro Mayor ────────────────────────────────────────────────────────────
@@ -293,7 +294,6 @@ export default function ContabilidadPanel({ settings, onClose }) {
     XLSX.utils.book_append_sheet(wb, wsDiario, 'Libro Diario')
 
     // Hoja 2: Libro Mayor
-    const mayorData = [`LIBRO MAYOR - ${periodoLabel}`, []]
     const wsMayor = XLSX.utils.aoa_to_sheet([[`LIBRO MAYOR - ${periodoLabel}`], []])
     let rowIdx = 2
     for (const cuenta of libroMayor) {

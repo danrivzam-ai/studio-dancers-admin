@@ -14,7 +14,7 @@ const PAYMENT_METHODS = [
 
 export default function PaymentModal({
   student,
-  autoInactiveDays = 10,
+  paymentStatus, // calculado en App con getPaymentStatus (no usar student.payment_status crudo)
   onClose,
   onPaymentComplete,
   onFetchCoursePlans,
@@ -182,6 +182,7 @@ export default function PaymentModal({
       const discounted = calculateDiscountedAmount()
       setFormData(prev => ({ ...prev, amount: discounted.toFixed(2), paymentType: prev.paymentType === 'custom' ? prev.paymentType : prev.paymentType }))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- incluir calculateDiscountedAmount (nueva en cada render) reiniciaría el monto en cada render (ver 5cd06aa)
   }, [discountEnabled, discountType, discountValue, customFinalPrice])
 
   const handlePaymentTypeChange = (type) => {
@@ -400,17 +401,10 @@ export default function PaymentModal({
               <p className="text-sm text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
             </div>
             {(() => {
-              const ps = student.payment_status
-              const chip = ps === 'overdue' || ps === 'due_today'
-                ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
-                : ps === 'urgent' || ps === 'upcoming'
-                ? { label: 'Por renovar', cls: 'bg-amber-100 text-amber-700' }
-                : ps === 'ok' || ps === 'paid' || ps === 'active_package'
-                ? { label: 'Al día', cls: 'bg-emerald-100 text-emerald-700' }
-                : null
-              return chip && (
-                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${chip.cls}`}>
-                  {chip.label}
+              // Mismo estado (etiqueta y color) que muestra la lista de alumnas
+              return paymentStatus?.label && (
+                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${paymentStatus.color}`}>
+                  {paymentStatus.label}
                 </span>
               )
             })()}
