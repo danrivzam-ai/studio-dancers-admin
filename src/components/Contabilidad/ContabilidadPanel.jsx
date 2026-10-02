@@ -27,7 +27,8 @@ function fmt(n) {
 
 function getCtaEfectivo(paymentMethod) {
   const m = (paymentMethod || '').toLowerCase()
-  if (m.includes('transfer') || m.includes('banco') || m.includes('depósito') || m.includes('deposito')) {
+  // Tarjeta también se acredita en el banco, no entra a caja
+  if (m.includes('transfer') || m.includes('banco') || m.includes('depósito') || m.includes('deposito') || m.includes('tarjeta') || m === 'card') {
     return '1.1.02'
   }
   return '1.1.01'

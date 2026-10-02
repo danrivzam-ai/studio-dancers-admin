@@ -82,7 +82,7 @@ export function useSales() {
   }
 
   // Crear venta multi-item (carrito)
-  const createSaleGroup = async ({ customerName, program, items, date, notes, paymentMethod }) => {
+  const createSaleGroup = async ({ customerName, program, items, date, notes, paymentMethod, bankName, transferReceipt }) => {
     try {
       const groupId = crypto.randomUUID()
       const saleDate = date || getTodayEC()
@@ -100,6 +100,8 @@ export function useSales() {
         sale_date: saleDate,
         notes: notes || null,
         payment_method: paymentMethod || 'cash',
+        bank_name: bankName || null,
+        transfer_receipt: transferReceipt || null,
         sale_group_id: groupId,
         receipt_number: receiptNumber
       }))

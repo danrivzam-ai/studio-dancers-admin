@@ -64,7 +64,7 @@ export function useSalePlans() {
   }
 
   // ── Registrar abono ──────────────────────────────────────────────────────
-  const registerPayment = async (planId, { amount, paymentMethod, notes }) => {
+  const registerPayment = async (planId, { amount, paymentMethod, notes, bankName, transferReceipt }) => {
     try {
       // 1. Obtener plan actual
       const { data: plan, error: planErr } = await supabase
@@ -87,6 +87,8 @@ export function useSalePlans() {
           plan_id:            planId,
           amount:             parseFloat(amount),
           payment_method:     paymentMethod,
+          bank_name:          bankName || null,
+          transfer_receipt:   transferReceipt || null,
           payment_date:       getTodayEC(),
           installment_number: installmentNo,
           notes:              notes?.trim() || null

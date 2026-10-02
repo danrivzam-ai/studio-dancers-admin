@@ -221,6 +221,7 @@ export default function DailyReport() {
                 total={r.incomeBySource.studentPayments.total}
                 cash={r.incomeBySource.studentPayments.cash}
                 transfer={r.incomeBySource.studentPayments.transfer}
+                card={r.incomeBySource.studentPayments.card}
                 count={r.incomeBySource.studentPayments.count}
               />
             )}
@@ -230,6 +231,7 @@ export default function DailyReport() {
                 total={r.incomeBySource.quickPayments.total}
                 cash={r.incomeBySource.quickPayments.cash}
                 transfer={r.incomeBySource.quickPayments.transfer}
+                card={r.incomeBySource.quickPayments.card}
                 count={r.incomeBySource.quickPayments.count}
               />
             )}
@@ -241,6 +243,16 @@ export default function DailyReport() {
                 transfer={r.incomeBySource.sales.transfer}
                 card={r.incomeBySource.sales.card}
                 count={r.incomeBySource.sales.count}
+              />
+            )}
+            {r.incomeBySource.planPayments?.total > 0 && (
+              <IncomeRow
+                label="Abonos de planes"
+                total={r.incomeBySource.planPayments.total}
+                cash={r.incomeBySource.planPayments.cash}
+                transfer={r.incomeBySource.planPayments.transfer}
+                card={r.incomeBySource.planPayments.card}
+                count={r.incomeBySource.planPayments.count}
               />
             )}
           </div>

@@ -90,7 +90,10 @@ export function useDailyReport() {
         + sum(s.filter(r => r.payment_method === 'transfer'), 'total')
         + sum(pp.filter(r => r.payment_method === 'Transferencia'))
 
-      const incomeCard = sum(s.filter(r => r.payment_method === 'card'), 'total')
+      const incomeCard = sum(p.filter(r => r.payment_method === 'Tarjeta'))
+        + sum(qp.filter(r => r.payment_method === 'Tarjeta'))
+        + sum(s.filter(r => r.payment_method === 'card'), 'total')
+        + sum(pp.filter(r => r.payment_method === 'Tarjeta'))
 
       const totalIncome = studentTotal + quickTotal + salesTotal + planTotal
 
@@ -100,12 +103,14 @@ export function useDailyReport() {
           total: studentTotal,
           cash: sum(p.filter(r => r.payment_method === 'Efectivo')),
           transfer: sum(p.filter(r => r.payment_method === 'Transferencia')),
+          card: sum(p.filter(r => r.payment_method === 'Tarjeta')),
           count: p.length
         },
         quickPayments: {
           total: quickTotal,
           cash: sum(qp.filter(r => r.payment_method === 'Efectivo')),
           transfer: sum(qp.filter(r => r.payment_method === 'Transferencia')),
+          card: sum(qp.filter(r => r.payment_method === 'Tarjeta')),
           count: qp.length
         },
         sales: {
@@ -119,6 +124,7 @@ export function useDailyReport() {
           total: planTotal,
           cash: sum(pp.filter(r => r.payment_method === 'Efectivo')),
           transfer: sum(pp.filter(r => r.payment_method === 'Transferencia')),
+          card: sum(pp.filter(r => r.payment_method === 'Tarjeta')),
           count: pp.length
         }
       }

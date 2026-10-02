@@ -23,6 +23,8 @@ import ReceiptGenerator from './components/ReceiptGenerator'
 import SettingsModal from './components/SettingsModal'
 import { lazyLoad } from './lib/lazyLoad'
 import { getNextReceiptNumber } from './lib/receipts'
+import { paymentMethodSalesCode, bankNameById } from './lib/paymentMethods'
+import PaymentMethodPicker from './components/ui/PaymentMethodPicker'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -310,7 +312,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     productId: '',
     quantity: 1,
     date: getTodayEC(),
-    paymentMethod: 'cash',
+    paymentMethod: 'efectivo', // id de PaymentMethodPicker; en sales se guarda como 'cash'/'transfer'/'card'
+    bankId: '',
+    transferReceipt: '',
     notes: ''
   })
   const [cartItems, setCartItems] = useState([])
@@ -573,7 +577,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       items: cartItems,
       date: saleForm.date,
       notes: saleForm.notes,
-      paymentMethod: saleForm.paymentMethod
+      paymentMethod: paymentMethodSalesCode(saleForm.paymentMethod),
+      bankName: saleForm.paymentMethod === 'transferencia' ? bankNameById(saleForm.bankId) : null,
+      transferReceipt: saleForm.paymentMethod === 'transferencia' ? saleForm.transferReceipt.trim() || null : null
     })
 
     if (result.success) {
@@ -593,13 +599,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         items: cartItems,
         total: cartItems.reduce((s, i) => s + i.unitPrice * i.quantity, 0),
         date: saleForm.date,
-        paymentMethod: saleForm.paymentMethod
+        paymentMethod: paymentMethodSalesCode(saleForm.paymentMethod)
       })
       setShowSaleReceipt(true)
       // Reset
       setCartItems([])
       setProductSearch('')
-      setSaleForm({ customerName: '', program: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'cash', notes: '' })
+      setSaleForm({ customerName: '', program: '', productId: '', quantity: 1, date: getTodayEC(), paymentMethod: 'efectivo', bankId: '', transferReceipt: '', notes: '' })
       setShowSaleForm(false)
     } else {
       alert('Error: ' + result.error)
@@ -2666,30 +2672,23 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     </div>
                   )}
 
-                  {/* Fecha + Método de pago */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                      <input
-                        type="date"
-                        value={saleForm.date}
-                        onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
-                      <select
-                        value={saleForm.paymentMethod}
-                        onChange={(e) => setSaleForm({...saleForm, paymentMethod: e.target.value})}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                      >
-                        <option value="cash">Efectivo</option>
-                        <option value="transfer">Transferencia</option>
-                        <option value="card">Tarjeta</option>
-                      </select>
-                    </div>
+                  {/* Fecha */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                    <input
+                      type="date"
+                      value={saleForm.date}
+                      onChange={(e) => setSaleForm({...saleForm, date: e.target.value})}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                    />
                   </div>
+
+                  <PaymentMethodPicker
+                    paymentMethod={saleForm.paymentMethod}
+                    bankId={saleForm.bankId}
+                    transferReceipt={saleForm.transferReceipt}
+                    onChange={patch => setSaleForm(prev => ({ ...prev, ...patch }))}
+                  />
 
                 </div>
 

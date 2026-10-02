@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react'
-import { X, Check, CreditCard, Banknote, Smartphone, Building2, AlertCircle, Percent, Tag } from 'lucide-react'
+import { X, Check, CreditCard, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
 import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo, calculateNextPaymentDate } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
-
-const PAYMENT_METHODS = [
-  { id: 'efectivo', name: 'Efectivo', icon: Banknote },
-  { id: 'transferencia', name: 'Transferencia', icon: Smartphone },
-  { id: 'tarjeta', name: 'Tarjeta', icon: CreditCard },
-]
+import PaymentMethodPicker from './ui/PaymentMethodPicker'
+import { paymentMethodName } from '../lib/paymentMethods'
 
 export default function PaymentModal({
   student,
@@ -313,7 +309,7 @@ export default function PaymentModal({
     ) ? cycleStartDate : null
     setPendingPayment({
       amount: parseFloat(formData.amount),
-      paymentMethod: PAYMENT_METHODS.find(m => m.id === formData.paymentMethod)?.name || 'Efectivo',
+      paymentMethod: paymentMethodName(formData.paymentMethod),
       paymentType: dbPaymentType,
       paymentDate: formData.paymentDate,
       bankName: selectedBank?.name || null,
@@ -974,69 +970,12 @@ export default function PaymentModal({
             </div>
           )}
 
-          {/* Payment Method */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Forma de pago
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {PAYMENT_METHODS.map(method => {
-                const Icon = method.icon
-                return (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setFormData({...formData, paymentMethod: method.id, bankId: '', transferReceipt: ''})}
-                    className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
-                      formData.paymentMethod === method.id
-                        ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <Icon size={24} />
-                    <span className="text-xs font-medium">{method.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Bank Selection (solo para transferencia) */}
-          {formData.paymentMethod === 'transferencia' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <Building2 size={16} className="inline mr-1" />
-                  Banco de origen *
-                </label>
-                <select
-                  required
-                  value={formData.bankId}
-                  onChange={(e) => setFormData({...formData, bankId: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
-                >
-                  <option value="">Seleccionar banco</option>
-                  {BANKS.map(bank => (
-                    <option key={bank.id} value={bank.id}>{bank.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  N° de Comprobante *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.transferReceipt}
-                  onChange={(e) => setFormData({...formData, transferReceipt: e.target.value})}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all text-base"
-                  placeholder="Ingrese número de comprobante"
-                />
-              </div>
-            </>
-          )}
+          <PaymentMethodPicker
+            paymentMethod={formData.paymentMethod}
+            bankId={formData.bankId}
+            transferReceipt={formData.transferReceipt}
+            onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+          />
 
           {/* Notes */}
           <div>

@@ -7,8 +7,8 @@ import {
   Search, Minus, ClipboardList, Database, Copy, Check,
   Eye, MessageCircle, Download
 } from 'lucide-react'
-
-const PAYMENT_METHODS = ['Efectivo', 'Transferencia']
+import PaymentMethodPicker from './ui/PaymentMethodPicker'
+import { paymentMethodName, bankNameById } from '../lib/paymentMethods'
 
 // ─── Utilidades ──────────────────────────────────────────────────────────────
 const fmt = (n) => `$${parseFloat(n || 0).toFixed(2)}`
@@ -266,7 +266,9 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
 // ─── Modal: Registrar abono ───────────────────────────────────────────────────
 function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
   const [amount, setAmount] = useState('')
-  const [method, setMethod] = useState('Efectivo')
+  const [payMethod, setPayMethod] = useState({ paymentMethod: 'efectivo', bankId: '', transferReceipt: '' })
+  const method = paymentMethodName(payMethod.paymentMethod)
+  const bankName = payMethod.paymentMethod === 'transferencia' ? bankNameById(payMethod.bankId) : null
   const [notes,  setNotes]  = useState('')
   const [error,  setError]  = useState('')
   const [confirmStep, setConfirmStep] = useState(false)
@@ -283,7 +285,10 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
   }
 
   const handleConfirm = () => {
-    onConfirm({ amount: parseFloat(amount), paymentMethod: method, notes })
+    onConfirm({
+      amount: parseFloat(amount), paymentMethod: method, notes,
+      bankName, transferReceipt: bankName ? payMethod.transferReceipt.trim() || null : null
+    })
   }
 
   return (
@@ -326,18 +331,12 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
             </button>
           </div>
 
-          {/* Método */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Forma de pago</label>
-            <div className="grid grid-cols-2 gap-2">
-              {PAYMENT_METHODS.map(m => (
-                <button key={m} type="button" onClick={() => setMethod(m)}
-                  className={`py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${method === m ? 'border-[#7e2d55] bg-[#fdf5f9] text-[#551735]' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
+          <PaymentMethodPicker
+            paymentMethod={payMethod.paymentMethod}
+            bankId={payMethod.bankId}
+            transferReceipt={payMethod.transferReceipt}
+            onChange={patch => setPayMethod(prev => ({ ...prev, ...patch }))}
+          />
 
           {/* Notas */}
           <div>
@@ -386,6 +385,12 @@ function PaymentModal({ plan, onConfirm, onClose, loading, serverError }) {
                 <span className="text-sm text-gray-500">Método</span>
                 <span className="text-sm font-semibold text-gray-800">{method}</span>
               </div>
+              {bankName && (
+                <div className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-500">Banco</span>
+                  <span className="text-sm font-semibold text-gray-800 text-right max-w-[55%] truncate">{bankName}</span>
+                </div>
+              )}
               {notes && (
                 <div className="flex justify-between items-center px-4 py-2.5">
                   <span className="text-sm text-gray-500">Notas</span>
