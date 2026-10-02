@@ -144,7 +144,12 @@ export default function PaymentModal({
   const getBaseAmount = () => {
     if (formData.paymentType === 'balance') return balance
     if (formData.paymentType === 'installment') return coursePrice / installmentCount
-    return hasBalance ? balance : studentFee
+    if (hasBalance) return balance
+    // Plan de varios meses (trimestral, semestral...): el descuento se aplica sobre su total
+    if (selectedPlan) return parseFloat(selectedPlan.price)
+    // Adelanto de meses sin plan: el descuento se aplica sobre mensualidad × meses
+    if (formData.paymentType === 'full' && formData.monthsAhead > 1) return studentFee * formData.monthsAhead
+    return studentFee
   }
 
   const calculateDiscountedAmount = () => {
@@ -184,7 +189,7 @@ export default function PaymentModal({
     let newAmount = studentFee
 
     if (type === 'full') {
-      newAmount = hasBalance ? balance : studentFee
+      newAmount = hasBalance ? balance : selectedPlan ? parseFloat(selectedPlan.price) : studentFee
     } else if (type === 'installment') {
       newAmount = coursePrice / installmentCount
     } else if (type === 'balance') {
@@ -196,10 +201,14 @@ export default function PaymentModal({
       // Resetear descuento al cambiar tipo
     }
 
+    // Los planes de varios meses solo aplican al pago completo
+    if (type !== 'full' && selectedPlan) setSelectedPlan(null)
+
     setFormData({
       ...formData,
       paymentType: type,
-      amount: newAmount.toFixed(2)
+      amount: newAmount.toFixed(2),
+      ...(type !== 'full' && selectedPlan ? { monthsAhead: 1 } : {})
     })
 
     // Resetear descuento al cambiar tipo de pago
@@ -797,7 +806,7 @@ export default function PaymentModal({
           </div>
 
           {/* Adelantar meses — solo cursos mensuales, sin saldo previo */}
-          {course?.priceType === 'mes' && !hasBalance && !prorrateo && formData.paymentType === 'full' && (
+          {course?.priceType === 'mes' && !hasBalance && !prorrateo && !selectedPlan && formData.paymentType === 'full' && (
             <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
