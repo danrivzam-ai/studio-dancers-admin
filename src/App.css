@@ -160,28 +160,29 @@
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--sd-line-strong);
   border-radius: 0.625rem;
-  background: white;
+  background: var(--sd-surface);
+  color: var(--sd-ink);
   font-size: 0.9375rem;
   transition: all 0.2s ease;
 }
 
 .form-input:focus {
-  border-color: #9e4a72;
-  box-shadow: 0 0 0 4px rgba(158, 74, 114, 0.1);
+  border-color: var(--sd-brand);
+  box-shadow: 0 0 0 4px var(--sd-brand-soft);
   outline: none;
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: var(--sd-ink-muted);
 }
 
 .form-label {
   display: block;
   font-weight: 500;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--sd-ink-soft);
   margin-bottom: 0.5rem;
 }
 

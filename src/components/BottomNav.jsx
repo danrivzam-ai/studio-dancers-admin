@@ -94,8 +94,8 @@ export default function BottomNav({
                   onClick={() => handleSelect(tab.id)}
                   className="relative flex flex-col items-center gap-2 py-4 px-1 rounded-2xl transition-all active:scale-95"
                   style={{
-                    background: isActive ? '#fdf2f7' : 'transparent',
-                    color: isActive ? '#551735' : '#6b7280',
+                    background: isActive ? 'var(--sd-brand-soft)' : 'transparent',
+                    color: isActive ? 'var(--sd-brand-ink)' : 'var(--sd-ink-soft)',
                   }}
                 >
                   <Icon size={22} strokeWidth={isActive ? 2.5 : 1.75} />
@@ -112,7 +112,7 @@ export default function BottomNav({
                         top: '0.5rem', right: '0.5rem',
                         width: '1.1rem', height: '1.1rem',
                         fontSize: '0.55rem',
-                        background: '#551735',
+                        background: 'var(--sd-brand-ink)',
                       }}
                     >
                       {tab.badge > 9 ? '9+' : tab.badge}
@@ -127,10 +127,10 @@ export default function BottomNav({
 
       {/* Barra fija inferior */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-surface md:hidden"
         style={{
-          borderTop: '1px solid rgba(85, 23, 53, 0.08)',
-          boxShadow: '0 -2px 16px rgba(85, 23, 53, 0.07)',
+          borderTop: '1px solid var(--sd-line)',
+          boxShadow: '0 -2px 16px rgb(0 0 0 / 0.06)',
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
@@ -143,7 +143,7 @@ export default function BottomNav({
                 key={tab.id}
                 onClick={() => handleSelect(tab.id)}
                 className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-all active:scale-95"
-                style={{ color: isActive ? '#551735' : '#9ca3af' }}
+                style={{ color: isActive ? 'var(--sd-brand-ink)' : 'var(--sd-ink-muted)' }}
               >
                 {/* Indicador activo */}
                 {isActive && (
@@ -151,7 +151,7 @@ export default function BottomNav({
                     className="absolute top-0 left-1/2 rounded-full"
                     style={{
                       width: '1.75rem', height: '2px',
-                      background: '#551735',
+                      background: 'var(--sd-brand-ink)',
                       transform: 'translateX(-50%)',
                     }}
                   />
@@ -160,7 +160,7 @@ export default function BottomNav({
                   className="flex items-center justify-center rounded-xl transition-all"
                   style={{
                     width: '2.25rem', height: '2.25rem',
-                    background: isActive ? '#fdf2f7' : 'transparent',
+                    background: isActive ? 'var(--sd-brand-soft)' : 'transparent',
                   }}
                 >
                   <Icon size={19} strokeWidth={isActive ? 2.5 : 1.75} />
@@ -183,14 +183,14 @@ export default function BottomNav({
             <button
               onClick={() => setShowMore(prev => !prev)}
               className="relative flex-1 flex flex-col items-center justify-center gap-1 transition-all active:scale-95"
-              style={{ color: isMoreActive || showMore ? '#551735' : '#9ca3af' }}
+              style={{ color: isMoreActive || showMore ? 'var(--sd-brand-ink)' : 'var(--sd-ink-muted)' }}
             >
               {(isMoreActive || showMore) && (
                 <span
                   className="absolute top-0 left-1/2 rounded-full"
                   style={{
                     width: '1.75rem', height: '2px',
-                    background: '#551735',
+                    background: 'var(--sd-brand-ink)',
                     transform: 'translateX(-50%)',
                   }}
                 />
@@ -199,7 +199,7 @@ export default function BottomNav({
                 className="flex items-center justify-center rounded-xl transition-all"
                 style={{
                   width: '2.25rem', height: '2.25rem',
-                  background: isMoreActive || showMore ? '#fdf2f7' : 'transparent',
+                  background: isMoreActive || showMore ? 'var(--sd-brand-soft)' : 'transparent',
                 }}
               >
                 <MoreHorizontal

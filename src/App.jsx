@@ -27,6 +27,7 @@ import { paymentMethodSalesCode, bankNameById } from './lib/paymentMethods'
 import PaymentMethodPicker from './components/ui/PaymentMethodPicker'
 import { HomeSection, HomeRow } from './components/home/HomeSection'
 import SideNav from './components/SideNav'
+import ThemeToggle from './components/ui/ThemeToggle'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -1078,7 +1079,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           return (
             <header className="mb-4">
               <div className="flex items-center gap-2">
-              <img src="/logo2.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto lg:hidden" />
+              <img src="/logo2.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto lg:hidden dark:hidden" />
+              <img src="/logo-cream.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto hidden dark:block dark:lg:hidden" />
               <span className="hidden lg:block mr-auto" />
               <button
                 onClick={() => setShowCashRegister(true)}
@@ -1090,6 +1092,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <span className="hidden sm:inline">{cashLabel}</span>
               </button>
               <div className="flex items-center shrink-0 -mr-2 lg:hidden">
+                <ThemeToggle className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink" />
                 <button
                   onClick={lockScreen}
                   className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
@@ -1143,7 +1146,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               onClick={onClick}
               className="sd-card !shadow-none h-[68px] flex flex-col items-center justify-center gap-1.5 text-ink hover:border-line-strong hover:bg-surface-alt active:scale-95"
             >
-              <span className="text-brand">{icon}</span>
+              <span className="text-brand-ink">{icon}</span>
               <span className="text-[11px] font-semibold leading-none">{label}</span>
             </button>
           ))}
@@ -2829,7 +2832,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 )) && (
                                   <button
                                     onClick={(e) => { e.stopPropagation(); setShowStudentListModal(false); openPaymentModal(student) }}
-                                    className="w-11 h-11 flex items-center justify-center rounded-full text-brand hover:bg-brand-soft active:scale-95 transition-all"
+                                    className="w-11 h-11 flex items-center justify-center rounded-full text-brand-ink hover:bg-brand-soft active:scale-95 transition-all"
                                     title="Registrar pago"
                                     aria-label={`Registrar pago de ${student.name}`}
                                   >

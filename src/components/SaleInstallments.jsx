@@ -199,7 +199,7 @@ function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose
         </div>
 
         {/* Recibo visual */}
-        <div ref={receiptRef} className="p-6 bg-white" style={{ minWidth: 320 }}>
+        <div ref={receiptRef} className="force-light p-6 bg-white" style={{ minWidth: 320 }}>
           <div className="text-center mb-4">
             <p className="font-bold text-lg tracking-wide uppercase">{schoolName}</p>
             <p className="text-xs text-gray-500 mt-1">Comprobante de Abono #{installmentNumber}</p>

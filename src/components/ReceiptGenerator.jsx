@@ -160,7 +160,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
         <div className="p-4">
           <div
             ref={receiptRef}
-            className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-inner"
+            className="force-light bg-white border-2 border-gray-200 rounded-xl p-6 shadow-inner"
             style={{ fontFamily: 'Arial, sans-serif' }}
           >
             {/* School Header */}

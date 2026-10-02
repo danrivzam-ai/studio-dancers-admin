@@ -118,7 +118,7 @@ export default function CashCloseReport({ cashRegister, todayData, settings, onC
 
         {/* Report Content (capturable) */}
         <div className="overflow-y-auto flex-1 p-4">
-          <div ref={reportRef} style={{ padding: '24px', backgroundColor: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <div ref={reportRef} className="force-light" style={{ padding: '24px', backgroundColor: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
             {/* School Header */}
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               {logoBase64 && (

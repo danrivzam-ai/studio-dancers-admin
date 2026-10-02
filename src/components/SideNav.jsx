@@ -1,4 +1,5 @@
 import { Settings, Lock, LogOut } from 'lucide-react'
+import ThemeToggle from './ui/ThemeToggle'
 
 // Barra lateral de PC (≥1024px). En celular y tablet la navegación sigue siendo
 // la barra inferior (BottomNav) y las pestañas superiores.
@@ -8,7 +9,8 @@ export default function SideNav({ activeTab, onTabChange, tabs, tools, userLabel
   return (
     <aside className="hidden lg:flex fixed inset-y-0 left-0 z-30 w-60 flex-col bg-surface border-r border-line">
       <div className="px-5 pt-5 pb-4">
-        <img src="/logo2.png" alt="Studio Dancers" className="h-10 w-auto object-contain" />
+        <img src="/logo2.png" alt="Studio Dancers" className="h-10 w-auto object-contain dark:hidden" />
+        <img src="/logo-cream.png" alt="Studio Dancers" className="h-10 w-auto object-contain hidden dark:block" />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-3" aria-label="Secciones">
@@ -76,6 +78,7 @@ export default function SideNav({ activeTab, onTabChange, tabs, tools, userLabel
             <Settings size={17} />
           </button>
         )}
+        <ThemeToggle className="w-9 h-9 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface-alt hover:text-ink" />
         <button onClick={onLock} className="w-9 h-9 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface-alt hover:text-ink" title="Bloquear pantalla" aria-label="Bloquear pantalla">
           <Lock size={17} />
         </button>

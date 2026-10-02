@@ -75,7 +75,7 @@ export default function SaleReceipt({ receipt, schoolName, onClose }) {
         <div className="p-4">
           <div
             ref={receiptRef}
-            className="bg-white border border-gray-200 rounded-xl p-5 font-mono text-sm"
+            className="force-light bg-white border border-gray-200 rounded-xl p-5 font-mono text-sm"
             style={{ minWidth: 280 }}
           >
             {/* Cabecera */}

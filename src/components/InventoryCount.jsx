@@ -225,7 +225,7 @@ export default function InventoryCount({ products, onAdjustStock, onClose, schoo
           ) : (
             /* Report view after submit */
             <div>
-              <div ref={reportRef} style={{ padding: '24px', backgroundColor: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              <div ref={reportRef} className="force-light" style={{ padding: '24px', backgroundColor: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
                 {/* Report Header */}
                 <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                   <div style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937' }}>{schoolName || 'Academia'}</div>

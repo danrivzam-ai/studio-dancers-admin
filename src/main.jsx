@@ -1,6 +1,11 @@
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { applyTheme, watchSystemTheme } from './lib/theme'
+
+// Tema antes del primer render: evita el destello blanco en modo oscuro
+applyTheme()
+watchSystemTheme()
 
 // Cuando el service worker instala una nueva versión, recarga la página
 // automáticamente para que el usuario vea los cambios sin intervención manual.
