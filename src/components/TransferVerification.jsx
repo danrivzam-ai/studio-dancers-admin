@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause, BadgeCheck } from 'lucide-react'
 import { formatDate, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
-import { getCourseById as getCourseByIdHardcoded } from '../lib/courses'
+import { getCourseById as getCourseByIdHardcoded, BANKS } from '../lib/courses'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
 import { useToast } from './Toast'
@@ -18,14 +18,6 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
   const [preview, setPreview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  const BANKS = [
-    'Banco Pichincha', 'Banco del Pacífico', 'Banco de Guayaquil',
-    'Banco Bolivariano', 'Banco del Austro', 'Banco Internacional',
-    'Banco Solidario', 'Banco ProCredit', 'BanEcuador',
-    'Produbanco', 'Cooperativa JEP',
-    'Cooperativa Jardín Azuayo', 'PayPhone (Tarjeta)', 'Otro'
-  ]
 
   const compressImage = (file) => {
     return new Promise((resolve) => {
@@ -149,7 +141,7 @@ function ManualTransferForm({ students, onSubmitted, onCancel }) {
         >
           <option value="">Banco...</option>
           {BANKS.map(b => (
-            <option key={b} value={b}>{b}</option>
+            <option key={b.id} value={b.name}>{b.name}</option>
           ))}
         </select>
       </div>

@@ -56,6 +56,7 @@ export const BANKS = [
   { id: 'coop-29-octubre', name: 'Cooperativa 29 de Octubre' },
   { id: 'coop-cooprogreso', name: 'Cooperativa Cooprogreso' },
   { id: 'nequi', name: 'Nequi' },
+  { id: 'otro', name: 'Otro' }, // misma lista que el portal (studio-dancers-portal/src/lib/banks.js)
   { id: 'otro', name: 'Otro' },
 ]
 
