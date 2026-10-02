@@ -2,10 +2,17 @@ import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { applyTheme, watchSystemTheme } from './lib/theme'
+import { reloadOnceForNewVersion, clearReloadFlagLater } from './lib/chunkReload'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 
 // Tema antes del primer render: evita el destello blanco en modo oscuro
 applyTheme()
 watchSystemTheme()
+
+// Después de publicar, una pestaña abierta puede pedir archivos que ya no existen:
+// recargar una vez para tomar la versión nueva en lugar de quedar en blanco
+window.addEventListener('vite:preloadError', (e) => { e.preventDefault(); reloadOnceForNewVersion() })
+clearReloadFlagLater()
 
 // Cuando el service worker instala una nueva versión, recarga la página
 // automáticamente para que el usuario vea los cambios sin intervención manual.
@@ -45,9 +52,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ModalProvider>
       <ToastProvider>
-        <Suspense fallback={appLoading}>
-          <SelectedApp />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={appLoading}>
+            <SelectedApp />
+          </Suspense>
+        </ErrorBoundary>
       </ToastProvider>
     </ModalProvider>
   </StrictMode>,

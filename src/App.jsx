@@ -28,6 +28,7 @@ import PaymentMethodPicker from './components/ui/PaymentMethodPicker'
 import { HomeSection, HomeRow } from './components/home/HomeSection'
 import SideNav from './components/SideNav'
 import ThemeToggle from './components/ui/ThemeToggle'
+import ErrorBoundary from './components/ui/ErrorBoundary'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -2566,11 +2567,13 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
         {/* Settings Modal */}
         {showSettings && (
-          <SettingsModal
-            settings={settings}
-            onClose={() => setShowSettings(false)}
-            onSave={updateSettings}
-          />
+          <ErrorBoundary compact>
+            <SettingsModal
+              settings={settings}
+              onClose={() => setShowSettings(false)}
+              onSave={updateSettings}
+            />
+          </ErrorBoundary>
         )}
 
         {/* Export Modal */}
