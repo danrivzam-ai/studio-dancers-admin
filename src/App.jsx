@@ -14,7 +14,7 @@ import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // ALL_COURSES se usa como fallback para enriquecer cursos que no tienen classDays en Supabase
 import { ALL_COURSES } from './lib/courses'
-import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
+import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC, getNowEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
 import { addDays } from 'date-fns'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
@@ -25,6 +25,7 @@ import { lazyLoad } from './lib/lazyLoad'
 import { getNextReceiptNumber } from './lib/receipts'
 import { paymentMethodSalesCode, bankNameById } from './lib/paymentMethods'
 import PaymentMethodPicker from './components/ui/PaymentMethodPicker'
+import { HomeSection, HomeRow } from './components/home/HomeSection'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -426,8 +427,6 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     return days < 0 && Math.abs(days) > autoInactiveDays
   })
 
-  // Total de alumnos que necesitan atención urgente (vencidas + mora)
-  const urgentCount = overduePayments.length + moraStudents.length
 
   // Alumnos con saldos pendientes (abonos parciales)
   const studentsWithBalance = students.filter(s => {
@@ -1002,216 +1001,140 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6" style={{ backgroundColor: 'oklch(97.5% 0.005 350)' }}>
+    <div className="min-h-screen bg-paper px-4 pt-3 pb-4 md:p-6">
       <div className="max-w-6xl mx-auto pb-20 md:pb-0">
-        {/* Logo Centrado - Arriba */}
-        <div className="text-center mb-3">
-          <img
-            src="/logo2.png"
-            alt="Studio Dancers"
-            className="object-contain mx-auto"
-            style={{ width: '160px', maxWidth: '40%', height: 'auto' }}
-          />
-        </div>
-
-        {/* Header con controles - Blanco */}
-        <div className="bg-white rounded-2xl mb-4 sm:mb-6 p-4 sm:p-6" style={{ boxShadow: '0 1px 3px oklch(40% 0.06 350 / 0.10), 0 4px 16px oklch(40% 0.06 350 / 0.06)' }}>
-          {/* Fila 1: Caja, Nombre, Config */}
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
-            {/* Izquierda: Estado de caja */}
-            <button
-              onClick={() => setShowCashRegister(true)}
-              className={`px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${
-                isCashOpen
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : isCashNotOpened
-                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-              title={isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'}
-            >
-              <Wallet size={20} />
-              <span className={`w-2 h-2 rounded-full ${
-                isCashOpen ? 'bg-green-500' : isCashNotOpened ? 'bg-yellow-500' : 'bg-gray-400'
-              }`} />
-              <span className="hidden sm:inline">{isCashOpen ? 'Caja Abierta' : isCashNotOpened ? 'Sin Abrir' : 'Cerrada'}</span>
-            </button>
-
-            {/* Centro: Nombre */}
-            <div className="text-center flex-1 min-w-0 px-2">
-              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-[#441029] truncate">{settings.name}</h1>
-              <p className="text-gray-400 text-xs hidden md:block truncate">{settings.address}</p>
-            </div>
-
-            {/* Derecha: Configuración y Logout */}
-            <div className="flex items-center gap-1">
-              {/* Bloqueo de pantalla — solo desktop */}
+        {/* Cabecera compacta: logo, saludo con fecha, caja y controles */}
+        {(() => {
+          const hourEC = getNowEC().getHours()
+          const greeting = hourEC < 12 ? 'Buenos días' : hourEC < 19 ? 'Buenas tardes' : 'Buenas noches'
+          const todayLabel = new Date(getTodayEC() + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })
+          const firstName = isRecepcion ? (recepcionUserName || '').split(' ')[0] : ''
+          const cashLabel = isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'
+          return (
+            <header className="mb-4">
+              <div className="flex items-center gap-2">
+              <img src="/logo2.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto" />
               <button
-                onClick={() => {
-                  if (!settings.security_pin) {
-                    alert('Para usar la pantalla de ausencia, primero configura un PIN de seguridad en Configuración.')
-                    return
-                  }
-                  setIsScreenLocked(true)
-                }}
-                className="hidden sm:flex p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl active:scale-95 transition-all"
-                title="Bloquear pantalla"
+                onClick={() => setShowCashRegister(true)}
+                className="sd-chip shrink-0"
+                title={cashLabel}
               >
-                <Lock size={20} />
+                <span className={`w-2 h-2 rounded-full ${isCashOpen ? 'bg-[#1f7a4d]' : isCashNotOpened ? 'bg-[#d48a1a]' : 'bg-ink-muted'}`} />
+                <Wallet size={15} className="sm:hidden" />
+                <span className="hidden sm:inline">{cashLabel}</span>
               </button>
-              {!isRecepcion && can('canEditSettings') && (
+              <div className="flex items-center shrink-0 -mr-2">
                 <button
                   onClick={() => {
-                    if (settings.security_pin) {
-                      setPendingSettingsAccess(true)
-                      setShowPinPrompt(true)
-                    } else {
-                      setShowSettings(true)
+                    if (!settings.security_pin) {
+                      alert('Para usar la pantalla de ausencia, primero configura un PIN de seguridad en Configuración.')
+                      return
+                    }
+                    setIsScreenLocked(true)
+                  }}
+                  className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+                  title="Bloquear pantalla"
+                  aria-label="Bloquear pantalla"
+                >
+                  <Lock size={19} />
+                </button>
+                {!isRecepcion && can('canEditSettings') && (
+                  <button
+                    onClick={() => {
+                      if (settings.security_pin) {
+                        setPendingSettingsAccess(true)
+                        setShowPinPrompt(true)
+                      } else {
+                        setShowSettings(true)
+                      }
+                    }}
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
+                    title="Configuración"
+                    aria-label="Configuración"
+                  >
+                    <Settings size={19} />
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    if (confirm('¿Cerrar sesión?')) {
+                      if (isRecepcion && onLogout) {
+                        onLogout()
+                      } else {
+                        await signOut()
+                      }
                     }
                   }}
-                  className="p-2 text-gray-400 hover:text-[#6b2145] hover:bg-[#fdf5f9] rounded-xl active:scale-95 transition-all"
-                  title="Configuración"
+                  className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-[#b42318]"
+                  title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
+                  aria-label="Cerrar sesión"
                 >
-                  <Settings size={20} />
+                  <LogOut size={19} />
                 </button>
-              )}
-              {isRecepcion && (
-                <span className="text-xs text-gray-500 mr-1 hidden sm:inline">{recepcionUserName}</span>
-              )}
-              <button
-                onClick={async () => {
-                  if (confirm('¿Cerrar sesión?')) {
-                    if (isRecepcion && onLogout) {
-                      onLogout()
-                    } else {
-                      await signOut()
-                    }
-                  }
-                }}
-                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl active:scale-95 transition-all"
-                title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
-              >
-                <LogOut size={20} />
-              </button>
-            </div>
-          </div>
+              </div>
+              </div>
+              <div className="mt-3 px-0.5">
+                <p className="text-xs text-ink-muted first-letter:uppercase">{todayLabel}</p>
+                <h1 className="text-2xl font-bold text-brand-ink leading-tight">
+                  {greeting}{firstName ? `, ${firstName}` : ''}
+                </h1>
+              </div>
+            </header>
+          )
+        })()}
 
-          {/* Fila 2: Acciones */}
-          <div className="pt-4 border-t border-gray-100 space-y-3">
+        {/* Acciones: un solo estilo, ícono guinda (sin arcoíris de colores) */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
+          {[
+            { label: 'Alumno', icon: <Plus size={20} strokeWidth={2.4} />, onClick: () => setShowForm(true) },
+            { label: 'Venta', icon: <ShoppingBag size={20} />, onClick: () => setShowSaleForm(true) },
+            { label: 'Pago rápido', icon: <Zap size={20} />, onClick: () => setShowQuickPayment(true) },
+            { label: 'Egreso', icon: <TrendingDown size={20} />, onClick: () => setShowExpenses(true) },
+            { label: 'Movimiento', icon: <ArrowLeftRight size={20} />, onClick: () => setShowCashMovements(true) },
+            { label: 'Historial', icon: <History size={20} />, onClick: () => setShowPaymentHistory(true) },
+          ].map(({ label, icon, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              className="sd-card !shadow-none h-[68px] flex flex-col items-center justify-center gap-1.5 text-ink hover:border-line-strong hover:bg-surface-alt active:scale-95"
+            >
+              <span className="text-brand">{icon}</span>
+              <span className="text-[11px] font-semibold leading-none">{label}</span>
+            </button>
+          ))}
+        </div>
 
-            {/* ── Primarias: tarjetas con paleta muted ── */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {[
-                {
-                  label: 'Alumno', icon: <Plus size={20} strokeWidth={2.5} />,
-                  bg: '#551735', fg: '#fff',
-                  hoverBg: '#441029',
-                  onClick: () => setShowForm(true),
-                },
-                {
-                  label: 'Venta', icon: <ShoppingBag size={20} />,
-                  bg: '#1a5c3c', fg: '#fff',
-                  hoverBg: '#134830',
-                  onClick: () => setShowSaleForm(true),
-                },
-                {
-                  label: 'Pago', icon: <Zap size={20} strokeWidth={2.2} />,
-                  bg: '#7c5000', fg: '#fff',
-                  hoverBg: '#633f00',
-                  onClick: () => setShowQuickPayment(true),
-                },
-                {
-                  label: 'Egreso', icon: <TrendingDown size={20} />,
-                  bg: '#7a1e14', fg: '#fff',
-                  hoverBg: '#641710',
-                  onClick: () => setShowExpenses(true),
-                },
-                {
-                  label: 'Movimiento', icon: <ArrowLeftRight size={20} />,
-                  bg: '#1b3d6e', fg: '#fff',
-                  hoverBg: '#142e56',
-                  onClick: () => setShowCashMovements(true),
-                },
-                {
-                  label: 'Historial', icon: <History size={20} />,
-                  bg: '#f2e8ed', fg: '#441029',
-                  hoverBg: '#e8d4de',
-                  onClick: () => setShowPaymentHistory(true),
-                },
-              ].map(({ label, icon, bg, fg, hoverBg, onClick }) => (
-                <button
-                  key={label}
-                  onClick={onClick}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = hoverBg}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = bg}
-                  style={{ backgroundColor: bg, color: fg, height: '68px', borderRadius: '14px' }}
-                  className="flex flex-col items-center justify-center gap-1.5 active:scale-95 transition-transform"
-                >
-                  {icon}
-                  <span style={{ fontSize: '11px', fontWeight: 600, lineHeight: 1, letterSpacing: '0.01em' }}>{label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* ── Secundarias: chips compactos ── */}
-            <div className="mt-1 pt-3 border-t border-gray-100 -mx-4 sm:-mx-6">
-            <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto items-center sm:justify-center gap-1 sm:gap-2 px-4 sm:px-6 pb-1 sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {!isRecepcion && can('canExport') && (
-                <button
-                  onClick={() => setShowExport(true)}
-                  className="flex items-center gap-1.5 text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed] shrink-0"
-                >
-                  <Download size={13} />
-                  Exportar
-                </button>
-              )}
-              <button
-                onClick={() => setShowTransferVerification(true)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl transition-all text-xs font-medium relative active:scale-95 shrink-0 ${
-                  pendingTransfers > 0
-                    ? 'bg-[#1b3d6e] text-white'
-                    : 'text-[#1b3d6e] hover:bg-blue-50'
-                }`}
-              >
-                <DollarSign size={13} />
-                Transferencias
-                {pendingTransfers > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    {pendingTransfers}
-                  </span>
-                )}
-              </button>
-              {!isRecepcion && isAdmin && (
-                <>
-                  <button
-                    onClick={() => setShowMonthlyClose(true)}
-                    className="flex items-center gap-1.5 text-[#551735] px-3.5 py-2 rounded-xl active:scale-95 transition-all text-xs font-medium hover:bg-[#f2e8ed] shrink-0"
-                  >
-                    <Lock size={13} />
-                    Cierre mensual
-                  </button>
-                  <button
-                    onClick={() => setShowAuditLog(true)}
-                    className="flex items-center gap-1.5 text-slate-500 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-xs font-medium hover:bg-slate-100 shrink-0"
-                  >
-                    <ScrollText size={13} />
-                    Auditoría
-                  </button>
-                </>
-              )}
-              {!isRecepcion && (isAdmin || userRole === 'contador') && (
-                <button
-                  onClick={() => setShowContabilidad(true)}
-                  className="flex items-center gap-1.5 text-amber-700 px-3.5 py-2 rounded-xl active:scale-95 transition-all text-xs font-medium hover:bg-amber-50 shrink-0"
-                >
-                  <FileText size={13} />
-                  Contabilidad
-                </button>
-              )}
-            </div>
-            </div>
-
-          </div>
+        {/* Accesos secundarios: chips neutros que se acomodan en varias líneas (antes se cortaban) */}
+        <div className="relative -mx-4 sm:mx-0 mb-4">
+        <div className="flex sm:flex-wrap gap-2 overflow-x-auto px-4 sm:px-0 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {!isRecepcion && can('canExport') && (
+            <button onClick={() => setShowExport(true)} className="sd-chip"><Download size={13} />Exportar</button>
+          )}
+          <button
+            onClick={() => setShowTransferVerification(true)}
+            className={`sd-chip ${pendingTransfers > 0 ? 'sd-chip-active' : ''}`}
+          >
+            <DollarSign size={13} />
+            Transferencias
+            {pendingTransfers > 0 && (
+              <span className="bg-white text-brand-ink text-[10px] font-bold min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+                {pendingTransfers}
+              </span>
+            )}
+          </button>
+          {!isRecepcion && isAdmin && (
+            <>
+              <button onClick={() => setShowMonthlyClose(true)} className="sd-chip"><Lock size={13} />Cierre mensual</button>
+              <button onClick={() => setShowAuditLog(true)} className="sd-chip"><ScrollText size={13} />Auditoría</button>
+            </>
+          )}
+          {!isRecepcion && (isAdmin || userRole === 'contador') && (
+            <button onClick={() => setShowContabilidad(true)} className="sd-chip"><FileText size={13} />Contabilidad</button>
+          )}
+          <span className="w-2 shrink-0 sm:hidden" aria-hidden="true" />
+        </div>
+        {/* Indica que hay más accesos a la derecha (solo celular) */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-paper to-transparent sm:hidden" aria-hidden="true" />
         </div>
 
         {/* Tabs — ocultos en mobile, la navegación inferior los reemplaza */}
@@ -1253,126 +1176,68 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           })}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+        {/* Resumen del día y del mes en una sola franja */}
+        <div className="sd-card grid grid-cols-3 divide-x divide-line mb-3 overflow-hidden">
           <div
             onClick={() => setShowCashRegister(true)}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all"
+            className="px-3 py-2.5 cursor-pointer hover:bg-surface-alt"
             title="Ver cuadre de caja"
           >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <DollarSign className="text-green-600" size={20} />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1">
-                  <p className="text-xl sm:text-2xl font-bold text-green-600 truncate transition-all">{hideIncome ? '• • •' : `$${todayIncome.toFixed(2)}`}</p>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
-                    className="p-1 text-gray-400 hover:text-gray-600 shrink-0"
-                  >
-                    {hideIncome ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-500">Ingresos hoy</p>
-              </div>
+            <div className="flex items-center justify-between gap-1">
+              <p className="sd-section-title !text-[10px]">Hoy</p>
+              <button
+                onClick={(e) => { e.stopPropagation(); setHideIncome(!hideIncome) }}
+                className="-m-1.5 p-1.5 text-ink-muted hover:text-ink"
+                title={hideIncome ? 'Mostrar montos' : 'Ocultar montos'}
+                aria-label={hideIncome ? 'Mostrar montos' : 'Ocultar montos'}
+              >
+                {hideIncome ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
             </div>
+            <p className="text-base sm:text-lg font-bold text-ink tabular-nums truncate">
+              {hideIncome ? '• • •' : `$${todayIncome.toFixed(2)}`}
+            </p>
           </div>
-
           <div
-            onClick={() => {
-              const target = moraStudents.length > 0 ? 'mora' : adultRenewalStudents.length > 0 ? 'overdue' : urgentCount > 0 ? 'overdue' : 'upcoming'
-              setFilterPayment(target)
-              setShowStudentListModal(true)
-            }}
-            className="bg-white rounded-2xl shadow-md p-3 sm:p-4 cursor-pointer kpi-card transition-all"
-            title={moraStudents.length > 0 ? 'Ver alumnas suspendidas' : adultRenewalStudents.length > 0 ? 'Ver ciclos por renovar' : urgentCount > 0 ? 'Ver alumnas por renovar' : 'Ver próximos cobros'}
-          >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <AlertCircle className={
-                moraStudents.length > 0 ? 'text-rose-700' : adultRenewalStudents.length > 0 ? 'text-amber-600' : urgentCount > 0 ? 'text-red-600' : 'text-yellow-600'
-              } size={20} />
-              <div className="min-w-0">
-                {moraStudents.length > 0 ? (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-rose-700">{moraStudents.length}</p>
-                    <p className="text-xs sm:text-sm text-rose-600 font-medium">Suspendidas</p>
-                  </>
-                ) : adultRenewalStudents.length > 0 ? (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-amber-700">{adultRenewalStudents.length}</p>
-                    <p className="text-xs sm:text-sm text-amber-600 font-medium">Ciclos por renovar</p>
-                  </>
-                ) : urgentCount > 0 ? (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-red-600">{urgentCount}</p>
-                    <p className="text-xs sm:text-sm text-red-500 font-medium">Por renovar</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{upcomingPayments.length}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Próximos cobros</p>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI Strip — franja compacta mensual */}
-        {kpis && !kpisLoading && (
-          <button
             onClick={() => setShowMonthlyClose(true)}
-            className="w-full bg-white border border-gray-100 rounded-2xl shadow-sm px-4 py-3 mb-4 flex items-center justify-between gap-2 hover:shadow-md hover:border-[#e8b4cc] transition-all text-left"
+            className="px-3 py-2.5 cursor-pointer hover:bg-surface-alt"
             title="Ver cierre mensual"
           >
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs text-gray-400 font-medium shrink-0">MES</span>
-              <span className="text-sm font-bold ml-1 text-gray-800">
-                {hideIncome ? '••' : `$${kpis.incomeC.toFixed(0)}`}
-              </span>
-              {kpis.trend !== null && (
-                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1 shrink-0 ${
-                  kpis.trend >= 0
-                    ? 'bg-emerald-50 text-emerald-600'
-                    : 'bg-red-50 text-red-500'
-                }`}>
+            <p className="sd-section-title !text-[10px]">Mes</p>
+            <p className="text-base sm:text-lg font-bold text-ink tabular-nums truncate">
+              {kpis && !kpisLoading ? (hideIncome ? '• • •' : `$${kpis.incomeC.toFixed(0)}`) : '—'}
+              {kpis && !kpisLoading && kpis.trend !== null && (
+                <span className={`ml-1 text-[11px] font-semibold ${kpis.trend >= 0 ? 'sd-status-ok' : 'sd-status-danger'}`}>
                   {kpis.trend >= 0 ? '▲' : '▼'}{Math.abs(kpis.trend)}%
                 </span>
               )}
-            </div>
-            <div className="h-4 w-px bg-gray-200 shrink-0" />
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs text-gray-400 font-medium shrink-0">GASTOS</span>
-              <span className="text-sm font-bold ml-1 text-gray-700">
-                {hideIncome ? '••' : `$${kpis.expensesC.toFixed(0)}`}
-              </span>
-            </div>
-            <div className="h-4 w-px bg-gray-200 shrink-0" />
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-xs text-gray-400 font-medium shrink-0">COBRO</span>
-              {kpis.collectionRate !== null ? (
-                <span className={`text-sm font-bold ml-1 ${
-                  kpis.collectionRate >= 80 ? 'text-emerald-600'
-                  : kpis.collectionRate >= 50 ? 'text-amber-500'
-                  : 'text-red-500'
-                }`}>
-                  {kpis.collectionRate}%
-                </span>
-              ) : (
-                <span className="text-sm font-bold ml-1 text-gray-400">—</span>
-              )}
-            </div>
-            <span className="text-gray-300 text-xs shrink-0">›</span>
-          </button>
-        )}
+            </p>
+          </div>
+          <div
+            onClick={() => setShowMonthlyClose(true)}
+            className="px-3 py-2.5 cursor-pointer hover:bg-surface-alt"
+            title="Tasa de cobro del mes"
+          >
+            <p className="sd-section-title !text-[10px]">Cobro</p>
+            <p className={`text-base sm:text-lg font-bold tabular-nums ${
+              kpis?.collectionRate == null ? 'text-ink-muted'
+                : kpis.collectionRate >= 80 ? 'sd-status-ok'
+                : kpis.collectionRate >= 50 ? 'sd-status-warn'
+                : 'sd-status-danger'
+            }`}>
+              {kpis && !kpisLoading && kpis.collectionRate !== null ? `${kpis.collectionRate}%` : '—'}
+            </p>
+          </div>
+        </div>
 
-        {/* Global Search Bar */}
-        <div className="mb-5 sm:mb-6">
-          <div className="flex items-center gap-3 bg-white border-2 border-gray-200 rounded-2xl shadow-sm px-4 py-3.5 focus-within:border-[#9e4d75] focus-within:ring-2 focus-within:ring-[#f9e8f0] focus-within:shadow-md transition-all">
-            <Search className="text-[#9e4d75] shrink-0" size={18} />
+        {/* Buscador global */}
+        <div className="mb-4">
+          <div className="flex items-center gap-3 bg-surface border border-line-strong rounded-xl px-4 h-12 focus-within:border-brand focus-within:ring-4 focus-within:ring-brand-soft transition-all">
+            <Search className="text-ink-muted shrink-0" size={18} />
             <input
               ref={globalSearchRef}
               type="text"
-              placeholder="Buscar alumno... (Ctrl+K)"
+              placeholder="Buscar alumna por nombre o cédula"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -1383,16 +1248,19 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   setShowStudentListModal(true)
                 }
               }}
-              className="w-full text-sm outline-none bg-transparent placeholder:text-gray-400"
+              className="w-full text-base outline-none bg-transparent text-ink placeholder:text-ink-muted"
             />
-            {searchTerm && (
+            {searchTerm ? (
               <button
                 onClick={() => setSearchTerm('')}
-                className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors shrink-0"
+                className="-mr-2 w-9 h-9 flex items-center justify-center text-ink-muted hover:text-ink rounded-full shrink-0"
                 title="Limpiar búsqueda"
+                aria-label="Limpiar búsqueda"
               >
                 <X size={16} />
               </button>
+            ) : (
+              <kbd className="hidden md:inline text-[11px] text-ink-muted border border-line rounded px-1.5 py-0.5">Ctrl K</kbd>
             )}
           </div>
         </div>
@@ -1400,329 +1268,186 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
           <>
-            {/* Quick Access Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
-              {/* View Students Button */}
-              <button
-                onClick={() => setShowStudentListModal(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <Users className="text-[#6b2145]" size={18} />
-                  <div className="min-w-0">
-                    <p className="text-lg sm:text-3xl font-bold text-[#6b2145]">{students.length}</p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Alumnos</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Upcoming Payments */}
-              <button
-                onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <Calendar className={upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'} size={18} />
-                  <div className="min-w-0">
-                    <p className={`text-lg sm:text-3xl font-bold ${upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
-                      {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length}
-                    </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Próximos</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Balance Alerts */}
-              <button
-                onClick={() => studentsWithBalance.length > 0 && setShowBalanceAlerts(true)}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <Wallet className={studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'} size={18} />
-                  <div className="min-w-0">
-                    <p className={`text-lg sm:text-3xl font-bold ${studentsWithBalance.length > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                      {studentsWithBalance.length}
-                    </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Saldos</p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Inactive Students */}
-              <button
-                onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-white rounded-2xl shadow-md p-3 sm:p-5 kpi-card transition-all"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
-                  <Pause className={inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'} size={18} />
-                  <div className="min-w-0">
-                    <p className={`text-lg sm:text-3xl font-bold ${inactiveStudents.length > 0 ? 'text-slate-600' : 'text-gray-400'}`}>
-                      {inactiveStudents.length}
-                    </p>
-                    <p className="text-[10px] sm:text-sm text-gray-500 font-medium truncate">Inactivas</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* Adultas — Ciclos por renovar */}
-            {adultRenewalStudents.length > 0 && (
-              <div
-                onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
-                className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-amber-800 flex items-center gap-2">
-                    <AlertCircle size={18} />
-                    Ciclos finalizados — Pendientes de renovación
-                  </h3>
-                  <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {adultRenewalStudents.length} alumna{adultRenewalStudents.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {adultRenewalStudents.slice(0, 3).map(s => {
-                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
-                    return (
-                      <div key={s.id} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-700 truncate">{s.name}</span>
-                        <span className="text-amber-600 text-xs font-medium shrink-0 ml-2">Finalizó hace {days}d</span>
-                      </div>
-                    )
-                  })}
-                  {adultRenewalStudents.length > 3 && (
-                    <p className="text-xs text-amber-500 text-center pt-1">+{adultRenewalStudents.length - 3} más</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Alumnas Suspendidas Alert — mora, no pueden asistir (solo niñas) */}
-            {moraStudents.length > 0 && (
-              <div
-                onClick={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
-                className="bg-rose-50 border border-rose-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-rose-800 flex items-center gap-2">
-                    <AlertCircle size={18} />
-                    Suspendidas — No pueden asistir
-                  </h3>
-                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {moraStudents.length} alumna{moraStudents.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {moraStudents.slice(0, 3).map(s => {
-                    const course = enrichCourse(getCourseById(s.course_id))
-                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
-                    const { contactName, contactPhone, contactRelation } = getContactInfo(s)
-                    return (
-                      <div key={s.id} className="flex items-center gap-2 bg-rose-50 rounded-xl pl-3 pr-2 py-2.5">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {course?.name || 'Sin curso'}
-                            {contactRelation !== 'Alumna' && (
-                              <span className="ml-1.5 text-rose-600">· {contactRelation}: {contactName}</span>
-                            )}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-[11px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">{days}d mora</span>
-                        <button
-                          onClick={e => { e.stopPropagation(); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course)) }}
-                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
-                          title={`Enviar aviso de suspensión a ${contactRelation}`}
-                        >
-                          <MessageCircle size={13} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                  {moraStudents.length > 3 && (
-                    <p className="text-xs text-rose-600 text-center pt-1">
-                      +{moraStudents.length - 3} más · Toca para ver todas
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Cobros Vencidos Alert */}
-            {overduePayments.length > 0 && (
-              <div
-                onClick={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
-                className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-red-800 flex items-center gap-2">
-                    <AlertCircle size={18} />
-                    Cobros Vencidos
-                  </h3>
-                  <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {overduePayments.length} alumno{overduePayments.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {overduePayments.slice(0, 3).map(s => {
-                    const course = enrichCourse(getCourseById(s.course_id))
-                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
-                    const { contactName, contactRelation } = getContactInfo(s)
-                    return (
-                      <div key={s.id} className="flex items-center gap-2 bg-red-50 rounded-xl pl-3 pr-2 py-2.5">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {course?.name || 'Sin curso'}
-                            {contactRelation !== 'Alumna' && (
-                              <span className="ml-1.5 text-red-500">· {contactRelation}: {contactName}</span>
-                            )}
-                          </p>
-                        </div>
-                        <span className="shrink-0 text-[11px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">{days}d vencido</span>
-                        <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', getDaysUntilDue(s.next_payment_date), settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course)) }}
-                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
-                          title="Enviar recordatorio WhatsApp"
-                        >
-                          <MessageCircle size={13} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                  {overduePayments.length > 3 && (
-                    <p className="text-xs text-red-600 text-center pt-1">
-                      +{overduePayments.length - 3} más · Toca para ver todos
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Alumnas Inactivas Alert */}
-            {inactiveStudents.length > 0 && (
-              <div
-                onClick={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
-                className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-300 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                    <Pause size={18} />
-                    Alumnas Inactivas
-                  </h3>
-                  <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {inactiveStudents.length} alumna{inactiveStudents.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {inactiveStudents.slice(0, 3).map(s => {
-                    const course = getCourseById(s.course_id)
-                    const days = Math.abs(getDaysUntilDue(s.next_payment_date))
-                    return (
-                      <div key={s.id} className="flex items-center gap-2 bg-white rounded-xl pl-3 pr-3 py-2.5">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{course?.name || 'Sin curso'}</p>
-                        </div>
-                        <span className="shrink-0 text-[11px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{days}d sin pagar</span>
-                      </div>
-                    )
-                  })}
-                  {inactiveStudents.length > 3 && (
-                    <p className="text-xs text-gray-500 text-center pt-1">
-                      +{inactiveStudents.length - 3} más · Toca para ver todas
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Cobros Próximos Alert */}
-            {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 0 && (
-              <div
-                onClick={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
-                className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-yellow-800 flex items-center gap-2">
-                    <Calendar size={18} />
-                    Cobros Próximos (5 días)
-                  </h3>
-                  <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length} alumno{upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).slice(0, 3).map(s => {
-                    const course = enrichCourse(getCourseById(s.course_id))
-                    const days = getDaysUntilDue(s.next_payment_date)
-                    const { contactName, contactRelation } = getContactInfo(s)
-                    return (
-                      <div key={s.id} className={`flex items-center gap-2 rounded-xl pl-3 pr-2 py-2.5 ${days === 0 ? 'bg-orange-50' : 'bg-amber-50'}`}>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {course?.name || 'Sin curso'}
-                            {contactRelation !== 'Alumna' && (
-                              <span className="ml-1.5 text-amber-600">· {contactRelation}: {contactName}</span>
-                            )}
-                          </p>
-                        </div>
-                        <span className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full ${days === 0 ? 'bg-orange-100 text-orange-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {days === 0 ? 'Hoy' : `${days}d`}
-                        </span>
-                        <button
-                          onClick={e => { e.stopPropagation(); const { contactPhone } = getContactInfo(s); if (!contactPhone) { alert('Sin teléfono registrado'); return }; openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course)) }}
-                          className="shrink-0 p-1.5 text-green-500 hover:bg-green-100 rounded-xl active:scale-95 transition-all"
-                          title="Enviar recordatorio WhatsApp"
-                        >
-                          <MessageCircle size={13} />
-                        </button>
-                      </div>
-                    )
-                  })}
-                  {upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length > 3 && (
-                    <p className="text-xs text-yellow-600 text-center pt-1">
-                      +{upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length - 3} más · Toca para ver todos
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Saldos pendientes resumen */}
-            {studentsWithBalance.length > 0 && (
-              <div
-                onClick={() => setShowBalanceAlerts(true)}
-                className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4 mb-4 cursor-pointer hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-orange-800 flex items-center gap-2">
-                    <Wallet size={18} />
-                    Saldos por cobrar
-                  </h3>
-                  <span className="text-lg font-bold text-orange-600">
-                    ${studentsWithBalance.reduce((sum, s) => sum + s.balance, 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {studentsWithBalance.slice(0, 3).map(s => (
-                    <div key={s.id} className="flex items-center gap-2 bg-orange-50 rounded-xl pl-3 pr-3 py-2.5">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-800 truncate">{s.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{s.courseName}</p>
-                      </div>
-                      <span className="shrink-0 text-sm font-bold bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full">${s.balance.toFixed(2)}</span>
-                    </div>
+            {/* Contadores en una sola tarjeta dividida */}
+            {(() => {
+              const upcomingSoonCount = upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length
+              const counters = [
+                { label: 'Alumnas', value: students.length, tone: 'text-ink', onClick: () => setShowStudentListModal(true) },
+                { label: 'Próximos', value: upcomingSoonCount, tone: upcomingSoonCount > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => { setFilterPayment('upcoming'); setShowStudentListModal(true) } },
+                { label: 'Saldos', value: studentsWithBalance.length, tone: studentsWithBalance.length > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => studentsWithBalance.length > 0 && setShowBalanceAlerts(true) },
+                { label: 'Inactivas', value: inactiveStudents.length, tone: 'text-ink-muted', onClick: () => { setFilterPayment('inactive'); setShowStudentListModal(true) } },
+              ]
+              return (
+                <div className="sd-card grid grid-cols-4 divide-x divide-line mb-5 overflow-hidden">
+                  {counters.map(c => (
+                    <button key={c.label} onClick={c.onClick} className="py-3 px-1 text-center hover:bg-surface-alt">
+                      <p className={`text-xl font-bold tabular-nums leading-tight ${c.tone}`}>{c.value}</p>
+                      <p className="text-[11px] text-ink-muted font-medium">{c.label}</p>
+                    </button>
                   ))}
-                  {studentsWithBalance.length > 3 && (
-                    <p className="text-xs text-orange-600 text-center pt-1">
-                      +{studentsWithBalance.length - 3} más · Toca para ver todos
-                    </p>
-                  )}
                 </div>
-              </div>
-            )}
+              )
+            })()}
+
+            {/* Requiere atención: mismas tarjetas para todo; el color solo en el estado */}
+            {(() => {
+              const upcomingSoon = upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0)
+              const hasAny = moraStudents.length || overduePayments.length || adultRenewalStudents.length || upcomingSoon.length || studentsWithBalance.length || inactiveStudents.length
+              const reminderFor = (s, course, days) => () => {
+                const { contactPhone } = getContactInfo(s)
+                if (!contactPhone) { alert('Sin teléfono registrado'); return }
+                openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course))
+              }
+              const contactDetail = (s, courseName) => {
+                const { contactName, contactRelation } = getContactInfo(s)
+                return contactRelation !== 'Alumna' ? `${courseName} · ${contactRelation}: ${contactName}` : courseName
+              }
+              if (!hasAny) return null
+              return (
+                <>
+                  <p className="sd-section-title px-1 mb-2">Requiere atención</p>
+
+                  {moraStudents.length > 0 && (
+                    <HomeSection
+                      icon={AlertCircle}
+                      title="Suspendidas · no pueden asistir"
+                      meta={moraStudents.length}
+                      metaTone="danger"
+                      onOpen={() => { setFilterPayment('mora'); setShowStudentListModal(true) }}
+                      moreCount={Math.max(0, moraStudents.length - 3)}
+                    >
+                      {moraStudents.slice(0, 3).map(s => {
+                        const course = enrichCourse(getCourseById(s.course_id))
+                        const daysUntil = getDaysUntilDue(s.next_payment_date)
+                        const { contactRelation } = getContactInfo(s)
+                        return (
+                          <HomeRow
+                            key={s.id}
+                            name={s.name}
+                            detail={contactDetail(s, course?.name || 'Sin curso')}
+                            status={`${Math.abs(daysUntil)}d mora`}
+                            tone="danger"
+                            onWhatsApp={reminderFor(s, course, daysUntil)}
+                            whatsappTitle={`Enviar aviso de suspensión a ${contactRelation}`}
+                          />
+                        )
+                      })}
+                    </HomeSection>
+                  )}
+
+                  {overduePayments.length > 0 && (
+                    <HomeSection
+                      icon={AlertCircle}
+                      title="Cobros vencidos"
+                      meta={overduePayments.length}
+                      metaTone="danger"
+                      onOpen={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                      moreCount={Math.max(0, overduePayments.length - 3)}
+                    >
+                      {overduePayments.slice(0, 3).map(s => {
+                        const course = enrichCourse(getCourseById(s.course_id))
+                        const daysUntil = getDaysUntilDue(s.next_payment_date)
+                        return (
+                          <HomeRow
+                            key={s.id}
+                            name={s.name}
+                            detail={contactDetail(s, course?.name || 'Sin curso')}
+                            status={`${Math.abs(daysUntil)}d vencido`}
+                            tone="danger"
+                            onWhatsApp={reminderFor(s, course, daysUntil)}
+                          />
+                        )
+                      })}
+                    </HomeSection>
+                  )}
+
+                  {adultRenewalStudents.length > 0 && (
+                    <HomeSection
+                      icon={RefreshCw}
+                      title="Ciclos terminados · por renovar"
+                      meta={adultRenewalStudents.length}
+                      metaTone="warn"
+                      onOpen={() => { setFilterPayment('overdue'); setShowStudentListModal(true) }}
+                      moreCount={Math.max(0, adultRenewalStudents.length - 3)}
+                    >
+                      {adultRenewalStudents.slice(0, 3).map(s => {
+                        const course = enrichCourse(getCourseById(s.course_id))
+                        return (
+                          <HomeRow
+                            key={s.id}
+                            name={s.name}
+                            detail={course?.name || 'Sin curso'}
+                            status={`Terminó hace ${Math.abs(getDaysUntilDue(s.next_payment_date))}d`}
+                            tone="warn"
+                          />
+                        )
+                      })}
+                    </HomeSection>
+                  )}
+
+                  {upcomingSoon.length > 0 && (
+                    <HomeSection
+                      icon={Calendar}
+                      title="Cobros próximos · 5 días"
+                      meta={upcomingSoon.length}
+                      metaTone="warn"
+                      onOpen={() => { setFilterPayment('upcoming'); setShowStudentListModal(true) }}
+                      moreCount={Math.max(0, upcomingSoon.length - 3)}
+                    >
+                      {upcomingSoon.slice(0, 3).map(s => {
+                        const course = enrichCourse(getCourseById(s.course_id))
+                        const days = getDaysUntilDue(s.next_payment_date)
+                        return (
+                          <HomeRow
+                            key={s.id}
+                            name={s.name}
+                            detail={contactDetail(s, course?.name || 'Sin curso')}
+                            status={days === 0 ? 'Hoy' : `en ${days}d`}
+                            tone="warn"
+                            onWhatsApp={reminderFor(s, course, days)}
+                          />
+                        )
+                      })}
+                    </HomeSection>
+                  )}
+
+                  {studentsWithBalance.length > 0 && (
+                    <HomeSection
+                      icon={Wallet}
+                      title="Saldos por cobrar"
+                      meta={`$${studentsWithBalance.reduce((sum, s) => sum + s.balance, 0).toFixed(2)}`}
+                      metaTone="warn"
+                      onOpen={() => setShowBalanceAlerts(true)}
+                      moreCount={Math.max(0, studentsWithBalance.length - 3)}
+                    >
+                      {studentsWithBalance.slice(0, 3).map(s => (
+                        <HomeRow key={s.id} name={s.name} detail={s.courseName} status={`$${s.balance.toFixed(2)}`} tone="warn" />
+                      ))}
+                    </HomeSection>
+                  )}
+
+                  {inactiveStudents.length > 0 && (
+                    <HomeSection
+                      icon={Pause}
+                      title="Inactivas"
+                      meta={inactiveStudents.length}
+                      onOpen={() => { setFilterPayment('inactive'); setShowStudentListModal(true) }}
+                      moreCount={Math.max(0, inactiveStudents.length - 3)}
+                    >
+                      {inactiveStudents.slice(0, 3).map(s => (
+                        <HomeRow
+                          key={s.id}
+                          name={s.name}
+                          detail={getCourseById(s.course_id)?.name || 'Sin curso'}
+                          status={`${Math.abs(getDaysUntilDue(s.next_payment_date))}d sin pagar`}
+                          tone="muted"
+                        />
+                      ))}
+                    </HomeSection>
+                  )}
+                </>
+              )
+            })()}
 
             {/* Recordatorios de pago — WhatsApp masivo */}
             {(() => {
@@ -1734,15 +1459,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               if (reminderStudents.length === 0) return null
               const currentStudentInQueue = reminderQueueIdx !== null ? reminderStudents[reminderQueueIdx] : null
               return (
-                <div className="bg-white border border-green-200 rounded-xl overflow-hidden mb-4">
+                <div className="sd-card overflow-hidden mb-4">
                   <button
                     onClick={() => { setShowReminders(v => !v); setReminderQueueIdx(null) }}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-green-50 transition-colors"
+                    className="w-full flex items-center justify-between px-4 min-h-[52px] hover:bg-surface-alt transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <MessageCircle size={17} className="text-green-600" />
-                      <span className="font-semibold text-gray-800 text-sm">Recordatorios de pago</span>
-                      <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">{reminderStudents.length}</span>
+                      <MessageCircle size={17} className="text-[#1f7a4d]" />
+                      <span className="font-semibold text-ink text-sm">Recordatorios de pago</span>
+                      <span className="text-xs font-semibold text-ink-muted tabular-nums">{reminderStudents.length}</span>
                     </div>
                     {showReminders ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
                   </button>
