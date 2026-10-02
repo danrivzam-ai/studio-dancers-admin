@@ -26,6 +26,7 @@ import { getNextReceiptNumber } from './lib/receipts'
 import { paymentMethodSalesCode, bankNameById } from './lib/paymentMethods'
 import PaymentMethodPicker from './components/ui/PaymentMethodPicker'
 import { HomeSection, HomeRow } from './components/home/HomeSection'
+import SideNav from './components/SideNav'
 import ManageItems from './components/ManageItems'
 import StudentForm from './components/StudentForm'
 import QuickPayment from './components/QuickPayment'
@@ -1000,8 +1001,72 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     )
   }
 
+  // ── Acciones de cuenta compartidas por la cabecera (celular) y la barra lateral (PC) ──
+  const openSettingsGuarded = () => {
+    if (settings.security_pin) {
+      setPendingSettingsAccess(true)
+      setShowPinPrompt(true)
+    } else {
+      setShowSettings(true)
+    }
+  }
+  const lockScreen = () => {
+    if (!settings.security_pin) {
+      alert('Para usar la pantalla de ausencia, primero configura un PIN de seguridad en Configuración.')
+      return
+    }
+    setIsScreenLocked(true)
+  }
+  const confirmLogout = async () => {
+    if (confirm('¿Cerrar sesión?')) {
+      if (isRecepcion && onLogout) {
+        onLogout()
+      } else {
+        await signOut()
+      }
+    }
+  }
+
+  // Secciones (pestañas) — mismas reglas de permisos que las pestañas de escritorio
+  const navTabs = [
+    { id: 'students', icon: Users, label: 'Alumnas', count: students.length },
+    { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
+    { id: 'courses', icon: Calendar, label: 'Cursos' },
+    { id: 'academico', icon: GraduationCap, label: 'Académico' },
+    { id: 'expenses', icon: TrendingDown, label: 'Egresos' },
+    { id: 'report', icon: BarChart3, label: 'Reporte' },
+    { id: 'tablon', icon: Megaphone, label: 'Tablón', count: announcements.filter(a => a.active).length || undefined },
+    { id: 'recepcionistas', icon: Monitor, label: 'Recepción', adminOnly: true },
+  ].filter(tab => !tab.adminOnly || isAdmin)
+   .filter(tab => !isRecepcion || ['students', 'sales', 'expenses', 'courses'].includes(tab.id))
+
+  // Herramientas que abren modales (antes chips en la cabecera)
+  const navTools = [
+    { id: 'transfers', icon: DollarSign, label: 'Transferencias', onClick: () => setShowTransferVerification(true), badge: pendingTransfers },
+    { id: 'history', icon: History, label: 'Historial de pagos', onClick: () => setShowPaymentHistory(true) },
+    ...(!isRecepcion && isAdmin ? [
+      { id: 'close', icon: Lock, label: 'Cierre mensual', onClick: () => setShowMonthlyClose(true) },
+      { id: 'audit', icon: ScrollText, label: 'Auditoría', onClick: () => setShowAuditLog(true) },
+      { id: 'accounting', icon: FileText, label: 'Contabilidad', onClick: () => setShowContabilidad(true) },
+    ] : []),
+    ...(!isRecepcion && can('canExport') ? [
+      { id: 'export', icon: Download, label: 'Exportar', onClick: () => setShowExport(true) },
+    ] : []),
+  ]
+
   return (
-    <div className="min-h-screen bg-paper px-4 pt-3 pb-4 md:p-6">
+    <div className="min-h-screen bg-paper px-4 pt-3 pb-4 md:p-6 lg:pl-[17rem] lg:pr-8 lg:pt-6">
+      <SideNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={navTabs}
+        tools={navTools}
+        userLabel={isRecepcion ? (recepcionUserName || 'Recepción') : (user?.email || '')}
+        roleLabel={isRecepcion ? 'Recepción' : userRole?.display_name}
+        onSettings={!isRecepcion && can('canEditSettings') ? openSettingsGuarded : null}
+        onLock={lockScreen}
+        onLogout={confirmLogout}
+      />
       <div className="max-w-6xl mx-auto pb-20 md:pb-0">
         {/* Cabecera compacta: logo, saludo con fecha, caja y controles */}
         {(() => {
@@ -1013,7 +1078,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           return (
             <header className="mb-4">
               <div className="flex items-center gap-2">
-              <img src="/logo2.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto" />
+              <img src="/logo2.png" alt="Studio Dancers" className="h-9 w-auto object-contain shrink-0 mr-auto lg:hidden" />
+              <span className="hidden lg:block mr-auto" />
               <button
                 onClick={() => setShowCashRegister(true)}
                 className="sd-chip shrink-0"
@@ -1023,15 +1089,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <Wallet size={15} className="sm:hidden" />
                 <span className="hidden sm:inline">{cashLabel}</span>
               </button>
-              <div className="flex items-center shrink-0 -mr-2">
+              <div className="flex items-center shrink-0 -mr-2 lg:hidden">
                 <button
-                  onClick={() => {
-                    if (!settings.security_pin) {
-                      alert('Para usar la pantalla de ausencia, primero configura un PIN de seguridad en Configuración.')
-                      return
-                    }
-                    setIsScreenLocked(true)
-                  }}
+                  onClick={lockScreen}
                   className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
                   title="Bloquear pantalla"
                   aria-label="Bloquear pantalla"
@@ -1040,14 +1100,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
                 {!isRecepcion && can('canEditSettings') && (
                   <button
-                    onClick={() => {
-                      if (settings.security_pin) {
-                        setPendingSettingsAccess(true)
-                        setShowPinPrompt(true)
-                      } else {
-                        setShowSettings(true)
-                      }
-                    }}
+                    onClick={openSettingsGuarded}
                     className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-ink"
                     title="Configuración"
                     aria-label="Configuración"
@@ -1056,15 +1109,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                   </button>
                 )}
                 <button
-                  onClick={async () => {
-                    if (confirm('¿Cerrar sesión?')) {
-                      if (isRecepcion && onLogout) {
-                        onLogout()
-                      } else {
-                        await signOut()
-                      }
-                    }
-                  }}
+                  onClick={confirmLogout}
                   className="w-10 h-10 flex items-center justify-center rounded-full text-ink-soft hover:bg-surface hover:text-[#b42318]"
                   title={`Cerrar sesión (${isRecepcion ? recepcionUserName : user?.email})`}
                   aria-label="Cerrar sesión"
@@ -1073,7 +1118,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 </button>
               </div>
               </div>
-              <div className="mt-3 px-0.5">
+              <div className="mt-3 lg:-mt-9 px-0.5">
                 <p className="text-xs text-ink-muted first-letter:uppercase">{todayLabel}</p>
                 <h1 className="text-2xl font-bold text-brand-ink leading-tight">
                   {greeting}{firstName ? `, ${firstName}` : ''}
@@ -1084,7 +1129,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
         {/* Acciones: un solo estilo, ícono guinda (sin arcoíris de colores) */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2 lg:mb-4">
           {[
             { label: 'Alumno', icon: <Plus size={20} strokeWidth={2.4} />, onClick: () => setShowForm(true) },
             { label: 'Venta', icon: <ShoppingBag size={20} />, onClick: () => setShowSaleForm(true) },
@@ -1105,7 +1150,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         </div>
 
         {/* Accesos secundarios: chips neutros que se acomodan en varias líneas (antes se cortaban) */}
-        <div className="relative -mx-4 sm:mx-0 mb-4">
+        <div className="relative -mx-4 sm:mx-0 mb-4 lg:hidden">
         <div className="flex sm:flex-wrap gap-2 overflow-x-auto px-4 sm:px-0 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!isRecepcion && can('canExport') && (
             <button onClick={() => setShowExport(true)} className="sd-chip"><Download size={13} />Exportar</button>
@@ -1138,7 +1183,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         </div>
 
         {/* Tabs — ocultos en mobile, la navegación inferior los reemplaza */}
-        <div className="hidden md:flex gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
+        <div className="hidden md:flex lg:hidden gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
             { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
             { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
@@ -1263,7 +1308,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <X size={16} />
               </button>
             ) : (
-              <kbd className="hidden md:inline text-[11px] text-ink-muted border border-line rounded px-1.5 py-0.5">Ctrl K</kbd>
+              <kbd className="hidden md:inline whitespace-nowrap shrink-0 text-[11px] text-ink-muted border border-line rounded px-1.5 py-0.5">Ctrl K</kbd>
             )}
           </div>
         </div>
@@ -1309,6 +1354,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               return (
                 <>
                   <p className="sd-section-title px-1 mb-2">Requiere atención</p>
+                  <div className="lg:grid lg:grid-cols-2 lg:gap-x-4 lg:items-start">
 
                   {moraStudents.length > 0 && (
                     <HomeSection
@@ -1448,6 +1494,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       ))}
                     </HomeSection>
                   )}
+                  </div>
                 </>
               )
             })()}
