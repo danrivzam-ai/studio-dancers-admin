@@ -86,6 +86,9 @@ export default function PaymentModal({
 
   // Estado de descuento
   const [discountEnabled, setDiscountEnabled] = useState(false)
+  // Prorrateo del primer mes aplicado: pasa a ser la base sobre la que se calcula
+  // cualquier descuento adicional (antes un % extra se calculaba sobre el mes completo)
+  const [prorrateoApplied, setProrrateoApplied] = useState(false)
   const [discountType, setDiscountType] = useState('fixed') // 'fixed' o 'percent'
   const [discountValue, setDiscountValue] = useState('')
   const [customFinalPrice, setCustomFinalPrice] = useState('')
@@ -141,6 +144,7 @@ export default function PaymentModal({
     if (formData.paymentType === 'balance') return balance
     if (formData.paymentType === 'installment') return coursePrice / installmentCount
     if (hasBalance) return balance
+    if (prorrateoApplied && prorrateo) return prorrateo.sugerido
     // Plan de varios meses (trimestral, semestral...): el descuento se aplica sobre su total
     if (selectedPlan) return parseFloat(selectedPlan.price)
     // Adelanto de meses sin plan: el descuento se aplica sobre mensualidad × meses
@@ -207,7 +211,8 @@ export default function PaymentModal({
       ...(type !== 'full' && selectedPlan ? { monthsAhead: 1 } : {})
     })
 
-    // Resetear descuento al cambiar tipo de pago
+    // Resetear descuento (y prorrateo) al cambiar tipo de pago
+    setProrrateoApplied(false)
     if (discountEnabled) {
       setDiscountEnabled(false)
       setDiscountValue('')
@@ -221,7 +226,9 @@ export default function PaymentModal({
       setDiscountEnabled(false)
       setDiscountValue('')
       setCustomFinalPrice('')
-      const base = getBaseAmount()
+      // Sin descuento el prorrateo no puede quedar (se guardaría como abono parcial)
+      setProrrateoApplied(false)
+      const base = prorrateoApplied ? studentFee : getBaseAmount()
       setFormData(prev => ({ ...prev, amount: base.toFixed(2) }))
     } else {
       setDiscountEnabled(true)
@@ -293,12 +300,16 @@ export default function PaymentModal({
         toast.error(`El monto no coincide con el descuento (precio $${originalPrice.toFixed(2)} − descuento $${discountAmount.toFixed(2)} = $${(originalPrice - discountAmount).toFixed(2)} ≠ monto $${finalAmount.toFixed(2)}). Revisá los valores.`)
         return
       }
+      // Con prorrateo el registro se guarda contra la mensualidad completa: el
+      // historial muestra todo lo rebajado (prorrateo + descuento extra)
+      const recordOriginal = prorrateoApplied ? studentFee : originalPrice
+      const isCustom = customFinalPrice !== '' || prorrateoApplied
       discountInfo = {
         hasDiscount: true,
-        originalPrice,
-        discountType: customFinalPrice !== '' ? 'custom' : discountType,
-        discountValue: customFinalPrice !== '' ? (originalPrice - finalAmount).toFixed(2) : discountValue,
-        discountAmount: discountAmount.toFixed(2),
+        originalPrice: recordOriginal,
+        discountType: isCustom ? 'custom' : discountType,
+        discountValue: isCustom ? (recordOriginal - finalAmount).toFixed(2) : discountValue,
+        discountAmount: (recordOriginal - finalAmount).toFixed(2),
       }
     }
     // Pasar cycleStartDate al hook cuando:
@@ -441,7 +452,7 @@ export default function PaymentModal({
                   </p>
                 </div>
               </div>
-              {!discountEnabled && (
+              {(!discountEnabled || (prorrateoApplied && !discountValue && customFinalPrice === '')) && (
                 <button
                   type="button"
                   onClick={applyLoyaltyDiscount}
@@ -450,7 +461,7 @@ export default function PaymentModal({
                   Aplicar
                 </button>
               )}
-              {discountEnabled && (
+              {discountEnabled && (!prorrateoApplied || discountValue || customFinalPrice !== '') && (
                 <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">✓ Aplicado</span>
               )}
             </div>
@@ -471,6 +482,17 @@ export default function PaymentModal({
             <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
               ★ Tarifa histórica — precio actual del curso: ${coursePrice.toFixed(2)}
             </p>
+          )}
+
+          {/* Precio prorrateado (primer mes) */}
+          {prorrateoApplied && prorrateo && (
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-sky-700 font-medium flex items-center gap-1">
+                <Percent size={14} />
+                Prorrateado ({prorrateo.motivo}):
+              </span>
+              <span className={`text-xl font-bold ${showDiscountSummary ? 'text-gray-400 line-through' : 'text-sky-700'}`}>${prorrateo.sugerido.toFixed(2)}</span>
+            </div>
           )}
 
           {/* Precio con descuento */}
@@ -535,8 +557,10 @@ export default function PaymentModal({
                     // Aplicar como descuento (customFinalPrice) — así el backend lo
                     // procesa como pago completo del mes (con descuento), no como
                     // abono parcial que dejaría saldo pendiente.
+                    setProrrateoApplied(true)
                     setDiscountEnabled(true)
-                    setCustomFinalPrice(prorrateo.sugerido.toFixed(2))
+                    setDiscountValue('')
+                    setCustomFinalPrice('')
                     setFormData(prev => ({ ...prev, amount: prorrateo.sugerido.toFixed(2), paymentType: 'full' }))
                   }}
                   className="shrink-0 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-semibold hover:bg-sky-700 active:scale-95 transition"
@@ -560,6 +584,7 @@ export default function PaymentModal({
                   onClick={() => {
                     setSelectedPlan(null)
                     setFormData(prev => ({ ...prev, amount: studentFee.toFixed(2), paymentType: 'full', monthsAhead: 1 }))
+                    setProrrateoApplied(false)
                     if (discountEnabled) {
                       setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
                     }
@@ -586,6 +611,7 @@ export default function PaymentModal({
                       onClick={() => {
                         setSelectedPlan(plan)
                         setFormData(prev => ({ ...prev, amount: parseFloat(plan.price).toFixed(2), paymentType: 'full', monthsAhead: plan.months }))
+                        setProrrateoApplied(false)
                         if (discountEnabled) {
                           setDiscountEnabled(false); setDiscountValue(''); setCustomFinalPrice('')
                         }
