@@ -302,7 +302,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     const handleCtrlK = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault()
-        globalSearchRef.current?.focus()
+        setActiveTab('students')
+        setTimeout(() => globalSearchRef.current?.focus(), 0)
       }
     }
     window.addEventListener('keydown', handleCtrlK)
@@ -1078,6 +1079,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           const todayLabel = new Date(getTodayEC() + 'T12:00:00').toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })
           const firstName = isRecepcion ? (recepcionUserName || '').split(' ')[0] : ''
           const cashLabel = isCashOpen ? 'Caja abierta' : isCashNotOpened ? 'Caja sin abrir' : 'Caja cerrada'
+          const isHome = activeTab === 'students'
+          const sectionLabel = navTabs.find(t => t.id === activeTab)?.label || ''
           return (
             <header className="mb-4">
               <div className="flex items-center gap-2">
@@ -1124,15 +1127,16 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               </div>
               </div>
               <div className="mt-3 lg:-mt-9 px-0.5">
-                <p className="text-xs text-ink-muted first-letter:uppercase">{todayLabel}</p>
+                {isHome && <p className="text-xs text-ink-muted first-letter:uppercase">{todayLabel}</p>}
                 <h1 className="text-2xl font-bold text-brand-ink leading-tight">
-                  {greeting}{firstName ? `, ${firstName}` : ''}
+                  {isHome ? <>{greeting}{firstName ? `, ${firstName}` : ''}</> : sectionLabel}
                 </h1>
               </div>
             </header>
           )
         })()}
 
+        {activeTab === 'students' && (<>
         {/* Acciones: un solo estilo, ícono guinda (sin arcoíris de colores) */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2 lg:mb-4">
           {[
@@ -1186,6 +1190,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Indica que hay más accesos a la derecha (solo celular) */}
         <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-paper to-transparent sm:hidden" aria-hidden="true" />
         </div>
+        </>)}
 
         {/* Tabs — ocultos en mobile, la navegación inferior los reemplaza */}
         <div className="hidden md:flex lg:hidden gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
@@ -1226,6 +1231,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
           })}
         </div>
 
+        {activeTab === 'students' && (<>
         {/* Resumen del día y del mes en una sola franja */}
         <div className="sd-card grid grid-cols-3 divide-x divide-line mb-3 overflow-hidden">
           <div
@@ -1317,6 +1323,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             )}
           </div>
         </div>
+        </>)}
 
         {/* Students Tab - Clean Dashboard */}
         {activeTab === 'students' && (
