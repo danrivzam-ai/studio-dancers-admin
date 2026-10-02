@@ -67,6 +67,7 @@ export default function ReceptionistManager() {
       if (editingId) {
         const { error: err } = await supabase.from('receptionists').update(payload).eq('id', editingId)
         if (err) throw err
+        if (!payload.active) await revokeAccess(editingId)
       } else {
         const { error: err } = await supabase.from('receptionists').insert(payload)
         if (err) throw err
@@ -80,13 +81,21 @@ export default function ReceptionistManager() {
     }
   }
 
+  // Quita el rol del usuario interno de Auth de la recepcionista (lo crea la Edge
+  // Function staff-login con este mismo correo). Sin rol, la base no le entrega
+  // datos aunque conserve una sesión abierta; al reactivarla se recrea en su login.
+  const revokeAccess = (id) =>
+    supabase.from('user_roles').delete().eq('email', `recepcion-${id}@staff.studiodancers.app`).eq('role', 'receptionist')
+
   const toggleActive = async (r) => {
     await supabase.from('receptionists').update({ active: !r.active }).eq('id', r.id)
+    if (r.active) await revokeAccess(r.id)
     setReceptionists(prev => prev.map(x => x.id === r.id ? { ...x, active: !x.active } : x))
   }
 
   const handleDelete = async (id) => {
     await supabase.from('receptionists').delete().eq('id', id)
+    await revokeAccess(id)
     setReceptionists(prev => prev.filter(x => x.id !== id))
     setDeleteConfirm(null)
   }

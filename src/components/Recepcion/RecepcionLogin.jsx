@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
@@ -31,6 +32,20 @@ export default function RecepcionLogin({ onLogin }) {
 
       if (!res.ok) {
         setError(result.error || 'Usuario o contraseña incorrectos')
+        return
+      }
+
+      // Sesión real de Supabase: sin ella la base (RLS) no entrega datos
+      if (!result.access_token || !result.refresh_token) {
+        setError('No se pudo iniciar la sesión. Intenta de nuevo.')
+        return
+      }
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token
+      })
+      if (sessionError) {
+        setError('No se pudo iniciar la sesión. Intenta de nuevo.')
         return
       }
 

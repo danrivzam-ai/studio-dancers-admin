@@ -10,6 +10,7 @@ import bcrypt from "https://esm.sh/bcryptjs@2.4.3"
 //   3. Compara la contraseña server-side
 //   4. Aplica rate limiting (máx. 5 fallos en 10 min) reutilizando login_attempts
 //   5. Devuelve solo los datos seguros necesarios para la sesión
+//      (recepción: además una sesión de Supabase Auth con rol 'receptionist')
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,86 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
 const ROLE_TABLES: Record<string, { table: string; idColumn: string }> = {
   recepcion: { table: "receptionists", idColumn: "username" },
   instructora: { table: "instructors", idColumn: "cedula" },
+}
+
+// Correo interno (no recibe mensajes) del usuario de Auth de cada recepcionista.
+// ReceptionistManager usa el mismo formato para quitar el rol al desactivarla.
+const receptionistEmail = (id: string) => `recepcion-${id}@staff.studiodancers.app`
+
+// Crea (o reutiliza) el usuario de Auth de la recepcionista, le asegura el rol
+// 'receptionist' en user_roles y devuelve una sesión. La contraseña interna es
+// aleatoria y se renueva en cada ingreso: nadie la conoce ni la necesita.
+// deno-lint-ignore no-explicit-any
+async function createReceptionistSession(supabaseAdmin: any, receptionistId: string, name: string) {
+  const email = receptionistEmail(receptionistId)
+  const internalPassword = crypto.randomUUID() + crypto.randomUUID()
+
+  const { data: roleRow } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .eq("email", email)
+    .maybeSingle()
+
+  let userId: string | null = roleRow?.user_id ?? null
+  let needsRole = !userId
+
+  if (!userId) {
+    // Puede existir el usuario de Auth sin rol (se le quitó al desactivarla)
+    for (let page = 1; page <= 20 && !userId; page++) {
+      const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 })
+      const users = list?.users ?? []
+      userId = users.find((u: { email?: string }) => u.email === email)?.id ?? null
+      if (users.length < 1000) break
+    }
+  }
+
+  if (userId) {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: internalPassword })
+    if (error) {
+      console.error("[staff-login] updateUserById:", error.message)
+      return null
+    }
+  } else {
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: internalPassword,
+      email_confirm: true,
+      app_metadata: { staff_role: "receptionist", receptionist_id: receptionistId },
+      user_metadata: { full_name: name },
+    })
+    if (error || !created?.user) {
+      console.error("[staff-login] createUser:", error?.message)
+      return null
+    }
+    userId = created.user.id
+    needsRole = true
+  }
+
+  if (needsRole) {
+    const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
+      user_id: userId,
+      email,
+      role: "receptionist",
+      display_name: name,
+    })
+    if (roleError) {
+      console.error("[staff-login] user_roles insert:", roleError.message)
+      return null
+    }
+  }
+
+  // Cliente aparte (anon, sin persistir) para no mezclar la sesión con el admin client
+  const authClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  )
+  const { data, error } = await authClient.auth.signInWithPassword({ email, password: internalPassword })
+  if (error || !data?.session) {
+    console.error("[staff-login] signInWithPassword:", error?.message)
+    return null
+  }
+  return data.session
 }
 
 Deno.serve(async (req: Request) => {
@@ -113,12 +194,24 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    await registerAttempt(true)
-
-    // ── Responder solo con datos seguros (nunca el hash) ───────────────────
+    // ── Recepción: sesión real de Supabase Auth ────────────────────────────
+    // La base exige sesión autenticada con rol en user_roles (RLS v42), así que
+    // cada recepcionista tiene un usuario interno de Auth con rol 'receptionist'.
     if (role === "recepcion") {
-      return jsonResponse({ id: record.id, name: record.name }, 200)
+      const session = await createReceptionistSession(supabaseAdmin, record.id, record.name)
+      if (!session) {
+        return jsonResponse({ error: "No se pudo iniciar la sesión. Intenta de nuevo." }, 500)
+      }
+      await registerAttempt(true)
+      return jsonResponse({
+        id: record.id,
+        name: record.name,
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      }, 200)
     }
+
+    await registerAttempt(true)
 
     return jsonResponse(
       {
