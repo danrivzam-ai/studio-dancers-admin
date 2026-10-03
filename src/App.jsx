@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Plus, Users, Calendar, DollarSign, AlertCircle, Trash2, Edit2, X, Check,
-  Search, ShoppingBag, Tag, Settings, ArrowLeft, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw, Snowflake
+  Search, ShoppingBag, Tag, Settings, ArrowLeft, CreditCard, Download, Package, Zap, ChevronDown, ChevronUp, History, Wallet, Pause, Play, Eye, EyeOff, LogOut, TrendingDown, ArrowLeftRight, Palette, BarChart3, ScrollText, MessageCircle, Megaphone, Pin, Send, GraduationCap, FileText, Monitor, Lock, UserMinus, UserCheck, RefreshCw, Snowflake, CheckCircle
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useStudents } from './hooks/useStudents'
@@ -337,6 +337,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   const [storeView, setStoreView] = useState('ventas')
   const [showUserManagement, setShowUserManagement] = useState(false)
   const [enrollFrom, setEnrollFrom] = useState(null) // alumna a inscribir en otro curso
+  const [chargeNewStudent, setChargeNewStudent] = useState(null) // recién registrada: ¿cobrar ahora?
   // Productos: búsqueda por nombre y filtro "por reponer"
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogLowOnly, setCatalogLowOnly] = useState(false)
@@ -812,6 +813,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       setEditingStudent(null)
       setEnrollFrom(null)
       setDuplicateWarning({ show: false, matches: [], pendingData: null })
+      // Alumna nueva (no cortesía): ofrecer registrar su primer pago enseguida
+      if (!editingStudent && result.data && !result.data.is_courtesy) setChargeNewStudent(result.data)
     } else {
       alert('Error: ' + result.error)
     }
@@ -3524,6 +3527,41 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         })()}
 
         {/* Modal: Advertencia de alumna duplicada */}
+        {chargeNewStudent && (() => {
+          const s = chargeNewStudent
+          const course = getCourseById(s.course_id)
+          const fee = parseFloat(s.monthly_fee || course?.price || 0)
+          return (
+            <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-[60]" onClick={() => setChargeNewStudent(null)}>
+              <div className="bg-surface rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm p-5 space-y-4" onClick={e => e.stopPropagation()}
+                role="dialog" aria-modal="true" aria-labelledby="charge-new-title">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-brand-soft text-brand-ink flex items-center justify-center shrink-0">
+                    <CheckCircle size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <p id="charge-new-title" className="font-semibold text-ink">Alumna registrada</p>
+                    <p className="text-xs text-ink-muted truncate">{s.name}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-ink-soft leading-relaxed">
+                  Quedó inscrita en <strong className="text-ink">{course?.name || 'su curso'}</strong>
+                  {fee > 0 && <> (<span className="tabular-nums">${fee.toFixed(2)}</span>)</>}.
+                  ¿Quieres registrar su primer pago ahora?
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => setChargeNewStudent(null)} className="flex-1 sd-btn sd-btn-secondary">
+                    Más tarde
+                  </button>
+                  <button onClick={() => { setChargeNewStudent(null); openPaymentModal(s) }} className="flex-1 sd-btn sd-btn-primary" autoFocus>
+                    <CreditCard size={16} /> Cobrar ahora
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {duplicateWarning.show && (
           <div className="fixed inset-0 bg-[#1a0010]/60 flex items-center justify-center p-4 z-[60]" onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
