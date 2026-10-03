@@ -1365,7 +1365,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               const reminderFor = (s, course, days) => () => {
                 const { contactPhone } = getContactInfo(s)
                 if (!contactPhone) { alert('Sin teléfono registrado'); return }
-                openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course))
+                openWhatsApp(contactPhone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course, autoInactiveDays))
               }
               const contactDetail = (s, courseName) => {
                 const { contactName, contactRelation } = getContactInfo(s)
@@ -1556,11 +1556,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           <div className="flex gap-2">
                             <button
                               onClick={() => {
-                                const phone = currentStudentInQueue.payer_phone || currentStudentInQueue.parent_phone || currentStudentInQueue.phone
+                                const phone = getContactInfo(currentStudentInQueue).contactPhone
                                 if (!phone) { alert('Sin teléfono registrado'); return }
                                 const course = enrichCourse(getCourseById(currentStudentInQueue.course_id))
                                 const days = getDaysUntilDue(currentStudentInQueue.next_payment_date)
-                                openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course))
+                                openWhatsApp(phone, buildReminderMessage(currentStudentInQueue, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course, autoInactiveDays))
                                 setTimeout(() => setReminderQueueIdx(i => i + 1 < reminderStudents.length ? i + 1 : null), 800)
                               }}
                               className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
@@ -1603,9 +1603,9 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             </span>
                             <button
                               onClick={() => {
-                                const phone = s.payer_phone || s.parent_phone || s.phone
+                                const phone = getContactInfo(s).contactPhone
                                 if (!phone) { alert('Sin teléfono registrado'); return }
-                                openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course))
+                                openWhatsApp(phone, buildReminderMessage(s, course?.name || 'N/A', days, settings, graceDays, moraDays, (course?.ageMin ?? 0) >= 18, course, autoInactiveDays))
                               }}
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded-xl active:scale-95 transition-all shrink-0"
                               title="Enviar recordatorio"
@@ -2894,11 +2894,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    const phone = student.payer_phone || student.parent_phone || student.phone
+                                    const phone = getContactInfo(student).contactPhone
                                     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
                                     const courseObj = enrichCourse(getCourseById(student.course_id))
                                     const days = getDaysUntilDue(student.next_payment_date)
-                                    const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18, courseObj)
+                                    const msg = buildReminderMessage(student, courseObj?.name || 'N/A', days, settings, graceDays, moraDays, (courseObj?.ageMin ?? 0) >= 18, courseObj, autoInactiveDays)
                                     openWhatsApp(phone, msg)
                                   }}
                                   className="hidden sm:flex p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl active:scale-95 transition-all"

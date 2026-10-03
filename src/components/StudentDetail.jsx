@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer, MoreHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
-import { formatDate, getCycleInfo, getPaymentStatus, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier } from '../lib/dateUtils'
+import { formatDate, getCycleInfo, getPaymentStatus, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier, getDaysUntilDue } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
-import { openWhatsApp, buildReminderMessage } from '../lib/whatsapp'
+import { openWhatsApp, buildReminderMessage, getContactInfo } from '../lib/whatsapp'
 import InvoiceButton from './InvoiceButton'
 
 const methodStyle = () => ({ bg: 'bg-surface-alt', text: 'text-ink-soft' })
@@ -147,10 +147,13 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const isAdultCycleCourse = isRecurring && (course?.ageMin ?? 0) >= 18
 
   const handleWhatsApp = () => {
-    const phone = student.payer_phone || student.parent_phone || student.phone
+    const phone = getContactInfo(student).contactPhone
     if (!phone) { alert('Este alumno no tiene teléfono registrado'); return }
     const isAdult = (course?.ageMin ?? 0) >= 18
-    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', daysUntilDue ?? 0, schoolName || 'Studio Dancers', 5, 20, isAdult, course))
+    // Mismo cálculo y configuración que las listas de recordatorios (incluye la cuenta bancaria)
+    const msgSettings = settings || { name: schoolName || 'Studio Dancers' }
+    openWhatsApp(phone, buildReminderMessage(student, course?.name || 'N/A', getDaysUntilDue(student.next_payment_date), msgSettings,
+      settings?.grace_days ?? 5, settings?.mora_days ?? 20, isAdult, course, settings?.auto_inactive_days ?? 60))
   }
 
   return (

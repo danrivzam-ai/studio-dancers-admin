@@ -332,7 +332,7 @@ export default function CobranzaReport({
                         <button
                           onClick={() => openWhatsApp(
                             row.contactPhone,
-                            buildReminderMessage(row.student, row.course?.name || 'N/A', row.days, settings, graceDays, moraDays, (row.course?.ageMin ?? 0) >= 18, row.course)
+                            buildReminderMessage(row.student, row.course?.name || 'N/A', row.days, settings, graceDays, moraDays, (row.course?.ageMin ?? 0) >= 18, row.course, autoInactiveDays)
                           )}
                           className="p-1.5 text-green-500 hover:bg-green-100 rounded-xl transition-colors"
                           title={`Enviar WA a ${row.contactRelation}`}
