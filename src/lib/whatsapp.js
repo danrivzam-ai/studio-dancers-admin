@@ -1,4 +1,4 @@
-import { formatDate, getCycleInfo, getTodayEC } from './dateUtils'
+import { formatDate, getCycleInfo, getTodayEC, getDaysLate } from './dateUtils'
 
 /**
  * Limpia y formatea un número de teléfono para WhatsApp (Ecuador).
@@ -256,9 +256,8 @@ ${schoolNameOf(settings)}`
  */
 export const buildReminderMessage = (student, courseName, daysUntilDue, settings, graceDays = 5, moraDays = 20, isAdultCourse = false, course = null, autoInactiveDays = 60) => {
   const absDays = Math.abs(daysUntilDue)
-  // getDaysUntilDue cuenta hasta el día ANTERIOR al vencimiento (último día cubierto),
-  // así que los días reales de atraso desde la fecha de vencimiento son uno menos.
-  const daysLate = Math.max(1, absDays - 1)
+  // Días reales de atraso desde la fecha de vencimiento (igual que en pantalla)
+  const daysLate = Math.max(1, getDaysLate(student.next_payment_date))
 
   // Inactiva (mismo umbral que la lista "Inactivas"): invitación a volver
   if (daysUntilDue < 0 && absDays > autoInactiveDays) {

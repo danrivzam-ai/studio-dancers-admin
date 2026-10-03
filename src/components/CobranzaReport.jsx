@@ -9,7 +9,7 @@ import { X, Download, FileText, MessageCircle } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { getDaysUntilDue, getPaymentStatus } from '../lib/dateUtils'
+import { getDaysUntilDue, getDaysToDueDate, getPaymentStatus } from '../lib/dateUtils'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from '../lib/whatsapp'
 import Modal from './ui/Modal'
 
@@ -83,6 +83,7 @@ export default function CobranzaReport({
           course,
           status,
           days,
+          realDays: getDaysToDueDate(s.next_payment_date),
           contactName,
           contactPhone,
           contactRelation,
@@ -167,7 +168,7 @@ export default function CobranzaReport({
           r.contactPhone || '—',
           r.course?.name || '—',
           STATUS_LABELS[r.status.status] || r.status.label,
-          r.days < 0 ? `${Math.abs(r.days)}d atrás` : `En ${r.days}d`,
+          r.realDays < 0 ? `${-r.realDays}d atrás` : r.realDays === 0 ? 'Hoy' : `En ${r.realDays}d`,
           `$${r.amount.toFixed(2)}`,
         ]),
         styles:     { fontSize: 8, cellPadding: 3 },
@@ -321,7 +322,7 @@ export default function CobranzaReport({
                         {STATUS_LABELS[row.status.status] || row.status.label}
                       </span>
                       <p className="text-[10px] text-gray-400 mt-0.5">
-                        {row.days < 0 ? `${Math.abs(row.days)}d atrás` : row.days === 0 ? 'Hoy' : `En ${row.days}d`}
+                        {row.realDays < 0 ? `${-row.realDays}d atrás` : row.realDays === 0 ? 'Hoy' : `En ${row.realDays}d`}
                       </p>
                     </td>
                     <td className="px-4 py-3 text-right">

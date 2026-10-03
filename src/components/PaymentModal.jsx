@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, AlertCircle, Percent, Tag } from 'lucide-react'
 import { getCourseById, BANKS } from '../lib/courses'
-import { getTodayEC, formatDate, getDaysUntilDue, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo, calculateNextPaymentDate } from '../lib/dateUtils'
+import { getTodayEC, formatDate, getDaysUntilDue, getDaysLate, getLoyaltyTier, getNextClassDay, formatDateForInput, calcularProrrateo, calculateNextPaymentDate } from '../lib/dateUtils'
 import { useToast } from './Toast'
 import Modal from './ui/Modal'
 import PaymentMethodPicker from './ui/PaymentMethodPicker'
@@ -54,7 +54,8 @@ export default function PaymentModal({
     ? getDaysUntilDue(student.next_payment_date)
     : 999
   const isOverdue = daysUntilDue <= 0
-  const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0
+  // Días reales de atraso para mostrar (0 = vence hoy)
+  const daysOverdue = isOverdue && student?.next_payment_date ? getDaysLate(student.next_payment_date) : 0
 
   // Alumna nueva en curso recurrente (mes o paquete): nunca ha pagado.
   // El picker de inicio de ciclo permite elegir el primer día de clase real.
@@ -962,8 +963,8 @@ export default function PaymentModal({
               <p className="text-sm font-semibold text-sky-800 flex items-center gap-1.5">
                 <AlertCircle size={15} />
                 {isAdultCycleCourse
-                  ? `Ciclo terminado · ${daysOverdue}d sin renovar`
-                  : `Pago pendiente · ${daysOverdue} ${daysOverdue === 1 ? 'día' : 'días'}`}
+                  ? (daysOverdue > 0 ? `Ciclo terminado · ${daysOverdue}d sin renovar` : 'Ciclo terminado')
+                  : (daysOverdue > 0 ? `Pago pendiente · ${daysOverdue} ${daysOverdue === 1 ? 'día' : 'días'}` : 'Pago pendiente · vence hoy')}
               </p>
               <p className="text-xs text-sky-700 leading-relaxed">
                 ¿Cuándo asistió por primera vez al nuevo ciclo?

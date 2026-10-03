@@ -340,6 +340,23 @@ export const calculateDueDate = (nextPaymentDate) => {
 
 // Obtener días hasta el vencimiento
 // Usa la fecha de Ecuador (no UTC) para evitar desfase de zona horaria después de las 7 PM
+/**
+ * Días reales hasta la fecha de vencimiento (next_payment_date), en hora Ecuador:
+ * >0 faltan N días · 0 vence hoy · <0 lleva N días de atraso.
+ * Es lo que se MUESTRA (listas, fichas, WhatsApp). Los umbrales de gracia/mora/
+ * inactiva siguen usando getDaysUntilDue (= getDaysToDueDate - 1) para no mover
+ * a ninguna alumna de categoría.
+ */
+export const getDaysToDueDate = (nextPaymentDate) => {
+  if (!nextPaymentDate) return null
+  const due = toNoonLocal(nextPaymentDate)
+  const today = new Date(getTodayEC() + 'T12:00:00')
+  return Math.round((due - today) / 86400000)
+}
+
+/** Días de atraso reales para mostrar (0 = vence hoy). */
+export const getDaysLate = (nextPaymentDate) => Math.max(0, -(getDaysToDueDate(nextPaymentDate) ?? 0))
+
 export const getDaysUntilDue = (nextPaymentDate) => {
   if (!nextPaymentDate) return 999
   const date = typeof nextPaymentDate === 'string' ? parseISO(nextPaymentDate) : nextPaymentDate
@@ -590,10 +607,10 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     }
 
     if (days < 0) {
-      const absDays = Math.abs(days)
+      const late = getDaysLate(student.next_payment_date)
       return {
         status: 'cycle_complete',
-        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${absDays}d`,
+        label: late === 0 ? 'Lista para renovar' : `Lista para renovar · ${late}d`,
         color: 'bg-sky-100 text-sky-800 border border-sky-200',
         colorCode: 'blue',
         priority: 3
@@ -719,6 +736,9 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
 
   if (days < 0) {
     const absDays = Math.abs(days)
+    // Para las etiquetas: días reales desde la fecha de vencimiento (0 = vence hoy)
+    const late = getDaysLate(student.next_payment_date)
+    const lateDays = late === 1 ? '1 día' : `${late} días`
 
     // Inactiva: muy largo sin renovar (más allá de autoInactiveDays)
     if (absDays > autoInactiveDays) {
@@ -736,7 +756,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     if (isAdultCourse) {
       return {
         status: 'adult_renewal',
-        label: absDays === 1 ? 'Lista para renovar · 1d' : `Lista para renovar · ${absDays}d`,
+        label: late === 0 ? 'Lista para renovar' : `Lista para renovar · ${late}d`,
         color: 'bg-sky-100 text-sky-800 border border-sky-200',
         colorCode: 'blue',
         canAttend: false,
@@ -748,7 +768,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     if (absDays > moraDays) {
       return {
         status: 'mora',
-        label: `Suspendida (${absDays}d)`,
+        label: `Suspendida (${late}d)`,
         color: 'bg-rose-700 text-white ring-1 ring-rose-800',
         colorCode: 'rose',
         canAttend: false,
@@ -760,7 +780,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     if (absDays > graceDays) {
       return {
         status: 'overdue',
-        label: absDays === 1 ? 'Vencida (1 día)' : `Vencida (${absDays} días)`,
+        label: `Vencida (${lateDays})`,
         color: 'bg-red-600 text-white ring-1 ring-red-700',
         colorCode: 'red',
         canAttend: true,
@@ -768,11 +788,12 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
-    // Gracia: vencida pero dentro del período de gracia (solo cursos infantiles/juveniles)
+    // Gracia: desde la fecha de vencimiento hasta graceDays (solo cursos infantiles/juveniles).
+    // El día del vencimiento se muestra como "Vence hoy" (rojo); luego "Gracia (N días)".
     return {
       status: 'grace',
-      label: absDays === 1 ? 'Gracia (1 día)' : `Gracia (${absDays} días)`,
-      color: 'bg-amber-400 text-white ring-1 ring-amber-500',
+      label: late === 0 ? 'Vence hoy' : `Gracia (${lateDays})`,
+      color: late === 0 ? 'bg-red-500 text-white ring-1 ring-red-600' : 'bg-amber-400 text-white ring-1 ring-amber-500',
       colorCode: 'amber',
       canAttend: true,
       priority: 2
@@ -782,11 +803,11 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   if (days === 0) {
     return {
       status: 'due_today',
-      label: isAdultCourse ? 'Última clase hoy' : 'Renovar hoy',
+      label: isAdultCourse ? 'Última clase hoy' : 'Vence mañana',
       color: isAdultCourse
         ? 'bg-orange-100 text-orange-700 border border-orange-200'
-        : 'bg-red-500 text-white ring-1 ring-red-600',
-      colorCode: isAdultCourse ? 'orange' : 'red',
+        : 'bg-orange-500 text-white ring-1 ring-orange-600',
+      colorCode: 'orange',
       canAttend: true,
       priority: 1
     }
@@ -796,7 +817,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       status: 'urgent',
       label: isAdultCourse
         ? (days === 1 ? 'Última clase mañana' : `Termina en ${days} días`)
-        : (days === 1 ? 'Vence mañana' : `Vence en ${days} días`),
+        : `Vence en ${days + 1} días`,
       color: isAdultCourse
         ? 'bg-amber-100 text-amber-800 border border-amber-200'
         : 'bg-orange-500 text-white ring-1 ring-orange-600',
@@ -808,7 +829,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   if (days <= 7) {
     return {
       status: 'upcoming',
-      label: isAdultCourse ? `Por renovar · ${days}d` : `Vence en ${days} días`,
+      label: isAdultCourse ? `Por renovar · ${days + 1}d` : `Vence en ${days + 1} días`,
       color: 'bg-amber-100 text-amber-800 border border-amber-300',
       colorCode: 'yellow',
       canAttend: true,
@@ -817,7 +838,7 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
   }
   return {
     status: 'ok',
-    label: `Al día (${days}d)`,
+    label: `Al día (${days + 1}d)`,
     color: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
     colorCode: 'green',
     canAttend: true,

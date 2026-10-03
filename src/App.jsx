@@ -14,7 +14,7 @@ import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // ALL_COURSES se usa como fallback para enriquecer cursos que no tienen classDays en Supabase
 import { ALL_COURSES } from './lib/courses'
-import { formatDate, getDaysUntilDue, getPaymentStatus, getCycleInfo, getTodayEC, getNowEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
+import { formatDate, getDaysUntilDue, getDaysLate, getPaymentStatus, getCycleInfo, getTodayEC, getNowEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
 import { addDays } from 'date-fns'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
@@ -1395,7 +1395,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             key={s.id}
                             name={s.name}
                             detail={contactDetail(s, course?.name || 'Sin curso')}
-                            status={`${Math.abs(daysUntil)}d mora`}
+                            status={`${getDaysLate(s.next_payment_date)}d mora`}
                             tone="danger"
                             onWhatsApp={reminderFor(s, course, daysUntil)}
                             whatsappTitle={`Enviar aviso de suspensión a ${contactRelation}`}
@@ -1422,7 +1422,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             key={s.id}
                             name={s.name}
                             detail={contactDetail(s, course?.name || 'Sin curso')}
-                            status={`${Math.abs(daysUntil)}d vencido`}
+                            status={`${getDaysLate(s.next_payment_date)}d vencido`}
                             tone="danger"
                             onWhatsApp={reminderFor(s, course, daysUntil)}
                           />
@@ -1447,7 +1447,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             key={s.id}
                             name={s.name}
                             detail={course?.name || 'Sin curso'}
-                            status={`Terminó hace ${Math.abs(getDaysUntilDue(s.next_payment_date))}d`}
+                            status={getDaysLate(s.next_payment_date) === 0 ? 'Renueva hoy' : `Sin renovar · ${getDaysLate(s.next_payment_date)}d`}
                             tone="warn"
                           />
                         )
@@ -1472,7 +1472,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             key={s.id}
                             name={s.name}
                             detail={contactDetail(s, course?.name || 'Sin curso')}
-                            status={days === 0 ? 'Hoy' : `en ${days}d`}
+                            status={days === 0 ? 'Mañana' : `en ${days + 1}d`}
                             tone="warn"
                             onWhatsApp={reminderFor(s, course, days)}
                           />
@@ -1509,7 +1509,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                           key={s.id}
                           name={s.name}
                           detail={getCourseById(s.course_id)?.name || 'Sin curso'}
-                          status={`${Math.abs(getDaysUntilDue(s.next_payment_date))}d sin pagar`}
+                          status={`${getDaysLate(s.next_payment_date)}d sin pagar`}
                           tone="muted"
                         />
                       ))}
@@ -1523,6 +1523,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {/* Recordatorios de pago — WhatsApp masivo */}
             {(() => {
               const reminderStudents = [
+                ...graceStudents,
                 ...overduePayments,
                 ...upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0)
               ].filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i)
@@ -1598,8 +1599,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                             </div>
                             <span className={`text-xs font-bold shrink-0 ${isOverdue ? (isAdultCycle ? 'text-sky-600' : 'text-red-500') : 'text-amber-500'}`}>
                               {isOverdue
-                                ? `${Math.abs(days)}d ${isAdultCycle ? 'sin renovar' : 'vencido'}`
-                                : days === 0 ? 'Hoy' : `${days}d`}
+                                ? (getDaysLate(s.next_payment_date) === 0 ? 'Hoy' : `${getDaysLate(s.next_payment_date)}d ${isAdultCycle ? 'sin renovar' : 'vencido'}`)
+                                : days === 0 ? 'Mañana' : `${days + 1}d`}
                             </span>
                             <button
                               onClick={() => {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X, CheckCircle, XCircle, Clock, Image, ChevronDown, ChevronUp, DollarSign, Hash, Plus, Upload, Camera, Trash2, AlertCircle, Pause, BadgeCheck } from 'lucide-react'
-import { formatDate, getDaysUntilDue, getTodayEC } from '../lib/dateUtils'
+import { formatDate, getDaysUntilDue, getDaysLate, getTodayEC } from '../lib/dateUtils'
 import { getCourseById as getCourseByIdHardcoded, BANKS } from '../lib/courses'
 import { supabase } from '../lib/supabase'
 import { sanitizeError } from '../lib/errorUtils'
@@ -483,7 +483,7 @@ export default function TransferVerification({
                           )}
                           {isAdultCycle && cycleFinished && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-sky-100 text-sky-700 rounded-full text-[11px] font-semibold">
-                              Ciclo terminado · {Math.abs(daysUntilDue)}d sin renovar
+                              Ciclo terminado{getDaysLate(st.next_payment_date) > 0 ? ` · ${getDaysLate(st.next_payment_date)}d sin renovar` : ''}
                             </span>
                           )}
                           {isAdultCycle && !cycleFinished && daysUntilDue !== null && (
