@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer, MoreHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
-import { formatDate, getCycleInfo, getPaymentStatus, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier, getDaysUntilDue } from '../lib/dateUtils'
+import { formatDate, getCycleInfo, getPaymentStatus, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier, getDaysUntilDue, getStudentCycleClasses } from '../lib/dateUtils'
 import { getCourseById, ALL_COURSES } from '../lib/courses'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from '../lib/whatsapp'
 import InvoiceButton from './InvoiceButton'
@@ -84,9 +84,10 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   const lastPaymentRecord = payments?.find(p => !p.voided)
   const planMonths = lastPaymentRecord?.plan_months || null
   const cycleInfo = isRecurring && baseDate
-    ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses, planMonths)
+    ? getCycleInfo(baseDate, cycleEndDate, course?.classDays, cycleClasses, planMonths, showOldCycle ? null : getStudentCycleClasses(student))
     : null
 
+  const nextCourse = student.next_course_id ? getCourseById(student.next_course_id) : null
   const coursePrice = course?.price || 0
   // Tarifa personal del alumno (puede diferir del precio actual del curso)
   const studentFee = parseFloat(student.monthly_fee) || coursePrice
@@ -224,6 +225,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             {student.prepaid && (
               <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
                 ✓ Mes anticipado
+              </span>
+            )}
+            {nextCourse && (
+              <span className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold" title="Cambio de curso programado para la próxima renovación">
+                Al renovar → {nextCourse.name}
               </span>
             )}
             {loyalty.tier && (
@@ -426,6 +432,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                       ? `Clase ${progressInMonth}/${totalInMonth} · ${taken}/${totalPkg} total`
                       : `Clase ${cycleInfo.classesPassed}/${cycleInfo.totalClasses}`}
                   </p>
+                  {!showOldCycle && student.frozen_classes > 0 && (
+                    <p className="text-xs text-center text-ink-muted -mt-1 mb-2">
+                      Incluye {student.frozen_classes} {student.frozen_classes === 1 ? 'clase congelada' : 'clases congeladas'} en este ciclo
+                    </p>
+                  )}
 
                   {/* Barra de progreso del mes actual (no del total) */}
                   <div className="bg-line rounded-full h-2 overflow-hidden">

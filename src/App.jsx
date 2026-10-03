@@ -14,7 +14,7 @@ import { useExpenses } from './hooks/useExpenses'
 import { useAuth } from './hooks/useAuth'
 // ALL_COURSES se usa como fallback para enriquecer cursos que no tienen classDays en Supabase
 import { ALL_COURSES } from './lib/courses'
-import { formatDate, getDaysUntilDue, getDaysLate, getPaymentStatus, getCycleInfo, getTodayEC, getNowEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
+import { formatDate, getDaysUntilDue, getDaysLate, getStudentCycleClasses, getPaymentStatus, getCycleInfo, getTodayEC, getNowEC, getNextNClassDays, getNextClassDay, formatDateForInput } from './lib/dateUtils'
 import { addDays } from 'date-fns'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
@@ -90,7 +90,7 @@ function StudentAvatar({ student, isCamp }) {
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, isContador, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle, applyScheduledCourseChange } = useStudents()
   const { sales, loading: salesLoading, createSaleGroup, deleteSale } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, fetchCoursePlans, saveCoursePlan, deleteCoursePlan } = useItems()
@@ -886,7 +886,22 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
     }
   }
 
-  const openPaymentModal = (student) => {
+  const openPaymentModal = async (student) => {
+    // Cambio de curso programado: al renovar (sin saldo del ciclo en curso),
+    // preguntar si este pago ya es del curso nuevo.
+    if (student?.next_course_id && !(parseFloat(student.amount_paid || 0) > 0)) {
+      const nextCourse = getCourseById(student.next_course_id)
+      const fee = student.next_monthly_fee != null ? parseFloat(student.next_monthly_fee) : (nextCourse?.price || 0)
+      const ok = window.confirm(
+        `${student.name} tiene un cambio programado a "${nextCourse?.name || 'otro curso'}" ($${fee.toFixed(2)}).\n\n` +
+        '¿Este pago ya es la renovación en el curso nuevo?\n\nAceptar: aplica el cambio y cobra el curso nuevo.\nCancelar: cobra su curso actual y deja el cambio para después.'
+      )
+      if (ok) {
+        const res = await applyScheduledCourseChange(student.id)
+        if (!res.success) { alert('Error: ' + res.error); return }
+        student = res.data
+      }
+    }
     setSelectedStudent(student)
     setShowPaymentModal(true)
   }
@@ -2841,7 +2856,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                                     baseDate = cicloInicio
                                   }
                                   if (!baseDate || !endDate) return null
-                                  const cycleInfo = getCycleInfo(baseDate, endDate, course?.classDays, cycleClasses)
+                                  const cycleInfo = getCycleInfo(baseDate, endDate, course?.classDays, cycleClasses, null, showOldCycle ? null : getStudentCycleClasses(student))
                                   if (!cycleInfo || !cycleInfo.totalClasses) return null
                                   return (
                                     <p className="text-[10px] text-[#6b2145] font-semibold mt-0.5">
@@ -3145,6 +3160,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                         className="w-14 h-14 rounded-2xl bg-white border border-gray-200 text-gray-500 text-2xl flex items-center justify-center active:scale-90 active:bg-gray-50 transition shadow-sm">+</button>
                     </div>
                   </div>
+
+                  {/* Congelaciones previas en este ciclo: solo informativo, sin límite */}
+                  {student.frozen_classes > 0 && (
+                    <div className="rounded-xl bg-sky-50 border border-sky-100 px-3 py-2.5 text-xs text-sky-800 leading-relaxed">
+                      En este ciclo ya congeló <strong>{student.frozen_classes} {student.frozen_classes === 1 ? 'clase' : 'clases'}</strong>.
+                      Como referencia, la política es 1 por mes; decide según el caso.
+                    </div>
+                  )}
 
                   {/* Chips de días saltados */}
                   {skipped.length > 0 && (

@@ -357,6 +357,12 @@ export const getDaysToDueDate = (nextPaymentDate) => {
 /** Días de atraso reales para mostrar (0 = vence hoy). */
 export const getDaysLate = (nextPaymentDate) => Math.max(0, -(getDaysToDueDate(nextPaymentDate) ?? 0))
 
+/** Total de clases del ciclo actual guardado en la alumna (null = el estándar del curso). */
+export const getStudentCycleClasses = (student) => {
+  const n = parseInt(student?.cycle_classes)
+  return n > 0 ? n : null
+}
+
 export const getDaysUntilDue = (nextPaymentDate) => {
   if (!nextPaymentDate) return 999
   const date = typeof nextPaymentDate === 'string' ? parseISO(nextPaymentDate) : nextPaymentDate
@@ -371,9 +377,12 @@ export const getDaysUntilDue = (nextPaymentDate) => {
  * @param {string} nextPaymentDate - Fecha del próximo pago
  * @param {number[]} classDays - Días de clase
  * @param {number} classesPerCycle - Clases por ciclo (8 para MTJ, 4 para Sábados)
+ * @param {number} [planMonths] - meses del plan promocional (multiplica classesPerCycle)
+ * @param {number} [totalOverride] - total de clases del ciclo guardado en la alumna
+ *   (students.cycle_classes): meses adelantados, clases congeladas o cambio de curso.
  * @returns {{ cycleStart: string, cycleEnd: string, totalClasses: number, label: string } | null}
  */
-export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, classesPerCycle, planMonths = null) => {
+export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, classesPerCycle, planMonths = null, totalOverride = null) => {
   if (!lastPaymentDate || !nextPaymentDate) return null
 
   const lastPay = toNoonLocal(lastPaymentDate)
@@ -412,6 +421,9 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
       const months = planMonths && planMonths > 1 ? planMonths : 1
       totalClasses = classesPerCycle * months
     }
+    // Total guardado en la alumna (8 × meses adelantados, + clases congeladas, o
+    // clases convertidas al cambiar de curso) — tiene prioridad sobre el estándar.
+    if (totalOverride && totalOverride > 0) totalClasses = totalOverride
   } else {
     // Fallback: sin días de clase definidos, usar fechas crudas
     cycleStart = lastPay
@@ -573,7 +585,9 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       }
     }
 
-    const classesTotal = course?.classesPerPackage || course?.classesPerCycle || course?.classes_per_package || 4
+    const packageClasses = course?.classesPerPackage || course?.classesPerCycle || course?.classes_per_package || 4
+    // Clases congeladas o convertidas por cambio de curso amplían el ciclo de esta alumna
+    const classesTotal = getStudentCycleClasses(student) || packageClasses
     // Calcular clases tomadas automáticamente por fechas (más preciso que classes_used manual)
     const baseDate = student.last_payment_date || student.enrollment_date
     let classesTaken = student.classes_used || 0
@@ -589,8 +603,8 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
     // subCycleSize = clases que hay en 1 mes según días de clase
     const classDaysArr = course?.classDays || course?.class_days || []
     const subCycleSize = classDaysArr.length >= 2 ? 8 : 4
-    const isMultiCycle = classesTotal > subCycleSize && classesTotal % subCycleSize === 0
-    const totalMonths  = isMultiCycle ? Math.round(classesTotal / subCycleSize) : 1
+    const isMultiCycle = packageClasses > subCycleSize && packageClasses % subCycleSize === 0
+    const totalMonths  = isMultiCycle ? Math.round(packageClasses / subCycleSize) : 1
     const currentMonth = isMultiCycle ? Math.min(totalMonths, Math.floor(classesTaken / subCycleSize) + 1) : 1
     const remainingInMonth = isMultiCycle ? subCycleSize - (classesTaken % subCycleSize) : remaining
 
@@ -686,7 +700,9 @@ export const getPaymentStatus = (student, course, autoInactiveDays = 60, graceDa
       const cycleInfo = getCycleInfo(
         baseDate, student.next_payment_date,
         course.classDays || course.class_days,
-        course.classesPerCycle || course.classes_per_cycle
+        course.classesPerCycle || course.classes_per_cycle,
+        null,
+        getStudentCycleClasses(student)
       )
       // Usar totalClasses real (contado en el ciclo actual) como referencia
       const classesTotal = cycleInfo?.totalClasses ?? null

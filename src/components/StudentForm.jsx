@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Check, User, Users, CreditCard, Search, UserCheck } from 'lucide-react'
-import { getTodayEC } from '../lib/dateUtils'
+import { addDays, format } from 'date-fns'
+import { getTodayEC, getCycleInfo, getNextNClassDays, getNextClassDay, getDaysToDueDate, getStudentCycleClasses, formatDate } from '../lib/dateUtils'
 
 // Reusable labeled input component
 function LabeledInput({ label, required, children }) {
@@ -132,11 +133,71 @@ export default function StudentForm({
 
   const [submitting, setSubmitting] = useState(false)
 
+  // ── Cambio de curso de una alumna existente ─────────────────────────
+  const [changeMode, setChangeMode] = useState(null)      // 'renewal' | 'now' | 'immediate'
+  const [changeFee, setChangeFee] = useState('')
+  const [changeClasses, setChangeClasses] = useState(null)
+  const [cancelNextCourse, setCancelNextCourse] = useState(false)
+
+  const findCourse = (id) => courses.find(c => (c.id || c.code) === id || c.code === id || c.id === id)
+  const priceTypeOf = (c) => c?.priceType || c?.price_type
+  const isRecurringCourse = (c) => priceTypeOf(c) === 'mes' || priceTypeOf(c) === 'paquete'
+  const classDaysOf = (c) => c?.classDays || c?.class_days || null
+  const perCycleOf = (c) => c?.classesPerCycle || c?.classesPerPackage || c?.classes_per_cycle || null
+
+  const oldCourse = isEditing ? findCourse(student.course_id) : null
+  const newCourse = findCourse(formData.courseId)
+  const courseChanged = isEditing && !!formData.courseId && formData.courseId !== student.course_id
+
+  const change = (() => {
+    if (!courseChanged || !newCourse) return null
+    const oldFee = parseFloat(student.monthly_fee) || oldCourse?.price || 0
+    const oldPrice = parseFloat(oldCourse?.price) || 0
+    const newPrice = parseFloat(newCourse.price) || 0
+    // Tarifa sugerida: si tenía tarifa histórica y el curso nuevo cuesta lo mismo, se mantiene
+    const defaultFee = oldFee < oldPrice && newPrice === oldPrice ? oldFee : newPrice
+
+    // ¿Tiene un ciclo pagado en curso con clases por tomar?
+    let remaining = 0
+    if (isRecurringCourse(oldCourse) && student.last_payment_date && student.next_payment_date &&
+        classDaysOf(oldCourse) && perCycleOf(oldCourse) && getDaysToDueDate(student.next_payment_date) > 0) {
+      const info = getCycleInfo(student.last_payment_date, student.next_payment_date, classDaysOf(oldCourse),
+        perCycleOf(oldCourse), null, getStudentCycleClasses(student))
+      if (info) remaining = Math.max(0, info.totalClasses - info.classesPassed)
+    }
+    const hasBalance = parseFloat(student.amount_paid || 0) > 0 && parseFloat(student.balance || 0) > 0
+    const canConvert = remaining > 0 && !hasBalance && isRecurringCourse(newCourse) && classDaysOf(newCourse) && perCycleOf(newCourse)
+
+    const fee = changeFee !== '' && !isNaN(parseFloat(changeFee)) ? parseFloat(changeFee) : defaultFee
+    // Valor de lo que le queda (las congeladas no se cobran: precio por clase del ciclo estándar)
+    const value = canConvert ? remaining * oldFee / perCycleOf(oldCourse) : 0
+    const perClassNew = canConvert && fee > 0 ? fee / perCycleOf(newCourse) : 0
+    const suggested = perClassNew > 0 ? Math.round(value / perClassNew) : 0
+    const classes = changeClasses ?? suggested
+
+    let nextPaymentDate = null
+    if (canConvert) {
+      const today = new Date(getTodayEC() + 'T12:00:00')
+      const days = classDaysOf(newCourse)
+      const list = classes > 0 ? getNextNClassDays(today, days, classes) : []
+      const next = list.length > 0 ? getNextClassDay(addDays(list[list.length - 1], 1), days) : getNextClassDay(today, days)
+      nextPaymentDate = format(next, 'yyyy-MM-dd')
+    }
+
+    const mode = changeMode || (remaining > 0 ? 'renewal' : 'immediate')
+    return { oldFee, defaultFee, fee, remaining, hasBalance, canConvert, value, suggested, classes, nextPaymentDate, mode }
+  })()
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (submitting) return
+    if (change && change.mode === 'now' && !change.nextPaymentDate) return
     setSubmitting(true)
-    await onSubmit(formData)
+    await onSubmit({
+      ...formData,
+      courseChange: change ? { mode: change.mode, fee: change.fee, classes: change.classes, nextPaymentDate: change.nextPaymentDate } : null,
+      cancelNextCourse,
+    })
     setSubmitting(false) // solo llega aquí si el form sigue montado (caso error)
   }
 
@@ -514,7 +575,11 @@ export default function StudentForm({
               <select
                 required
                 value={formData.courseId}
-                onChange={(e) => setFormData({...formData, courseId: e.target.value})}
+                onChange={(e) => {
+                  setFormData({...formData, courseId: e.target.value})
+                  // Al elegir otro curso se reinician las opciones del cambio
+                  setChangeMode(null); setChangeFee(''); setChangeClasses(null)
+                }}
                 className={inputClass}
               >
                 <option value="">Seleccionar curso</option>
@@ -556,6 +621,80 @@ export default function StudentForm({
                 })()}
               </select>
             </LabeledInput>
+
+            {/* Cambio de curso programado (al renovar) */}
+            {isEditing && !courseChanged && student.next_course_id && (
+              <div className="rounded-xl border border-line bg-surface px-3 py-2.5 text-xs text-ink-soft flex items-center justify-between gap-2">
+                <span>
+                  {cancelNextCourse
+                    ? 'Se cancelará el cambio programado.'
+                    : <>Al renovar pasa a <strong className="text-ink">{findCourse(student.next_course_id)?.name || 'otro curso'}</strong>.</>}
+                </span>
+                <button type="button" onClick={() => setCancelNextCourse(v => !v)} className="sd-btn sd-btn-ghost sd-btn-sm shrink-0">
+                  {cancelNextCourse ? 'Mantener' : 'Cancelar cambio'}
+                </button>
+              </div>
+            )}
+
+            {/* Cambio de curso: cuándo aplica y qué pasa con lo pagado */}
+            {change && (
+              <div className="rounded-xl border border-line-strong bg-surface p-3 space-y-3 text-sm">
+                <p className="font-semibold text-ink">Cambio de curso</p>
+
+                {change.remaining > 0 ? (
+                  <>
+                    <p className="text-xs text-ink-soft leading-relaxed">
+                      Le quedan <strong className="text-ink">{change.remaining} {change.remaining === 1 ? 'clase' : 'clases'}</strong> pagadas de {oldCourse?.name}.
+                    </p>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input type="radio" name="changeMode" className="mt-1" checked={change.mode === 'renewal'} onChange={() => setChangeMode('renewal')} />
+                      <span>
+                        <span className="font-medium text-ink">Al renovar (recomendado)</span>
+                        <span className="block text-xs text-ink-muted">
+                          Termina lo pagado en su curso actual y pasa a {newCourse?.name} desde su próxima renovación ({formatDate(student.next_payment_date)}).
+                        </span>
+                      </span>
+                    </label>
+                    <label className={`flex items-start gap-2 ${change.canConvert ? 'cursor-pointer' : 'opacity-50'}`}>
+                      <input type="radio" name="changeMode" className="mt-1" disabled={!change.canConvert} checked={change.mode === 'now'} onChange={() => setChangeMode('now')} />
+                      <span>
+                        <span className="font-medium text-ink">Desde ahora</span>
+                        <span className="block text-xs text-ink-muted">
+                          {change.hasBalance
+                            ? 'No disponible: tiene un saldo pendiente en el ciclo actual.'
+                            : `Sus ${change.remaining} clases restantes (≈ $${change.value.toFixed(2)}) se convierten en clases del curso nuevo.`}
+                        </span>
+                      </span>
+                    </label>
+                  </>
+                ) : (
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    No tiene clases pagadas pendientes: el cambio aplica desde ya y su próximo pago será del curso nuevo.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <LabeledInput label="Tarifa en el curso nuevo">
+                    <input type="number" step="0.01" min="0" value={changeFee !== '' ? changeFee : change.defaultFee}
+                      onChange={(e) => { setChangeFee(e.target.value); setChangeClasses(null) }} className={inputClass} />
+                  </LabeledInput>
+                  {change.mode === 'now' && (
+                    <LabeledInput label="Clases en el curso nuevo">
+                      <input type="number" min="0" max="60" value={change.classes}
+                        onChange={(e) => setChangeClasses(Math.max(0, parseInt(e.target.value) || 0))} className={inputClass} />
+                    </LabeledInput>
+                  )}
+                </div>
+                {change.defaultFee !== (parseFloat(newCourse?.price) || 0) && changeFee === '' && (
+                  <p className="text-[11px] text-ink-muted -mt-1">Se mantiene su tarifa histórica (el curso nuevo cuesta lo mismo).</p>
+                )}
+                {change.mode === 'now' && change.nextPaymentDate && (
+                  <p className="text-xs text-ink-soft">
+                    Sugerido: {change.suggested} {change.suggested === 1 ? 'clase' : 'clases'}. Próximo cobro: <strong className="text-ink">{formatDate(change.nextPaymentDate, 'EEEE dd/MM')}</strong>.
+                  </p>
+                )}
+              </div>
+            )}
 
             {formData.age && (() => {
               const age = parseInt(formData.age)

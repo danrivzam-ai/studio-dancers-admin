@@ -3,7 +3,7 @@ import { addDays, addMonths } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { logAudit } from '../lib/auditLog'
 import { getNextReceiptNumber } from '../lib/receipts'
-import { calculateNextPaymentDate, getNextClassDay, getNextNClassDays, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC } from '../lib/dateUtils'
+import { calculateNextPaymentDate, getNextClassDay, getNextNClassDays, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getTodayEC, getStudentCycleClasses } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 import { sendLeadEvent, sendPurchaseEvent } from '../lib/metaConversionsApi'
 
@@ -177,9 +177,18 @@ export function useStudents() {
   // Actualizar estudiante
   const updateStudent = async (id, studentData) => {
     try {
+      const current = students.find(s => s.id === id)
       // Obtener información del curso
       const course = getCourseById(studentData.courseId)
       const coursePrice = course?.price || 0
+      const courseChanged = !!current && studentData.courseId !== current.course_id
+      // Cambio de curso: 'renewal' (programado para la próxima renovación),
+      // 'now' (desde ya, convirtiendo las clases que le quedan) o 'immediate'
+      // (sin ciclo en curso). Sin cambio de curso la tarifa personal NO se toca.
+      const change = courseChanged ? (studentData.courseChange || { mode: 'immediate' }) : null
+      const newFee = change && change.fee !== undefined && change.fee !== '' && !isNaN(parseFloat(change.fee))
+        ? parseFloat(change.fee)
+        : coursePrice
 
       const updateData = {
         name: studentData.name,
@@ -211,11 +220,41 @@ export function useStudents() {
           ? (studentData.parentAddress || null)
           : (studentData.payerAddress || null),
         course_id: studentData.courseId,
-        monthly_fee: coursePrice,
         notes: studentData.notes || null,
         is_courtesy: studentData.isCourtesy || false,
         courtesy_category: studentData.isCourtesy ? (studentData.courtesyCategory || 'invitado') : null,
         courtesy_end_date: studentData.isCourtesy && studentData.courtesyEndDate ? studentData.courtesyEndDate : null
+      }
+
+      if (!current) {
+        // Sin datos previos (no debería pasar): comportamiento anterior
+        updateData.monthly_fee = coursePrice
+      } else if (!courseChanged) {
+        // Mismo curso: conservar tarifa personal. Si vuelve a elegir su curso
+        // actual, se cancela un cambio programado.
+        if (studentData.cancelNextCourse) {
+          updateData.next_course_id = null
+          updateData.next_monthly_fee = null
+        }
+      } else if (change.mode === 'renewal') {
+        // Sigue en su curso hasta terminar lo pagado; cambia al renovar
+        updateData.course_id = current.course_id
+        updateData.next_course_id = studentData.courseId
+        updateData.next_monthly_fee = newFee
+      } else {
+        updateData.monthly_fee = newFee
+        updateData.next_course_id = null
+        updateData.next_monthly_fee = null
+        if (change.mode === 'now' && change.nextPaymentDate) {
+          // Clases que le quedaban convertidas al curso nuevo, desde hoy
+          updateData.last_payment_date = getTodayEC()
+          updateData.next_payment_date = change.nextPaymentDate
+          updateData.cycle_classes = change.classes > 0 ? change.classes : null
+          updateData.frozen_classes = 0
+          updateData.classes_used = 0
+          updateData.prepaid = false
+          updateData.prepaid_old_start = null
+        }
       }
 
       const { data, error } = await supabase
@@ -229,6 +268,13 @@ export function useStudents() {
 
       setStudents(prev => prev.map(s => s.id === id ? data : s))
       logAudit({ action: 'student_updated', tableName: 'students', recordId: id, newData: { name: data.name } })
+      if (courseChanged) {
+        logAudit({
+          action: 'student_course_changed', tableName: 'students', recordId: id,
+          oldData: { course_id: current.course_id, monthly_fee: current.monthly_fee, next_payment_date: current.next_payment_date },
+          newData: { mode: change.mode, course_id: data.course_id, next_course_id: data.next_course_id, monthly_fee: data.monthly_fee, next_monthly_fee: data.next_monthly_fee, next_payment_date: data.next_payment_date, cycle_classes: data.cycle_classes },
+        })
+      }
       return { success: true, data }
     } catch (err) {
       console.error('Error updating student:', err)
@@ -510,6 +556,12 @@ export function useStudents() {
             ? formatDateForInput(studentNextPaymentDate)
             : formatDateForInput(paymentDate)
 
+      // Ciclo nuevo pagado completo (no un abono ni completar saldo): reiniciar
+      // congeladas y guardar el total de clases si adelantó meses (8 × N).
+      const startsNewCycle = (isMonthly || isPackage) && newPaymentStatus === 'paid' && prevAmountPaid === 0
+      const monthsPaid = Math.max(1, parseInt(paymentData.monthsAhead) || 1)
+      const perCycle = course?.classesPerCycle || null
+
       // Actualizar estudiante
       const updateFields = {
         last_payment_date: cycleStartForDisplay,
@@ -522,6 +574,10 @@ export function useStudents() {
         pause_date: null,
         prepaid: isPaidEarly ? true : false,
         prepaid_old_start: isPaidEarly ? (student.last_payment_date || null) : null
+      }
+      if (startsNewCycle) {
+        updateFields.cycle_classes = isMonthly && monthsPaid > 1 && perCycle ? perCycle * monthsPaid : null
+        updateFields.frozen_classes = 0
       }
 
       // Fidelidad: solo aplica a cursos de adultas con pago mensual.
@@ -623,7 +679,8 @@ export function useStudents() {
             payment_status: updateFields.payment_status,
             classes_used: isPackage ? classesUsed : s.classes_used,
             prepaid: updateFields.prepaid,
-            prepaid_old_start: updateFields.prepaid_old_start
+            prepaid_old_start: updateFields.prepaid_old_start,
+            ...(startsNewCycle ? { cycle_classes: updateFields.cycle_classes, frozen_classes: 0 } : {})
           }
         }
         return s
@@ -694,25 +751,29 @@ export function useStudents() {
         ? formatDateForInput(addDays(skippedDates[skippedDates.length - 1], 1))
         : null
 
+      // El ciclo se alarga: las clases congeladas se suman al total para que el
+      // contador no la dé por terminada antes de tiempo (8 + 1 = 9 días de clase).
+      const baseClasses = getStudentCycleClasses(student) || course.classesPerCycle || course.classesPerPackage || null
+      const frozenClasses = (parseInt(student.frozen_classes) || 0) + classesCount
+      const pauseFields = {
+        next_payment_date:   formatDateForInput(newNextPayment),
+        is_paused:           true,
+        pause_date:          formatDateForInput(today),
+        pause_until_date:    pauseUntilDate,
+        pause_classes_count: classesCount,
+        frozen_classes:      frozenClasses,
+        ...(baseClasses ? { cycle_classes: baseClasses + classesCount } : {}),
+      }
+
       const { error } = await supabase
         .from('students')
-        .update({
-          next_payment_date:   formatDateForInput(newNextPayment),
-          is_paused:           true,
-          pause_date:          formatDateForInput(today),
-          pause_until_date:    pauseUntilDate,
-          pause_classes_count: classesCount,
-        })
+        .update(pauseFields)
         .eq('id', studentId)
 
       if (error) throw error
 
       setStudents(prev => prev.map(s =>
-        s.id === studentId
-          ? { ...s, next_payment_date: formatDateForInput(newNextPayment),
-              is_paused: true, pause_date: formatDateForInput(today),
-              pause_until_date: pauseUntilDate, pause_classes_count: classesCount }
-          : s
+        s.id === studentId ? { ...s, ...pauseFields } : s
       ))
 
       logAudit({
@@ -725,6 +786,7 @@ export function useStudents() {
           is_paused: true,
           pause_until_date: pauseUntilDate,
           pause_classes_count: classesCount,
+          frozen_classes: frozenClasses,
           skipped_dates: skippedDates.map(formatDateForInput),
         },
       })
@@ -732,6 +794,36 @@ export function useStudents() {
       return { success: true, newNextPaymentDate: formatDateForInput(newNextPayment), skippedDates, pauseUntilDate }
     } catch (err) {
       console.error('Error pausing student:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  // Aplicar cambio de curso programado (next_course_id) al registrar la renovación
+  const applyScheduledCourseChange = async (studentId) => {
+    try {
+      const student = students.find(s => s.id === studentId)
+      if (!student?.next_course_id) return { success: false, error: 'Sin cambio programado' }
+      const newCourse = getCourseById(student.next_course_id)
+      const fields = {
+        course_id: student.next_course_id,
+        monthly_fee: student.next_monthly_fee != null ? parseFloat(student.next_monthly_fee) : (newCourse?.price || student.monthly_fee),
+        next_course_id: null,
+        next_monthly_fee: null,
+        cycle_classes: null,
+        frozen_classes: 0,
+        classes_used: 0,
+      }
+      const { data, error } = await supabase.from('students').update(fields).eq('id', studentId).select().single()
+      if (error) throw error
+      setStudents(prev => prev.map(s => s.id === studentId ? data : s))
+      logAudit({
+        action: 'student_course_changed', tableName: 'students', recordId: studentId,
+        oldData: { course_id: student.course_id, monthly_fee: student.monthly_fee },
+        newData: { mode: 'renewal_applied', course_id: data.course_id, monthly_fee: data.monthly_fee },
+      })
+      return { success: true, data }
+    } catch (err) {
+      console.error('Error applying course change:', err)
       return { success: false, error: err.message }
     }
   }
@@ -993,6 +1085,7 @@ export function useStudents() {
     registerPayment,
     pauseStudent,
     unpauseStudent,
+    applyScheduledCourseChange,
     recalculatePaymentDates,
     reactivateCycle
   }

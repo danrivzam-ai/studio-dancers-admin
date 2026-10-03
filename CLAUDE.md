@@ -60,6 +60,10 @@ Course `priceType` drives all payment logic:
 
 Adult course cycle completion is determined by **class count** (`getCycleInfo().classesPassed >= classesTotal`), not just the `next_payment_date`. This matters for the "Lista para renovar" (sky blue) state.
 
+**Cycle length per student (v48):** `students.cycle_classes` overrides the course's `classesPerCycle` for the current cycle — set by months paid ahead (8 × N), frozen classes (`pauseStudent` adds N and increments `frozen_classes`) and "cambio de curso desde ahora" (converted classes). Always pass `getStudentCycleClasses(student)` as the 6th arg of `getCycleInfo`. Both reset when a new cycle is paid. `next_course_id` / `next_monthly_fee` hold a course change scheduled for the next renewal (applied in `openPaymentModal`). Editing a student never touches `monthly_fee` unless the course changes.
+
+**Days shown vs thresholds:** `getDaysToDueDate` / `getDaysLate` (real days to `next_payment_date`) are for anything displayed; `getDaysUntilDue` (= real − 1) drives grace/mora/inactive thresholds. Don't mix them.
+
 All EC timezone comparisons use `parseISO(getTodayEC())` — never `new Date()` directly, which shifts after 7PM Ecuador time (UTC-5).
 
 ## Date Utilities (`src/lib/dateUtils.js`)

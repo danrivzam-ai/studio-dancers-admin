@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { toPng } from 'html-to-image'
 import { X, Download, Send, Check } from 'lucide-react'
-import { formatDate, getMonthName, getCycleInfo } from '../lib/dateUtils'
+import { formatDate, getMonthName, getCycleInfo, getStudentCycleClasses } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
 
 export default function ReceiptGenerator({
@@ -324,7 +324,7 @@ ${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paqu
               // Plan promocional aplicado en ESTE pago → contador X/N coherente
               const _planMonths = payment.plan_months || payment.planMonths || null
               const cycleInfo = cycleBaseDate
-                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses, _planMonths)
+                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses, _planMonths, _planMonths ? null : getStudentCycleClasses(student))
                 : null
               const dayNames = { 0: 'Domingos', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábados' }
               const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''
