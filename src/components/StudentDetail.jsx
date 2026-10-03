@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer, MoreHorizontal } from 'lucide-react'
+import { X, CreditCard, RefreshCw, CheckCircle, Ban, Phone, Mail, User, CalendarDays, MessageCircle, FileText, Award, Wallet, Gift, Snowflake, Play, Pencil, Printer, MoreHorizontal, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Modal from './ui/Modal'
 import { formatDate, getCycleInfo, getPaymentStatus, getTodayEC, getNextClassDay, calculateNextPaymentDate, calculatePackageEndDate, calculateNextPackagePaymentDate, formatDateForInput, getLoyaltyTier, getDaysUntilDue, getStudentCycleClasses } from '../lib/dateUtils'
@@ -9,7 +9,7 @@ import InvoiceButton from './InvoiceButton'
 
 const methodStyle = () => ({ bg: 'bg-surface-alt', text: 'text-ink-soft' })
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings, otherEnrollments = [], onOpenEnrollment, onEnrollOther }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showMoreActions, setShowMoreActions] = useState(false)
@@ -227,6 +227,13 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 ✓ Mes anticipado
               </span>
             )}
+            {otherEnrollments.map(o => (
+              <button key={o.id} type="button" onClick={() => onOpenEnrollment?.(o)}
+                className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold hover:text-ink"
+                title="Ver esta inscripción">
+                También en {getCourseById(o.course_id)?.name || 'otro curso'}
+              </button>
+            ))}
             {nextCourse && (
               <span className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold" title="Cambio de curso programado para la próxima renovación">
                 Al renovar → {nextCourse.name}
@@ -632,6 +639,14 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
                 >
                   <Pencil size={16} className="shrink-0" /> Editar datos
+                </button>
+              )}
+              {onEnrollOther && !student.is_courtesy && (
+                <button
+                  onClick={() => { setShowMoreActions(false); onEnrollOther(student) }}
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                >
+                  <Plus size={16} className="shrink-0" /> Inscribir en otro curso
                 </button>
               )}
               {onReprint && (

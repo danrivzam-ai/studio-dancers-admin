@@ -18,6 +18,7 @@ import { formatDate, getDaysUntilDue, getDaysLate, getStudentCycleClasses, getPa
 import { addDays } from 'date-fns'
 import { syncToMailerLite } from './lib/mailerlite'
 import { openWhatsApp, buildReminderMessage, getContactInfo } from './lib/whatsapp'
+import { countPeople, otherEnrollments } from './lib/person'
 import PaymentModal from './components/PaymentModal'
 import ReceiptGenerator from './components/ReceiptGenerator'
 import { lazyLoad } from './lib/lazyLoad'
@@ -335,6 +336,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   // Tienda: una vista a la vez (antes los abonos quedaban al final, bajo el catálogo)
   const [storeView, setStoreView] = useState('ventas')
   const [showUserManagement, setShowUserManagement] = useState(false)
+  const [enrollFrom, setEnrollFrom] = useState(null) // alumna a inscribir en otro curso
   // Productos: búsqueda por nombre y filtro "por reponer"
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogLowOnly, setCatalogLowOnly] = useState(false)
@@ -369,6 +371,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
   })
 
   // Estadísticas
+  // Una persona puede tener varias inscripciones (un registro por curso)
+  const peopleCount = countPeople(students)
   const recurringStudents = students.filter(s => {
     const course = getCourseById(s.course_id)
     return course?.priceType === 'mes' || course?.priceType === 'paquete'
@@ -781,7 +785,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         const wouldBreakConstraint = matches.some(
           m => m.active && m.course_id === formData.courseId
         )
+        // Inscripción en otro curso desde la ficha: ya se sabe que es la misma persona
+        if (formData.enrollFrom && !wouldBreakConstraint) return handleStudentFormSubmit(formData, true)
         setDuplicateWarning({
+          otherCourseOnly: !wouldBreakConstraint && matches.every(m => m.active && m.course_id !== formData.courseId),
           show: true,
           matches,
           pendingData: formData,
@@ -803,6 +810,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
       syncStudentToMailerLite(formData)
       setShowForm(false)
       setEditingStudent(null)
+      setEnrollFrom(null)
       setDuplicateWarning({ show: false, matches: [], pendingData: null })
     } else {
       alert('Error: ' + result.error)
@@ -1055,7 +1063,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
 
   // Secciones (pestañas) — mismas reglas de permisos que las pestañas de escritorio
   const navTabs = [
-    { id: 'students', icon: Users, label: 'Alumnas', count: students.length },
+    { id: 'students', icon: Users, label: 'Alumnas', count: peopleCount },
     { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
     { id: 'courses', icon: Calendar, label: 'Cursos' },
     { id: 'academico', icon: GraduationCap, label: 'Académico' },
@@ -1219,7 +1227,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {/* Tabs — ocultos en mobile, la navegación inferior los reemplaza */}
         <div className="hidden md:flex lg:hidden gap-1 mb-6 overflow-x-auto pb-1 bg-gray-100/80 rounded-2xl p-1.5">
           {[
-            { id: 'students', icon: Users, label: 'Alumnos', count: students.length },
+            { id: 'students', icon: Users, label: 'Alumnos', count: peopleCount },
             { id: 'sales', icon: ShoppingBag, label: 'Tienda' },
             { id: 'courses', icon: Calendar, label: 'Cursos' },
             { id: 'academico', icon: GraduationCap, label: 'Académico' },
@@ -1356,7 +1364,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             {(() => {
               const upcomingSoonCount = upcomingPayments.filter(s => getDaysUntilDue(s.next_payment_date) >= 0).length
               const counters = [
-                { label: 'Alumnas', value: students.length, tone: 'text-ink', onClick: () => { setFilterPayment('all'); setFilterCourse('all'); setShowStudentListModal(true) } },
+                { label: 'Alumnas', value: peopleCount, tone: 'text-ink', onClick: () => { setFilterPayment('all'); setFilterCourse('all'); setShowStudentListModal(true) } },
                 { label: 'Próximos', value: upcomingSoonCount, tone: upcomingSoonCount > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => { setFilterPayment('upcoming'); setShowStudentListModal(true) } },
                 { label: 'Saldos', value: studentsWithBalance.length, tone: studentsWithBalance.length > 0 ? 'sd-status-warn' : 'text-ink-muted', onClick: () => studentsWithBalance.length > 0 && setShowBalanceAlerts(true) },
                 { label: 'Inactivas', value: inactiveStudents.length, tone: 'text-ink-muted', onClick: () => { setFilterPayment('inactive'); setShowStudentListModal(true) } },
@@ -2298,12 +2306,15 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {showForm && (
           <StudentForm
             student={editingStudent}
+            prefill={enrollFrom}
+            prefillCourseIds={enrollFrom ? [enrollFrom, ...otherEnrollments(enrollFrom, students)].map(s => s.course_id) : []}
             courses={allCourses}
             allStudents={students}
             onSubmit={handleStudentFormSubmit}
             onClose={() => {
               setShowForm(false)
               setEditingStudent(null)
+              setEnrollFrom(null)
             }}
           />
         )}
@@ -2668,8 +2679,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <div className="flex-1 min-w-0">
                   <h2 className="text-base font-bold text-brand-ink leading-tight truncate">
                     {filteredStudents.length === students.length
-                      ? `${students.length} alumnas`
-                      : `${filteredStudents.length} de ${students.length} alumnas`}
+                      ? `${peopleCount} alumnas${peopleCount !== students.length ? ` · ${students.length} inscripciones` : ''}`
+                      : `${filteredStudents.length} de ${students.length} inscripciones`}
                   </h2>
                   <p className="text-xs text-ink-muted truncate">
                     {filterPayment === 'overdue' ? 'Por renovar' :
@@ -3009,6 +3020,14 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             onReprint={handleReprint}
             schoolName={settings?.school_name || settings?.name}
             settings={settings}
+            otherEnrollments={otherEnrollments(showStudentDetail, students)}
+            onOpenEnrollment={(s) => setShowStudentDetail(s)}
+            onEnrollOther={(student) => {
+              setShowStudentDetail(null)
+              setEditingStudent(null)
+              setEnrollFrom(student)
+              setShowForm(true)
+            }}
           />
         )}
 
@@ -3512,7 +3531,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                 <div className="flex items-center gap-2">
                   <AlertCircle className={duplicateWarning.wouldBreakConstraint ? 'text-red-500' : 'text-amber-500'} size={18} />
                   <span className={`font-semibold text-sm ${duplicateWarning.wouldBreakConstraint ? 'text-red-700' : 'text-amber-700'}`}>
-                    {duplicateWarning.wouldBreakConstraint ? 'Conflicto con alumna existente' : 'Posible duplicado'}
+                    {duplicateWarning.wouldBreakConstraint ? 'Conflicto con alumna existente' : duplicateWarning.otherCourseOnly ? 'Ya inscrita en otro curso' : 'Posible duplicado'}
                   </span>
                 </div>
                 <button onClick={() => setDuplicateWarning({ show: false, matches: [], pendingData: null })} className="p-1.5 hover:bg-white/40 rounded-xl transition-colors">
@@ -3522,8 +3541,10 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <div className="p-5">
                 <p className="text-sm text-gray-600 mb-3">
                   {duplicateWarning.wouldBreakConstraint
-                    ? 'Ya hay una alumna activa con ese nombre en el mismo curso. No se puede guardar el cambio.'
-                    : 'Ya existe una alumna con el mismo nombre o cédula:'}
+                    ? 'Ya hay una alumna activa con ese nombre o cédula en el mismo curso. No se puede guardar el cambio.'
+                    : duplicateWarning.otherCourseOnly
+                      ? 'Esta persona ya está inscrita en otro curso. Puedes inscribirla también en este: cada curso lleva su propio ciclo y cobro.'
+                      : 'Ya existe una alumna con el mismo nombre o cédula:'}
                 </p>
                 <div className="space-y-2 mb-4">
                   {duplicateWarning.matches.map(s => {
@@ -3557,7 +3578,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                     )
                   })}
                 </div>
-                {!duplicateWarning.wouldBreakConstraint && (
+                {!duplicateWarning.wouldBreakConstraint && !duplicateWarning.otherCourseOnly && (
                   <p className="text-xs text-gray-400 mb-4">¿Deseas registrarla de todas formas?</p>
                 )}
                 <div className="flex gap-2">
@@ -3573,7 +3594,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
                       onClick={() => handleStudentFormSubmit(duplicateWarning.pendingData, true)}
                       className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition-colors text-sm font-semibold"
                     >
-                      {duplicateWarning.isEditing ? 'Guardar de todas formas' : 'Registrar de todas formas'}
+                      {duplicateWarning.isEditing ? 'Guardar de todas formas' : duplicateWarning.otherCourseOnly ? 'Inscribir también aquí' : 'Registrar de todas formas'}
                     </button>
                   )}
                 </div>

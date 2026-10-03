@@ -17,6 +17,8 @@ function LabeledInput({ label, required, children }) {
 
 export default function StudentForm({
   student = null,
+  prefill = null,          // alumna existente: inscribirla en otro curso con sus datos
+  prefillCourseIds = [],   // cursos en los que ya está (no se ofrecen)
   courses = [],
   allStudents = [],
   onSubmit,
@@ -86,6 +88,26 @@ export default function StudentForm({
   })
 
   useEffect(() => {
+    if (!student && prefill) {
+      // Inscripción adicional: mismos datos personales y de facturación, curso nuevo
+      const p = prefill
+      const hasPayer = p.payer_name && p.payer_name !== p.name && p.payer_name !== p.parent_name
+      setFormData({
+        name: p.name || '', cedula: p.cedula || '', age: p.age?.toString() || '',
+        phone: p.phone || '', email: p.email || '', address: p.address || '',
+        isMinor: p.is_minor !== false,
+        parentName: p.parent_name || '', parentCedula: p.parent_cedula || '', parentPhone: p.parent_phone || '',
+        parentEmail: p.parent_email || '', parentAddress: p.parent_address || '',
+        hasDifferentPayer: hasPayer,
+        billingFromRep: !hasPayer && (p.is_minor !== false),
+        billingFromSelf: !hasPayer && (p.is_minor === false),
+        payerName: p.payer_name || '', payerCedula: p.payer_cedula || '', payerPhone: p.payer_phone || '',
+        payerAddress: p.payer_address || '', payerEmail: p.payer_email || '',
+        courseId: '', notes: '', enrollmentDate: getTodayEC(),
+        isCourtesy: false, courtesyEndDate: '',
+      })
+      return
+    }
     if (student) {
       const hasPayer = student.payer_name &&
         student.payer_name !== student.name &&
@@ -119,7 +141,7 @@ export default function StudentForm({
         courtesyEndDate: student.courtesy_end_date || '',
       })
     }
-  }, [student])
+  }, [student, prefill])
 
   // Auto-detectar menor/adulto según edad
   useEffect(() => {
@@ -195,6 +217,7 @@ export default function StudentForm({
     setSubmitting(true)
     await onSubmit({
       ...formData,
+      ...(prefill && !isEditing ? { enrollFrom: prefill.id } : {}),
       courseChange: change ? { mode: change.mode, fee: change.fee, classes: change.classes, nextPaymentDate: change.nextPaymentDate } : null,
       cancelNextCourse,
     })
@@ -211,7 +234,7 @@ export default function StudentForm({
         {/* Header */}
         <div className="p-4 flex items-center justify-between sticky top-0 bg-[#551735] text-white z-10 rounded-t-2xl">
           <h2 className="font-semibold">
-            {isEditing ? 'Editar Alumno' : 'Nuevo Alumno'}
+            {isEditing ? 'Editar Alumno' : prefill ? 'Inscribir en otro curso' : 'Nuevo Alumno'}
           </h2>
           <button onClick={onClose} className="p-1.5 hover:bg-white/20 rounded-xl active:scale-95 transition-all">
             <X size={18} />
@@ -584,9 +607,11 @@ export default function StudentForm({
               >
                 <option value="">Seleccionar curso</option>
                 {(() => {
-                  const regular = courses.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
-                  const packages = courses.filter(c => (c.priceType || c.price_type) === 'paquete')
-                  const programs = courses.filter(c => (c.priceType || c.price_type) === 'programa')
+                  // Inscripción adicional: no ofrecer los cursos en los que ya está
+                  const offered = prefill && !isEditing ? courses.filter(c => !prefillCourseIds.includes(c.id || c.code) && !prefillCourseIds.includes(c.code)) : courses
+                  const regular = offered.filter(c => (c.priceType || c.price_type) === 'mes' || (c.priceType || c.price_type) === 'clase')
+                  const packages = offered.filter(c => (c.priceType || c.price_type) === 'paquete')
+                  const programs = offered.filter(c => (c.priceType || c.price_type) === 'programa')
                   return (
                     <>
                       {regular.length > 0 && (

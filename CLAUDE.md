@@ -62,6 +62,8 @@ Adult course cycle completion is determined by **class count** (`getCycleInfo().
 
 **Cycle length per student (v48):** `students.cycle_classes` overrides the course's `classesPerCycle` for the current cycle — set by months paid ahead (8 × N), frozen classes (`pauseStudent` adds N and increments `frozen_classes`) and "cambio de curso desde ahora" (converted classes). Always pass `getStudentCycleClasses(student)` as the 6th arg of `getCycleInfo`. Both reset when a new cycle is paid. `next_course_id` / `next_monthly_fee` hold a course change scheduled for the next renewal (applied in `openPaymentModal`). Editing a student never touches `monthly_fee` unless the course changes.
 
+**Several courses per person (v49):** one `students` row per enrollment (person + course), each with its own cycle, fee, payments and reminders. Unique index is `(cedula, course_id)` among active rows. Use `personKey` / `countPeople` / `otherEnrollments` from `src/lib/person.js` to group enrollments of the same person (counters show people, not rows). "Inscribir en otro curso" in StudentDetail opens StudentForm with `prefill`. Multi-course discounts are applied manually in PaymentModal.
+
 **Days shown vs thresholds:** `getDaysToDueDate` / `getDaysLate` (real days to `next_payment_date`) are for anything displayed; `getDaysUntilDue` (= real − 1) drives grace/mora/inactive thresholds. Don't mix them.
 
 All EC timezone comparisons use `parseISO(getTodayEC())` — never `new Date()` directly, which shifts after 7PM Ecuador time (UTC-5).
