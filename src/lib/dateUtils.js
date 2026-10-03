@@ -443,6 +443,9 @@ export const getCycleInfo = (lastPaymentDate, nextPaymentDate, rawClassDays, cla
   return {
     cycleStart: format(cycleStart, 'dd/MM', { locale: es }),
     cycleEnd: format(cycleEnd, 'dd/MM', { locale: es }),
+    // Fechas completas (con el año correcto aunque el ciclo cruce de diciembre a enero)
+    cycleStartISO: format(cycleStart, 'yyyy-MM-dd'),
+    cycleEndISO: format(cycleEnd, 'yyyy-MM-dd'),
     totalClasses: totalClasses,
     classesPassed: totalClasses ? Math.min(classesPassed, totalClasses) : classesPassed,
     daysLabel

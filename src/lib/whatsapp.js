@@ -1,4 +1,4 @@
-import { formatDate, getCycleInfo } from './dateUtils'
+import { formatDate, getCycleInfo, getTodayEC } from './dateUtils'
 
 /**
  * Limpia y formatea un número de teléfono para WhatsApp (Ecuador).
@@ -156,15 +156,14 @@ const resolveCycleDates = (student, course) => {
       course.classesPerCycle || course.classesPerPackage
     )
     if (info) {
-      // getCycleInfo devuelve "dd/MM" — agregar año del ciclo
-      const year = student.last_payment_date.substring(0, 4)
-      return { start: `${info.cycleStart}/${year}`, end: `${info.cycleEnd}/${year}` }
+      return { start: formatDate(info.cycleStartISO), end: formatDate(info.cycleEndISO), endISO: info.cycleEndISO }
     }
   }
   // Fallback: fechas de pago (menos precisas)
   return {
     start: student.last_payment_date ? formatDate(student.last_payment_date) : null,
     end: student.next_payment_date ? formatDate(student.next_payment_date) : 'N/A',
+    endISO: null,
   }
 }
 
@@ -176,11 +175,34 @@ export const buildMessageAdultReminder = (student, courseName, settings, course 
   const amount = parseFloat(student.monthly_fee || 0).toFixed(2)
   const schoolName = settings?.name || settings || 'Studio Dancers'
   const bankLine = buildBankLine(settings)
-  const { start, end } = resolveCycleDates(student, course)
+  const { start, end, endISO } = resolveCycleDates(student, course)
+  const today = getTodayEC()
+  const nextStart = student.next_payment_date ? String(student.next_payment_date).substring(0, 10) : null
+
+  // Entre la última clase del ciclo y la primera del siguiente (ej. terminó el jueves,
+  // el próximo empieza el martes): el ciclo ya finalizó aunque el cobro aún no venza.
+  if (endISO && endISO < today) {
+    const cycleLine = start ? `del *${start}* al *${end}*` : `que terminó el *${end}*`
+    const nextLine = nextStart && nextStart >= today
+      ? `
+Tu próximo ciclo empieza el *${formatDate(nextStart, "EEEE dd/MM")}*.`
+      : ''
+    return `Hola ${student.name} 👋
+Tu ciclo de clases de *${courseName}* ${cycleLine} ya finalizó.${nextLine}
+
+Para continuar sin interrupción, renueva tu próximo ciclo:
+💰 Renovación: *$${amount}*${bankLine ? `
+🏦 Transferencia: ${bankLine}` : ''}
+
+Envíanos tu comprobante por aquí y listo.
+${schoolName}`
+  }
+
   const cycleLine = start ? `del *${start}* al *${end}*` : `que finaliza el *${end}*`
+  const when = endISO === today ? 'termina hoy' : 'está por finalizar'
 
   return `Hola ${student.name} 👋
-Te recordamos que tu ciclo de clases de *${courseName}* ${cycleLine} está por finalizar.
+Te recordamos que tu ciclo de clases de *${courseName}* ${cycleLine} ${when}.
 
 Para que tus clases continúen sin interrupción, renueva tu próximo ciclo:
 💰 Renovación: *$${amount}*${bankLine ? `\n🏦 Transferencia: ${bankLine}` : ''}
