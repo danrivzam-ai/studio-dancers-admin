@@ -697,6 +697,11 @@ export default function StudentForm({
                     No tiene clases pagadas pendientes: el cambio aplica desde ya y su próximo pago será del curso nuevo.
                   </p>
                 )}
+                {change.hasBalance && change.mode !== 'renewal' && (
+                  <p className="text-xs sd-status-warn leading-relaxed">
+                    Tiene un saldo pendiente de ${parseFloat(student.balance).toFixed(2)} en {oldCourse?.name}. Al cambiar de curso ese saldo se cierra; cóbralo antes si corresponde.
+                  </p>
+                )}
 
                 <div className="grid grid-cols-2 gap-2">
                   <LabeledInput label="Tarifa en el curso nuevo">

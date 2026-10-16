@@ -158,12 +158,12 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
   }
 
   return (
-    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center lg:!items-stretch lg:!justify-end !p-0 sm:!p-4 lg:!p-0 lg:!bg-transparent">
-      <div className="bg-paper rounded-t-2xl sm:rounded-2xl lg:rounded-none shadow-xl w-full sm:max-w-lg lg:max-w-md flex flex-col max-h-[92svh] lg:max-h-none lg:h-full"
+    <Modal isOpen={true} onClose={onClose} ariaLabel="Detalle de alumno" className="!items-end sm:!items-center !p-0 sm:!p-4">
+      <div className="bg-paper rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-lg flex flex-col max-h-[92svh] sm:max-h-[88vh]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
         {/* ── Header ── */}
-        <div className="text-white rounded-t-2xl lg:rounded-none shrink-0 bg-brand px-5 pt-5 pb-4">
+        <div className="text-white rounded-t-2xl shrink-0 bg-brand px-5 pt-5 pb-4">
           <div className="flex items-start justify-between mb-4">
             {/* Avatar + name */}
             <div className="flex items-center gap-3.5">

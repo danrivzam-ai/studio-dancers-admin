@@ -245,6 +245,12 @@ export function useStudents() {
         updateData.monthly_fee = newFee
         updateData.next_course_id = null
         updateData.next_monthly_fee = null
+        // Los abonos y saldos eran del curso anterior: el curso nuevo empieza limpio
+        // (quedan en la auditoría como oldData).
+        updateData.amount_paid = 0
+        updateData.balance = 0
+        updateData.total_program_price = null
+        if (change.mode !== 'now') updateData.payment_status = 'pending'
         if (change.mode === 'now' && change.nextPaymentDate) {
           // Clases que le quedaban convertidas al curso nuevo, desde hoy
           updateData.last_payment_date = getTodayEC()
@@ -271,7 +277,7 @@ export function useStudents() {
       if (courseChanged) {
         logAudit({
           action: 'student_course_changed', tableName: 'students', recordId: id,
-          oldData: { course_id: current.course_id, monthly_fee: current.monthly_fee, next_payment_date: current.next_payment_date },
+          oldData: { course_id: current.course_id, monthly_fee: current.monthly_fee, next_payment_date: current.next_payment_date, amount_paid: current.amount_paid, balance: current.balance },
           newData: { mode: change.mode, course_id: data.course_id, next_course_id: data.next_course_id, monthly_fee: data.monthly_fee, next_monthly_fee: data.next_monthly_fee, next_payment_date: data.next_payment_date, cycle_classes: data.cycle_classes },
         })
       }
@@ -405,7 +411,11 @@ export function useStudents() {
       // --- Lógica de abonos/saldo para TODOS los tipos recurrentes (mes, paquete, programa) ---
       // amount_paid acumula lo pagado en el ciclo actual
       // balance = effectiveCyclePrice - amount_paid (lo que falta)
-      let prevAmountPaid = parseFloat(student?.amount_paid || 0)
+      // amount_paid solo cuenta como abono del ciclo en curso si queda saldo por pagar.
+      // Sin saldo (ej. quedó el total de un programa anterior tras cambiar de curso)
+      // este pago abre un ciclo nuevo; no "completa" nada.
+      const hasOpenBalance = parseFloat(student?.balance || 0) > 0
+      let prevAmountPaid = (isProgram || hasOpenBalance) ? parseFloat(student?.amount_paid || 0) : 0
       let newAmountPaid = prevAmountPaid + paymentData.amount
       let newBalance = effectiveCyclePrice - newAmountPaid
       let newPaymentStatus = 'pending'
