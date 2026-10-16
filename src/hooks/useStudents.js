@@ -422,6 +422,8 @@ export function useStudents() {
       let classesUsed = student?.classes_used || 0
       let nextPayment = student?.next_payment_date
       let isPartialPayment = false
+      // Primer abono de un ciclo nuevo (sin ciclo en curso): abre el ciclo con saldo pendiente
+      let opensCycleOnPartial = false
 
       if (isProgram) {
         // Programa: acumula hasta completar precio total
@@ -440,19 +442,26 @@ export function useStudents() {
         // Mensual o Paquete: soportar abonos parciales
         // Si tiene descuento, es pago COMPLETO (el ciclo se pagó con descuento)
         // Si NO tiene descuento y el monto es menor al precio → es abono parcial
-        if (!hasDiscount && newAmountPaid < coursePrice) {
+        const isPartialNow = !hasDiscount && newAmountPaid < coursePrice
+        const cycleRunning = !!student?.next_payment_date &&
+          new Date(student.next_payment_date + 'T12:00:00') > effectiveCycleDate
+        if (isPartialNow) {
           newPaymentStatus = 'partial'
           isPartialPayment = true
           newBalance = coursePrice - newAmountPaid
-          // NO recalcular next_payment_date en abono parcial
-          // Mantener el ciclo actual
+          // Primer abono sin ciclo en curso (alumna nueva o ciclo anterior terminado):
+          // el ciclo empieza igual (asiste) y queda el saldo por cobrar. Si el ciclo
+          // actual sigue corriendo, el abono no mueve fechas (como antes).
+          opensCycleOnPartial = prevAmountPaid === 0 && !cycleRunning
         } else {
           // Pago completo (o se completó con este abono)
           newPaymentStatus = 'paid'
           newBalance = 0
           // Resetear amount_paid para el próximo ciclo
           newAmountPaid = 0
+        }
 
+        if (!isPartialNow || opensCycleOnPartial) {
           // Recalcular next_payment_date usando effectiveCycleDate (no paymentDate)
           try {
             if (isPackage) {
@@ -568,7 +577,7 @@ export function useStudents() {
 
       // Ciclo nuevo pagado completo (no un abono ni completar saldo): reiniciar
       // congeladas y guardar el total de clases si adelantó meses (8 × N).
-      const startsNewCycle = (isMonthly || isPackage) && newPaymentStatus === 'paid' && prevAmountPaid === 0
+      const startsNewCycle = (isMonthly || isPackage) && prevAmountPaid === 0 && (newPaymentStatus === 'paid' || opensCycleOnPartial)
       const monthsPaid = Math.max(1, parseInt(paymentData.monthsAhead) || 1)
       const perCycle = course?.classesPerCycle || null
 
