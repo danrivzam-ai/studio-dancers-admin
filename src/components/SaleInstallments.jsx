@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { toPng } from 'html-to-image'
+import { ReceiptSheet, ReceiptFields, ReceiptAmount, ReceiptStats, ReceiptModal } from './ui/Receipt'
+import { downloadReceiptImage } from '../lib/receiptImage'
 import jsPDF from 'jspdf'
 import {
   Plus, X, ChevronDown, ChevronUp,
@@ -140,127 +141,50 @@ function StatusBadge({ status }) {
 }
 
 // ─── Recibo de abono ──────────────────────────────────────────────────────────
-function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose, schoolName = 'Studio Dancers' }) {
+function InstallmentReceipt({ plan, payment, installmentNumber, balance, onClose, schoolName = 'Studio Dancers', settings }) {
   const receiptRef = useRef(null)
-  const [downloading, setDownloading] = useState(false)
-  const [downloaded, setDownloaded] = useState(false)
 
-  const handleDownload = async () => {
-    if (!receiptRef.current) return
-    setDownloading(true)
-    try {
-      const dataUrl = await toPng(receiptRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        skipFonts: true,
-        filter: (node) => {
-          if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) return false
-          return true
-        }
-      })
-      const link = document.createElement('a')
-      link.download = `Abono_${(plan.student_name || plan.customer_name).replace(/\s+/g, '_')}_${installmentNumber}.png`
-      link.href = dataUrl
-      link.click()
-      setDownloaded(true)
-      setTimeout(() => setDownloaded(false), 3000)
-    } catch (e) {
-      console.error('toPng error:', e)
-      alert('Error al generar la imagen. Intenta de nuevo.')
-    } finally {
-      setDownloading(false)
-    }
-  }
+  const handleDownload = () =>
+    downloadReceiptImage(receiptRef.current, `Abono_${plan.student_name || plan.customer_name}_${installmentNumber}.png`)
 
   const itemsLabel = Array.isArray(plan.items)
     ? plan.items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ')
     : ''
-
   const amtPaid = parseFloat(plan.amount_paid || 0)
   const total   = parseFloat(plan.total_amount || 0)
+  const hasStudent = plan.student_name && plan.student_name !== plan.customer_name
+  const methodDetail = [payment?.bank_name, payment?.transfer_receipt && `Ref. ${payment.transfer_receipt}`].filter(Boolean).join(' · ')
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-        {/* Acciones */}
-        <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
-          <p className="font-semibold text-gray-700 text-sm">Comprobante de abono</p>
-          <div className="flex gap-2">
-            <button onClick={handleDownload} disabled={downloading}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 transition-colors ${downloaded ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-[#6b2145] text-white hover:bg-[#551735]'}`}>
-              {downloaded ? <Check size={13} /> : <Download size={13} />}
-              {downloading ? 'Generando…' : downloaded ? '¡Listo!' : 'Descargar imagen'}
-            </button>
-            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-lg">
-              <X size={16} />
-            </button>
-          </div>
-        </div>
+    <ReceiptModal title="Comprobante de abono" onClose={onClose} onDownload={handleDownload}>
+      <ReceiptSheet
+        ref={receiptRef}
+        settings={settings || { name: schoolName }}
+        title="Comprobante de abono"
+        number={`${installmentNumber}`}
+        date={fmtDate(payment?.payment_date || new Date().toISOString().split('T')[0])}
+        tags={[balance <= 0 && 'Plan cancelado']}
+        thanks="¡Gracias por tu compra!"
+      >
+        <ReceiptFields items={[
+          hasStudent && { label: 'Alumna', value: plan.student_name },
+          { label: hasStudent ? 'Representante' : 'Cliente', value: plan.customer_name },
+          { label: 'C.I. / RUC', value: plan.customer_cedula_ruc },
+          { label: 'Artículo(s)', value: itemsLabel, full: true },
+        ]} />
 
-        {/* Recibo visual */}
-        <div ref={receiptRef} className="force-light p-6 bg-white" style={{ minWidth: 320 }}>
-          <div className="text-center mb-4">
-            <p className="font-bold text-lg tracking-wide uppercase">{schoolName}</p>
-            <p className="text-xs text-gray-500 mt-1">Comprobante de Abono #{installmentNumber}</p>
-            <div className="border-t border-dashed border-gray-300 mt-3" />
-          </div>
+        <ReceiptAmount label={`Abono #${installmentNumber}`} amount={payment?.amount} method={payment?.payment_method} detail={methodDetail} />
 
-          <div className="space-y-1.5 mb-4 text-xs font-mono">
-            {plan.student_name && plan.student_name !== plan.customer_name && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">Alumna:</span>
-                <span className="font-semibold text-right ml-4">{plan.student_name}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-gray-500">
-                {plan.student_name && plan.student_name !== plan.customer_name ? 'Representante:' : 'Cliente:'}
-              </span>
-              <span className="font-semibold text-right ml-4">{plan.customer_name}</span>
-            </div>
-            {plan.customer_cedula_ruc && (
-              <div className="flex justify-between">
-                <span className="text-gray-500">C.I.:</span>
-                <span>{plan.customer_cedula_ruc}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-gray-500">Artículo(s):</span>
-              <span className="text-right ml-4 max-w-[60%]">{itemsLabel}</span>
-            </div>
-          </div>
-
-          <div className="border-t border-dashed border-gray-300 mb-4" />
-
-          <div className="space-y-1.5 text-xs font-mono">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Abono #{installmentNumber}:</span>
-              <span className="font-bold text-green-700">{fmt(payment?.amount)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Total plan:</span>
-              <span>{fmt(total)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Total pagado:</span>
-              <span>{fmt(amtPaid)}</span>
-            </div>
-            <div className="flex justify-between font-bold">
-              <span className="text-gray-700">Saldo pendiente:</span>
-              <span className={balance <= 0 ? 'text-green-600' : 'text-amber-700'}>{fmt(balance)}</span>
-            </div>
-          </div>
-
-          <div className="border-t border-dashed border-gray-300 mt-4 mb-3" />
-
-          <div className="text-center text-xs text-gray-400 font-mono">
-            <p>{payment?.payment_method} · {fmtDate(payment?.payment_date || new Date().toISOString().split('T')[0])}</p>
-            {balance <= 0 && <p className="font-bold text-green-600 mt-1">✓ PLAN CANCELADO</p>}
-          </div>
-        </div>
-      </div>
-    </div>
+        <ReceiptStats
+          title="Estado del plan"
+          items={[
+            { label: 'Total', value: fmt(total) },
+            { label: 'Pagado', value: fmt(amtPaid), tone: 'ok' },
+            { label: 'Saldo', value: fmt(balance), tone: balance <= 0 ? 'ok' : 'warn' },
+          ]}
+        />
+      </ReceiptSheet>
+    </ReceiptModal>
   )
 }
 
@@ -1093,6 +1017,7 @@ export default function SaleInstallments({
   allProducts       = [],
   students          = [],
   schoolName        = 'Studio Dancers',
+  settings          = null,
   activePlans       = [],
   paidPlans         = [],
   totalDebt         = 0,
@@ -1307,6 +1232,7 @@ export default function SaleInstallments({
           installmentNumber={receipt.installmentNumber}
           balance={receipt.balance}
           schoolName={schoolName}
+          settings={settings}
           onClose={() => setReceipt(null)}
         />
       )}

@@ -1969,7 +1969,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
               <SaleInstallments
                 allProducts={allProducts}
                 students={students}
-                schoolName={settings?.school_name || 'Studio Dancers'}
+                schoolName={settings?.name || 'Studio Dancers'}
+                settings={settings}
                 activePlans={activePlans}
                 paidPlans={paidPlans}
                 totalDebt={totalDebt}
@@ -2572,7 +2573,8 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         {showSaleReceipt && lastSaleReceipt && (
           <SaleReceipt
             receipt={lastSaleReceipt}
-            schoolName={settings?.school_name || 'Studio Dancers'}
+            settings={settings}
+            schoolName={settings?.name || 'Studio Dancers'}
             onClose={() => setShowSaleReceipt(false)}
           />
         )}

@@ -1,8 +1,12 @@
-import { useRef, useEffect, useState } from 'react'
-import { toPng } from 'html-to-image'
-import { X, Download, Send, Check } from 'lucide-react'
+import { useRef, useEffect } from 'react'
 import { formatDate, getMonthName, getCycleInfo, getStudentCycleClasses } from '../lib/dateUtils'
 import { getCourseById } from '../lib/courses'
+import { getContactInfo } from '../lib/whatsapp'
+import { ReceiptSheet, ReceiptFields, ReceiptAmount, ReceiptStats, ReceiptModal } from './ui/Receipt'
+import { downloadReceiptImage } from '../lib/receiptImage'
+
+const money = (n) => `$${parseFloat(n || 0).toFixed(2)}`
+const DAY_NAMES = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' }
 
 export default function ReceiptGenerator({
   payment: paymentRaw,
@@ -38,78 +42,39 @@ export default function ReceiptGenerator({
 
   // Cerrar con Escape
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
+    const handleKeyDown = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
   // Calcular información de saldos
-  const coursePrice = course?.price || 0
   const isProgram = !isQuickPayment && course?.priceType === 'programa'
   const isRecurring = !isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete')
+  // Precio del ciclo: tarifa personal de la alumna (puede ser histórica) en mes/paquete
+  const coursePrice = isRecurring
+    ? (parseFloat(student?.monthly_fee) || course?.price || 0)
+    : (parseFloat(student?.total_program_price) || course?.price || 0)
   const totalPaid = parseFloat(payment?.newAmountPaid ?? student?.amount_paid ?? payment?.amount ?? 0)
   const balance = parseFloat(payment?.newBalance ?? student?.balance ?? 0)
   const hasBalance = (isProgram || isRecurring) && balance > 0
   const isPartialPayment = payment?.isPartialPayment || payment?.paymentStatus === 'partial' || (isRecurring && totalPaid > 0 && totalPaid < coursePrice)
 
-  const [downloading, setDownloading] = useState(false)
-  const [downloaded, setDownloaded] = useState(false)
+  const receiptNumber = payment?.receipt_number || payment?.receiptNumber || 'SN'
 
-  const downloadReceipt = async () => {
-    if (!receiptRef.current) return
-    setDownloading(true)
-    try {
-      // Captura el comprobante visual como PNG (ideal para compartir por WhatsApp)
-      // Si hay imágenes externas (logo con CORS), se omiten con el filtro
-      const dataUrl = await toPng(receiptRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        cacheBust: true,
-        skipFonts: true,
-        filter: (node) => {
-          // Omitir imágenes externas que causan error CORS
-          if (node.tagName === 'IMG' && node.src && !node.src.startsWith('data:')) {
-            return false
-          }
-          return true
-        }
-      })
-      const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
-      const customerName = student?.name || 'Cliente'
-      const link = document.createElement('a')
-      link.download = `Comprobante_${receiptNumber}_${customerName.replace(/\s+/g, '_')}.png`
-      link.href = dataUrl
-      link.click()
-      setDownloaded(true)
-      setTimeout(() => setDownloaded(false), 3000)
-    } catch (err) {
-      console.error('Error generando comprobante PNG:', err)
-      alert('Error al generar el comprobante. Intenta de nuevo o usa captura de pantalla.')
-    } finally {
-      setDownloading(false)
-    }
-  }
+  const downloadReceipt = () =>
+    downloadReceiptImage(receiptRef.current, `Comprobante_${receiptNumber}_${student?.name || 'Cliente'}.png`)
+
+  // Teléfono del contacto correcto (menores → representante), igual que los recordatorios
+  const contactPhone = student ? getContactInfo(student).contactPhone : ''
 
   const sendWhatsApp = () => {
-    const receiptNumber = payment.receipt_number || payment.receiptNumber || 'SN'
     const courseName = isQuickPayment ? payment.className : (course?.name || 'N/A')
 
-    // Formatear mensaje con info de saldos si aplica
     let balanceInfo = ''
     if (isProgram || (isRecurring && isPartialPayment)) {
-      if (balance > 0) {
-        balanceInfo = `
-💳 *Saldo pendiente: $${balance.toFixed(2)}*`
-      } else {
-        balanceInfo = isProgram ? `
-✅ *Programa PAGADO en su totalidad*` : `
-✅ *Ciclo PAGADO*`
-      }
+      balanceInfo = balance > 0
+        ? `\n💳 *Saldo pendiente: $${balance.toFixed(2)}*`
+        : (isProgram ? '\n✅ *Programa PAGADO en su totalidad*' : '\n✅ *Ciclo PAGADO*')
     }
 
     const message = `Hola ${student.name}, adjunto su comprobante de pago.
@@ -118,307 +83,103 @@ export default function ReceiptGenerator({
 💰 Monto pagado: $${parseFloat(payment.amount).toFixed(2)}
 📅 Fecha: ${formatDate(payment.payment_date)}
 📚 ${isQuickPayment ? 'Clase' : 'Curso'}: ${courseName}${balanceInfo}
-${!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date ? `
+${isRecurring && student.next_payment_date ? `
 📆 Próximo cobro: *${formatDate(student.next_payment_date)}*` : ''}
 
 ¡Gracias por su preferencia!
-🩰 ${settings.name}`
+${settings.name}`
 
-    // Limpiar número de teléfono
-    const phone = student.phone?.replace(/\D/g, '') || ''
+    const phone = (contactPhone || '').replace(/\D/g, '')
     const phoneWithCode = phone.startsWith('0') ? `593${phone.slice(1)}` : phone
-
-    // Abrir WhatsApp
-    const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
+    window.open(`https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`, '_blank')
   }
 
   if (!payment || !student) return null
 
+  // Descuento: solo si la matemática cuadra (original - descuento ≈ monto)
+  const discount = (() => {
+    if (!payment.discount?.hasDiscount) return null
+    const orig = parseFloat(payment.discount.originalPrice) || 0
+    const disc = parseFloat(payment.discount.discountAmount) || 0
+    const amt = parseFloat(payment.amount) || 0
+    return Math.abs((orig - disc) - amt) < 0.01 ? { orig, disc } : null
+  })()
+
+  // Ciclo pagado (mes / paquete)
+  const cycle = (() => {
+    if (!isRecurring || !student.next_payment_date) return null
+    const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
+    let base = payment.cycle_start_date || payment.payment_date
+    let end = student.next_payment_date
+    const cicloIni = course?.cicloInicio || course?.ciclo_inicio
+    const cicloFin = course?.cicloFin || course?.ciclo_fin
+    if (cicloIni && base && base < cicloIni) base = cicloIni
+    if (cicloFin && end && end > cicloFin) end = cicloFin
+    const planMonths = payment.plan_months || payment.planMonths || null
+    const info = base
+      ? getCycleInfo(base, end, course?.classDays, cycleClasses, planMonths, planMonths ? null : getStudentCycleClasses(student))
+      : null
+    const days = course?.classDays?.map(d => DAY_NAMES[d]).join('/') || ''
+    return { info, days }
+  })()
+  const planName = payment.plan_name || payment.planName
+  const planMonths = payment.plan_months || payment.planMonths
+
+  const showPayer = !isQuickPayment && student.payer_name && student.payer_name !== student.name && student.payer_name !== student.parent_name
+  const methodDetail = [payment.bank_name, payment.transfer_receipt && `Ref. ${payment.transfer_receipt}`].filter(Boolean).join(' · ')
+
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-      onClick={(e) => {
-        // Cerrar al hacer clic fuera del modal
-        if (e.target === e.currentTarget) onClose()
-      }}
-    >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="p-4 flex items-center justify-between sticky top-0 bg-[#551735] text-white z-10 rounded-t-2xl">
-          <h2 className="text-lg font-semibold">Comprobante de Pago</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-xl active:scale-95 transition-all"
-            title="Cerrar (Esc)"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <ReceiptModal title="Comprobante de pago" onClose={onClose} onDownload={downloadReceipt} onWhatsApp={contactPhone ? sendWhatsApp : null}>
+      <ReceiptSheet
+        ref={receiptRef}
+        settings={settings}
+        title="Comprobante de pago"
+        number={receiptNumber}
+        date={formatDate(payment.payment_date)}
+        tags={[
+          isReprint && 'Reimpresión',
+          isQuickPayment && 'Clase diaria',
+          planName && `Plan ${planName}${planMonths ? ` · ${planMonths} ${planMonths === 1 ? 'mes' : 'meses'}` : ''}`,
+          discount && `Descuento -${money(discount.disc)}`,
+        ]}
+      >
+        <ReceiptFields items={[
+          { label: isQuickPayment ? 'Cliente' : 'Alumna', value: student.name },
+          { label: 'Cédula', value: student.cedula },
+          { label: isQuickPayment ? 'Clase' : 'Curso', value: isQuickPayment ? payment.className : (course?.name || 'N/A'), full: !student.cedula ? false : true },
+          { label: 'Período', value: !isQuickPayment && !cycle?.info ? getMonthName(payment.payment_date) : null },
+          showPayer && { label: 'Facturado a', value: `${student.payer_name}${student.payer_cedula ? ` · ${student.payer_cedula}` : ''}`, full: true },
+        ]} />
 
-        {/* Receipt Preview */}
-        <div className="p-4">
-          <div
-            ref={receiptRef}
-            className="force-light bg-white border-2 border-gray-200 rounded-xl p-6 shadow-inner"
-            style={{ fontFamily: 'Arial, sans-serif' }}
-          >
-            {/* School Header */}
-            <div className="text-center border-b-2 border-dashed border-gray-300 pb-4 mb-4">
-              {settings.logo_url ? (
-                <img
-                  src={settings.logo_url}
-                  alt="Logo"
-                  className="h-12 max-w-[150px] mx-auto mb-2 object-contain"
-                  onError={(e) => {
-                    e.target.onerror = null
-                    e.target.style.display = 'none'
-                  }}
-                />
-              ) : (
-                <div className="text-4xl mb-2">🩰</div>
-              )}
-              <h1 className="text-xl font-bold text-[#441029]">{settings.name}</h1>
-              {settings.legal_name && <p className="text-xs text-gray-400">{settings.legal_name}</p>}
-              <p className="text-sm text-gray-600">{settings.address}</p>
-              {settings.phone && <p className="text-sm text-gray-600">Tel: {settings.phone}</p>}
-              {settings.ruc && <p className="text-sm text-gray-600">RUC: {settings.ruc}</p>}
-            </div>
+        <ReceiptAmount
+          label={discount ? 'Total pagado' : 'Monto pagado'}
+          amount={payment.amount}
+          strike={discount ? money(discount.orig) : null}
+          method={payment.payment_method}
+          detail={methodDetail}
+        />
 
-            {/* Receipt Title */}
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">COMPROBANTE DE PAGO</h2>
-              {isReprint && (
-                <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full mb-1 font-semibold">
-                  📋 REIMPRESIÓN
-                </span>
-              )}
-              {isQuickPayment && (
-                <span className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full mb-1 ml-1">
-                  Clase Diaria
-                </span>
-              )}
-              <p className="text-[#6b2145] font-semibold">N° {payment.receipt_number || payment.receiptNumber}</p>
-              <p className="text-sm text-gray-500">Fecha: {formatDate(payment.payment_date)}</p>
-            </div>
+        {(isProgram || (isRecurring && isPartialPayment)) && (
+          <ReceiptStats
+            title={hasBalance ? 'Estado de cuenta' : (isProgram ? 'Programa pagado' : 'Ciclo pagado')}
+            items={[
+              { label: isRecurring ? 'Ciclo' : 'Precio', value: money(coursePrice) },
+              { label: 'Abonado', value: money(totalPaid), tone: 'ok' },
+              { label: 'Saldo', value: money(balance), tone: hasBalance ? 'warn' : 'ok' },
+            ]}
+          />
+        )}
 
-            {/* Student/Customer Info */}
-            <div className="bg-gray-50 rounded-xl p-3 mb-4">
-              <p className="text-sm">
-                <span className="font-semibold">{isQuickPayment ? 'Cliente:' : 'Alumno:'}</span> {student.name}
-              </p>
-              {student.cedula && (
-                <p className="text-sm"><span className="font-semibold">Cédula:</span> {student.cedula}</p>
-              )}
-              <p className="text-sm">
-                <span className="font-semibold">{isQuickPayment ? 'Clase:' : 'Curso:'}</span> {isQuickPayment ? payment.className : (course?.name || 'N/A')}
-              </p>
-              {!isQuickPayment && (
-                <p className="text-sm"><span className="font-semibold">Período:</span> {getMonthName(payment.payment_date)}</p>
-              )}
-              {/* Datos del pagador si es diferente */}
-              {!isQuickPayment && student.payer_name && student.payer_name !== student.name && student.payer_name !== student.parent_name && (
-                <>
-                  <hr className="my-2 border-gray-300" />
-                  <p className="text-sm"><span className="font-semibold">Comprobante a:</span> {student.payer_name}</p>
-                  {student.payer_cedula && (
-                    <p className="text-sm"><span className="font-semibold">Cédula/RUC:</span> {student.payer_cedula}</p>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Payment Details */}
-            <div className="border-t-2 border-b-2 border-dashed border-gray-300 py-4 mb-4">
-              {/* Descuento aplicado — solo si la matemática cuadra
-                 (original - descuento ≈ amount). Si no cuadra, se omite el
-                 desglose para no mostrar comprobantes inconsistentes. */}
-              {(() => {
-                const hasDiscount = payment.discount?.hasDiscount
-                if (!hasDiscount) return null
-                const orig = parseFloat(payment.discount.originalPrice) || 0
-                const disc = parseFloat(payment.discount.discountAmount) || 0
-                const amt = parseFloat(payment.amount) || 0
-                const expected = orig - disc
-                const isConsistent = Math.abs(expected - amt) < 0.01
-                if (!isConsistent) return null
-                return (
-                  <>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-gray-500 text-sm">Precio regular:</span>
-                      <span className="text-sm text-gray-400 line-through">${orig.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-green-600 text-sm font-medium">Descuento:</span>
-                      <span className="text-sm font-medium text-green-600">-${disc.toFixed(2)}</span>
-                    </div>
-                  </>
-                )
-              })()}
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600">{(() => {
-                  // Solo decir 'Total pagado' si el descuento se mostró
-                  // (i.e. matemática consistente). Si no, 'Monto pagado'.
-                  const hasDiscount = payment.discount?.hasDiscount
-                  if (!hasDiscount) return 'Monto pagado:'
-                  const orig = parseFloat(payment.discount.originalPrice) || 0
-                  const disc = parseFloat(payment.discount.discountAmount) || 0
-                  const amt = parseFloat(payment.amount) || 0
-                  return Math.abs((orig - disc) - amt) < 0.01 ? 'Total pagado:' : 'Monto pagado:'
-                })()}</span>
-                <span className="text-2xl font-bold text-green-600">${parseFloat(payment.amount).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Forma de pago:</span>
-                <span className="font-medium">{payment.payment_method}</span>
-              </div>
-              {payment.bank_name && (
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-gray-600">Banco:</span>
-                  <span className="font-medium text-sm">{payment.bank_name}</span>
-                </div>
-              )}
-              {payment.transfer_receipt && (
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-gray-600">N° Comprobante:</span>
-                  <span className="font-medium text-sm">{payment.transfer_receipt}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Balance Info for Programs and Recurring with partial payments */}
-            {(isProgram || (isRecurring && isPartialPayment)) && (
-              <div className={`rounded-xl p-3 mb-4 ${hasBalance ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}`}>
-                <p className="text-sm font-semibold text-center mb-2">
-                  {hasBalance ? '📊 Estado de Cuenta del Ciclo' : (isProgram ? '✅ Programa Pagado' : '✅ Ciclo Pagado')}
-                </p>
-                <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                  <div>
-                    <p className="text-gray-500">{isRecurring ? 'Ciclo' : 'Precio'}</p>
-                    <p className="font-bold">${coursePrice.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Abonado</p>
-                    <p className="font-bold text-green-600">${totalPaid.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Saldo</p>
-                    <p className={`font-bold ${hasBalance ? 'text-orange-600' : 'text-green-600'}`}>
-                      ${balance.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Cycle Info & Next Payment - for monthly and package courses */}
-            {!isQuickPayment && (course?.priceType === 'mes' || course?.priceType === 'paquete') && student.next_payment_date && (() => {
-              const cycleClasses = course?.classesPerCycle || course?.classesPerPackage || null
-              let cycleBaseDate = payment.cycle_start_date || payment.payment_date
-              let cycleEndForRcpt = student.next_payment_date
-              // Clamp al ciclo escolar (consistente con StudentDetail/App.jsx).
-              const _cicloIni = course?.cicloInicio || course?.ciclo_inicio
-              const _cicloFin = course?.cicloFin || course?.ciclo_fin
-              if (_cicloIni && cycleBaseDate && cycleBaseDate < _cicloIni) cycleBaseDate = _cicloIni
-              if (_cicloFin && cycleEndForRcpt && cycleEndForRcpt > _cicloFin) cycleEndForRcpt = _cicloFin
-              // Plan promocional aplicado en ESTE pago → contador X/N coherente
-              const _planMonths = payment.plan_months || payment.planMonths || null
-              const cycleInfo = cycleBaseDate
-                ? getCycleInfo(cycleBaseDate, cycleEndForRcpt, course?.classDays, cycleClasses, _planMonths, _planMonths ? null : getStudentCycleClasses(student))
-                : null
-              const dayNames = { 0: 'Domingos', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábados' }
-              const classDaysLabel = course?.classDays?.map(d => dayNames[d]).join(' y ') || ''
-
-              // Plan promocional aplicado (de BD o del modal)
-              const planName = payment.plan_name || payment.planName
-              const planMonths = payment.plan_months || payment.planMonths
-
-              return (
-                <div className="bg-[#fdf5f9] border border-[#e8b4cc] rounded-xl p-3 mb-4">
-                  {planName && (
-                    <div className="text-center mb-3 pb-2 border-b border-[#e8b4cc]">
-                      <span className="inline-block bg-[#7e2d55] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                        Plan {planName}
-                      </span>
-                      {planMonths && (
-                        <p className="text-[10px] text-[#7e2d55] mt-1.5">
-                          Cubre {planMonths} {planMonths === 1 ? 'mes' : 'meses'}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  {cycleInfo && (
-                    <div className="text-center mb-3 pb-2 border-b border-[#e8b4cc]">
-                      <p className="text-xs font-bold text-[#551735] mb-1">CICLO PAGADO</p>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="text-[#7e2d55]">Inicia:</span>
-                          <span className="font-bold text-[#551735] ml-1">{cycleInfo.cycleStart}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#7e2d55]">Termina:</span>
-                          <span className="font-bold text-[#551735] ml-1">{cycleInfo.cycleEnd}</span>
-                        </div>
-                      </div>
-                      {(cycleInfo.totalClasses || classDaysLabel) && (
-                        <p className="text-[10px] text-[#7e2d55] mt-1">
-                          {cycleInfo.totalClasses ? `${cycleInfo.totalClasses} clases` : ''}{cycleInfo.totalClasses && classDaysLabel ? ' • ' : ''}{classDaysLabel}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <p className="text-sm text-center">
-                    <span className="text-xs text-[#6b2145]">Próximo cobro:</span>
-                    <br />
-                    <span className="text-lg font-bold text-[#551735]">
-                      {formatDate(student.next_payment_date)}
-                    </span>
-                  </p>
-                </div>
-              )
-            })()}
-
-            {/* Footer */}
-            <div className="text-center text-gray-500 text-sm">
-              <p>¡Gracias por su preferencia!</p>
-              {settings.email && <p className="text-xs mt-1">{settings.email}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="p-4 border-t bg-gray-50 rounded-b-2xl">
-          <div className="flex gap-3 mb-3">
-            <button
-              onClick={downloadReceipt}
-              disabled={downloading}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl active:scale-95 transition-all disabled:cursor-not-allowed ${
-                downloaded
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-[#6b2145] text-white hover:bg-[#551735] disabled:opacity-60'
-              }`}
-            >
-              {downloaded ? <Check size={20} /> : <Download size={20} />}
-              {downloading ? 'Generando…' : downloaded ? '¡Descargado!' : 'Descargar imagen'}
-            </button>
-            {student.phone && (
-              <button
-                onClick={sendWhatsApp}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 transition-all"
-              >
-                <Send size={20} />
-                WhatsApp
-              </button>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-xl active:scale-95 transition-all text-sm"
-          >
-            Cerrar (Esc)
-          </button>
-        </div>
-      </div>
-    </div>
+        {cycle && (
+          <ReceiptStats
+            title={cycle.info?.totalClasses ? `Ciclo · ${cycle.info.totalClasses} clases${cycle.days ? ` · ${cycle.days}` : ''}` : 'Ciclo'}
+            items={[
+              ...(cycle.info ? [{ label: 'Inicia', value: cycle.info.cycleStart }, { label: 'Termina', value: cycle.info.cycleEnd }] : []),
+              { label: 'Próximo cobro', value: formatDate(student.next_payment_date) },
+            ]}
+          />
+        )}
+      </ReceiptSheet>
+    </ReceiptModal>
   )
 }
