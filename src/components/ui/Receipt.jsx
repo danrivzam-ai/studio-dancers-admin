@@ -27,7 +27,8 @@ export const ReceiptSheet = forwardRef(function ReceiptSheet(
   return (
     <div ref={ref} className="force-light"
       style={{ width: RECEIPT_WIDTH, maxWidth: '100%', background: '#fff', color: INK, fontFamily: 'Arial, Helvetica, sans-serif',
-        borderRadius: 14, overflow: 'hidden', border: `1px solid ${LINE}` }}>
+        // Esquinas rectas: la imagen descargada termina justo en el borde, sin esquinas blancas
+        overflow: 'hidden' }}>
       {/* Cabecera: escuela a la izquierda, comprobante a la derecha */}
       <div style={{ background: BRAND, color: '#fff', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         {/* Logo crema de la marca (archivo propio: siempre sale en la imagen descargada) */}
