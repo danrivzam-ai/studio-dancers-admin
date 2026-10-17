@@ -21,25 +21,17 @@ export const ReceiptSheet = forwardRef(function ReceiptSheet(
   { settings = {}, title, number, date, tags = [], children, thanks = '¡Gracias por su preferencia!' }, ref
 ) {
   const name = settings.name || 'Studio Dancers'
-  const contact = [settings.phone && `Tel. ${settings.phone}`, settings.ruc && `RUC ${settings.ruc}`].filter(Boolean)
-  const footer = [settings.email, settings.address].filter(Boolean).join(' · ')
+  const footer = [settings.phone && `Tel. ${settings.phone}`, settings.email, settings.address].filter(Boolean).join(' · ')
+  // El RUC es de la razón social (ADLAB STUDIO S.A.S.), no del nombre comercial
+  const legal = [settings.legal_name, settings.ruc && `RUC ${settings.ruc}`].filter(Boolean).join(' · ')
   return (
     <div ref={ref} className="force-light"
       style={{ width: RECEIPT_WIDTH, maxWidth: '100%', background: '#fff', color: INK, fontFamily: 'Arial, Helvetica, sans-serif',
         borderRadius: 14, overflow: 'hidden', border: `1px solid ${LINE}` }}>
       {/* Cabecera: escuela a la izquierda, comprobante a la derecha */}
       <div style={{ background: BRAND, color: '#fff', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-          {settings.logo_url && (
-            <img src={settings.logo_url} alt="" crossOrigin="anonymous"
-              style={{ height: 34, width: 34, objectFit: 'contain', borderRadius: 8, background: '#fff', padding: 3 }}
-              onError={(e) => { e.currentTarget.style.display = 'none' }} />
-          )}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.15 }}>{name}</div>
-            {contact.map(c => <div key={c} style={{ fontSize: 10, opacity: 0.8, marginTop: 1, whiteSpace: 'nowrap' }}>{c}</div>)}
-          </div>
-        </div>
+        {/* Logo crema de la marca (archivo propio: siempre sale en la imagen descargada) */}
+        <img src="/logo-cream-receipt.png" alt={name} style={{ height: 42, width: 'auto', display: 'block' }} />
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div style={{ fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.8 }}>{title}</div>
           {number && <div style={{ fontWeight: 700, fontSize: 14, marginTop: 1 }}>N° {number}</div>}
@@ -60,6 +52,7 @@ export const ReceiptSheet = forwardRef(function ReceiptSheet(
         <div style={{ textAlign: 'center', fontSize: 10, color: MUTED, marginTop: 12, paddingTop: 10, borderTop: `1px dashed ${LINE}` }}>
           <div style={{ fontWeight: 700, color: BRAND, fontSize: 11 }}>{thanks}</div>
           {footer && <div style={{ marginTop: 2 }}>{footer}</div>}
+          {legal && <div style={{ marginTop: 1, fontSize: 9 }}>{legal}</div>}
         </div>
       </div>
     </div>
