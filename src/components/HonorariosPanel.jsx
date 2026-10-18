@@ -17,6 +17,30 @@ function fmtDate(dateStr) {
 }
 function fmtMoney(n) { return `$${Number(n || 0).toFixed(2)}` }
 
+// Tarifa con la que se calculó una fila. Comprobantes anteriores a v51 no la
+// guardaban: se deduce de monto / horas.
+function rowRate(d, fallback) {
+  if (d.tarifa_hora != null) return Number(d.tarifa_hora)
+  if (Number(d.horas_trabajadas) > 0) return +(Number(d.monto) / Number(d.horas_trabajadas)).toFixed(2)
+  return fallback != null ? Number(fallback) : null
+}
+// "$15.00/h" o "$15.00/h y $12.00/h" si el período tiene varias tarifas
+function ratesLabel(details, fallback) {
+  const rates = [...new Set(details.map(d => rowRate(d, fallback)).filter(r => r != null && r > 0))].sort((a, b) => b - a)
+  if (rates.length === 0) return fallback ? `${fmtMoney(fallback)}/h` : '—'
+  const parts = rates.map(r => `${fmtMoney(r)}/h`)
+  return parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} y ${parts[parts.length - 1]}`
+}
+// Datos bancarios de la instructora en una línea (informativo)
+function bankLine(inst) {
+  if (!inst?.banco_numero_cuenta) return ''
+  const tipo = inst.banco_tipo_cuenta === 'corriente' ? 'Cta. corriente' : inst.banco_tipo_cuenta === 'ahorros' ? 'Cta. ahorros' : 'Cuenta'
+  const titular = inst.banco_titular
+    ? ` · Titular: ${inst.banco_titular}${inst.banco_cedula_titular ? ` (C.I. ${inst.banco_cedula_titular})` : ''}`
+    : ''
+  return `${inst.banco_nombre ? `${inst.banco_nombre} · ` : ''}${tipo} ${inst.banco_numero_cuenta}${titular}`
+}
+
 // ── Genera y descarga PDF con jsPDF ─────────────────────────────────────────
 function downloadPDF(blocks) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -27,7 +51,7 @@ function downloadPDF(blocks) {
   // Estimar alto de cada bloque (base fija + filas variables)
   const BASE_H     = 5 + 4.5 + 5 + 4.5 + 1 + 4 + 6 + 17  // 47mm
   const ROW_H      = 4.2
-  const blockHeights = blocks.map(b => BASE_H + (b.periodo.payment_details?.length || 0) * ROW_H)
+  const blockHeights = blocks.map(b => BASE_H + (b.instructorBank ? 4.5 : 0) + (b.periodo.payment_details?.length || 0) * ROW_H)
   const totalContent = blockHeights.reduce((s, h) => s + h, 0)
                      + (blocks.length - 1) * CUT_H
   const spare  = PAGE_H - totalContent
@@ -36,7 +60,7 @@ function downloadPDF(blocks) {
   let y = gap
 
   blocks.forEach((block, idx) => {
-    const { periodo, instructorName, instructorCedula } = block
+    const { periodo, instructorName, instructorCedula, instructorBank } = block
     const details = periodo.payment_details || []
 
     // Línea de corte centrada en el gap entre bloques
@@ -82,7 +106,12 @@ function downloadPDF(blocks) {
     doc.setTextColor(80, 80, 80)
     const obs = periodo.observaciones ? `  —  ${periodo.observaciones}` : ''
     doc.text(`Período: ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}${obs}`, 10, y)
-    y += 5
+    y += 4.5
+    if (instructorBank) {
+      doc.text(`Pagar a: ${instructorBank}`, 10, y)
+      y += 4.5
+    }
+    y += 0.5
 
     // Detalle: una línea por horario
     doc.setFontSize(8)
@@ -99,7 +128,8 @@ function downloadPDF(blocks) {
         : ''
       const grupo = d.group_name ? ` · ${d.group_name}` : ''
       const linea = `${dia} (${d.horario})${grupo}${ajuste}`
-      const monto = `${d.clases_efectivas} clases · ${d.horas_trabajadas}h · ${fmtMoney(d.monto)}`
+      const rate = rowRate(d, periodo.tarifa_hora_snapshot)
+      const monto = `${d.clases_efectivas} clases · ${d.horas_trabajadas}h × ${fmtMoney(rate)} · ${fmtMoney(d.monto)}`
       doc.setTextColor(60, 60, 60)
       doc.text(`   ${linea}`, 10, y)
       doc.setTextColor(PX, PG, PB)
@@ -144,18 +174,18 @@ function downloadPDF(blocks) {
 }
 
 // ── WhatsApp text ────────────────────────────────────────────────────────────
-function buildWhatsApp(periodo, instructorName) {
+function buildWhatsApp(periodo, instructorName, instructorBank) {
   const details = periodo.payment_details || []
   const lines = details.map(d =>
-    `• ${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''} (${d.horario}) → ${d.clases_efectivas} clases · ${d.horas_trabajadas} h · ${fmtMoney(d.monto)}`
+    `• ${d.dia_nombre || DAY_NAMES[d.dia_semana] || ''} (${d.horario}) → ${d.clases_efectivas} clases · ${d.horas_trabajadas} h × ${fmtMoney(rowRate(d, periodo.tarifa_hora_snapshot))} · ${fmtMoney(d.monto)}`
   ).join('\n')
-  return `🩰 *STUDIO DANCERS — Comprobante de Pago*
+  return `*STUDIO DANCERS — Comprobante de Pago*
 👩‍🏫 *Profesora:* ${instructorName}
 📅 *Período:* ${fmtDate(periodo.fecha_inicio)} al ${fmtDate(periodo.fecha_fin)}${periodo.observaciones ? `\n📝 *Obs.:* ${periodo.observaciones}` : ''}
 📋 *Detalle:*
 ${lines}
 ⏱ *Total horas:* ${periodo.total_horas} h
-💵 *TOTAL: ${fmtMoney(periodo.total_pagar)}*
+💵 *TOTAL: ${fmtMoney(periodo.total_pagar)}*${instructorBank ? `\n🏦 *Pago a:* ${instructorBank}` : ''}
 _Confirma el recibo respondiendo con tu nombre._ ✅`
 }
 
@@ -165,11 +195,11 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
   const details = periodo.payment_details || []
 
   const handleDownload = () => {
-    downloadPDF([{ periodo, instructorName: instructor.name, instructorCedula: instructor.cedula }])
+    downloadPDF([{ periodo, instructorName: instructor.name, instructorCedula: instructor.cedula, instructorBank: bankLine(instructor) }])
   }
 
   const handleCopyWA = async () => {
-    await navigator.clipboard.writeText(buildWhatsApp(periodo, instructor.name))
+    await navigator.clipboard.writeText(buildWhatsApp(periodo, instructor.name, bankLine(instructor)))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -207,7 +237,10 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
             {instructor.cedula && <div className="flex justify-between"><span className="text-gray-500">C.I.:</span><span>{instructor.cedula}</span></div>}
             <div className="flex justify-between"><span className="text-gray-500">Período:</span><span className="font-medium">{fmtDate(periodo.fecha_inicio)} — {fmtDate(periodo.fecha_fin)}</span></div>
             {periodo.observaciones && <div className="flex justify-between"><span className="text-gray-500">Obs.:</span><span className="text-gray-700">{periodo.observaciones}</span></div>}
-            <div className="flex justify-between"><span className="text-gray-500">Tarifa:</span><span>{fmtMoney(periodo.tarifa_hora_snapshot)}/hora</span></div>
+            <div className="flex justify-between gap-3"><span className="text-gray-500">Tarifa:</span><span className="text-right">{ratesLabel(details, periodo.tarifa_hora_snapshot)}</span></div>
+            {bankLine(instructor) && (
+              <div className="flex justify-between gap-3"><span className="text-gray-500 shrink-0">Pagar a:</span><span className="text-right">{bankLine(instructor)}</span></div>
+            )}
           </div>
           <table className="w-full text-xs border-collapse mb-4">
             <thead>
@@ -216,6 +249,7 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
                 <th className="text-center px-2 py-1.5">Clases</th>
                 <th className="text-center px-2 py-1.5">Hrs/cl.</th>
                 <th className="text-center px-2 py-1.5">Total h</th>
+                <th className="text-center px-2 py-1.5">$/h</th>
                 <th className="text-right px-2 py-1.5">Monto</th>
               </tr>
             </thead>
@@ -230,6 +264,7 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
                   <td className="text-center px-2 py-1.5 font-medium">{d.clases_efectivas}</td>
                   <td className="text-center px-2 py-1.5">{d.horas_clase}h</td>
                   <td className="text-center px-2 py-1.5">{d.horas_trabajadas}h</td>
+                  <td className="text-center px-2 py-1.5">{fmtMoney(rowRate(d, periodo.tarifa_hora_snapshot))}</td>
                   <td className="text-right px-2 py-1.5 font-semibold">{fmtMoney(d.monto)}</td>
                 </tr>
               ))}
@@ -238,6 +273,7 @@ function ComprobantePrint({ periodo, instructor, onClose }) {
               <tr className="border-t-2 border-[#551735] bg-[#fdf5f9]">
                 <td colSpan={3} className="px-2 py-2 font-bold text-[#551735]">TOTAL</td>
                 <td className="text-center px-2 py-2 font-bold text-[#551735]">{periodo.total_horas}h</td>
+                <td></td>
                 <td className="text-right px-2 py-2 font-bold text-[#551735]">{fmtMoney(periodo.total_pagar)}</td>
               </tr>
             </tfoot>
@@ -284,7 +320,7 @@ function MultiPrintModal({ instructors, onClose }) {
 
   const handleDownload = () => {
     const blocks = Object.values(selected).map(({ periodo, instructor }) => ({
-      periodo, instructorName: instructor.name, instructorCedula: instructor.cedula
+      periodo, instructorName: instructor.name, instructorCedula: instructor.cedula, instructorBank: bankLine(instructor)
     }))
     if (blocks.length === 0) return
     downloadPDF(blocks)
@@ -454,6 +490,9 @@ function LiquidacionModal({ instructor, scheduleSlots, onClose, onSaved }) {
                         <td className="px-3 py-2">
                           <p className="font-semibold text-gray-800">{d.dia_nombre}</p>
                           <p className="text-gray-400">{d.horario}</p>
+                          <p className={d.tarifa_hora !== instructor.tarifa_hora ? 'text-amber-600 font-medium' : 'text-gray-400'}>
+                            {d.horas_clase}h × {fmtMoney(d.tarifa_hora)}{d.tarifa_hora !== instructor.tarifa_hora ? ' (tarifa del horario)' : ''}
+                          </p>
                         </td>
                         <td className="text-center px-2 py-2 text-gray-600">{d.clases_programadas}</td>
                         <td className="px-1 py-1.5">
@@ -656,7 +695,7 @@ export default function HonorariosPanel() {
     setLoading(true)
     const { data } = await supabase
       .from('instructors')
-      .select('id, name, cedula, tarifa_hora, active')
+      .select('id, name, cedula, tarifa_hora, active, banco_nombre, banco_tipo_cuenta, banco_numero_cuenta, banco_titular, banco_cedula_titular')
       .eq('active', true)
       .order('name')
     setInstructors(data || [])

@@ -141,6 +141,7 @@ export function useHonorarios() {
       clases_efectivas: d.clases_efectivas,
       horas_trabajadas: d.horas_trabajadas,
       monto: d.monto,
+      tarifa_hora: d.tarifa_hora ?? null,
     }))
 
     const { error: dErr } = await supabase.from('payment_details').insert(detailRows)

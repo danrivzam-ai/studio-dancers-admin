@@ -21,7 +21,9 @@ const AVAILABLE_RHYTHMS = ['Ballet', 'Jazz', 'Urban Pop', 'Contemporáneo', 'Lyr
 const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const emptySlotForm = { day_of_week: '1', time_start: '08:00', time_end: '09:30', group_name: '', course_id: '', notes: '', tarifa_hora: '' }
 
-const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [], tarifa_hora: '' }
+const emptyBank = { banco_nombre: '', banco_tipo_cuenta: 'ahorros', banco_numero_cuenta: '', banco_titular: '', banco_cedula_titular: '' }
+const emptyForm = { name: '', cedula: '', email: '', password: '', active: true, rhythms: [], tarifa_hora: '', ...emptyBank }
+const BANCOS_EC = ['Banco Pichincha', 'Banco Guayaquil', 'Banco del Pacífico', 'Produbanco', 'Banco Bolivariano', 'Banco Internacional', 'Banco del Austro', 'Banco de Machala', 'Banco Solidario', 'Banco ProCredit', 'Banco Diners Club', 'Cooperativa JEP', 'Cooperativa Jardín Azuayo']
 
 export default function InstructorManager({ allCourses = [], securityPin, settings = {} }) {
   const [instructors, setInstructors] = useState([])
@@ -117,7 +119,9 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
   // ── Abrir modal editar ─────────────────────────────────────────────
   const openEdit = (inst) => {
     setEditing(inst)
-    setForm({ name: inst.name, cedula: inst.cedula, email: inst.email || '', password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [], tarifa_hora: inst.tarifa_hora ?? '' })
+    setForm({ name: inst.name, cedula: inst.cedula, email: inst.email || '', password: '', active: inst.active, rhythms: instructorRhythms[inst.id] || [], tarifa_hora: inst.tarifa_hora ?? '',
+      banco_nombre: inst.banco_nombre || '', banco_tipo_cuenta: inst.banco_tipo_cuenta || 'ahorros', banco_numero_cuenta: inst.banco_numero_cuenta || '',
+      banco_titular: inst.banco_titular || '', banco_cedula_titular: inst.banco_cedula_titular || '' })
     setFormError('')
     setResetPass(false)
     setShowPass(false)
@@ -162,6 +166,11 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           email: form.email.trim() || null,
           active: form.active,
           tarifa_hora: form.tarifa_hora !== '' ? parseFloat(form.tarifa_hora) : null,
+          banco_nombre: form.banco_nombre.trim() || null,
+          banco_tipo_cuenta: form.banco_tipo_cuenta || null,
+          banco_numero_cuenta: form.banco_numero_cuenta.trim() || null,
+          banco_titular: form.banco_titular.trim() || null,
+          banco_cedula_titular: form.banco_cedula_titular.trim() || null,
         }
         if (resetPass && form.password) {
           updates.password = await bcrypt.hash(form.password, 10)
@@ -188,6 +197,11 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
           active: form.active,
           must_change_password: true,
           tarifa_hora: form.tarifa_hora !== '' ? parseFloat(form.tarifa_hora) : null,
+          banco_nombre: form.banco_nombre.trim() || null,
+          banco_tipo_cuenta: form.banco_tipo_cuenta || null,
+          banco_numero_cuenta: form.banco_numero_cuenta.trim() || null,
+          banco_titular: form.banco_titular.trim() || null,
+          banco_cedula_titular: form.banco_cedula_titular.trim() || null,
         }).select('id').single()
         if (error) throw error
         instructorId = newInst.id
@@ -939,6 +953,35 @@ export default function InstructorManager({ allCourses = [], securityPin, settin
                   className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none transition-all"
                 />
                 <p className="text-xs text-gray-400 mt-1">Se usa para calcular honorarios automáticamente</p>
+              </div>
+
+              {/* Datos bancarios (informativo: aparece en su comprobante de honorarios) */}
+              <div className="rounded-xl border border-line p-3 space-y-2.5">
+                <p className="text-xs font-semibold text-gray-600">Cuenta para pagos <span className="font-normal text-gray-400">— opcional</span></p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <input list="bancos-ec" value={form.banco_nombre} onChange={e => setForm({ ...form, banco_nombre: e.target.value })}
+                      placeholder="Banco" aria-label="Banco"
+                      className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none" />
+                    <datalist id="bancos-ec">{BANCOS_EC.map(b => <option key={b} value={b} />)}</datalist>
+                  </div>
+                  <select value={form.banco_tipo_cuenta} onChange={e => setForm({ ...form, banco_tipo_cuenta: e.target.value })}
+                    aria-label="Tipo de cuenta"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:border-[#7e2d55] outline-none bg-white">
+                    <option value="ahorros">Ahorros</option>
+                    <option value="corriente">Corriente</option>
+                  </select>
+                  <input inputMode="numeric" value={form.banco_numero_cuenta} onChange={e => setForm({ ...form, banco_numero_cuenta: e.target.value.replace(/[^\d-]/g, '') })}
+                    placeholder="N° de cuenta" aria-label="Número de cuenta"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none" />
+                  <input value={form.banco_titular} onChange={e => setForm({ ...form, banco_titular: e.target.value })}
+                    placeholder="Titular (si no es ella)" aria-label="Titular de la cuenta"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none" />
+                  <input inputMode="numeric" value={form.banco_cedula_titular} onChange={e => setForm({ ...form, banco_cedula_titular: e.target.value.replace(/\D/g, '') })}
+                    placeholder="C.I. del titular" aria-label="Cédula del titular"
+                    className="w-full px-3 py-2.5 text-base border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-[#f9e8f0] focus:border-[#7e2d55] outline-none" />
+                </div>
+                <p className="text-[11px] text-gray-400">Solo informativo: aparece en su comprobante de honorarios. Lo ve el personal del Admin.</p>
               </div>
 
               {/* Contraseña (crear) o reset (editar) */}
