@@ -211,6 +211,24 @@ Deno.serve(async (req: Request) => {
       }, 200)
     }
 
+    // ── Instructora: token de sesión para el portal aparte ────────────────
+    // studio-dancers-instructoras envía el token en el header x-session-token
+    // y las políticas RLS lo validan con get_instructor_from_session().
+    // El ?instructora del Admin ignora este campo.
+    const expiresAt = new Date(
+      Date.now() + (body.remember === true ? 30 * 24 : 24) * 60 * 60 * 1000
+    ).toISOString()
+    const { data: sessionRow, error: sessionError } = await supabaseAdmin
+      .from("instructor_sessions")
+      .insert({ instructor_id: record.id, expires_at: expiresAt })
+      .select("token")
+      .single()
+
+    if (sessionError || !sessionRow?.token) {
+      console.error("[staff-login] instructor_sessions insert:", sessionError?.message)
+      return jsonResponse({ error: "No se pudo iniciar la sesión. Intenta de nuevo." }, 500)
+    }
+
     await registerAttempt(true)
 
     return jsonResponse(
@@ -219,6 +237,7 @@ Deno.serve(async (req: Request) => {
         name: record.name,
         email: record.email,
         mustChangePw: !!record.must_change_password,
+        session_token: sessionRow.token,
       },
       200
     )
