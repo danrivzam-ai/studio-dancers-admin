@@ -145,6 +145,26 @@ Deno.serve(async (req: Request) => {
         return jsonResponse({ error: "Tu sesión expiró. Vuelve a ingresar." }, 401)
       }
 
+      // Fuera del primer ingreso se exige la contraseña actual: un celular
+      // desbloqueado con la sesión abierta no basta para cambiarla.
+      const { data: inst } = await supabaseAdmin
+        .from("instructors")
+        .select("password, must_change_password")
+        .eq("id", session.instructor_id)
+        .eq("active", true)
+        .maybeSingle()
+      if (!inst) {
+        return jsonResponse({ error: "Tu sesión expiró. Vuelve a ingresar." }, 401)
+      }
+      if (!inst.must_change_password) {
+        const current = String(body.current_password || "")
+        const isBcrypt = typeof inst.password === "string" && inst.password.startsWith("$2")
+        const ok = current !== "" && (isBcrypt ? await bcrypt.compare(current, inst.password) : current === inst.password)
+        if (!ok) {
+          return jsonResponse({ error: "La contraseña actual no es correcta." }, 401)
+        }
+      }
+
       const hashed = await bcrypt.hash(newPassword, 10)
       const { error: updateError } = await supabaseAdmin
         .from("instructors")
