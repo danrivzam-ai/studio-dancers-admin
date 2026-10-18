@@ -22,7 +22,7 @@ This is a **single Vite build** that serves multiple apps via URL query params, 
 | _(none)_ | `App.jsx` — Admin panel | Supabase Auth |
 | `?recepcion` | `RecepcionApp` | Custom username/password (receptionists table) |
 | `?portal` | `ClientPortalApp` — Student portal | Custom cedula/phone4 (RPC) |
-| `?instructora` | `InstructoraApp` | Custom session token (RPC) |
+| `?instructora` | Redirige a studio-dancers-instructoras.vercel.app | — |
 | `?aliados` | `LandingPage` | Public |
 
 **Critical:** The portal and instructora apps use the Supabase **anon key** without a Supabase Auth session. RLS policies must account for this — `authenticated` policies won't apply there. Portal actions go through `SECURITY DEFINER` RPCs (e.g., `rpc_client_login`, `rpc_client_submit_transfer`).
@@ -116,10 +116,14 @@ VITE_TELEGRAM_TRANSFERS_CHAT_ID
 
 The student portal has its **own repo**: `D:\Studio Dancers Portal` / `studio-dancers-portal` (branch: `master`). It shares the same Supabase project but is a separate Vite app with its own `src/lib/banks.js`, `src/lib/supabase.js`, and `src/components/UploadTransfer.jsx`. Changes to portal features must be made there, not here.
 
+## Instructor Portal
+
+The instructor portal has its **own repo**: `D:\Mi archivo\01 Trabajo\Studio Dancers\Desarrollo\Studio Dancers Instructoras` / `studio-dancers-instructoras` (branch: `master`, Vercel). Login, session token and password change go through the `staff-login` Edge Function (`role: instructora`); RLS reads the `x-session-token` header via `get_instructor_from_session()`. The old `rpc_*instructor*` login RPCs are closed to anon (v52).
+
 ## Key Gotchas
 
 - `App.jsx` is ~1400+ lines — line numbers shift with every edit. Use grep/search, not line references.
 - `isProgramFullyPaid` must use computed `paymentStatus.status === 'paid'`, not `student.payment_status`
 - `cash_registers` UNIQUE constraint is on `(register_date, shift)`, not just `register_date`
 - The `🩰` ballet slipper emoji (U+1F9F0) is not supported on older Android — removed from all WhatsApp templates
-- Portal login (`RecepcionLogin`, `ClientPortalApp`, `InstructoraApp`) runs without Supabase Auth — RLS `authenticated` policies don't apply; use `anon` policies or SECURITY DEFINER RPCs
+- Portal login (`RecepcionLogin`, `ClientPortalApp`) runs without Supabase Auth — RLS `authenticated` policies don't apply; use `anon` policies or SECURITY DEFINER RPCs

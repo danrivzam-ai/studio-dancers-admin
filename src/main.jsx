@@ -30,16 +30,19 @@ const params = window.location.search
 const isRecepcion = params.includes('recepcion')
 // Directorio de aliados (público): ?aliados
 const isAliados = !isRecepcion && params.includes('aliados')
-// Portal de instructoras: ?instructora
+// Portal de instructoras: vive en su propio repo (studio-dancers-instructoras).
+// Los enlaces viejos a ?instructora se redirigen allá.
+const INSTRUCTORAS_URL = 'https://studio-dancers-instructoras.vercel.app'
 const isInstructora = !isRecepcion && !isAliados && params.includes('instructora')
+if (isInstructora) window.location.replace(INSTRUCTORAS_URL)
 
-// Cada app se carga por separado: una instructora o la recepción no descargan
-// el panel administrativo completo. (El portal de alumnas vive en su propio repo.)
-// Un lazy() por app: si se agrupan en un solo import() con ternario, Vite
-// precarga los archivos del panel admin para todas.
+// Cada app se carga por separado: la recepción no descarga el panel
+// administrativo completo. (Los portales de alumnas e instructoras viven en sus
+// propios repos.) Un lazy() por app: si se agrupan en un solo import() con
+// ternario, Vite precarga los archivos del panel admin para todas.
 const SelectedApp = isRecepcion ? lazy(() => import('./components/Recepcion/RecepcionApp'))
   : isAliados ? lazy(() => import('./components/LandingPage'))
-  : isInstructora ? lazy(() => import('./components/Instructora/InstructoraApp'))
+  : isInstructora ? () => null
   : lazy(() => import('./App.jsx'))
 
 const appLoading = (

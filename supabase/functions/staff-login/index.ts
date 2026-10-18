@@ -125,6 +125,39 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json()
+
+    // ── Instructora: cambiar contraseña con su token de sesión ─────────────
+    // Reemplaza a rpc_first_login_change_password (anon, bastaba el id).
+    if (body.action === "change_password") {
+      const token = String(body.session_token || "")
+      const newPassword = String(body.new_password || "")
+      if (!token || newPassword.length < 6) {
+        return jsonResponse({ error: "La contraseña debe tener al menos 6 caracteres." }, 400)
+      }
+
+      const { data: session } = await supabaseAdmin
+        .from("instructor_sessions")
+        .select("instructor_id")
+        .eq("token", token)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle()
+      if (!session) {
+        return jsonResponse({ error: "Tu sesión expiró. Vuelve a ingresar." }, 401)
+      }
+
+      const hashed = await bcrypt.hash(newPassword, 10)
+      const { error: updateError } = await supabaseAdmin
+        .from("instructors")
+        .update({ password: hashed, must_change_password: false })
+        .eq("id", session.instructor_id)
+        .eq("active", true)
+      if (updateError) {
+        console.error("[staff-login] change_password:", updateError.message)
+        return jsonResponse({ error: "No se pudo guardar la contraseña. Intenta de nuevo." }, 500)
+      }
+      return jsonResponse({ ok: true }, 200)
+    }
+
     const role = String(body.role || "")
     const identifier = String(body.identifier || "").trim()
     const password = String(body.password || "")
