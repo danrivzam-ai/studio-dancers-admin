@@ -369,8 +369,14 @@ export function useStudents() {
       const isPackage = course?.priceType === 'paquete'
       // Para cursos recurrentes (mes/paquete): respetar monthly_fee personal del alumno
       // Esto preserva tarifas históricas ($40) aunque el curso suba a $44
+      // Tarifa programada para la renovación (ej. fin de precio promocional): si este
+      // pago abre un ciclo nuevo (sin saldo pendiente), se cobra ya con la nueva tarifa.
+      const scheduledFee = (isMonthly || isPackage) && student?.next_monthly_fee != null && !student?.next_course_id &&
+        !(parseFloat(student?.balance || 0) > 0)
+        ? parseFloat(student.next_monthly_fee)
+        : null
       const coursePrice = (isMonthly || isPackage)
-        ? (parseFloat(student?.monthly_fee) || course?.price || 0)
+        ? (scheduledFee ?? (parseFloat(student?.monthly_fee) || course?.price || 0))
         : (course?.price || 0)
 
       // Obtener los días de clase del curso (si tiene)
@@ -594,6 +600,10 @@ export function useStudents() {
         prepaid: isPaidEarly ? true : false,
         prepaid_old_start: isPaidEarly ? (student.last_payment_date || null) : null
       }
+      if (scheduledFee != null) {
+        updateFields.monthly_fee = scheduledFee
+        updateFields.next_monthly_fee = null
+      }
       if (startsNewCycle) {
         updateFields.cycle_classes = isMonthly && monthsPaid > 1 && perCycle ? perCycle * monthsPaid : null
         updateFields.frozen_classes = 0
@@ -699,6 +709,7 @@ export function useStudents() {
             classes_used: isPackage ? classesUsed : s.classes_used,
             prepaid: updateFields.prepaid,
             prepaid_old_start: updateFields.prepaid_old_start,
+            ...(scheduledFee != null ? { monthly_fee: scheduledFee, next_monthly_fee: null } : {}),
             ...(startsNewCycle ? { cycle_classes: updateFields.cycle_classes, frozen_classes: 0 } : {})
           }
         }
@@ -843,6 +854,28 @@ export function useStudents() {
       return { success: true, data }
     } catch (err) {
       console.error('Error applying course change:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
+  // Tarifa programada sin cambio de curso (ej. promoción solo el primer mes):
+  // al cobrar la renovación, next_monthly_fee pasa a ser la tarifa.
+  const applyScheduledFeeChange = async (studentId) => {
+    try {
+      const student = students.find(s => s.id === studentId)
+      if (!student || student.next_monthly_fee == null || student.next_course_id) return { success: false, error: 'Sin tarifa programada' }
+      const fields = { monthly_fee: parseFloat(student.next_monthly_fee), next_monthly_fee: null }
+      const { data, error } = await supabase.from('students').update(fields).eq('id', studentId).select().single()
+      if (error) throw error
+      setStudents(prev => prev.map(s => s.id === studentId ? data : s))
+      logAudit({
+        action: 'student_fee_changed', tableName: 'students', recordId: studentId,
+        oldData: { monthly_fee: student.monthly_fee },
+        newData: { monthly_fee: data.monthly_fee, mode: 'renewal_applied' },
+      })
+      return { success: true, data }
+    } catch (err) {
+      console.error('Error applying fee change:', err)
       return { success: false, error: err.message }
     }
   }
@@ -1105,6 +1138,7 @@ export function useStudents() {
     pauseStudent,
     unpauseStudent,
     applyScheduledCourseChange,
+    applyScheduledFeeChange,
     recalculatePaymentDates,
     reactivateCycle
   }

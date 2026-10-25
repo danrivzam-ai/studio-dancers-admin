@@ -234,6 +234,11 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 También en {getCourseById(o.course_id)?.name || 'otro curso'}
               </button>
             ))}
+            {!nextCourse && student.next_monthly_fee != null && (
+              <span className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold" title="Tarifa programada para la próxima renovación">
+                Al renovar → ${parseFloat(student.next_monthly_fee).toFixed(2)}
+              </span>
+            )}
             {nextCourse && (
               <span className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold" title="Cambio de curso programado para la próxima renovación">
                 Al renovar → {nextCourse.name}
@@ -283,7 +288,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                       : course?.priceType === 'paquete' ? `${course?.classesPerPackage || 4} clases`
                       : course?.priceType === 'programa' ? 'programa completo'
                       : 'por clase'}
-                    {hasGrandfatheredRate && <span className="sd-status-warn font-semibold"> · tarifa histórica</span>}
+                    {hasGrandfatheredRate && <span className="sd-status-warn font-semibold"> · {student.next_monthly_fee != null ? 'tarifa especial este ciclo' : 'tarifa histórica'}</span>}
                   </p>
                 </div>
 
@@ -331,7 +336,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                     <p className={`text-xl font-bold tabular-nums ${hasBalance ? 'sd-status-warn' : 'text-ink'}`}>
                       {hasBalance ? `$${balance.toFixed(2)}` : amountPaid > 0 ? `$${amountPaid.toFixed(2)}` : '—'}
                     </p>
-                    {hasBalance && <p className="text-xs text-ink-muted tabular-nums">de ${coursePrice.toFixed(2)}</p>}
+                    {hasBalance && <p className="text-xs text-ink-muted tabular-nums">de ${(isRecurring ? studentFee : (parseFloat(student.total_program_price) || coursePrice)).toFixed(2)}</p>}
                   </div>
                 )}
               </div>

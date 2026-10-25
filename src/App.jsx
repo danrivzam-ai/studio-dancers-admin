@@ -91,7 +91,7 @@ function StudentAvatar({ student, isCamp }) {
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, isContador, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle, applyScheduledCourseChange } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle, applyScheduledCourseChange, applyScheduledFeeChange } = useStudents()
   const { sales, loading: salesLoading, createSaleGroup, deleteSale } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, fetchCoursePlans, saveCoursePlan, deleteCoursePlan } = useItems()
@@ -912,6 +912,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         if (!res.success) { alert('Error: ' + res.error); return }
         student = res.data
       }
+    } else if (student?.next_monthly_fee != null && !(parseFloat(student.amount_paid || 0) > 0)) {
+      // Tarifa programada (ej. fin de precio promocional): la renovación ya se cobra con la nueva
+      const res = await applyScheduledFeeChange(student.id)
+      if (!res.success) { alert('Error: ' + res.error); return }
+      student = res.data
     }
     setSelectedStudent(student)
     setShowPaymentModal(true)
