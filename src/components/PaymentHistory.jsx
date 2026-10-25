@@ -341,25 +341,34 @@ export default function PaymentHistory({
     setVoidError('')
   }
 
-  // Función para reimprimir comprobante de estudiante
-  const handleReprintStudent = (payment) => {
-    const student = payment.students
+  // Función para reimprimir comprobante de estudiante.
+  // El estado de cuenta (tarifa, abonado, saldo) y el ciclo no se guardan con cada
+  // pago: solo son correctos para el ÚLTIMO pago de la alumna (su estado actual).
+  // En pagos anteriores el comprobante sale sin esos bloques para no mostrar datos de hoy.
+  const handleReprintStudent = async (payment) => {
+    let student = payment.students
+    let isLatest = false
+    try {
+      const [{ data: full }, { data: last }] = await Promise.all([
+        supabase.from('students').select('*').eq('id', payment.student_id).single(),
+        supabase.from('payments').select('id').eq('student_id', payment.student_id).eq('voided', false)
+          .order('payment_date', { ascending: false }).order('created_at', { ascending: false }).limit(1),
+      ])
+      if (full) student = full
+      isLatest = last?.[0]?.id === payment.id
+    } catch (err) {
+      console.error('Error cargando alumna para reimprimir:', err)
+    }
     onShowReceipt({
       payment: {
         ...payment,
-        receiptNumber: payment.receipt_number
+        receiptNumber: payment.receipt_number,
+        isHistoric: !isLatest,
       },
       student: {
         ...student,
-        name: student?.name,
-        course_id: student?.course_id,
-        phone: student?.phone,
         payer_name: payment.payer_name || student?.payer_name,
         payer_cedula: payment.payer_cedula || student?.payer_cedula,
-        total_program_price: payment.total_program_price,
-        amount_paid: payment.amount_paid_after || payment.amount,
-        balance: payment.balance_after,
-        next_payment_date: student?.next_payment_date
       },
       isReprint: true
     })

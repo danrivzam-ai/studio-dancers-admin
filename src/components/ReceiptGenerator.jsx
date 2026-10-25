@@ -38,6 +38,8 @@ export default function ReceiptGenerator({
   const receiptRef = useRef(null)
   const isQuickPayment = payment?.isQuickPayment
   const isReprint = payment?.isReprint || false
+  // Reimpresión de un pago anterior al último: el estado de cuenta y el ciclo de hoy no le corresponden
+  const isHistoric = payment?.isHistoric || false
   const course = isQuickPayment ? null : getCourseById(student?.course_id)
 
   // Cerrar con Escape
@@ -147,7 +149,7 @@ ${settings.name}`
           { label: isQuickPayment ? 'Cliente' : 'Alumna', value: student.name },
           { label: 'Cédula', value: student.cedula },
           { label: isQuickPayment ? 'Clase' : 'Curso', value: isQuickPayment ? payment.className : (course?.name || 'N/A'), full: !student.cedula ? false : true },
-          { label: 'Período', value: !isQuickPayment && !cycle?.info ? getMonthName(payment.payment_date) : null },
+          { label: 'Período', value: !isQuickPayment && (isHistoric || !cycle?.info) ? getMonthName(payment.payment_date) : null },
           showPayer && { label: 'Facturado a', value: `${student.payer_name}${student.payer_cedula ? ` · ${student.payer_cedula}` : ''}`, full: true },
         ]} />
 
@@ -159,7 +161,7 @@ ${settings.name}`
           detail={methodDetail}
         />
 
-        {(isProgram || (isRecurring && isPartialPayment)) && (
+        {!isHistoric && (isProgram || (isRecurring && isPartialPayment)) && (
           <ReceiptStats
             title={hasBalance ? 'Estado de cuenta' : (isProgram ? 'Programa pagado' : 'Ciclo pagado')}
             items={[
@@ -170,7 +172,7 @@ ${settings.name}`
           />
         )}
 
-        {cycle && (
+        {!isHistoric && cycle && (
           <ReceiptStats
             title={cycle.info?.totalClasses ? `Ciclo · ${cycle.info.totalClasses} clases${cycle.days ? ` · ${cycle.days}` : ''}` : 'Ciclo'}
             items={[
