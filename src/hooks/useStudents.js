@@ -858,6 +858,54 @@ export function useStudents() {
     }
   }
 
+  // Cambiar la tarifa de una alumna (solo administración):
+  //  - 'now':     desde este ciclo y los siguientes
+  //  - 'cycle':   solo este ciclo; al renovar vuelve a la tarifa actual
+  //  - 'renewal': desde la próxima renovación (este ciclo no cambia)
+  // Si está pagando en abonos, el saldo del ciclo se recalcula con la nueva tarifa.
+  const changeStudentFee = async (studentId, { fee, mode }) => {
+    try {
+      const student = students.find(s => s.id === studentId)
+      if (!student) throw new Error('Alumna no encontrada')
+      const newFee = parseFloat(fee)
+      if (!(newFee > 0)) throw new Error('Ingresa una tarifa válida')
+      const oldFee = parseFloat(student.monthly_fee) || 0
+
+      const fields = {}
+      if (mode === 'renewal') {
+        fields.next_monthly_fee = newFee
+      } else {
+        fields.monthly_fee = newFee
+        // 'cycle': al renovar vuelve a la tarifa ya programada o, si no hay, a la actual
+        fields.next_monthly_fee = mode === 'cycle' ? (student.next_monthly_fee != null ? parseFloat(student.next_monthly_fee) : oldFee) : null
+        // Abonos del ciclo en curso: recalcular saldo con la nueva tarifa
+        const paid = parseFloat(student.amount_paid || 0)
+        if (paid > 0 && parseFloat(student.balance || 0) > 0) {
+          if (paid >= newFee) {
+            fields.amount_paid = 0
+            fields.balance = 0
+            fields.payment_status = 'paid'
+          } else {
+            fields.balance = +(newFee - paid).toFixed(2)
+          }
+        }
+      }
+
+      const { data, error } = await supabase.from('students').update(fields).eq('id', studentId).select().single()
+      if (error) throw error
+      setStudents(prev => prev.map(s => s.id === studentId ? data : s))
+      logAudit({
+        action: 'student_fee_changed', tableName: 'students', recordId: studentId,
+        oldData: { monthly_fee: student.monthly_fee, next_monthly_fee: student.next_monthly_fee, balance: student.balance },
+        newData: { mode, ...fields },
+      })
+      return { success: true, data }
+    } catch (err) {
+      console.error('Error changing fee:', err)
+      return { success: false, error: err.message }
+    }
+  }
+
   // Tarifa programada sin cambio de curso (ej. promoción solo el primer mes):
   // al cobrar la renovación, next_monthly_fee pasa a ser la tarifa.
   const applyScheduledFeeChange = async (studentId) => {
@@ -1139,6 +1187,7 @@ export function useStudents() {
     unpauseStudent,
     applyScheduledCourseChange,
     applyScheduledFeeChange,
+    changeStudentFee,
     recalculatePaymentDates,
     reactivateCycle
   }

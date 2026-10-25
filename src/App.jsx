@@ -91,7 +91,7 @@ function StudentAvatar({ student, isCamp }) {
 
 export default function App({ isRecepcion = false, userName: recepcionUserName = '', onLogout } = {}) {
   const { user, userRole, loading: authLoading, signOut, isAuthenticated, isAdmin, isContador, can } = useAuth()
-  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle, applyScheduledCourseChange, applyScheduledFeeChange } = useStudents()
+  const { students, loading: studentsLoading, fetchStudents, createStudent, updateStudent, deleteStudent, reactivateStudent, fetchInactiveStudents, checkDuplicateStudent, registerPayment, pauseStudent, unpauseStudent, reactivateCycle, applyScheduledCourseChange, applyScheduledFeeChange, changeStudentFee } = useStudents()
   const { sales, loading: salesLoading, createSaleGroup, deleteSale } = useSales()
   const { settings, updateSettings } = useSchoolSettings()
   const { courses: allCourses, products: allProducts, saveCourse, deleteCourse, saveProduct, deleteProduct, getCourseById, getProductById, adjustStock, fetchCoursePlans, saveCoursePlan, deleteCoursePlan } = useItems()
@@ -3032,6 +3032,11 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
             settings={settings}
             otherEnrollments={otherEnrollments(showStudentDetail, students)}
             onOpenEnrollment={(s) => setShowStudentDetail(s)}
+            onChangeFee={isAdmin ? async (s, opts) => {
+              const res = await changeStudentFee(s.id, opts)
+              if (res.success) setShowStudentDetail(res.data)
+              return res
+            } : null}
             onEnrollOther={(student) => {
               setShowStudentDetail(null)
               setEditingStudent(null)

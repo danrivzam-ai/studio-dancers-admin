@@ -9,10 +9,11 @@ import InvoiceButton from './InvoiceButton'
 
 const methodStyle = () => ({ bg: 'bg-surface-alt', text: 'text-ink-soft' })
 
-export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings, otherEnrollments = [], onOpenEnrollment, onEnrollOther }) {
+export default function StudentDetail({ student, course: courseProp, onClose, onPayment, onReactivate, onPause, onEdit, onReprint, schoolName, settings, otherEnrollments = [], onOpenEnrollment, onEnrollOther, onChangeFee }) {
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
   const [showMoreActions, setShowMoreActions] = useState(false)
+  const [feeDialog, setFeeDialog] = useState(null) // { fee, mode, saving, error }
   const [showReactivateDialog, setShowReactivateDialog] = useState(false)
   const [reactivating, setReactivating] = useState(false)
   const [reactivateError, setReactivateError] = useState(null)
@@ -646,6 +647,14 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                   <Pencil size={16} className="shrink-0" /> Editar datos
                 </button>
               )}
+              {onChangeFee && isRecurring && !student.is_courtesy && (
+                <button
+                  onClick={() => { setShowMoreActions(false); setFeeDialog({ fee: '', mode: 'cycle', saving: false, error: '' }) }}
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 active:scale-[.98] transition-all"
+                >
+                  <Wallet size={16} className="shrink-0" /> Cambiar tarifa
+                </button>
+              )}
               {onEnrollOther && !student.is_courtesy && (
                 <button
                   onClick={() => { setShowMoreActions(false); onEnrollOther(student) }}
@@ -789,6 +798,65 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
           </div>
         </div>
       )}
+      {/* Cambiar tarifa (administración) */}
+      {feeDialog && (() => {
+        const fee = parseFloat(feeDialog.fee)
+        const paid = parseFloat(student.amount_paid || 0)
+        const inAbonos = paid > 0 && parseFloat(student.balance || 0) > 0
+        const newBalance = fee > 0 ? Math.max(0, fee - paid) : null
+        const options = [
+          { id: 'cycle', label: 'Solo este ciclo', help: `Al renovar vuelve a $${(student.next_monthly_fee != null ? parseFloat(student.next_monthly_fee) : studentFee).toFixed(2)}. Ej.: precio promocional del primer mes.` },
+          { id: 'now', label: 'Desde ahora', help: 'Este ciclo y los siguientes.' },
+          { id: 'renewal', label: 'Desde la próxima renovación', help: student.next_payment_date ? `Este ciclo no cambia; aplica desde el ${formatDate(student.next_payment_date)}.` : 'Este ciclo no cambia.' },
+        ]
+        const save = async () => {
+          if (!(fee > 0)) { setFeeDialog(d => ({ ...d, error: 'Ingresa la nueva tarifa' })); return }
+          setFeeDialog(d => ({ ...d, saving: true, error: '' }))
+          const res = await onChangeFee(student, { fee, mode: feeDialog.mode })
+          if (res?.success) setFeeDialog(null)
+          else setFeeDialog(d => ({ ...d, saving: false, error: res?.error || 'No se pudo guardar' }))
+        }
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[70]" onClick={() => setFeeDialog(null)}>
+            <div className="bg-paper w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4" onClick={e => e.stopPropagation()}
+              role="dialog" aria-modal="true" aria-label="Cambiar tarifa">
+              <div>
+                <p className="font-semibold text-ink">Cambiar tarifa</p>
+                <p className="text-xs text-ink-muted mt-0.5">{student.name} · actual ${studentFee.toFixed(2)}</p>
+              </div>
+              <label className="block">
+                <span className="block text-xs font-medium text-ink-soft mb-1">Nueva tarifa ($)</span>
+                <input type="number" min="0" step="0.01" autoFocus value={feeDialog.fee}
+                  onChange={e => setFeeDialog(d => ({ ...d, fee: e.target.value, error: '' }))}
+                  className="w-full px-3 py-2.5 text-base bg-surface border border-line-strong rounded-xl text-ink focus:ring-4 focus:ring-brand-soft focus:border-brand outline-none" />
+              </label>
+              <div className="space-y-2">
+                {options.map(o => (
+                  <label key={o.id} className="flex items-start gap-2 cursor-pointer">
+                    <input type="radio" name="feeMode" className="mt-1" checked={feeDialog.mode === o.id} onChange={() => setFeeDialog(d => ({ ...d, mode: o.id }))} />
+                    <span>
+                      <span className="text-sm font-medium text-ink">{o.label}</span>
+                      <span className="block text-xs text-ink-muted">{o.help}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {inAbonos && feeDialog.mode !== 'renewal' && newBalance != null && (
+                <p className="text-xs rounded-xl bg-surface-alt border border-line px-3 py-2 text-ink-soft">
+                  Ya abonó ${paid.toFixed(2)} en este ciclo: el saldo pasa de ${parseFloat(student.balance).toFixed(2)} a <strong className="text-ink">${newBalance.toFixed(2)}</strong>.
+                </p>
+              )}
+              {feeDialog.error && <p className="text-xs sd-status-danger">{feeDialog.error}</p>}
+              <div className="flex gap-2">
+                <button onClick={() => setFeeDialog(null)} className="flex-1 sd-btn sd-btn-secondary">Cancelar</button>
+                <button onClick={save} disabled={feeDialog.saving} className="flex-1 sd-btn sd-btn-primary">
+                  {feeDialog.saving ? 'Guardando…' : 'Guardar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </Modal>
   )
 }
