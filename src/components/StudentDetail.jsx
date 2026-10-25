@@ -296,7 +296,8 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
                 <div className="p-3.5 border-b border-line">
                   <p className="sd-section-title !text-[10px] mb-1">Último pago</p>
                   <p className="text-base font-bold text-ink tabular-nums">
-                    {student.last_payment_date ? formatDate(student.last_payment_date) : '—'}
+                    {/* Fecha real del último pago (last_payment_date es el inicio del ciclo, puede ser anterior) */}
+                    {validPayments.length > 0 ? formatDate(validPayments[0].payment_date) : student.last_payment_date ? formatDate(student.last_payment_date) : '—'}
                   </p>
                   {validPayments.length > 0 && (
                     <p className="text-xs text-ink-muted tabular-nums">${parseFloat(validPayments[0].amount).toFixed(2)}</p>
