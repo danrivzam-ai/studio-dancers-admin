@@ -912,7 +912,7 @@ export default function App({ isRecepcion = false, userName: recepcionUserName =
         if (!res.success) { alert('Error: ' + res.error); return }
         student = res.data
       }
-    } else if (student?.next_monthly_fee != null && !(parseFloat(student.amount_paid || 0) > 0)) {
+    } else if (student?.next_monthly_fee != null && !student.next_monthly_fee_pending && !(parseFloat(student.amount_paid || 0) > 0)) {
       // Tarifa programada (ej. fin de precio promocional): la renovación ya se cobra con la nueva
       const res = await applyScheduledFeeChange(student.id)
       if (!res.success) { alert('Error: ' + res.error); return }

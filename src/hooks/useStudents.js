@@ -372,7 +372,7 @@ export function useStudents() {
       // Tarifa programada para la renovación (ej. fin de precio promocional): si este
       // pago abre un ciclo nuevo (sin saldo pendiente), se cobra ya con la nueva tarifa.
       const scheduledFee = (isMonthly || isPackage) && student?.next_monthly_fee != null && !student?.next_course_id &&
-        !(parseFloat(student?.balance || 0) > 0)
+        !student?.next_monthly_fee_pending && !(parseFloat(student?.balance || 0) > 0)
         ? parseFloat(student.next_monthly_fee)
         : null
       const coursePrice = (isMonthly || isPackage)
@@ -604,6 +604,9 @@ export function useStudents() {
         updateFields.monthly_fee = scheduledFee
         updateFields.next_monthly_fee = null
       }
+      // Este pago abre el ciclo con tarifa especial: la programada aplica desde el siguiente
+      const promoCycleOpened = !!student?.next_monthly_fee_pending && (startsNewCycle || opensCycleOnPartial)
+      if (promoCycleOpened) updateFields.next_monthly_fee_pending = false
       if (startsNewCycle) {
         updateFields.cycle_classes = isMonthly && monthsPaid > 1 && perCycle ? perCycle * monthsPaid : null
         updateFields.frozen_classes = 0
@@ -710,6 +713,7 @@ export function useStudents() {
             prepaid: updateFields.prepaid,
             prepaid_old_start: updateFields.prepaid_old_start,
             ...(scheduledFee != null ? { monthly_fee: scheduledFee, next_monthly_fee: null } : {}),
+            ...(promoCycleOpened ? { next_monthly_fee_pending: false } : {}),
             ...(startsNewCycle ? { cycle_classes: updateFields.cycle_classes, frozen_classes: 0 } : {})
           }
         }
@@ -871,13 +875,20 @@ export function useStudents() {
       if (!(newFee > 0)) throw new Error('Ingresa una tarifa válida')
       const oldFee = parseFloat(student.monthly_fee) || 0
 
-      const fields = {}
+      const fields = { next_monthly_fee_pending: false }
       if (mode === 'renewal') {
         fields.next_monthly_fee = newFee
       } else {
         fields.monthly_fee = newFee
         // 'cycle': al renovar vuelve a la tarifa ya programada o, si no hay, a la actual
         fields.next_monthly_fee = mode === 'cycle' ? (student.next_monthly_fee != null ? parseFloat(student.next_monthly_fee) : oldFee) : null
+        // 'cycle' sin ciclo en curso (alumna nueva o ciclo terminado): la tarifa especial es
+        // para el ciclo que abrirá el próximo pago, no para el actual.
+        if (mode === 'cycle') {
+          const running = (student.next_payment_date && String(student.next_payment_date).substring(0, 10) > getTodayEC()) ||
+            (parseFloat(student.amount_paid || 0) > 0 && parseFloat(student.balance || 0) > 0)
+          fields.next_monthly_fee_pending = !running
+        }
         // Abonos del ciclo en curso: recalcular saldo con la nueva tarifa
         const paid = parseFloat(student.amount_paid || 0)
         if (paid > 0 && parseFloat(student.balance || 0) > 0) {
@@ -911,7 +922,7 @@ export function useStudents() {
   const applyScheduledFeeChange = async (studentId) => {
     try {
       const student = students.find(s => s.id === studentId)
-      if (!student || student.next_monthly_fee == null || student.next_course_id) return { success: false, error: 'Sin tarifa programada' }
+      if (!student || student.next_monthly_fee == null || student.next_course_id || student.next_monthly_fee_pending) return { success: false, error: 'Sin tarifa programada' }
       const fields = { monthly_fee: parseFloat(student.next_monthly_fee), next_monthly_fee: null }
       const { data, error } = await supabase.from('students').update(fields).eq('id', studentId).select().single()
       if (error) throw error

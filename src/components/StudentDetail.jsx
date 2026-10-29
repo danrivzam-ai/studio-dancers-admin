@@ -237,7 +237,7 @@ export default function StudentDetail({ student, course: courseProp, onClose, on
             ))}
             {!nextCourse && student.next_monthly_fee != null && (
               <span className="px-3 py-1 bg-surface-alt text-ink-soft border border-line rounded-full text-xs font-semibold" title="Tarifa programada para la próxima renovación">
-                Al renovar → ${parseFloat(student.next_monthly_fee).toFixed(2)}
+                {student.next_monthly_fee_pending ? 'Primer ciclo a tarifa especial · luego ' : 'Al renovar → '}${parseFloat(student.next_monthly_fee).toFixed(2)}
               </span>
             )}
             {nextCourse && (
